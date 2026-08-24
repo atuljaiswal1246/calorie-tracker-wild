@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
@@ -50,6 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<FoodEntry> _entries = [];
   DateTime _selected = DateTime.now();
   int _navIndex = 0; // 0 home, 1 progress, 2 groups, 3 profile
+  int _macroPageIndex = 0;
+  final PageController _macroPageController = PageController();
 
   final _apiKeyController = TextEditingController();
   final _geminiKeyController = TextEditingController();
@@ -69,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _apiKeyController.dispose();
     _geminiKeyController.dispose();
+    _macroPageController.dispose();
     super.dispose();
   }
 
@@ -254,38 +258,83 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 20),
         _caloriesCard(goal: goal, logged: logged),
         const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: _macroCard(
-                label: 'Protein eaten',
-                value: _protein(_selected),
-                target: proteinGoal.toDouble(),
-                color: _proteinColor,
-                icon: Icons.egg_alt,
+        SizedBox(
+          height: 140,
+          child: PageView(
+            controller: _macroPageController,
+            onPageChanged: (i) => setState(() => _macroPageIndex = i),
+            children: [
+              // Page 1: Protein, Carbs, Fat
+              Row(
+                children: [
+                  Expanded(
+                    child: _macroCard(
+                      label: 'Protein eaten',
+                      value: _protein(_selected),
+                      target: proteinGoal.toDouble(),
+                      color: _proteinColor,
+                      icon: Symbols.egg,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _macroCard(
+                      label: 'Carbs eaten',
+                      value: _carbs(_selected),
+                      target: carbsGoal.toDouble(),
+                      color: _carbsColor,
+                      icon: Symbols.rice_bowl,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _macroCard(
+                      label: 'Fat eaten',
+                      value: _fat(_selected),
+                      target: fatGoal.toDouble(),
+                      color: _fatColor,
+                      icon: Symbols.avocado_bean,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _macroCard(
-                label: 'Carbs eaten',
-                value: _carbs(_selected),
-                target: carbsGoal.toDouble(),
-                color: _carbsColor,
-                icon: Icons.grain,
+              // Page 2: Fiber, Sugar, Sodium
+              Row(
+                children: [
+                  Expanded(
+                    child: _macroCard(
+                      label: 'Fiber eaten',
+                      value: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
+                      target: 30,
+                      color: const Color(0xFF8D6E63),
+                      icon: Symbols.eco,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _macroCard(
+                      label: 'Sugar eaten',
+                      value: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
+                      target: 50,
+                      color: const Color(0xFFE91E63),
+                      icon: Symbols.cookie,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _macroCard(
+                      label: 'Sodium eaten',
+                      value: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
+                      target: 2300,
+                      color: const Color(0xFF78909C),
+                      icon: Symbols.emoji_food_beverage,
+                      unit: 'mg',
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _macroCard(
-                label: 'Fat eaten',
-                value: _fat(_selected),
-                target: fatGoal.toDouble(),
-                color: _fatColor,
-                icon: Icons.water_drop,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 14),
         _paginationDots(),
@@ -539,13 +588,14 @@ class _HomeScreenState extends State<HomeScreen> {
     required double target,
     required Color color,
     required IconData icon,
+    String unit = 'g',
   }) {
     final progress = target == 0 ? 0.0 : (value / target).clamp(0.0, 1.0);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: _cardShadow,
       ),
       child: Column(
@@ -557,39 +607,39 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 value.toStringAsFixed(0),
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: _ink,
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(width: 3),
+              const SizedBox(width: 2),
               Text(
-                '/${target.toStringAsFixed(0)}g',
+                '/${target.toStringAsFixed(0)}$unit',
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: _muted,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 2),
           Text(
             label,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               color: _muted,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           _ring(
             progress: progress,
             color: color,
-            size: 56,
-            stroke: 6,
-            child: Icon(icon, color: color, size: 18),
+            size: 52,
+            stroke: 5,
+            child: Icon(icon, color: color, size: 28),
           ),
         ],
       ),
@@ -629,8 +679,8 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           width: 7,
           height: 7,
-          decoration: const BoxDecoration(
-            color: _ink,
+          decoration: BoxDecoration(
+            color: _macroPageIndex == 0 ? _ink : const Color(0xFFE3E3DE),
             shape: BoxShape.circle,
           ),
         ),
@@ -639,16 +689,7 @@ class _HomeScreenState extends State<HomeScreen> {
           width: 7,
           height: 7,
           decoration: BoxDecoration(
-            color: const Color(0xFFE3E3DE),
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE3E3DE),
+            color: _macroPageIndex == 1 ? _ink : const Color(0xFFE3E3DE),
             shape: BoxShape.circle,
           ),
         ),
