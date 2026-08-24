@@ -10,6 +10,7 @@ import '../models/profile.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import 'capture_screen.dart';
+import 'manual_entry_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final StorageService storage;
@@ -130,8 +131,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.camera,
-      maxWidth: 1600,
-      imageQuality: 85,
     );
     if (picked == null) return;
     if (!mounted) return;
@@ -150,8 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 1600,
-      imageQuality: 85,
     );
     if (picked == null) return;
     if (!mounted) return;
@@ -339,33 +336,16 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 14),
         _paginationDots(),
         const SizedBox(height: 22),
-        Row(
-          children: [
-            const Expanded(
-              child: Text(
-                'Recently uploaded',
-                style: TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w800,
-                  color: _ink,
-                  letterSpacing: -0.4,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: _openGallery,
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: _cardShadow,
-                ),
-                child: const Icon(Icons.photo_library_outlined, size: 20, color: _muted),
-              ),
-            ),
-          ],
+        _logMealSection(),
+        const SizedBox(height: 22),
+        const Text(
+          'Recently uploaded',
+          style: TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
+            color: _ink,
+            letterSpacing: -0.4,
+          ),
         ),
         const SizedBox(height: 12),
         if (recent.isEmpty)
@@ -695,6 +675,79 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     );
+  }
+
+  Widget _logMealSection() {
+    return Row(
+      children: [
+        Expanded(
+          child: _logOption(
+            icon: Symbols.egg_alt,
+            label: 'Scan food',
+            onTap: _openCapture,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _logOption(
+            icon: Icons.photo_library_outlined,
+            label: 'Upload photo',
+            onTap: _openGallery,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _logOption(
+            icon: Symbols.restaurant_menu,
+            label: 'Add manually',
+            onTap: _openManualEntry,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _logOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: _cardShadow,
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 24, color: _ink),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openManualEntry() async {
+    if (!mounted) return;
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ManualEntryScreen(storage: widget.storage),
+      ),
+    );
+    if (saved == true) _load();
   }
 
   Widget _mealCard(FoodEntry entry) {

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/food_entry.dart';
 import '../services/gemini_service.dart';
@@ -48,7 +49,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
     super.initState();
     if (widget.initialImage != null) {
       _image = widget.initialImage;
-      // Auto-analyze when image comes from scanner/gallery.
+      // Show screen immediately, analyze in background.
       WidgetsBinding.instance.addPostFrameCallback((_) => _analyze());
     }
   }
@@ -56,8 +57,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
   Future<void> _pickImage(ImageSource source) async {
     final picked = await _picker.pickImage(
       source: source,
-      maxWidth: 1600,
-      imageQuality: 85,
+      maxWidth: 800,
+      imageQuality: 70,
     );
     if (picked != null) {
       setState(() {
@@ -151,12 +152,20 @@ class _CaptureScreenState extends State<CaptureScreen> {
     final items = _items;
     if (items == null || items.isEmpty) return;
 
+    String savedPath = _image!.path;
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = '${DateTime.now().microsecondsSinceEpoch}.${_image!.path.split('.').last}';
+      final permanentFile = await _image!.copy('${appDir.path}/$fileName');
+      savedPath = permanentFile.path;
+    } catch (_) {}
+
     final entry = FoodEntry(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       dateTime: DateTime.now(),
       mealType: _mealType,
       items: items,
-      imagePath: _image!.path,
+      imagePath: savedPath,
     );
 
     await widget.storage.addEntry(entry);

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/food_entry.dart';
@@ -14,8 +15,12 @@ class OpenAIService {
   static const _endpoint = 'https://api.openai.com/v1/chat/completions';
 
   Future<({List<FoodItem> items, String? mealType})> analyzeImage(String imagePath) async {
-    final bytes = await File(imagePath).readAsBytes();
-    final base64 = base64Encode(bytes);
+    final compressed = await FlutterImageCompress.compressWithFile(
+      imagePath,
+      minWidth: 800,
+      quality: 70,
+    );
+    final base64 = base64Encode(compressed ?? await File(imagePath).readAsBytes());
     final ext = imagePath.split('.').last.toLowerCase();
     final mime = ext == 'png'
         ? 'image/png'
@@ -24,39 +29,12 @@ class OpenAIService {
             : 'image/jpeg';
 
     final prompt = '''
-You are a nutrition expert for Indian food. Analyze the food in this photo and return ONLY valid JSON, no markdown, no extra text.
+Analyze this food photo. Return ONLY valid JSON:
+{"mealType":"lunch","items":[{"name":"item","calories":250,"protein":10.5,"carbs":30.0,"fat":8.0,"fiber":3.5,"sugar":5.0,"sodium":450.0}]}
 
-Estimate portion sizes as typical Indian household servings. Use realistic calorie and macro estimates for Indian dishes (e.g. dal, roti, rice, biryani, samosa, dosa, paneer, curry, etc.). Include every visible food item as a separate object.
+If no food visible: {"mealType":"snack","items":[]}
 
-Respond with this exact JSON structure:
-{
-  "mealType": "lunch",
-  "items": [
-    {
-      "name": "item name",
-      "calories": 250,
-      "protein": 10.5,
-      "carbs": 30.0,
-      "fat": 8.0,
-      "fiber": 3.5,
-      "sugar": 5.0,
-      "sodium": 450.0
-    }
-  ]
-}
-
-If there is no food visible, or the cup/plate is nearly empty with only residue or a few drops left, return {"mealType":"snack","items":[]}.
-
-Rules:
-- "mealType" must be one of: "breakfast", "lunch", "dinner", "snack". Infer from the food type and likely time of day (Indian meal patterns: paratha/poha/upma/dosa = breakfast, dal-roti/rice-curry = lunch, roti-curry/rice = dinner, chai-samosa/pakora = snack).
-- "calories" is an integer in kcal.
-- protein, carbs, fat, fiber, sugar are in grams (numbers).
-- sodium is in milligrams (number).
-- For fiber: estimate based on food type (whole grains, lentils, vegetables are high; refined flour, rice are low).
-- For sugar: include both natural sugars (lactose in milk, fructose in fruit) and estimate added sugar based on typical preparation.
-- For sodium: estimate based on typical salt usage in Indian cooking (curries moderate, pickles/chaat high, plain rice/roti low).
-- If unsure, give a reasonable estimate.
-- Only include foods actually visible.
+Rules: mealType = breakfast/lunch/dinner/snack. Calories = integer kcal. protein/carbs/fat/fiber/sugar = grams. sodium = mg. Indian household serving sizes. Only include visible foods.
 ''';
 
     final body = jsonEncode({
@@ -71,6 +49,49 @@ Rules:
               'image_url': {'url': 'data:$mime;base64,$base64'},
             },
           ],
+        }
+      ],
+      'temperature': 0.2,
+      'max_tokens': 1200,
+    });
+
+    final response = await http.post(
+      Uri.parse(_endpoint),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey',
+      },
+      body: body,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'OpenAI request failed (${response.statusCode}): ${response.body}');
+    }
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final content = (decoded['choices'] as List).first['message']['content']
+        as String;
+
+    return _parseResponse(content);
+  }
+
+  Future<({List<FoodItem> items, String? mealType})> analyzeText(String foodName) async {
+    final prompt = '''
+Estimate nutrition for this food: $foodName
+
+Return ONLY valid JSON:
+{"mealType":"lunch","items":[{"name":"item","calories":250,"protein":10.5,"carbs":30.0,"fat":8.0,"fiber":3.5,"sugar":5.0,"sodium":450.0}]}
+
+Rules: mealType = breakfast/lunch/dinner/snack. Calories = integer kcal. protein/carbs/fat/fiber/sugar = grams. sodium = mg. Indian household serving sizes. Use quantity if specified, otherwise typical single serving.
+''';
+
+    final body = jsonEncode({
+      'model': model,
+      'messages': [
+        {
+          'role': 'user',
+          'content': prompt,
         }
       ],
       'temperature': 0.2,
