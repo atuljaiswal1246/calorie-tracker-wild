@@ -336,66 +336,6 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               item.quantity = newQty;
                             });
                           },
-                          onEditServing: (newGrams) {
-                            setState(() {
-                              final oldServing = item.servingSizeGrams;
-                              if (oldServing > 0) {
-                                final ratio = newGrams / oldServing;
-                                item.servingSizeGrams = newGrams;
-                                item.baseCalories =
-                                    (item.baseCalories * ratio).round();
-                                item.baseProtein = item.baseProtein * ratio;
-                                item.baseCarbs = item.baseCarbs * ratio;
-                                item.baseFat = item.baseFat * ratio;
-                                item.baseFiber = item.baseFiber * ratio;
-                                item.baseSugar = item.baseSugar * ratio;
-                                item.baseSodium = item.baseSodium * ratio;
-                                // Clear edits since base changed
-                                item.editedCalories = null;
-                                item.editedProtein = null;
-                                item.editedCarbs = null;
-                                item.editedFat = null;
-                              } else {
-                                item.servingSizeGrams = newGrams;
-                              }
-                            });
-                          },
-                          onEditField: (field, value) {
-                            setState(() {
-                              switch (field) {
-                                case 'calories':
-                                  item.editedCalories = value as int;
-                                  break;
-                                case 'protein':
-                                  item.editedProtein = value as double;
-                                  break;
-                                case 'carbs':
-                                  item.editedCarbs = value as double;
-                                  break;
-                                case 'fat':
-                                  item.editedFat = value as double;
-                                  break;
-                              }
-                            });
-                          },
-                          onClearEdit: (field) {
-                            setState(() {
-                              switch (field) {
-                                case 'calories':
-                                  item.editedCalories = null;
-                                  break;
-                                case 'protein':
-                                  item.editedProtein = null;
-                                  break;
-                                case 'carbs':
-                                  item.editedCarbs = null;
-                                  break;
-                                case 'fat':
-                                  item.editedFat = null;
-                                  break;
-                              }
-                            });
-                          },
                         );
                       }),
 
@@ -492,16 +432,10 @@ class _FoodItemCard extends StatelessWidget {
 
   final FoodItem item;
   final void Function(double oldQty, double newQty) onQuantityChanged;
-  final void Function(double newGrams) onEditServing;
-  final void Function(String field, dynamic value) onEditField;
-  final void Function(String field) onClearEdit;
 
   const _FoodItemCard({
     required this.item,
     required this.onQuantityChanged,
-    required this.onEditServing,
-    required this.onEditField,
-    required this.onClearEdit,
   });
 
   @override
@@ -528,24 +462,6 @@ class _FoodItemCard extends StatelessWidget {
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF1C1C1E))),
-                    if (item.servingSizeGrams > 0)
-                      GestureDetector(
-                        onTap: () => _showEditServingSheet(context),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${item.servingSizeGrams.round()}g',
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF8E8E93)),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.edit, size: 12, color: Color(0xFF8E8E93)),
-                          ],
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -586,50 +502,27 @@ class _FoodItemCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Calories (big)
-          GestureDetector(
-            onTap: () => _showEditNumberSheet(
-                context, 'Calories', item.calories.toDouble(), (v) {
-              onEditField('calories', v.round());
-            }, unit: 'kcal'),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: item.hasEdits && item.editedCalories != null
-                    ? const Color(0xFFF0F7FF)
-                    : const Color(0xFFFAF9F7),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  const Text('Calories',
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF8E8E93))),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('${item.calories}',
-                          style: const TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF1C1C1E))),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.edit, size: 16, color: Color(0xFF8E8E93)),
-                    ],
-                  ),
-                  if (item.hasEdits && item.editedCalories != null)
-                    GestureDetector(
-                      onTap: () => onClearEdit('calories'),
-                      child: const Text('Tap to reset',
-                          style: TextStyle(
-                              fontSize: 11, color: Color(0xFF007AFF))),
-                    ),
-                ],
-              ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF9F7),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                const Text('Calories',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF8E8E93))),
+                const SizedBox(height: 4),
+                Text('${item.calories}',
+                    style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1C1C1E))),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -637,30 +530,11 @@ class _FoodItemCard extends StatelessWidget {
           // Macro cards
           Row(
             children: [
-              _macroCard(
-                  context, 'Protein', item.protein, 'g', _proteinColor,
-                  hasEdit: item.editedProtein != null,
-                  onTap: () => _showEditNumberSheet(
-                      context, 'Protein', item.protein, (v) {
-                    onEditField('protein', v);
-                  }, unit: 'g'),
-                  onClear: () => onClearEdit('protein')),
+              _macroSmall('Protein', '${item.protein.toStringAsFixed(1)}g', _proteinColor),
               const SizedBox(width: 8),
-              _macroCard(context, 'Carbs', item.carbs, 'g', _carbsColor,
-                  hasEdit: item.editedCarbs != null,
-                  onTap: () => _showEditNumberSheet(
-                      context, 'Carbs', item.carbs, (v) {
-                    onEditField('carbs', v);
-                  }, unit: 'g'),
-                  onClear: () => onClearEdit('carbs')),
+              _macroSmall('Carbs', '${item.carbs.toStringAsFixed(1)}g', _carbsColor),
               const SizedBox(width: 8),
-              _macroCard(context, 'Fats', item.fat, 'g', _fatColor,
-                  hasEdit: item.editedFat != null,
-                  onTap: () => _showEditNumberSheet(
-                      context, 'Fats', item.fat, (v) {
-                    onEditField('fat', v);
-                  }, unit: 'g'),
-                  onClear: () => onClearEdit('fat')),
+              _macroSmall('Fats', '${item.fat.toStringAsFixed(1)}g', _fatColor),
             ],
           ),
           if (item.fiber > 0 || item.sugar > 0 || item.sodium > 0)
@@ -949,86 +823,6 @@ class _FoodItemCard extends StatelessWidget {
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
-      ),
-    );
-  }
-
-  void _showEditServingSheet(BuildContext context) {
-    final controller =
-        TextEditingController(text: item.servingSizeGrams.round().toString());
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 12, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFECECE7),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Edit serving size',
-                style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1C1C1E))),
-            const SizedBox(height: 4),
-            Text('${item.name} — all values will recalculate',
-                style:
-                    const TextStyle(fontSize: 13, color: Color(0xFF8E8E93))),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              autofocus: true,
-              decoration: InputDecoration(
-                suffixText: 'grams',
-                filled: true,
-                fillColor: const Color(0xFFFAF9F7),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 50,
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  final grams = double.tryParse(controller.text) ?? 0;
-                  if (grams > 0) {
-                    onEditServing(grams);
-                    Navigator.of(ctx).pop();
-                  }
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF1C1C1E),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-                child: const Text('Update',
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
