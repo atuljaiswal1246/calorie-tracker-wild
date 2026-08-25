@@ -92,11 +92,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
       return filteredDays;
     }
     // Week view — clamp start to earliest date, end to today
-    var start = _selectedWeekStart;
+    final weekStart = DateTime(_selectedWeekStart.year, _selectedWeekStart.month, _selectedWeekStart.day);
+    var start = weekStart;
     if (earliest != null && start.isBefore(DateTime(earliest.year, earliest.month, earliest.day))) {
       start = DateTime(earliest.year, earliest.month, earliest.day);
     }
-    return List.generate(7, (i) => _selectedWeekStart.add(Duration(days: i)))
+    return List.generate(7, (i) => weekStart.add(Duration(days: i)))
         .where((d) => !d.isBefore(start) && !d.isAfter(today))
         .toList();
   }

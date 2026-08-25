@@ -76,11 +76,12 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
           .where((d) => !d.isBefore(firstOfMonth))
           .toList();
     } else {
-      var start = _selectedWeekStart;
+      final weekStart = DateTime(_selectedWeekStart.year, _selectedWeekStart.month, _selectedWeekStart.day);
+      var start = weekStart;
       if (earliest != null && start.isBefore(DateTime(earliest.year, earliest.month, earliest.day))) {
         start = DateTime(earliest.year, earliest.month, earliest.day);
       }
-      days = List.generate(7, (i) => _selectedWeekStart.add(Duration(days: i)))
+      days = List.generate(7, (i) => weekStart.add(Duration(days: i)))
           .where((d) => !d.isBefore(start) && !d.isAfter(today))
           .toList();
     }
