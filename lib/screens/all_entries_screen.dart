@@ -50,6 +50,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
 
   List<FoodEntry> get _filteredEntries {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final earliest = _earliestDate;
     List<DateTime> days;
 
@@ -58,17 +59,19 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
       if (earliest != null && start.isBefore(earliest)) {
         start = DateTime(earliest.year, earliest.month, earliest.day);
       }
-      final diff = _customEnd!.difference(start).inDays + 1;
+      var end = _customEnd!;
+      if (end.isAfter(today)) end = today;
+      final diff = end.difference(start).inDays + 1;
       if (diff <= 0) return [];
       days = List.generate(diff, (i) => start.add(Duration(days: i)));
     } else if (_periodIndex == 1) {
-      final isFirstMonth = _selectedMonth.year == now.year && _selectedMonth.month == now.month;
+      final isFirstMonth = _selectedMonth.year == today.year && _selectedMonth.month == today.month;
       var firstOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
       if (earliest != null && firstOfMonth.isBefore(earliest)) {
         firstOfMonth = DateTime(earliest.year, earliest.month, earliest.day);
       }
-      final daysInMonth = isFirstMonth ? now.day : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
-      final lastDay = isFirstMonth ? now.day : daysInMonth;
+      final daysInMonth = isFirstMonth ? today.day : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
+      final lastDay = isFirstMonth ? today.day : daysInMonth;
       days = List.generate(lastDay, (i) => DateTime(_selectedMonth.year, _selectedMonth.month, i + 1))
           .where((d) => !d.isBefore(firstOfMonth))
           .toList();
@@ -78,7 +81,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
         start = DateTime(earliest.year, earliest.month, earliest.day);
       }
       days = List.generate(7, (i) => _selectedWeekStart.add(Duration(days: i)))
-          .where((d) => !d.isBefore(start))
+          .where((d) => !d.isBefore(start) && !d.isAfter(today))
           .toList();
     }
 
