@@ -6,6 +6,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/food_entry.dart';
 import '../models/profile.dart';
 
+class WeightEntry {
+  final DateTime date;
+  final double weightKg;
+
+  const WeightEntry({required this.date, required this.weightKg});
+
+  Map<String, dynamic> toJson() => {
+        'date': date.toIso8601String(),
+        'weightKg': weightKg,
+      };
+
+  factory WeightEntry.fromJson(Map<String, dynamic> json) => WeightEntry(
+        date: DateTime.parse(json['date'] as String),
+        weightKg: (json['weightKg'] as num).toDouble(),
+      );
+}
+
 class StorageService {
   static const _profileKey = 'user_profile';
   static const _entriesKey = 'food_entries';
@@ -135,6 +152,54 @@ class StorageService {
 
   Future<void> saveProvider(String provider) async {
     await _prefs.setString(_providerKey, provider);
+  }
+
+  // ---- Weight Entries ----
+
+  static const _weightEntriesKey = 'weight_entries';
+
+  List<WeightEntry> get weightEntries {
+    final raw = _prefs.getString(_weightEntriesKey);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List;
+    return list
+        .map((e) => WeightEntry.fromJson(e as Map<String, dynamic>))
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  Future<void> addWeightEntry(double weightKg) async {
+    final all = [...weightEntries];
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+
+    // Replace if already logged today
+    final existingIdx = all.indexWhere((e) =>
+        e.date.year == todayNormalized.year &&
+        e.date.month == todayNormalized.month &&
+        e.date.day == todayNormalized.day);
+    if (existingIdx >= 0) {
+      all[existingIdx] = WeightEntry(date: todayNormalized, weightKg: weightKg);
+    } else {
+      all.add(WeightEntry(date: todayNormalized, weightKg: weightKg));
+    }
+    all.sort((a, b) => a.date.compareTo(b.date));
+    await _prefs.setString(
+      _weightEntriesKey,
+      jsonEncode(all.map((e) => e.toJson()).toList()),
+    );
+  }
+
+  Future<void> deleteWeightEntry(DateTime date) async {
+    final normalized = DateTime(date.year, date.month, date.day);
+    final all = weightEntries.where((e) =>
+        !(e.date.year == normalized.year &&
+          e.date.month == normalized.month &&
+          e.date.day == normalized.day)).toList();
+    await _prefs.setString(
+      _weightEntriesKey,
+      jsonEncode(all.map((e) => e.toJson()).toList()),
+    );
   }
 
   // ---- Payment state ----

@@ -1,4 +1,6 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
@@ -26,6 +28,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   Profile? _profile;
   List<FoodEntry> _entries = [];
+  List<WeightEntry> _weightEntries = [];
   DateTime _selectedWeekStart = DateTime.now();
   DateTime _selectedMonth = DateTime.now();
   bool _isMonthly = false;
@@ -45,6 +48,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   void _load() {
     _profile = widget.storage.profile;
     _entries = widget.storage.entries;
+    _weightEntries = widget.storage.weightEntries;
     setState(() {});
   }
 
@@ -136,6 +140,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
       children: [
         _header(),
         const SizedBox(height: 16),
+        _weightCard(profile),
+        const SizedBox(height: 16),
         _periodToggle(),
         const SizedBox(height: 16),
         if (_periodIndex == 0) ...[
@@ -178,6 +184,303 @@ class _ProgressScreenState extends State<ProgressScreen> {
       ],
     );
   }
+
+  Widget _weightCard(Profile profile) {
+    final latest = _weightEntries.isNotEmpty ? _weightEntries.last.weightKg : profile.weightKg;
+    final target = profile.targetWeightKg;
+    final startWeight = _weightEntries.isNotEmpty ? _weightEntries.first.weightKg : profile.weightKg;
+    final change = latest - startWeight;
+    final goal = profile.goal;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Weight',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: _ink,
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _showLogWeightSheet(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _ink,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add, color: Colors.white, size: 16),
+                      SizedBox(width: 4),
+                      Text(
+                        'Log',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${latest.toStringAsFixed(1)}',
+                style: const TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w800,
+                  color: _ink,
+                  letterSpacing: -1,
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 6, left: 4),
+                child: Text(
+                  'kg',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _muted,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              if (change != 0)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: (goal == 'lose'
+                        ? (change < 0 ? _green : const Color(0xFFFF3B30))
+                        : goal == 'gain'
+                            ? (change > 0 ? _green : const Color(0xFFFF3B30))
+                            : _ink.withOpacity(0.08)).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        change < 0 ? Icons.arrow_downward : Icons.arrow_upward,
+                        size: 14,
+                        color: goal == 'lose'
+                            ? (change < 0 ? _green : const Color(0xFFFF3B30))
+                            : goal == 'gain'
+                                ? (change > 0 ? _green : const Color(0xFFFF3B30))
+                                : _ink,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${change.abs().toStringAsFixed(1)} kg',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: goal == 'lose'
+                              ? (change < 0 ? _green : const Color(0xFFFF3B30))
+                              : goal == 'gain'
+                                  ? (change > 0 ? _green : const Color(0xFFFF3B30))
+                                  : _ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          if (target != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.flag, size: 14, color: _muted),
+                const SizedBox(width: 4),
+                Text(
+                  'Target: ${target.toStringAsFixed(1)} kg',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: _muted,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '${(latest - target).abs().toStringAsFixed(1)} kg to go',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: latest == target ? _green : _ink,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (_weightEntries.length >= 2) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 80,
+              child: _weightChart(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _weightChart() {
+    final entries = _weightEntries;
+    if (entries.length < 2) return const SizedBox.shrink();
+
+    final weights = entries.map((e) => e.weightKg).toList();
+    final minW = weights.reduce((a, b) => a < b ? a : b);
+    final maxW = weights.reduce((a, b) => a > b ? a : b);
+    final range = maxW - minW;
+    final padding = range > 0 ? range * 0.1 : 1.0;
+    final yMin = minW - padding;
+    final yMax = maxW + padding;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final h = constraints.maxHeight;
+
+        return CustomPaint(
+          size: Size(w, h),
+          painter: _WeightChartPainter(
+            entries: entries,
+            yMin: yMin,
+            yMax: yMax,
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLogWeightSheet(BuildContext context) {
+    final current = _weightEntries.isNotEmpty
+        ? _weightEntries.last.weightKg.toStringAsFixed(1)
+        : (_profile?.weightKg ?? 60).toStringAsFixed(1);
+    final controller = TextEditingController(text: current);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Log Weight',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1C1C1E),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              DateFormat('EEEE, MMM d').format(DateTime.now()),
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF8E8E93),
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,1}')),
+              ],
+              autofocus: true,
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1C1C1E),
+              ),
+              decoration: InputDecoration(
+                suffixText: 'kg',
+                suffixStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF8E8E93),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                      color: Color(0xFF1C1C1E), width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: FilledButton(
+                onPressed: () async {
+                  final val = double.tryParse(controller.text);
+                  if (val == null || val <= 0 || val > 300) return;
+                  await widget.storage.addWeightEntry(val);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  _load();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF1C1C1E),
+                  foregroundColor: Colors.white,
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   Widget _periodToggle() {
     final labels = ['Week', 'Month', 'Custom'];
@@ -1003,7 +1306,97 @@ class _ProgressScreenState extends State<ProgressScreen> {
       ),
     );
   }
+}
 
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+class _WeightChartPainter extends CustomPainter {
+  final List<WeightEntry> entries;
+  final double yMin;
+  final double yMax;
+
+  _WeightChartPainter({
+    required this.entries,
+    required this.yMin,
+    required this.yMax,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (entries.length < 2) return;
+
+    final paint = Paint()
+      ..color = const Color(0xFF1C1C1E)
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          const Color(0xFF1C1C1E).withOpacity(0.15),
+          const Color(0xFF1C1C1E).withOpacity(0.0),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final path = Path();
+    final fillPath = Path();
+
+    final yRange = yMax - yMin;
+    if (yRange <= 0) return;
+
+    final points = <Offset>[];
+    for (int i = 0; i < entries.length; i++) {
+      final x = entries.length == 1
+          ? size.width / 2
+          : (i / (entries.length - 1)) * size.width;
+      final y = size.height - ((entries[i].weightKg - yMin) / yRange) * size.height;
+      points.add(Offset(x, y));
+    }
+
+    path.moveTo(points.first.dx, points.first.dy);
+    fillPath.moveTo(points.first.dx, size.height);
+    fillPath.lineTo(points.first.dx, points.first.dy);
+
+    for (int i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+      fillPath.lineTo(points[i].dx, points[i].dy);
+    }
+
+    fillPath.lineTo(points.last.dx, size.height);
+    fillPath.close();
+
+    canvas.drawPath(fillPath, fillPaint);
+    canvas.drawPath(path, paint);
+
+    final dotPaint = Paint()
+      ..color = const Color(0xFF1C1C1E)
+      ..style = PaintingStyle.fill;
+    for (final p in points) {
+      canvas.drawCircle(p, 3, dotPaint);
+    }
+
+    final last = points.last;
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: '${entries.last.weightKg.toStringAsFixed(1)}',
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF1C1C1E),
+        ),
+      ),
+      textDirection: ui.TextDirection.ltr,
+    )..layout();
+    final labelX = last.dx - textPainter.width / 2;
+    final labelY = last.dy - textPainter.height - 8;
+    textPainter.paint(canvas, Offset(labelX, labelY));
+  }
+
+  @override
+  bool shouldRepaint(covariant _WeightChartPainter oldDelegate) =>
+      entries != oldDelegate.entries ||
+      yMin != oldDelegate.yMin ||
+      yMax != oldDelegate.yMax;
 }
