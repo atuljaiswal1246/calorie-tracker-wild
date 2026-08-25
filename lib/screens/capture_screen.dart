@@ -531,12 +531,19 @@ class _FoodItemCard extends StatelessWidget {
                     if (item.servingSizeGrams > 0)
                       GestureDetector(
                         onTap: () => _showEditServingSheet(context),
-                        child: Text(
-                          '${item.servingSizeGrams.round()}g',
-                          style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF8E8E93)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${item.servingSizeGrams.round()}g',
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF8E8E93)),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.edit, size: 12, color: Color(0xFF8E8E93)),
+                          ],
                         ),
                       ),
                   ],
@@ -601,11 +608,19 @@ class _FoodItemCard extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF8E8E93))),
                   const SizedBox(height: 4),
-                  Text('${item.calories}',
-                      style: const TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1C1C1E))),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${item.calories}',
+                          style: const TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF1C1C1E))),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.edit, size: 16, color: Color(0xFF8E8E93)),
+                    ],
+                  ),
                   if (item.hasEdits && item.editedCalories != null)
                     GestureDetector(
                       onTap: () => onClearEdit('calories'),
@@ -685,24 +700,29 @@ class _FoodItemCard extends StatelessWidget {
             const SizedBox(height: 8),
             ...item.ingredients.map((ing) => Padding(
                   padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(ing.name,
+                  child: GestureDetector(
+                    onTap: () => _showEditIngredientSheet(context, ing),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(ing.name,
+                              style: const TextStyle(
+                                  fontSize: 14, color: Color(0xFF1C1C1E))),
+                        ),
+                        if (ing.servingSizeGrams > 0)
+                          Text('${ing.servingSizeGrams.round()}g',
+                              style: const TextStyle(
+                                  fontSize: 13, color: Color(0xFF8E8E93))),
+                        const SizedBox(width: 12),
+                        Text('${ing.calories} cal',
                             style: const TextStyle(
-                                fontSize: 14, color: Color(0xFF1C1C1E))),
-                      ),
-                      if (ing.servingSizeGrams > 0)
-                        Text('${ing.servingSizeGrams.round()}g',
-                            style: const TextStyle(
-                                fontSize: 13, color: Color(0xFF8E8E93))),
-                      const SizedBox(width: 8),
-                      Text('${ing.calories} cal',
-                          style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1C1C1E))),
-                    ],
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1C1C1E))),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.edit, size: 12, color: Color(0xFF8E8E93)),
+                      ],
+                    ),
                   ),
                 )),
           ],
@@ -748,9 +768,19 @@ class _FoodItemCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text('${value.toStringAsFixed(1)}$unit',
-                  style: TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w700, color: color)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('${value.toStringAsFixed(1)}$unit',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: color)),
+                  const SizedBox(width: 3),
+                  Icon(Icons.edit, size: 11, color: color.withValues(alpha: 0.5)),
+                ],
+              ),
               const SizedBox(height: 2),
               Text(label,
                   style: TextStyle(
@@ -783,6 +813,143 @@ class _FoodItemCard extends StatelessWidget {
       child: Text('$label $value',
           style: TextStyle(
               fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+    );
+  }
+
+  void _showEditIngredientSheet(BuildContext context, Ingredient ing) {
+    final nameController = TextEditingController(text: ing.name);
+    final gramsController =
+        TextEditingController(text: ing.servingSizeGrams.round().toString());
+    final calController =
+        TextEditingController(text: ing.calories.toString());
+    final proteinController =
+        TextEditingController(text: ing.protein.toStringAsFixed(1));
+    final carbsController =
+        TextEditingController(text: ing.carbs.toStringAsFixed(1));
+    final fatController =
+        TextEditingController(text: ing.fat.toStringAsFixed(1));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 12, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECECE7),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Edit ingredient',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1C1C1E))),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                decoration: _inputDecoration('Name'),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: gramsController,
+                      keyboardType: TextInputType.number,
+                      decoration: _inputDecoration('Grams'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: calController,
+                      keyboardType: TextInputType.number,
+                      decoration: _inputDecoration('Calories'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: proteinController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration: _inputDecoration('Protein (g)'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: carbsController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration: _inputDecoration('Carbs (g)'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: fatController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration: _inputDecoration('Fat (g)'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 50,
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF1C1C1E),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('Done',
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: const Color(0xFFFAF9F7),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
     );
   }
 
