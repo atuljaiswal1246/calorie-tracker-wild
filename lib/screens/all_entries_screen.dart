@@ -50,18 +50,36 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
 
   List<FoodEntry> get _filteredEntries {
     final now = DateTime.now();
+    final earliest = _earliestDate;
     List<DateTime> days;
 
     if (_periodIndex == 2 && _customStart != null && _customEnd != null) {
-      final diff = _customEnd!.difference(_customStart!).inDays + 1;
-      days = List.generate(diff, (i) => _customStart!.add(Duration(days: i)));
+      var start = _customStart!;
+      if (earliest != null && start.isBefore(earliest)) {
+        start = DateTime(earliest.year, earliest.month, earliest.day);
+      }
+      final diff = _customEnd!.difference(start).inDays + 1;
+      if (diff <= 0) return [];
+      days = List.generate(diff, (i) => start.add(Duration(days: i)));
     } else if (_periodIndex == 1) {
       final isFirstMonth = _selectedMonth.year == now.year && _selectedMonth.month == now.month;
-      final firstOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+      var firstOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+      if (earliest != null && firstOfMonth.isBefore(earliest)) {
+        firstOfMonth = DateTime(earliest.year, earliest.month, earliest.day);
+      }
       final daysInMonth = isFirstMonth ? now.day : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
-      days = List.generate(daysInMonth, (i) => firstOfMonth.add(Duration(days: i)));
+      final lastDay = isFirstMonth ? now.day : daysInMonth;
+      days = List.generate(lastDay, (i) => DateTime(_selectedMonth.year, _selectedMonth.month, i + 1))
+          .where((d) => !d.isBefore(firstOfMonth))
+          .toList();
     } else {
-      days = List.generate(7, (i) => _selectedWeekStart.add(Duration(days: i)));
+      var start = _selectedWeekStart;
+      if (earliest != null && start.isBefore(DateTime(earliest.year, earliest.month, earliest.day))) {
+        start = DateTime(earliest.year, earliest.month, earliest.day);
+      }
+      days = List.generate(7, (i) => _selectedWeekStart.add(Duration(days: i)))
+          .where((d) => !d.isBefore(start))
+          .toList();
     }
 
     // Collect entries that fall on any of the display days
