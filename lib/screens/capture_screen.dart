@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/food_entry.dart';
+import '../services/food_search_service.dart';
 import '../services/gemini_service.dart';
 import '../services/openai_service.dart';
 import '../services/storage_service.dart';
@@ -114,11 +115,44 @@ class _CaptureScreenState extends State<CaptureScreen> {
         result = await OpenAIService(apiKey: apiKey).analyzeImage(image.path);
       }
       if (!mounted) return;
+
+      // Attach database match for comparison
+      final List<FoodItem> enrichedItems = [];
+      for (final item in result.items) {
+        final dbResults = await FoodSearchService.search(item.name);
+        final match = dbResults.isNotEmpty ? dbResults.first : null;
+        if (match != null) {
+          enrichedItems.add(FoodItem(
+            name: item.name,
+            servingSizeGrams: item.servingSizeGrams,
+            calories: (item.calories / (item.quantity > 0 ? item.quantity : 1)).round(),
+            protein: item.protein / (item.quantity > 0 ? item.quantity : 1),
+            carbs: item.carbs / (item.quantity > 0 ? item.quantity : 1),
+            fat: item.fat / (item.quantity > 0 ? item.quantity : 1),
+            fiber: item.fiber / (item.quantity > 0 ? item.quantity : 1),
+            sugar: item.sugar / (item.quantity > 0 ? item.quantity : 1),
+            sodium: item.sodium / (item.quantity > 0 ? item.quantity : 1),
+            quantity: item.quantity,
+            dbMatchedName: match.name,
+            dbSource: match.source,
+            dbCaloriesPer100g: match.calories.toDouble(),
+            dbProteinPer100g: match.protein,
+            dbCarbsPer100g: match.carbs,
+            dbFatPer100g: match.fat,
+            dbFiberPer100g: match.fiber,
+            dbSugarPer100g: match.sugar,
+            dbSodiumPer100g: match.sodium,
+          ));
+        } else {
+          enrichedItems.add(item);
+        }
+      }
+
       setState(() {
-        _items = result.items.isNotEmpty ? result.items : null;
+        _items = enrichedItems.isNotEmpty ? enrichedItems : null;
         _analyzing = false;
         if (result.mealType != null) _mealType = result.mealType!;
-        if (result.items.isEmpty) _error = 'No food detected. Try another photo.';
+        if (enrichedItems.isEmpty) _error = 'No food detected. Try another photo.';
       });
     } catch (e) {
       if (!mounted) return;

@@ -10,6 +10,17 @@ class FoodItem {
   final double _sodium;
   double quantity;
 
+  // Database comparison fields (populated when matched from local DB)
+  final String? dbMatchedName;
+  final String? dbSource;
+  final double dbCaloriesPer100g;
+  final double dbProteinPer100g;
+  final double dbCarbsPer100g;
+  final double dbFatPer100g;
+  final double dbFiberPer100g;
+  final double dbSugarPer100g;
+  final double dbSodiumPer100g;
+
   FoodItem({
     required this.name,
     this.servingSizeGrams = 0,
@@ -21,6 +32,15 @@ class FoodItem {
     double sugar = 0,
     double sodium = 0,
     this.quantity = 1,
+    this.dbMatchedName,
+    this.dbSource,
+    this.dbCaloriesPer100g = 0,
+    this.dbProteinPer100g = 0,
+    this.dbCarbsPer100g = 0,
+    this.dbFatPer100g = 0,
+    this.dbFiberPer100g = 0,
+    this.dbSugarPer100g = 0,
+    this.dbSodiumPer100g = 0,
   })  : _calories = calories,
         _protein = protein,
         _carbs = carbs,
@@ -48,6 +68,15 @@ class FoodItem {
         'sugar': _sugar,
         'sodium': _sodium,
         'quantity': quantity,
+        if (dbMatchedName != null) 'dbMatchedName': dbMatchedName,
+        if (dbSource != null) 'dbSource': dbSource,
+        'dbCaloriesPer100g': dbCaloriesPer100g,
+        'dbProteinPer100g': dbProteinPer100g,
+        'dbCarbsPer100g': dbCarbsPer100g,
+        'dbFatPer100g': dbFatPer100g,
+        'dbFiberPer100g': dbFiberPer100g,
+        'dbSugarPer100g': dbSugarPer100g,
+        'dbSodiumPer100g': dbSodiumPer100g,
       };
 
   factory FoodItem.fromJson(Map<String, dynamic> json) => FoodItem(
@@ -61,6 +90,15 @@ class FoodItem {
         sugar: (json['sugar'] as num?)?.toDouble() ?? 0,
         sodium: (json['sodium'] as num?)?.toDouble() ?? 0,
         quantity: (json['quantity'] as num?)?.toDouble() ?? 1,
+        dbMatchedName: json['dbMatchedName'] as String?,
+        dbSource: json['dbSource'] as String?,
+        dbCaloriesPer100g: (json['dbCaloriesPer100g'] as num?)?.toDouble() ?? 0,
+        dbProteinPer100g: (json['dbProteinPer100g'] as num?)?.toDouble() ?? 0,
+        dbCarbsPer100g: (json['dbCarbsPer100g'] as num?)?.toDouble() ?? 0,
+        dbFatPer100g: (json['dbFatPer100g'] as num?)?.toDouble() ?? 0,
+        dbFiberPer100g: (json['dbFiberPer100g'] as num?)?.toDouble() ?? 0,
+        dbSugarPer100g: (json['dbSugarPer100g'] as num?)?.toDouble() ?? 0,
+        dbSodiumPer100g: (json['dbSodiumPer100g'] as num?)?.toDouble() ?? 0,
       );
 }
 

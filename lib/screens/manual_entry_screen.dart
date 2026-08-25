@@ -182,13 +182,46 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
         result = await OpenAIService(apiKey: apiKey).analyzeText(text);
       }
       if (!mounted) return;
+
+      // Attach database match for comparison
+      final dbResults = await FoodSearchService.search(text);
+      final match = dbResults.isNotEmpty ? dbResults.first : null;
+      final List<FoodItem> enrichedItems = [];
+      for (final item in result.items) {
+        if (match != null) {
+          enrichedItems.add(FoodItem(
+            name: item.name,
+            servingSizeGrams: item.servingSizeGrams,
+            calories: (item.calories / (item.quantity > 0 ? item.quantity : 1)).round(),
+            protein: item.protein / (item.quantity > 0 ? item.quantity : 1),
+            carbs: item.carbs / (item.quantity > 0 ? item.quantity : 1),
+            fat: item.fat / (item.quantity > 0 ? item.quantity : 1),
+            fiber: item.fiber / (item.quantity > 0 ? item.quantity : 1),
+            sugar: item.sugar / (item.quantity > 0 ? item.quantity : 1),
+            sodium: item.sodium / (item.quantity > 0 ? item.quantity : 1),
+            quantity: item.quantity,
+            dbMatchedName: match.name,
+            dbSource: match.source,
+            dbCaloriesPer100g: match.calories.toDouble(),
+            dbProteinPer100g: match.protein,
+            dbCarbsPer100g: match.carbs,
+            dbFatPer100g: match.fat,
+            dbFiberPer100g: match.fiber,
+            dbSugarPer100g: match.sugar,
+            dbSodiumPer100g: match.sodium,
+          ));
+        } else {
+          enrichedItems.add(item);
+        }
+      }
+
       setState(() {
-        _aiItems = result.items.isNotEmpty ? result.items : null;
+        _aiItems = enrichedItems.isNotEmpty ? enrichedItems : null;
         _analyzing = false;
         if (result.mealType != null) {
           _mealType = result.mealType!;
         }
-        if (result.items.isEmpty) {
+        if (enrichedItems.isEmpty) {
           _error = 'Could not find nutrition info. Try a different name.';
         }
       });
