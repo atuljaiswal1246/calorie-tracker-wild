@@ -143,6 +143,53 @@ class StorageService {
 
   bool get isPaid => _prefs.getBool(_paidKey) ?? false;
 
+  // ---- Recently Logged Foods ----
+
+  static const _recentFoodsKey = 'recent_foods';
+  static const _maxRecent = 10;
+
+  List<Map<String, dynamic>> get recentFoods {
+    final raw = _prefs.getString(_recentFoodsKey);
+    if (raw == null) return [];
+    return List<Map<String, dynamic>>.from(jsonDecode(raw));
+  }
+
+  Future<void> addRecentFood(Map<String, dynamic> food) async {
+    final list = recentFoods;
+    // Remove if already exists (by name)
+    list.removeWhere((f) => f['name'] == food['name']);
+    // Add to front
+    list.insert(0, food);
+    // Trim to max
+    if (list.length > _maxRecent) list.removeRange(_maxRecent, list.length);
+    await _prefs.setString(_recentFoodsKey, jsonEncode(list));
+  }
+
+  // ---- Favorite Foods ----
+
+  static const _favoriteFoodsKey = 'favorite_foods';
+
+  List<Map<String, dynamic>> get favoriteFoods {
+    final raw = _prefs.getString(_favoriteFoodsKey);
+    if (raw == null) return [];
+    return List<Map<String, dynamic>>.from(jsonDecode(raw));
+  }
+
+  Future<void> toggleFavorite(Map<String, dynamic> food) async {
+    final list = favoriteFoods;
+    final idx = list.indexWhere((f) => f['name'] == food['name']);
+    if (idx >= 0) {
+      list.removeAt(idx);
+    } else {
+      list.insert(0, food);
+    }
+    await _prefs.setString(_favoriteFoodsKey, jsonEncode(list));
+  }
+
+  bool isFavorite(String name) {
+    return favoriteFoods.any((f) => f['name'] == name);
+  }
+
   Future<void> savePaid(bool paid) async {
     await _prefs.setBool(_paidKey, paid);
     final ref = _profileRef();

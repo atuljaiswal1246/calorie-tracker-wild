@@ -11,6 +11,10 @@ import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import 'capture_screen.dart';
 import 'manual_entry_screen.dart';
+import 'meal_detail_screen.dart';
+import 'macro_breakdown_screen.dart';
+import 'progress_screen.dart';
+import 'all_entries_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final StorageService storage;
@@ -99,11 +103,23 @@ class _HomeScreenState extends State<HomeScreen> {
       _on(day).fold(0.0, (s, e) => s + e.totalFat);
 
   int get _streak {
+    final goal = _profile?.calorieGoal ?? 1500;
     var streak = 0;
     var day = DateTime.now();
-    while (_on(day).isNotEmpty) {
-      streak++;
-      day = day.subtract(const Duration(days: 1));
+
+    // Find the start of this Sun-Sat week
+    final today = DateTime.now();
+    final weekStart = today.subtract(Duration(days: today.weekday % 7));
+
+    while (!day.isBefore(weekStart)) {
+      final logged = _calories(day);
+      final hitTarget = goal > 0 && logged >= goal * 0.8;
+      if (hitTarget) {
+        streak++;
+        day = day.subtract(const Duration(days: 1));
+      } else {
+        break;
+      }
     }
     return streak;
   }
@@ -251,9 +267,23 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         _header(),
         const SizedBox(height: 22),
-        _weekSelector(),
+        _weekSelector(calorieGoal: goal),
         const SizedBox(height: 20),
-        _caloriesCard(goal: goal, logged: logged),
+        _caloriesCard(
+          goal: goal,
+          logged: logged,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => MacroBreakdownScreen(
+                macroType: MacroType.calories,
+                entries: _on(_selected),
+                total: logged.toDouble(),
+                target: goal.toDouble(),
+                color: _ink,
+              ),
+            ),
+          ),
+        ),
         const SizedBox(height: 14),
         SizedBox(
           height: 140,
@@ -271,6 +301,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       target: proteinGoal.toDouble(),
                       color: _proteinColor,
                       icon: Symbols.egg,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MacroBreakdownScreen(
+                            macroType: MacroType.protein,
+                            entries: _on(_selected),
+                            total: _protein(_selected),
+                            target: proteinGoal.toDouble(),
+                            color: _proteinColor,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -281,6 +322,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       target: carbsGoal.toDouble(),
                       color: _carbsColor,
                       icon: Symbols.rice_bowl,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MacroBreakdownScreen(
+                            macroType: MacroType.carbs,
+                            entries: _on(_selected),
+                            total: _carbs(_selected),
+                            target: carbsGoal.toDouble(),
+                            color: _carbsColor,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -291,6 +343,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       target: fatGoal.toDouble(),
                       color: _fatColor,
                       icon: Symbols.avocado_bean,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MacroBreakdownScreen(
+                            macroType: MacroType.fat,
+                            entries: _on(_selected),
+                            total: _fat(_selected),
+                            target: fatGoal.toDouble(),
+                            color: _fatColor,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -305,6 +368,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       target: 30,
                       color: const Color(0xFF8D6E63),
                       icon: Symbols.eco,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MacroBreakdownScreen(
+                            macroType: MacroType.fiber,
+                            entries: _on(_selected),
+                            total: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
+                            target: 30,
+                            color: const Color(0xFF8D6E63),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -315,6 +389,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       target: 50,
                       color: const Color(0xFFE91E63),
                       icon: Symbols.cookie,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MacroBreakdownScreen(
+                            macroType: MacroType.sugar,
+                            entries: _on(_selected),
+                            total: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
+                            target: 50,
+                            color: const Color(0xFFE91E63),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -325,6 +410,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       target: 2300,
                       color: const Color(0xFF78909C),
                       icon: Symbols.emoji_food_beverage,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MacroBreakdownScreen(
+                            macroType: MacroType.sodium,
+                            entries: _on(_selected),
+                            total: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
+                            target: 2300,
+                            color: const Color(0xFF78909C),
+                          ),
+                        ),
+                      ),
                       unit: 'mg',
                     ),
                   ),
@@ -338,14 +434,36 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 22),
         _logMealSection(),
         const SizedBox(height: 22),
-        const Text(
-          'Recently uploaded',
-          style: TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w800,
-            color: _ink,
-            letterSpacing: -0.4,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Recently uploaded',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                color: _ink,
+                letterSpacing: -0.4,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AllEntriesScreen(storage: widget.storage),
+                  ),
+                );
+              },
+              child: const Text(
+                'View all',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _muted,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         if (recent.isEmpty)
@@ -383,6 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const Spacer(),
         // Streak pill
+        // Streak pill
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(
@@ -409,7 +528,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _weekSelector() {
+  Widget _weekSelector({required int calorieGoal}) {
     final today = DateTime.now();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -422,25 +541,32 @@ class _HomeScreenState extends State<HomeScreen> {
         children: _week.map((day) {
           final isSelected = _isSameDay(day, _selected);
           final isFuture = day.isAfter(today);
+          final dayCalories = _calories(day);
+          final progress = calorieGoal > 0 ? (dayCalories / calorieGoal).clamp(0.0, 1.0) : 0.0;
           final hasLog = _on(day).isNotEmpty;
 
-          Color borderColor = const Color(0xFFE3E3DE);
+          // Progress ring color: black < 50%, orange 50-79%, green 80+
+          Color ringColor;
+          if (isFuture) {
+            ringColor = const Color(0xFFE3E3DE);
+          } else if (progress >= 0.8) {
+            ringColor = _green;
+          } else if (progress >= 0.5) {
+            ringColor = const Color(0xFFFFA726);
+          } else if (progress > 0) {
+            ringColor = _ink;
+          } else {
+            ringColor = const Color(0xFFE3E3DE);
+          }
+
           Color textColor = const Color(0xFFB0B0AA);
           FontWeight weight = FontWeight.w500;
           if (isSelected) {
-            borderColor = _ink;
             textColor = _ink;
             weight = FontWeight.w800;
-          } else if (isFuture) {
-            borderColor = const Color(0xFFE3E3DE);
-            textColor = const Color(0xFFB0B0AA);
-          } else if (hasLog) {
-            borderColor = _green;
-            textColor = _green;
+          } else if (!isFuture && hasLog) {
+            textColor = _ink;
             weight = FontWeight.w600;
-          } else {
-            borderColor = _missedRed;
-            textColor = _missedRed;
           }
 
           return Expanded(
@@ -465,23 +591,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Container(
-                      width: 30,
-                      height: 30,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: borderColor,
-                          width: isSelected ? 2 : 1.4,
+                    SizedBox(
+                      width: 34,
+                      height: 34,
+                      child: CustomPaint(
+                        painter: _RingPainter(
+                          progress: isFuture ? 0 : progress,
+                          color: ringColor,
+                          strokeWidth: 2.5,
                         ),
-                      ),
-                      child: Text(
-                        '${day.day}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: weight,
-                          color: textColor,
+                        child: Center(
+                          child: Text(
+                            '${day.day}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: weight,
+                              color: textColor,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -495,9 +622,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _caloriesCard({required int goal, required int logged}) {
+  Widget _caloriesCard({required int goal, required int logged, VoidCallback? onTap}) {
     final progress = goal == 0 ? 0.0 : (logged / goal).clamp(0.0, 1.0);
-    return Container(
+    final over = logged > goal;
+
+    // Color logic: black < 50%, orange 50-79%, green 80-100%, red if over
+    Color accentColor;
+    if (over) {
+      accentColor = _missedRed;
+    } else if (progress >= 0.8) {
+      accentColor = _green;
+    } else if (progress >= 0.5) {
+      accentColor = const Color(0xFFFFA726);
+    } else {
+      accentColor = _ink;
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -516,10 +659,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       '$logged',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 46,
                         fontWeight: FontWeight.w800,
-                        color: _ink,
+                        color: accentColor,
                         letterSpacing: -1.5,
                       ),
                     ),
@@ -535,11 +678,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Calories eaten',
+                Text(
+                  over ? 'Calories over target' : 'Calories eaten',
                   style: TextStyle(
                     fontSize: 13,
-                    color: _muted,
+                    color: over ? _missedRed : _muted,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -548,16 +691,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           _ring(
             progress: progress,
-            color: _ink,
+            color: accentColor,
             size: 104,
             stroke: 11,
-            child: const Icon(
-              Icons.local_fire_department,
-              color: _ink,
+            child: Icon(
+              over ? Icons.warning_rounded : Icons.local_fire_department,
+              color: accentColor,
               size: 36,
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -569,9 +713,12 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     required IconData icon,
     String unit = 'g',
+    VoidCallback? onTap,
   }) {
     final progress = target == 0 ? 0.0 : (value / target).clamp(0.0, 1.0);
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -622,6 +769,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(icon, color: color, size: 28),
           ),
         ],
+      ),
       ),
     );
   }
@@ -756,7 +904,15 @@ class _HomeScreenState extends State<HomeScreen> {
         : entry.items.first.name;
     final time =
         DateFormat('h:mm a').format(entry.dateTime).toLowerCase();
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => MealDetailScreen(entry: entry),
+          ),
+        );
+      },
+      child: Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -844,6 +1000,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ],
+      ),
       ),
     );
   }
@@ -963,7 +1120,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _progressPage() =>
-      _placeholderPage('Progress', Icons.bar_chart_rounded, 'Charts coming soon');
+      ProgressScreen(storage: widget.storage);
 
   Widget _groupsPage() =>
       _placeholderPage('Groups', Icons.group_outlined, 'Coming soon');
@@ -1279,4 +1436,51 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class _RingPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final double strokeWidth;
+
+  _RingPainter({
+    required this.progress,
+    required this.color,
+    this.strokeWidth = 2.5,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+
+    // Background circle
+    final bgPaint = Paint()
+      ..color = color.withOpacity(0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawCircle(center, radius, bgPaint);
+
+    // Progress arc
+    if (progress > 0) {
+      final arcPaint = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+
+      final rect = Rect.fromCircle(center: center, radius: radius);
+      canvas.drawArc(
+        rect,
+        -3.14159 / 2, // Start from top
+        2 * 3.14159 * progress.clamp(0.0, 1.0),
+        false,
+        arcPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.progress != progress || old.color != color;
 }

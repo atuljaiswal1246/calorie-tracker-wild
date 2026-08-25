@@ -48,10 +48,34 @@ class _CaptureScreenState extends State<CaptureScreen> {
   void initState() {
     super.initState();
     if (widget.initialImage != null) {
-      _image = widget.initialImage;
-      // Show screen immediately, analyze in background.
-      WidgetsBinding.instance.addPostFrameCallback((_) => _analyze());
+      _copyToPermanent(widget.initialImage!);
     }
+  }
+
+  Future<void> _copyToPermanent(File source) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final ext = source.path.split('.').last;
+      final fileName = 'meal_${DateTime.now().microsecondsSinceEpoch}.$ext';
+      final dest = '${appDir.path}/$fileName';
+      final permanentFile = await source.copy(dest);
+      if (await permanentFile.exists()) {
+        setState(() {
+          _image = permanentFile;
+        });
+      } else {
+        setState(() {
+          _image = source;
+        });
+      }
+    } catch (e) {
+      debugPrint('Image copy failed: $e');
+      setState(() {
+        _image = source;
+      });
+    }
+    // Auto-analyze when image comes from scanner/gallery.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _analyze());
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -155,10 +179,16 @@ class _CaptureScreenState extends State<CaptureScreen> {
     String savedPath = _image!.path;
     try {
       final appDir = await getApplicationDocumentsDirectory();
-      final fileName = '${DateTime.now().microsecondsSinceEpoch}.${_image!.path.split('.').last}';
-      final permanentFile = await _image!.copy('${appDir.path}/$fileName');
-      savedPath = permanentFile.path;
-    } catch (_) {}
+      final ext = _image!.path.split('.').last;
+      final fileName = 'meal_${DateTime.now().microsecondsSinceEpoch}.$ext';
+      final dest = '${appDir.path}/$fileName';
+      final permanentFile = await _image!.copy(dest);
+      if (await permanentFile.exists()) {
+        savedPath = permanentFile.path;
+      }
+    } catch (e) {
+      debugPrint('Image copy failed: $e');
+    }
 
     final entry = FoodEntry(
       id: DateTime.now().microsecondsSinceEpoch.toString(),

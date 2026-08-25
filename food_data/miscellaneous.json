@@ -1,0 +1,42 @@
+{
+  "category": "Miscellaneous Foods",
+  "count": 2,
+  "foods": [
+    {
+      "id": 309,
+      "code": "K001",
+      "name": "Toddy",
+      "nameHindi": "Tarai",
+      "scientificName": "",
+      "category": "Miscellaneous Foods",
+      "energy": 24,
+      "protein": 0.2,
+      "fat": 0.0,
+      "carbs": 5.7,
+      "fiber": 0,
+      "calcium": 0,
+      "iron": 0.4,
+      "vitaminC": 0.9,
+      "source": "IFCT2017",
+      "dataQuality": "Verified"
+    },
+    {
+      "id": 310,
+      "code": "K002",
+      "name": "Coconut Water",
+      "nameHindi": "Nariyal ka pani",
+      "scientificName": "",
+      "category": "Miscellaneous Foods",
+      "energy": 15,
+      "protein": 0.3,
+      "fat": 0.2,
+      "carbs": 3.2,
+      "fiber": 0,
+      "calcium": 27,
+      "iron": 0.1,
+      "vitaminC": 0.6,
+      "source": "IFCT2017",
+      "dataQuality": "Verified"
+    }
+  ]
+}
