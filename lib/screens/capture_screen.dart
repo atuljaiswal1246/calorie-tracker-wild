@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -24,9 +23,6 @@ class _CaptureScreenState extends State<CaptureScreen> {
   static const _bg = Color(0xFFFAF9F7);
   static const _ink = Color(0xFF1C1C1E);
   static const _muted = Color(0xFF8E8E93);
-  static const _proteinColor = Color(0xFFE53935);
-  static const _carbsColor = Color(0xFFFF9500);
-  static const _fatColor = Color(0xFF007AFF);
 
   final _picker = ImagePicker();
   File? _image;
@@ -325,9 +321,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       const SizedBox(height: 16),
 
                       // Food items
-                      ..._items!.asMap().entries.map((entry) {
-                        final idx = entry.key;
-                        final item = entry.value;
+                      ..._items!.map((item) {
                         return _FoodItemCard(
                           item: item,
                           onQuantityChanged: (oldQty, newQty) {
@@ -379,7 +373,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          child: const Text('Done',
+                          child: const Text('Log this meal',
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w700)),
                         ),
@@ -425,11 +419,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
 // ---- Food Item Card ----
 
-class _FoodItemCard extends StatelessWidget {
-  static const _proteinColor = Color(0xFFE53935);
-  static const _carbsColor = Color(0xFFFF9500);
-  static const _fatColor = Color(0xFF007AFF);
-
+class _FoodItemCard extends StatefulWidget {
   final FoodItem item;
   final void Function(double oldQty, double newQty) onQuantityChanged;
 
@@ -439,7 +429,38 @@ class _FoodItemCard extends StatelessWidget {
   });
 
   @override
+  State<_FoodItemCard> createState() => _FoodItemCardState();
+}
+
+class _FoodItemCardState extends State<_FoodItemCard> {
+  static const _proteinColor = Color(0xFFE53935);
+  static const _carbsColor = Color(0xFFFF9500);
+  static const _fatColor = Color(0xFF007AFF);
+  static const _fiberColor = Color(0xFF8D6E63);
+  static const _sugarColor = Color(0xFFE91E63);
+  static const _sodiumColor = Color(0xFF78909C);
+
+  int _macroPage = 0;
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  bool get _hasSecondary =>
+      widget.item.fiber > 0 || widget.item.sugar > 0 || widget.item.sodium > 0;
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -454,18 +475,12 @@ class _FoodItemCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(item.name,
-                        style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1C1C1E))),
-                  ],
-                ),
+                child: Text(item.name,
+                    style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1C1C1E))),
               ),
-              // Quantity counter
               Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAF9F7),
@@ -477,7 +492,7 @@ class _FoodItemCard extends StatelessWidget {
                     _qtyBtn(
                       icon: Icons.remove,
                       onTap: item.quantity > 1
-                          ? () => onQuantityChanged(
+                          ? () => widget.onQuantityChanged(
                               item.quantity, item.quantity - 1)
                           : null,
                     ),
@@ -491,7 +506,7 @@ class _FoodItemCard extends StatelessWidget {
                     ),
                     _qtyBtn(
                       icon: Icons.add,
-                      onTap: () => onQuantityChanged(
+                      onTap: () => widget.onQuantityChanged(
                           item.quantity, item.quantity + 1),
                     ),
                   ],
@@ -501,106 +516,194 @@ class _FoodItemCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Calories (big)
+          // Calories card with flame icon
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color: const Color(0xFFFAF9F7),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
+            child: Row(
               children: [
-                const Text('Calories',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF8E8E93))),
-                const SizedBox(height: 4),
-                Text('${item.calories}',
-                    style: const TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1C1C1E))),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.local_fire_department,
+                      size: 22, color: Color(0xFF1C1C1E)),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Calories',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF8E8E93))),
+                    Text('${item.calories}',
+                        style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1C1C1E))),
+                  ],
+                ),
               ],
             ),
           ),
           const SizedBox(height: 12),
 
-          // Macro cards
-          Row(
-            children: [
-              _macroSmall('Protein', '${item.protein.toStringAsFixed(1)}g', _proteinColor),
-              const SizedBox(width: 8),
-              _macroSmall('Carbs', '${item.carbs.toStringAsFixed(1)}g', _carbsColor),
-              const SizedBox(width: 8),
-              _macroSmall('Fats', '${item.fat.toStringAsFixed(1)}g', _fatColor),
-            ],
-          ),
-          if (item.fiber > 0 || item.sugar > 0 || item.sodium > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
+          // Swipeable macro cards
+          if (_hasSecondary)
+            SizedBox(
+              height: 70,
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (i) => setState(() => _macroPage = i),
                 children: [
-                  if (item.fiber > 0)
-                    _macroSmall('Fiber', '${item.fiber.toStringAsFixed(1)}g',
-                        const Color(0xFF8D6E63)),
-                  if (item.fiber > 0 && item.sugar > 0) const SizedBox(width: 8),
-                  if (item.sugar > 0)
-                    _macroSmall('Sugar', '${item.sugar.toStringAsFixed(1)}g',
-                        const Color(0xFFE91E63)),
-                  if ((item.fiber > 0 || item.sugar > 0) && item.sodium > 0)
-                    const SizedBox(width: 8),
-                  if (item.sodium > 0)
-                    _macroSmall('Sodium', '${item.sodium.toStringAsFixed(0)}mg',
-                        const Color(0xFF78909C)),
+                  Row(
+                    children: [
+                      _macroIcon(Icons.egg_alt, 'Protein',
+                          '${item.protein.toStringAsFixed(1)}g', _proteinColor),
+                      const SizedBox(width: 8),
+                      _macroIcon(Icons.grain, 'Carbs',
+                          '${item.carbs.toStringAsFixed(1)}g', _carbsColor),
+                      const SizedBox(width: 8),
+                      _macroIcon(Icons.water_drop, 'Fats',
+                          '${item.fat.toStringAsFixed(1)}g', _fatColor),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      if (item.fiber > 0)
+                        _macroIcon(Icons.grass, 'Fiber',
+                            '${item.fiber.toStringAsFixed(1)}g', _fiberColor),
+                      if (item.fiber > 0 && item.sugar > 0)
+                        const SizedBox(width: 8),
+                      if (item.sugar > 0)
+                        _macroIcon(Icons.cake, 'Sugar',
+                            '${item.sugar.toStringAsFixed(1)}g', _sugarColor),
+                      if (item.sugar > 0 && item.sodium > 0)
+                        const SizedBox(width: 8),
+                      if (item.sodium > 0)
+                        _macroIcon(Icons.water_drop_outlined, 'Sodium',
+                            '${item.sodium.toStringAsFixed(0)}mg', _sodiumColor),
+                    ],
+                  ),
                 ],
               ),
+            )
+          else
+            Row(
+              children: [
+                _macroIcon(Icons.egg_alt, 'Protein',
+                    '${item.protein.toStringAsFixed(1)}g', _proteinColor),
+                const SizedBox(width: 8),
+                _macroIcon(Icons.grain, 'Carbs',
+                    '${item.carbs.toStringAsFixed(1)}g', _carbsColor),
+                const SizedBox(width: 8),
+                _macroIcon(Icons.water_drop, 'Fats',
+                    '${item.fat.toStringAsFixed(1)}g', _fatColor),
+              ],
             ),
+
+          // Pagination dots
+          if (_hasSecondary) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _dot(_macroPage == 0),
+                const SizedBox(width: 6),
+                _dot(_macroPage == 1),
+              ],
+            ),
+          ],
 
           // Ingredients
           if (item.ingredients.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Ingredients',
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1C1C1E))),
-              ],
-            ),
+            const Text('Ingredients',
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1C1C1E))),
             const SizedBox(height: 8),
             ...item.ingredients.map((ing) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: GestureDetector(
                     onTap: () => _showEditIngredientSheet(context, ing),
                     child: Row(
                       children: [
                         Expanded(
-                          child: Text(ing.name,
-                              style: const TextStyle(
-                                  fontSize: 14, color: Color(0xFF1C1C1E))),
+                          child: Text(
+                            '${ing.name} • ${ing.calories} cal',
+                            style: const TextStyle(
+                                fontSize: 14, color: Color(0xFF1C1C1E)),
+                          ),
                         ),
                         if (ing.servingSizeGrams > 0)
                           Text('${ing.servingSizeGrams.round()}g',
                               style: const TextStyle(
                                   fontSize: 13, color: Color(0xFF8E8E93))),
-                        const SizedBox(width: 12),
-                        Text('${ing.calories} cal',
-                            style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF1C1C1E))),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.edit, size: 12, color: Color(0xFF8E8E93)),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.edit,
+                            size: 14, color: Color(0xFF8E8E93)),
                       ],
                     ),
                   ),
                 )),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _macroIcon(
+      IconData icon, String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: color.withValues(alpha: 0.7))),
+                Text(value,
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w700, color: color)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _dot(bool active) {
+    return Container(
+      width: 7,
+      height: 7,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: active ? const Color(0xFF1C1C1E) : const Color(0xFFD1D1D6),
       ),
     );
   }
@@ -621,72 +724,6 @@ class _FoodItemCard extends StatelessWidget {
                 ? const Color(0xFF1C1C1E)
                 : const Color(0xFF8E8E93)),
       ),
-    );
-  }
-
-  Widget _macroCard(
-      BuildContext context, String label, double value, String unit, Color color,
-      {required bool hasEdit,
-      required VoidCallback onTap,
-      required VoidCallback onClear}) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: hasEdit
-                ? color.withValues(alpha: 0.12)
-                : color.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('${value.toStringAsFixed(1)}$unit',
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: color)),
-                  const SizedBox(width: 3),
-                  Icon(Icons.edit, size: 11, color: color.withValues(alpha: 0.5)),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: color.withValues(alpha: 0.7))),
-              if (hasEdit)
-                GestureDetector(
-                  onTap: onClear,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text('reset',
-                        style: TextStyle(fontSize: 10, color: color)),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _macroSmall(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text('$label $value',
-          style: TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w600, color: color)),
     );
   }
 
@@ -823,85 +860,6 @@ class _FoodItemCard extends StatelessWidget {
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
-      ),
-    );
-  }
-
-  void _showEditNumberSheet(BuildContext context, String label, double current,
-      ValueChanged<dynamic> onSave,
-      {String unit = ''}) {
-    final controller =
-        TextEditingController(text: current.toStringAsFixed(1));
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 12, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFECECE7),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('Edit $label',
-                style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1C1C1E))),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: InputDecoration(
-                suffixText: unit,
-                filled: true,
-                fillColor: const Color(0xFFFAF9F7),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 50,
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  final val = double.tryParse(controller.text);
-                  if (val != null) {
-                    onSave(val);
-                    Navigator.of(ctx).pop();
-                  }
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF1C1C1E),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-                child: const Text('Update',
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
