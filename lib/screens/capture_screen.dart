@@ -321,45 +321,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       const SizedBox(height: 16),
 
                       // Food items
-                      ..._items!.map((item) {
-                        return _FoodItemCard(
-                          item: item,
-                          onQuantityChanged: (oldQty, newQty) {
-                            setState(() {
-                              item.rescaleEdits(oldQty, newQty);
-                              item.quantity = newQty;
-                            });
-                          },
-                        );
-                      }),
+                      ..._items!.map((item) => _FoodItemCard(item: item)),
 
                       const SizedBox(height: 12),
 
-                      // Total
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Total',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                    color: _ink)),
-                            Text(
-                              '${_items!.fold(0, (s, i) => s + i.calories)} kcal',
-                              style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: _ink),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Total summary card (black)
+                      _TotalCard(items: _items!),
                       const SizedBox(height: 20),
 
                       // Log button
@@ -419,20 +386,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
 // ---- Food Item Card ----
 
-class _FoodItemCard extends StatefulWidget {
-  final FoodItem item;
-  final void Function(double oldQty, double newQty) onQuantityChanged;
-
-  const _FoodItemCard({
-    required this.item,
-    required this.onQuantityChanged,
-  });
-
-  @override
-  State<_FoodItemCard> createState() => _FoodItemCardState();
-}
-
-class _FoodItemCardState extends State<_FoodItemCard> {
+class _FoodItemCard extends StatelessWidget {
   static const _proteinColor = Color(0xFFE53935);
   static const _carbsColor = Color(0xFFFF9500);
   static const _fatColor = Color(0xFF007AFF);
@@ -440,27 +394,14 @@ class _FoodItemCardState extends State<_FoodItemCard> {
   static const _sugarColor = Color(0xFFE91E63);
   static const _sodiumColor = Color(0xFF78909C);
 
-  int _macroPage = 0;
-  late final PageController _pageController;
+  final FoodItem item;
 
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  bool get _hasSecondary =>
-      widget.item.fiber > 0 || widget.item.sugar > 0 || widget.item.sodium > 0;
+  const _FoodItemCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final item = widget.item;
+    final hasSecondary = item.fiber > 0 || item.sugar > 0 || item.sodium > 0;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -471,8 +412,9 @@ class _FoodItemCardState extends State<_FoodItemCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Name + quantity counter
+          // Name + kcal
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(item.name,
@@ -481,386 +423,123 @@ class _FoodItemCardState extends State<_FoodItemCard> {
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1C1C1E))),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFAF9F7),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _qtyBtn(
-                      icon: Icons.remove,
-                      onTap: item.quantity > 1
-                          ? () => widget.onQuantityChanged(
-                              item.quantity, item.quantity - 1)
-                          : null,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('${item.quantity.round()}',
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1C1C1E))),
-                    ),
-                    _qtyBtn(
-                      icon: Icons.add,
-                      onTap: () => widget.onQuantityChanged(
-                          item.quantity, item.quantity + 1),
-                    ),
-                  ],
-                ),
-              ),
+              Text('${item.calories} kcal',
+                  style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1C1C1E))),
             ],
-          ),
-          const SizedBox(height: 16),
-
-          // Calories card with flame icon
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFAF9F7),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.local_fire_department,
-                      size: 22, color: Color(0xFF1C1C1E)),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Calories',
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF8E8E93))),
-                    Text('${item.calories}',
-                        style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1C1C1E))),
-                  ],
-                ),
-              ],
-            ),
           ),
           const SizedBox(height: 12),
 
-          // Swipeable macro cards
-          if (_hasSecondary)
-            SizedBox(
-              height: 70,
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (i) => setState(() => _macroPage = i),
-                children: [
-                  Row(
-                    children: [
-                      _macroIcon(Icons.egg_alt, 'Protein',
-                          '${item.protein.toStringAsFixed(1)}g', _proteinColor),
-                      const SizedBox(width: 8),
-                      _macroIcon(Icons.grain, 'Carbs',
-                          '${item.carbs.toStringAsFixed(1)}g', _carbsColor),
-                      const SizedBox(width: 8),
-                      _macroIcon(Icons.water_drop, 'Fats',
-                          '${item.fat.toStringAsFixed(1)}g', _fatColor),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      if (item.fiber > 0)
-                        _macroIcon(Icons.grass, 'Fiber',
-                            '${item.fiber.toStringAsFixed(1)}g', _fiberColor),
-                      if (item.fiber > 0 && item.sugar > 0)
-                        const SizedBox(width: 8),
-                      if (item.sugar > 0)
-                        _macroIcon(Icons.cake, 'Sugar',
-                            '${item.sugar.toStringAsFixed(1)}g', _sugarColor),
-                      if (item.sugar > 0 && item.sodium > 0)
-                        const SizedBox(width: 8),
-                      if (item.sodium > 0)
-                        _macroIcon(Icons.water_drop_outlined, 'Sodium',
-                            '${item.sodium.toStringAsFixed(0)}mg', _sodiumColor),
-                    ],
-                  ),
-                ],
-              ),
-            )
-          else
-            Row(
-              children: [
-                _macroIcon(Icons.egg_alt, 'Protein',
-                    '${item.protein.toStringAsFixed(1)}g', _proteinColor),
-                const SizedBox(width: 8),
-                _macroIcon(Icons.grain, 'Carbs',
-                    '${item.carbs.toStringAsFixed(1)}g', _carbsColor),
-                const SizedBox(width: 8),
-                _macroIcon(Icons.water_drop, 'Fats',
-                    '${item.fat.toStringAsFixed(1)}g', _fatColor),
-              ],
-            ),
+          // Macro pills row 1: Protein, Carbs, Fat
+          Row(
+            children: [
+              _macroPill('Protein ${item.protein.toStringAsFixed(1)}g', _proteinColor),
+              const SizedBox(width: 8),
+              _macroPill('Carbs ${item.carbs.toStringAsFixed(1)}g', _carbsColor),
+              const SizedBox(width: 8),
+              _macroPill('Fat ${item.fat.toStringAsFixed(1)}g', _fatColor),
+            ],
+          ),
 
-          // Pagination dots
-          if (_hasSecondary) ...[
+          // Macro pills row 2: Fiber, Sugar, Sodium
+          if (hasSecondary) ...[
             const SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _dot(_macroPage == 0),
-                const SizedBox(width: 6),
-                _dot(_macroPage == 1),
+                if (item.fiber > 0)
+                  _macroPill('Fiber ${item.fiber.toStringAsFixed(1)}g', _fiberColor),
+                if (item.fiber > 0 && item.sugar > 0) const SizedBox(width: 8),
+                if (item.sugar > 0)
+                  _macroPill('Sugar ${item.sugar.toStringAsFixed(1)}g', _sugarColor),
+                if ((item.fiber > 0 || item.sugar > 0) && item.sodium > 0)
+                  const SizedBox(width: 8),
+                if (item.sodium > 0)
+                  _macroPill('Sodium ${item.sodium.toStringAsFixed(0)}mg', _sodiumColor),
               ],
             ),
-          ],
-
-          // Ingredients
-          if (item.ingredients.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text('Ingredients',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1C1C1E))),
-            const SizedBox(height: 8),
-            ...item.ingredients.map((ing) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GestureDetector(
-                    onTap: () => _showEditIngredientSheet(context, ing),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${ing.name} • ${ing.calories} cal',
-                            style: const TextStyle(
-                                fontSize: 14, color: Color(0xFF1C1C1E)),
-                          ),
-                        ),
-                        if (ing.servingSizeGrams > 0)
-                          Text('${ing.servingSizeGrams.round()}g',
-                              style: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF8E8E93))),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.edit,
-                            size: 14, color: Color(0xFF8E8E93)),
-                      ],
-                    ),
-                  ),
-                )),
           ],
         ],
       ),
     );
   }
 
-  Widget _macroIcon(
-      IconData icon, String label, String value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 6),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: color.withValues(alpha: 0.7))),
-                Text(value,
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w700, color: color)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _dot(bool active) {
+  Widget _macroPill(String text, Color color) {
     return Container(
-      width: 7,
-      height: 7,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: active ? const Color(0xFF1C1C1E) : const Color(0xFFD1D1D6),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
       ),
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w600, color: color)),
     );
   }
+}
 
-  Widget _qtyBtn({required IconData icon, VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: onTap != null ? Colors.white : const Color(0xFFECECE7),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon,
-            size: 18,
-            color: onTap != null
-                ? const Color(0xFF1C1C1E)
-                : const Color(0xFF8E8E93)),
+// ---- Total Summary Card ----
+
+class _TotalCard extends StatelessWidget {
+  static const _ink = Color(0xFF1C1C1E);
+  final List<FoodItem> items;
+
+  const _TotalCard({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final totalCal = items.fold(0, (s, i) => s + i.calories);
+    final totalP = items.fold(0.0, (s, i) => s + i.protein);
+    final totalC = items.fold(0.0, (s, i) => s + i.carbs);
+    final totalF = items.fold(0.0, (s, i) => s + i.fat);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _ink,
+        borderRadius: BorderRadius.circular(20),
       ),
-    );
-  }
-
-  void _showEditIngredientSheet(BuildContext context, Ingredient ing) {
-    final nameController = TextEditingController(text: ing.name);
-    final gramsController =
-        TextEditingController(text: ing.servingSizeGrams.round().toString());
-    final calController =
-        TextEditingController(text: ing.calories.toString());
-    final proteinController =
-        TextEditingController(text: ing.protein.toStringAsFixed(1));
-    final carbsController =
-        TextEditingController(text: ing.carbs.toStringAsFixed(1));
-    final fatController =
-        TextEditingController(text: ing.fat.toStringAsFixed(1));
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 12, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Total',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white)),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECECE7),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text('Edit ingredient',
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1C1C1E))),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameController,
-                decoration: _inputDecoration('Name'),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: gramsController,
-                      keyboardType: TextInputType.number,
-                      decoration: _inputDecoration('Grams'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: calController,
-                      keyboardType: TextInputType.number,
-                      decoration: _inputDecoration('Calories'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: proteinController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: _inputDecoration('Protein (g)'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: carbsController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: _inputDecoration('Carbs (g)'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: fatController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: _inputDecoration('Fat (g)'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 50,
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF1C1C1E),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: const Text('Done',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w700)),
-                ),
-              ),
+              _totalStat('🔥', '$totalCal', 'kcal'),
+              _totalStat('🥩', '${totalP.toStringAsFixed(1)}g', 'protein'),
+              _totalStat('🌾', '${totalC.toStringAsFixed(1)}g', 'carbs'),
+              _totalStat('🧈', '${totalF.toStringAsFixed(1)}g', 'fat'),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      filled: true,
-      fillColor: const Color(0xFFFAF9F7),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide.none,
-      ),
+  Widget _totalStat(String emoji, String value, String label) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 20)),
+        const SizedBox(height: 4),
+        Text(value,
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.white)),
+        const SizedBox(height: 2),
+        Text(label,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.6))),
+      ],
     );
   }
 }

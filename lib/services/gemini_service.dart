@@ -33,17 +33,15 @@ class GeminiService {
 
     final prompt = '''
 Analyze this food photo. Return ONLY valid JSON:
-{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0,"ingredients":[{"name":"Black lentils","servingSizeGrams":120,"calories":140,"protein":9.0,"carbs":20.0,"fat":0.5},{"name":"Butter","servingSizeGrams":15,"calories":110,"protein":0.1,"carbs":0,"fat":12.0},{"name":"Cream","servingSizeGrams":30,"calories":60,"protein":0.5,"carbs":1.0,"fat":6.0}]}]}
+{"mealType":"lunch","items":[{"name":"Dal Makhani","calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0}]}
 
 If no food visible: {"mealType":"snack","items":[]}
 
 Rules:
 - mealType = breakfast/lunch/dinner/snack
-- servingSizeGrams = estimated total weight of that item in the photo (in grams)
 - calories = integer kcal for the full serving
 - protein/carbs/fat/fiber/sugar = grams for the full serving
 - sodium = mg for the full serving
-- ingredients = breakdown of what makes up this dish, each with its own servingSizeGrams and nutrition values
 - Indian household serving sizes. Only include visible foods.
 ''';
 
@@ -66,7 +64,7 @@ Rules:
       ],
       'generationConfig': {
         'temperature': 0.2,
-        'maxOutputTokens': 3000,
+        'maxOutputTokens': 1000,
       },
     });
 
@@ -102,15 +100,13 @@ Rules:
 Estimate nutrition for this food: $foodName
 
 Return ONLY valid JSON:
-{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0,"ingredients":[{"name":"Black lentils","servingSizeGrams":120,"calories":140,"protein":9.0,"carbs":20.0,"fat":0.5},{"name":"Butter","servingSizeGrams":15,"calories":110,"protein":0.1,"carbs":0,"fat":12.0}]}]}
+{"mealType":"lunch","items":[{"name":"Dal Makhani","calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0}]}
 
 Rules:
 - mealType = breakfast/lunch/dinner/snack
-- servingSizeGrams = estimated total weight of that item (in grams)
 - calories = integer kcal for the full serving
 - protein/carbs/fat/fiber/sugar = grams for the full serving
 - sodium = mg for the full serving
-- ingredients = breakdown of what makes up this dish
 - Indian household serving sizes. Use quantity if specified, otherwise typical single serving.
 ''';
 
@@ -127,7 +123,7 @@ Rules:
       ],
       'generationConfig': {
         'temperature': 0.2,
-        'maxOutputTokens': 3000,
+        'maxOutputTokens': 1000,
       },
     });
 
