@@ -321,7 +321,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       const SizedBox(height: 16),
 
                       // Food items
-                      ..._items!.map((item) => _FoodItemCard(item: item)),
+                      ..._items!.map((item) {
+                        return _FoodItemCard(
+                          item: item,
+                          onChanged: () => setState(() {}),
+                        );
+                      }),
 
                       const SizedBox(height: 12),
 
@@ -386,7 +391,17 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
 // ---- Food Item Card ----
 
-class _FoodItemCard extends StatelessWidget {
+class _FoodItemCard extends StatefulWidget {
+  final FoodItem item;
+  final VoidCallback onChanged;
+
+  const _FoodItemCard({required this.item, required this.onChanged});
+
+  @override
+  State<_FoodItemCard> createState() => _FoodItemCardState();
+}
+
+class _FoodItemCardState extends State<_FoodItemCard> {
   static const _proteinColor = Color(0xFFE53935);
   static const _carbsColor = Color(0xFFFF9500);
   static const _fatColor = Color(0xFF007AFF);
@@ -394,12 +409,9 @@ class _FoodItemCard extends StatelessWidget {
   static const _sugarColor = Color(0xFFE91E63);
   static const _sodiumColor = Color(0xFF78909C);
 
-  final FoodItem item;
-
-  const _FoodItemCard({required this.item});
-
   @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     final hasSecondary = item.fiber > 0 || item.sugar > 0 || item.sodium > 0;
 
     return Container(
@@ -412,9 +424,8 @@ class _FoodItemCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Name + kcal
+          // Name + quantity counter
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(item.name,
@@ -423,6 +434,49 @@ class _FoodItemCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1C1C1E))),
               ),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFAF9F7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _qtyBtn(
+                      icon: Icons.remove,
+                      onTap: item.quantity > 1
+                          ? () {
+                              setState(() => item.quantity -= 1);
+                              widget.onChanged();
+                            }
+                          : null,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text('${item.quantity.round()}',
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1C1C1E))),
+                    ),
+                    _qtyBtn(
+                      icon: Icons.add,
+                      onTap: () {
+                        setState(() => item.quantity += 1);
+                        widget.onChanged();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Calories
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
               Text('${item.calories} kcal',
                   style: const TextStyle(
                       fontSize: 17,
@@ -432,7 +486,7 @@ class _FoodItemCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Macro pills row 1: Protein, Carbs, Fat
+          // Macro pills row 1
           Row(
             children: [
               _macroPill('Protein ${item.protein.toStringAsFixed(1)}g', _proteinColor),
@@ -443,7 +497,7 @@ class _FoodItemCard extends StatelessWidget {
             ],
           ),
 
-          // Macro pills row 2: Fiber, Sugar, Sodium
+          // Macro pills row 2
           if (hasSecondary) ...[
             const SizedBox(height: 8),
             Row(
@@ -475,6 +529,25 @@ class _FoodItemCard extends StatelessWidget {
       child: Text(text,
           style: TextStyle(
               fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+    );
+  }
+
+  Widget _qtyBtn({required IconData icon, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: onTap != null ? Colors.white : const Color(0xFFECECE7),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon,
+            size: 18,
+            color: onTap != null
+                ? const Color(0xFF1C1C1E)
+                : const Color(0xFF8E8E93)),
+      ),
     );
   }
 }

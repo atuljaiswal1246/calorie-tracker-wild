@@ -1,33 +1,50 @@
 class FoodItem {
   final String name;
-  final int calories;
-  final double protein;
-  final double carbs;
-  final double fat;
-  final double fiber;
-  final double sugar;
-  final double sodium;
+  final int _calories;
+  final double _protein;
+  final double _carbs;
+  final double _fat;
+  final double _fiber;
+  final double _sugar;
+  final double _sodium;
+  double quantity;
 
-  const FoodItem({
+  FoodItem({
     required this.name,
-    required this.calories,
-    required this.protein,
-    required this.carbs,
-    required this.fat,
-    this.fiber = 0,
-    this.sugar = 0,
-    this.sodium = 0,
-  });
+    required int calories,
+    required double protein,
+    required double carbs,
+    required double fat,
+    double fiber = 0,
+    double sugar = 0,
+    double sodium = 0,
+    this.quantity = 1,
+  })  : _calories = calories,
+        _protein = protein,
+        _carbs = carbs,
+        _fat = fat,
+        _fiber = fiber,
+        _sugar = sugar,
+        _sodium = sodium;
+
+  int get calories => (_calories * quantity).round();
+  double get protein => _protein * quantity;
+  double get carbs => _carbs * quantity;
+  double get fat => _fat * quantity;
+  double get fiber => _fiber * quantity;
+  double get sugar => _sugar * quantity;
+  double get sodium => _sodium * quantity;
 
   Map<String, dynamic> toJson() => {
         'name': name,
-        'calories': calories,
-        'protein': protein,
-        'carbs': carbs,
-        'fat': fat,
-        'fiber': fiber,
-        'sugar': sugar,
-        'sodium': sodium,
+        'calories': _calories,
+        'protein': _protein,
+        'carbs': _carbs,
+        'fat': _fat,
+        'fiber': _fiber,
+        'sugar': _sugar,
+        'sodium': _sodium,
+        'quantity': quantity,
       };
 
   factory FoodItem.fromJson(Map<String, dynamic> json) => FoodItem(
@@ -39,6 +56,7 @@ class FoodItem {
         fiber: (json['fiber'] as num?)?.toDouble() ?? 0,
         sugar: (json['sugar'] as num?)?.toDouble() ?? 0,
         sodium: (json['sodium'] as num?)?.toDouble() ?? 0,
+        quantity: (json['quantity'] as num?)?.toDouble() ?? 1,
       );
 }
 
