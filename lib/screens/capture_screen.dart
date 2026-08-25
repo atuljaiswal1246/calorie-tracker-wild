@@ -340,22 +340,35 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
             // Sticky Log button at bottom
             if (_items != null && !_analyzing)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: SizedBox(
-                  height: 54,
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _log,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _ink,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+              ColoredBox(
+                color: Colors.white,
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(height: 2, color: Colors.black12),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                        child: SizedBox(
+                          height: 54,
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: _log,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: _ink,
+                              foregroundColor: Colors.white,
+                              shape: const StadiumBorder(),
+                            ),
+                            child: const Text('Log this meal',
+                                style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: -0.5)),
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Text('Log this meal',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700)),
+                    ],
                   ),
                 ),
               ),
