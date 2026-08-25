@@ -648,6 +648,26 @@ class _FoodItemCard extends StatelessWidget {
                   onClear: () => onClearEdit('fat')),
             ],
           ),
+          if (item.fiber > 0 || item.sugar > 0 || item.sodium > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  if (item.fiber > 0)
+                    _macroSmall('Fiber', '${item.fiber.toStringAsFixed(1)}g',
+                        const Color(0xFF8D6E63)),
+                  if (item.fiber > 0 && item.sugar > 0) const SizedBox(width: 8),
+                  if (item.sugar > 0)
+                    _macroSmall('Sugar', '${item.sugar.toStringAsFixed(1)}g',
+                        const Color(0xFFE91E63)),
+                  if ((item.fiber > 0 || item.sugar > 0) && item.sodium > 0)
+                    const SizedBox(width: 8),
+                  if (item.sodium > 0)
+                    _macroSmall('Sodium', '${item.sodium.toStringAsFixed(0)}mg',
+                        const Color(0xFF78909C)),
+                ],
+              ),
+            ),
 
           // Ingredients
           if (item.ingredients.isNotEmpty) ...[
@@ -750,6 +770,19 @@ class _FoodItemCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _macroSmall(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text('$label $value',
+          style: TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w600, color: color)),
     );
   }
 
