@@ -158,7 +158,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         const SizedBox(height: 20),
         _sectionTitle('Daily breakdown'),
         const SizedBox(height: 12),
-        ..._displayDays.map((day) => _dayRow(day, profile)),
+        ..._displayDays.reversed.map((day) => _dayRow(day, profile)),
       ],
     );
   }
