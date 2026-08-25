@@ -65,18 +65,38 @@ class _ProgressScreenState extends State<ProgressScreen> {
       _entriesForDay(day).fold(0.0, (s, e) => s + e.totalFat);
 
   List<DateTime> get _displayDays {
+    final earliest = _earliestDate;
     if (_periodIndex == 2 && _customStart != null && _customEnd != null) {
-      final diff = _customEnd!.difference(_customStart!).inDays + 1;
-      return List.generate(diff, (i) => _customStart!.add(Duration(days: i)));
+      var start = _customStart!;
+      if (earliest != null && start.isBefore(earliest)) {
+        start = DateTime(earliest.year, earliest.month, earliest.day);
+      }
+      final diff = _customEnd!.difference(start).inDays + 1;
+      if (diff <= 0) return [];
+      return List.generate(diff, (i) => start.add(Duration(days: i)));
     }
     if (_periodIndex == 1) {
       final now = DateTime.now();
       final isFirstMonth = _selectedMonth.year == now.year && _selectedMonth.month == now.month;
-      final firstOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+      var firstOfMonth = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+      if (earliest != null && firstOfMonth.isBefore(earliest)) {
+        firstOfMonth = DateTime(earliest.year, earliest.month, earliest.day);
+      }
       final daysInMonth = isFirstMonth ? now.day : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
-      return List.generate(daysInMonth, (i) => firstOfMonth.add(Duration(days: i)));
+      final lastDay = isFirstMonth ? now.day : daysInMonth;
+      final filteredDays = List.generate(lastDay, (i) => DateTime(_selectedMonth.year, _selectedMonth.month, i + 1))
+          .where((d) => !d.isBefore(firstOfMonth))
+          .toList();
+      return filteredDays;
     }
-    return List.generate(7, (i) => _selectedWeekStart.add(Duration(days: i)));
+    // Week view — clamp start to earliest date
+    var start = _selectedWeekStart;
+    if (earliest != null && start.isBefore(DateTime(earliest.year, earliest.month, earliest.day))) {
+      start = DateTime(earliest.year, earliest.month, earliest.day);
+    }
+    return List.generate(7, (i) => _selectedWeekStart.add(Duration(days: i)))
+        .where((d) => !d.isBefore(start))
+        .toList();
   }
 
   int get _totalCalories =>
