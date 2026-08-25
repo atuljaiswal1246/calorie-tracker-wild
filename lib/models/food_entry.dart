@@ -1,5 +1,6 @@
 class FoodItem {
   final String name;
+  final double servingSizeGrams;
   final int _calories;
   final double _protein;
   final double _carbs;
@@ -11,6 +12,7 @@ class FoodItem {
 
   FoodItem({
     required this.name,
+    this.servingSizeGrams = 0,
     required int calories,
     required double protein,
     required double carbs,
@@ -37,6 +39,7 @@ class FoodItem {
 
   Map<String, dynamic> toJson() => {
         'name': name,
+        'servingSizeGrams': servingSizeGrams,
         'calories': _calories,
         'protein': _protein,
         'carbs': _carbs,
@@ -49,6 +52,7 @@ class FoodItem {
 
   factory FoodItem.fromJson(Map<String, dynamic> json) => FoodItem(
         name: json['name'] as String? ?? 'Food',
+        servingSizeGrams: (json['servingSizeGrams'] as num?)?.toDouble() ?? 0,
         calories: (json['calories'] as num?)?.toInt() ?? 0,
         protein: (json['protein'] as num?)?.toDouble() ?? 0,
         carbs: (json['carbs'] as num?)?.toDouble() ?? 0,

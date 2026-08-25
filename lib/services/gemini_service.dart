@@ -33,12 +33,13 @@ class GeminiService {
 
     final prompt = '''
 Analyze this food photo. Return ONLY valid JSON:
-{"mealType":"lunch","items":[{"name":"Dal Makhani","calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0}]}
+{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0}]}
 
 If no food visible: {"mealType":"snack","items":[]}
 
 Rules:
 - mealType = breakfast/lunch/dinner/snack
+- servingSizeGrams = estimated total weight of that item in the photo (in grams)
 - calories = integer kcal for the full serving
 - protein/carbs/fat/fiber/sugar = grams for the full serving
 - sodium = mg for the full serving
@@ -100,10 +101,11 @@ Rules:
 Estimate nutrition for this food: $foodName
 
 Return ONLY valid JSON:
-{"mealType":"lunch","items":[{"name":"Dal Makhani","calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0}]}
+{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0}]}
 
 Rules:
 - mealType = breakfast/lunch/dinner/snack
+- servingSizeGrams = estimated total weight of that item (in grams)
 - calories = integer kcal for the full serving
 - protein/carbs/fat/fiber/sugar = grams for the full serving
 - sodium = mg for the full serving
