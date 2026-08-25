@@ -82,6 +82,29 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
+  DateTime? get _earliestDate {
+    if (_allEntries.isEmpty) return null;
+    return _allEntries
+        .map((e) => e.dateTime)
+        .reduce((a, b) => a.isBefore(b) ? a : b);
+  }
+
+  bool get _canGoBackWeek {
+    final earliest = _earliestDate;
+    if (earliest == null) return true;
+    final prevWeekStart = _selectedWeekStart.subtract(const Duration(days: 7));
+    final weekEnd = prevWeekStart.add(const Duration(days: 6));
+    return !weekEnd.isBefore(DateTime(earliest.year, earliest.month, earliest.day));
+  }
+
+  bool get _canGoBackMonth {
+    final earliest = _earliestDate;
+    if (earliest == null) return true;
+    final prevMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    return !(prevMonth.year < earliest.year ||
+        (prevMonth.year == earliest.year && prevMonth.month < earliest.month));
+  }
+
   @override
   Widget build(BuildContext context) {
     final entries = _filteredEntries;
@@ -240,16 +263,16 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => setState(() {
+            onTap: _canGoBackWeek ? () => setState(() {
               _selectedWeekStart = _selectedWeekStart.subtract(const Duration(days: 7));
-            }),
+            }) : null,
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFFF4F4F1),
+                color: _canGoBackWeek ? const Color(0xFFF4F4F1) : const Color(0xFFF4F4F1).withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.chevron_left, color: _ink, size: 20),
+              child: Icon(Icons.chevron_left, color: _canGoBackWeek ? _ink : _muted.withValues(alpha: 0.4), size: 20),
             ),
           ),
           Column(
@@ -303,16 +326,16 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => setState(() {
+            onTap: _canGoBackMonth ? () => setState(() {
               _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
-            }),
+            }) : null,
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFFF4F4F1),
+                color: _canGoBackMonth ? const Color(0xFFF4F4F1) : const Color(0xFFF4F4F1).withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.chevron_left, color: _ink, size: 20),
+              child: Icon(Icons.chevron_left, color: _canGoBackMonth ? _ink : _muted.withValues(alpha: 0.4), size: 20),
             ),
           ),
           Column(
