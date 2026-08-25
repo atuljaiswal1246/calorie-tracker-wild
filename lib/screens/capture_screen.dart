@@ -332,29 +332,33 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
                       // Total summary card (black)
                       _TotalCard(items: _items!),
-                      const SizedBox(height: 20),
-
-                      // Log button
-                      SizedBox(
-                        height: 54,
-                        child: FilledButton(
-                          onPressed: _log,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: _ink,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: const Text('Log this meal',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w700)),
-                        ),
-                      ),
                     ],
                   ],
                 ),
               ),
             ),
+
+            // Sticky Log button at bottom
+            if (_items != null && !_analyzing)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: SizedBox(
+                  height: 54,
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _log,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _ink,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text('Log this meal',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
