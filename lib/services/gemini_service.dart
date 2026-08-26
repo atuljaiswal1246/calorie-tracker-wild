@@ -13,11 +13,36 @@ class GeminiService {
 
   static const _endpoint =
       'https://generativelanguage.googleapis.com/v1beta/models/';
+  static const _maxRetries = 3;
 
   Future<({List<FoodItem> items, String? mealType})> analyzeImage(
     String imagePath, {
     String model = 'gemini-3.6-flash',
   }) async {
+    for (int attempt = 0; attempt < _maxRetries; attempt++) {
+      try {
+        final result = await _callImageApi(imagePath, model);
+        if (result.items.isNotEmpty) return result;
+        if (attempt < _maxRetries - 1) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        return result;
+      } catch (e) {
+        if (attempt < _maxRetries - 1) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        rethrow;
+      }
+    }
+    return (items: <FoodItem>[], mealType: null);
+  }
+
+  Future<({List<FoodItem> items, String? mealType})> _callImageApi(
+    String imagePath,
+    String model,
+  ) async {
     final compressed = await FlutterImageCompress.compressWithFile(
       imagePath,
       minWidth: 800,
@@ -97,6 +122,30 @@ Rules:
     String foodName, {
     String model = 'gemini-3.6-flash',
   }) async {
+    for (int attempt = 0; attempt < _maxRetries; attempt++) {
+      try {
+        final result = await _callTextApi(foodName, model);
+        if (result.items.isNotEmpty) return result;
+        if (attempt < _maxRetries - 1) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        return result;
+      } catch (e) {
+        if (attempt < _maxRetries - 1) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        rethrow;
+      }
+    }
+    return (items: <FoodItem>[], mealType: null);
+  }
+
+  Future<({List<FoodItem> items, String? mealType})> _callTextApi(
+    String foodName,
+    String model,
+  ) async {
     final prompt = '''
 Estimate nutrition for this food: $foodName
 

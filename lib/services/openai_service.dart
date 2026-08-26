@@ -13,8 +13,32 @@ class OpenAIService {
   OpenAIService({required this.apiKey, this.model = 'gpt-4o-mini'});
 
   static const _endpoint = 'https://api.openai.com/v1/chat/completions';
+  static const _maxRetries = 3;
 
   Future<({List<FoodItem> items, String? mealType})> analyzeImage(String imagePath) async {
+    for (int attempt = 0; attempt < _maxRetries; attempt++) {
+      try {
+        final result = await _callImageApi(imagePath);
+        if (result.items.isNotEmpty) return result;
+        if (attempt < _maxRetries - 1) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        return result;
+      } catch (e) {
+        if (attempt < _maxRetries - 1) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        rethrow;
+      }
+    }
+    return (items: <FoodItem>[], mealType: null);
+  }
+
+  Future<({List<FoodItem> items, String? mealType})> _callImageApi(
+    String imagePath,
+  ) async {
     final compressed = await FlutterImageCompress.compressWithFile(
       imagePath,
       minWidth: 800,
@@ -83,6 +107,29 @@ Rules:
   }
 
   Future<({List<FoodItem> items, String? mealType})> analyzeText(String foodName) async {
+    for (int attempt = 0; attempt < _maxRetries; attempt++) {
+      try {
+        final result = await _callTextApi(foodName);
+        if (result.items.isNotEmpty) return result;
+        if (attempt < _maxRetries - 1) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        return result;
+      } catch (e) {
+        if (attempt < _maxRetries - 1) {
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        rethrow;
+      }
+    }
+    return (items: <FoodItem>[], mealType: null);
+  }
+
+  Future<({List<FoodItem> items, String? mealType})> _callTextApi(
+    String foodName,
+  ) async {
     final prompt = '''
 Estimate nutrition for this food: $foodName
 
