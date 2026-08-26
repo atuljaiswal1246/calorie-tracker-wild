@@ -7,6 +7,7 @@ class Achievement {
   final String emoji;
   final bool unlocked;
   final DateTime? unlockedAt;
+  final double progress;
 
   const Achievement({
     required this.id,
@@ -15,15 +16,18 @@ class Achievement {
     required this.emoji,
     this.unlocked = false,
     this.unlockedAt,
+    this.progress = 1.0,
   });
 
-  Achievement copyWith({bool? unlocked, DateTime? unlockedAt}) => Achievement(
+  Achievement copyWith({bool? unlocked, DateTime? unlockedAt, double? progress}) =>
+      Achievement(
         id: id,
         title: title,
         description: description,
         emoji: emoji,
         unlocked: unlocked ?? this.unlocked,
         unlockedAt: unlockedAt ?? this.unlockedAt,
+        progress: progress ?? this.progress,
       );
 }
 
@@ -54,6 +58,7 @@ class AchievementsService {
         description: 'Log meals 3 days in a row',
         emoji: '🔥',
         unlocked: streak >= 3,
+        progress: (streak / 3).clamp(0.0, 1.0),
         unlockedAt: unlocked['streak_3'] != null
             ? DateTime.tryParse(unlocked['streak_3']!)
             : null,
@@ -64,6 +69,7 @@ class AchievementsService {
         description: 'Log meals 7 days in a row',
         emoji: '⚡',
         unlocked: streak >= 7,
+        progress: (streak / 7).clamp(0.0, 1.0),
         unlockedAt: unlocked['streak_7'] != null
             ? DateTime.tryParse(unlocked['streak_7']!)
             : null,
@@ -74,6 +80,7 @@ class AchievementsService {
         description: 'Log meals 14 days in a row',
         emoji: '💪',
         unlocked: streak >= 14,
+        progress: (streak / 14).clamp(0.0, 1.0),
         unlockedAt: unlocked['streak_14'] != null
             ? DateTime.tryParse(unlocked['streak_14']!)
             : null,
@@ -84,6 +91,7 @@ class AchievementsService {
         description: 'Log meals 30 days in a row',
         emoji: '👑',
         unlocked: streak >= 30,
+        progress: (streak / 30).clamp(0.0, 1.0),
         unlockedAt: unlocked['streak_30'] != null
             ? DateTime.tryParse(unlocked['streak_30']!)
             : null,
@@ -96,6 +104,7 @@ class AchievementsService {
         description: 'Log your first meal',
         emoji: '🍽️',
         unlocked: entries.isNotEmpty,
+        progress: entries.isEmpty ? 0.0 : 1.0,
         unlockedAt: unlocked['meals_1'] != null
             ? DateTime.tryParse(unlocked['meals_1']!)
             : null,
@@ -106,6 +115,7 @@ class AchievementsService {
         description: 'Log 10 meals',
         emoji: '📝',
         unlocked: entries.length >= 10,
+        progress: (entries.length / 10).clamp(0.0, 1.0),
         unlockedAt: unlocked['meals_10'] != null
             ? DateTime.tryParse(unlocked['meals_10']!)
             : null,
@@ -116,6 +126,7 @@ class AchievementsService {
         description: 'Log 50 meals',
         emoji: '🏆',
         unlocked: entries.length >= 50,
+        progress: (entries.length / 50).clamp(0.0, 1.0),
         unlockedAt: unlocked['meals_50'] != null
             ? DateTime.tryParse(unlocked['meals_50']!)
             : null,
@@ -126,6 +137,7 @@ class AchievementsService {
         description: 'Log 100 meals',
         emoji: '💯',
         unlocked: entries.length >= 100,
+        progress: (entries.length / 100).clamp(0.0, 1.0),
         unlockedAt: unlocked['meals_100'] != null
             ? DateTime.tryParse(unlocked['meals_100']!)
             : null,
@@ -138,6 +150,7 @@ class AchievementsService {
         description: 'Hit your daily water goal',
         emoji: '💧',
         unlocked: waterMl >= _storage.waterGoalMl,
+        progress: waterMl / _storage.waterGoalMl.clamp(1, double.infinity),
         unlockedAt: unlocked['water_today'] != null
             ? DateTime.tryParse(unlocked['water_today']!)
             : null,
@@ -150,6 +163,7 @@ class AchievementsService {
         description: 'Set up your profile',
         emoji: '✅',
         unlocked: _storage.profile != null,
+        progress: _storage.profile != null ? 1.0 : 0.0,
         unlockedAt: unlocked['profile_setup'] != null
             ? DateTime.tryParse(unlocked['profile_setup']!)
             : null,

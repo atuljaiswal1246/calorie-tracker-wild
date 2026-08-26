@@ -45,6 +45,40 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     _lookupBarcode(barcode);
   }
 
+  Future<void> _enterManually() async {
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Enter barcode'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          decoration: const InputDecoration(
+            hintText: 'e.g. 8901058100219',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Look up'),
+          ),
+        ],
+      ),
+    );
+    if (code != null && code.isNotEmpty && mounted) {
+      _lookupBarcode(code);
+    }
+  }
+
   Future<void> _lookupBarcode(String barcode) async {
     if (!mounted) return;
 
@@ -203,6 +237,25 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         ),
                         child: const Text(
                           'Scan again',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _enterManually,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Enter code manually',
                           style: TextStyle(
                             color: Colors.white70,
                             fontSize: 13,

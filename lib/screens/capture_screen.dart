@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -211,6 +212,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
     );
 
     await widget.storage.addEntry(entry);
+    HapticFeedback.lightImpact();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Logged! Added to your day.')),

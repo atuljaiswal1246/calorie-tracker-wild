@@ -136,8 +136,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               GestureDetector(
                 onTap: () => _showDeleteSheet(context, plan),
                 child: const Icon(Icons.more_horiz, size: 20, color: _muted),
-              ),
-            ],
+              ),            ],
           ),
           const SizedBox(height: 8),
           // Items list
@@ -265,7 +264,32 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 color: _ink,
               ),
             ),
+            const SizedBox(height: 6),
+            Text(
+              '${plan.items.length} items',
+              style: const TextStyle(fontSize: 13, color: _muted),
+            ),
             const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: OutlinedButton(
+                onPressed: () => _showRenameSheet(context, plan),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _ink,
+                  side: const BorderSide(color: Color(0xFFE5E5EA), width: 1.5),
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text(
+                  'Rename plan',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -295,21 +319,8 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     );
   }
 
-  void _showSaveFromTodaySheet(BuildContext context) {
-    final todayEntries = widget.storage.entries.where((e) => e.isOn(DateTime.now())).toList();
-    if (todayEntries.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No meals logged today to save.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    final allItems = todayEntries.expand((e) => e.items).toList();
-    final nameController = TextEditingController();
-
+  void _showRenameSheet(BuildContext context, MealPlan plan) {
+    final nameController = TextEditingController(text: plan.name);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -325,17 +336,12 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Save today\'s meals',
+              'Rename plan',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: _ink,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${allItems.length} items from ${todayEntries.length} meals',
-              style: const TextStyle(fontSize: 13, color: _muted),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -348,8 +354,6 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 color: _ink,
               ),
               decoration: InputDecoration(
-                hintText: 'Plan name (e.g. "My usual lunch")',
-                hintStyle: const TextStyle(color: _muted),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
@@ -368,14 +372,15 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 onPressed: () async {
                   final name = nameController.text.trim();
                   if (name.isEmpty) return;
-                  final plan = MealPlan(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  final updated = MealPlan(
+                    id: plan.id,
                     name: name,
-                    items: allItems,
+                    items: plan.items,
+                    createdAt: plan.createdAt,
                   );
-                  await widget.storage.saveMealPlan(plan);
+                  await widget.storage.updateMealPlan(updated);
                   _load();
-                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (ctx.mounted) Navigator.pop(ctx, true);
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: _ink,
@@ -383,7 +388,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   shape: const StadiumBorder(),
                 ),
                 child: const Text(
-                  'Save plan',
+                  'Save',
                   style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
@@ -392,6 +397,160 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showSaveFromTodaySheet(BuildContext context) {
+    final todayEntries = widget.storage.entries.where((e) => e.isOn(DateTime.now())).toList();
+    if (todayEntries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No meals logged today to save.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final nameController = TextEditingController();
+    final selected = List<bool>.filled(todayEntries.length, true);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(
+              24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Save today\'s meals',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _ink,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Choose which meals to include',
+                style: TextStyle(fontSize: 13, color: _muted),
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(ctx).size.height * 0.3,
+                ),
+                child: ListView(
+                  shrinkWrap: true,
+                  children: todayEntries.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final e = entry.value;
+                    return GestureDetector(
+                      onTap: () =>
+                          setSheet(() => selected[i] = !selected[i]),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          children: [
+                            Icon(
+                              selected[i]
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              size: 20,
+                              color: selected[i] ? _ink : _muted,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                '${e.items.isEmpty ? 'Meal' : e.items.first.name}'
+                                    '${e.items.length > 1 ? ' +${e.items.length - 1}' : ''}'
+                                    ' · ${e.totalCalories} kcal',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: _ink,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                textCapitalization: TextCapitalization.words,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: _ink,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Plan name (e.g. "My usual lunch")',
+                  hintStyle: const TextStyle(color: _muted),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: _ink, width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: FilledButton(
+                  onPressed: () async {
+                    final name = nameController.text.trim();
+                    if (name.isEmpty) return;
+                    final items = <FoodItem>[];
+                    for (var i = 0; i < todayEntries.length; i++) {
+                      if (selected[i]) items.addAll(todayEntries[i].items);
+                    }
+                    if (items.isEmpty) return;
+                    final plan = MealPlan(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      name: name,
+                      items: items,
+                    );
+                    await widget.storage.saveMealPlan(plan);
+                    _load();
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _ink,
+                    foregroundColor: Colors.white,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: const Text(
+                    'Save plan',
+                    style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

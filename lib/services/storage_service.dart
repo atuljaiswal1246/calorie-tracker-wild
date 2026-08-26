@@ -383,6 +383,11 @@ class StorageService {
     await _prefs.setString(_mealPlansKey, jsonEncode(plans.map((e) => e.toJson()).toList()));
   }
 
+  Future<void> updateMealPlan(MealPlan plan) async {
+    final plans = mealPlans.map((p) => p.id == plan.id ? plan : p).toList();
+    await _prefs.setString(_mealPlansKey, jsonEncode(plans.map((e) => e.toJson()).toList()));
+  }
+
   Future<void> logMealPlan(MealPlan plan) async {
     final now = DateTime.now();
     final entry = FoodEntry(
@@ -393,6 +398,28 @@ class StorageService {
       items: plan.items,
     );
     await addEntry(entry);
+  }
+
+  // ---- Reminders ----
+
+  static const _remindersKey = 'reminders_enabled';
+
+  bool get remindersEnabled => _prefs.getBool(_remindersKey) ?? false;
+
+  Future<void> saveRemindersEnabled(bool enabled) async {
+    await _prefs.setBool(_remindersKey, enabled);
+  }
+
+  // ---- Export ----
+
+  String exportJson() {
+    return jsonEncode({
+      'exportedAt': DateTime.now().toIso8601String(),
+      'profile': profile?.toJson(),
+      'entries': entries.map((e) => e.toJson()).toList(),
+      'weightEntries': weightEntries.map((e) => e.toJson()).toList(),
+      'waterEntries': waterEntries.map((e) => e.toJson()).toList(),
+    });
   }
 
   // ---- Payment state ----

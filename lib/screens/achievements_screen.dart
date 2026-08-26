@@ -201,6 +201,23 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
+          if (!unlocked && achievement.progress > 0) ...[
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: SizedBox(
+                width: 56,
+                height: 5,
+                child: LinearProgressIndicator(
+                  value: achievement.progress,
+                  backgroundColor: const Color(0xFFECECE7),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _muted.withOpacity(0.5),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

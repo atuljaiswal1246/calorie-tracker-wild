@@ -135,7 +135,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ? 'this month'
             : 'this week';
 
-    return ListView(
+    return RefreshIndicator(
+      color: _ink,
+      onRefresh: () async => _load(),
+      child: ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
       children: [
         _header(),
@@ -166,6 +169,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         const SizedBox(height: 12),
         ..._displayDays.reversed.map((day) => _dayRow(day, profile)),
       ],
+      ),
     );
   }
 

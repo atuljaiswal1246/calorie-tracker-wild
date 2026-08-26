@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/food_entry.dart';
 import '../services/food_search_service.dart';
@@ -135,6 +136,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       'carbs': food.carbs,
       'fat': food.fat,
     });
+    HapticFeedback.lightImpact();
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

@@ -47,6 +47,35 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() => _error = 'Enter your email first');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await widget.auth.sendPasswordReset(email);
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset link sent to your email')),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = _friendlyError(e);
+      });
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -311,6 +340,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    if (!isSignUp)
+                      Center(
+                        child: TextButton(
+                          onPressed: _loading ? null : _forgotPassword,
+                          child: const Text('Forgot password?'),
+                        ),
+                      ),
+                    if (!isSignUp) const SizedBox(height: 4),
                     Center(
                       child: TextButton(
                         onPressed: _loading

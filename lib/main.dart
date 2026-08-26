@@ -7,12 +7,14 @@ import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 import 'services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final storage = await StorageService.init();
+  NotificationService.init();
   runApp(CalorieApp(storage: storage, auth: AuthService()));
 }
 
@@ -84,6 +86,11 @@ class _CalorieAppState extends State<CalorieApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,
         fontFamily: 'Inter',
+        pageTransitionsTheme: PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: const FadeForwardsPageTransitionsBuilder(),
+          },
+        ),
         textTheme: const TextTheme(
           bodyLarge: TextStyle(fontFamily: 'Inter'),
           bodyMedium: TextStyle(fontFamily: 'Inter'),

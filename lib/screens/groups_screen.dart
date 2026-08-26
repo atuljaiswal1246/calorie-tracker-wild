@@ -71,8 +71,8 @@ class _GroupsScreenState extends State<GroupsScreen> {
               stream: FirebaseFirestore.instance
                   .collection('groups')
                   .where('members', arrayContains: _uid)
-                  .orderBy('createdAt', descending: true)
-                  .snapshots(),
+                  .snapshots()
+                  .handleError((_) {}),
               builder: (ctx, snap) {
                 if (snap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -423,33 +423,42 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: _ink.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Text(
-                      widget.groupId.substring(0, 8).toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: _ink,
-                        letterSpacing: 3,
-                        fontFamily: 'monospace',
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('groups')
+                .doc(widget.groupId)
+                .snapshots()
+                .handleError((_) {}),
+            builder: (ctx, snap) {
+              final data = snap.data?.data() as Map<String, dynamic>?;
+              final code = (data?['code'] as String?)?.toUpperCase() ?? '------';
+              return Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: _ink.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          code,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: _ink,
+                            letterSpacing: 3,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Code copied!'),
                       behavior: SnackBarBehavior.floating,
@@ -465,7 +474,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   child: const Icon(Icons.copy, size: 20, color: Colors.white),
                 ),
               ),
-            ],
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -571,7 +582,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 .collection('activity')
                 .orderBy('timestamp', descending: true)
                 .limit(20)
-                .snapshots(),
+                .snapshots()
+                .handleError((_) {}),
             builder: (ctx, snap) {
               if (!snap.hasData || snap.data!.docs.isEmpty) {
                 return const Padding(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -17,9 +19,25 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final _controller = PageController();
   int _current = 0;
+  Timer? _autoplay;
+
+  @override
+  void initState() {
+    super.initState();
+    _autoplay = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!_controller.hasClients) return;
+      final next = (_current + 1) % _slides.length;
+      _controller.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    });
+  }
 
   @override
   void dispose() {
+    _autoplay?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -39,7 +57,31 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 4),
+                    // ---- Skip ----
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: widget.onGetStarted,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            'Skip',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     // ---- Carousel (~60% of screen) ----
                     SizedBox(
                       height: constraints.maxHeight * 0.58,

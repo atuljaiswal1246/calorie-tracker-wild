@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:calorie_tracker/models/profile.dart';
+import 'package:calorie_tracker/models/food_entry.dart';
 
 Profile make({
   String sex = 'female',
@@ -261,5 +262,63 @@ void main() {
     expect(rt.workoutFreq, '3to4');
     expect(rt.targetWeightKg, 55);
     expect(rt.calorieGoal, p.calorieGoal);
+  });
+
+  test('MealPlan JSON round-trip preserves items and totals', () {
+    final plan = MealPlan(
+      id: 'plan1',
+      name: 'Lunch',
+      items: [
+        FoodItem(name: 'Dal', calories: 250, protein: 12, carbs: 30, fat: 8),
+        FoodItem(name: 'Rice', calories: 200, protein: 4, carbs: 44, fat: 1),
+      ],
+      createdAt: DateTime(2026, 1, 1),
+    );
+    final rt = MealPlan.fromJson(plan.toJson());
+    expect(rt.id, 'plan1');
+    expect(rt.name, 'Lunch');
+    expect(rt.items.length, 2);
+    expect(rt.items[0].name, 'Dal');
+    expect(rt.totalCalories, 450);
+    expect(rt.totalProtein, 16);
+    expect(rt.totalCarbs, 74);
+    expect(rt.totalFat, 9);
+  });
+
+  test('FoodItem JSON round-trip keeps serving size and DB fields', () {
+    final item = FoodItem(
+      name: 'Roti',
+      servingSizeGrams: 40,
+      calories: 120,
+      protein: 4,
+      carbs: 25,
+      fat: 1,
+      fiber: 2,
+      sugar: 0,
+      sodium: 200,
+      quantity: 1,
+      dbMatchedName: 'Chapatis',
+      dbSource: 'ICMR',
+      dbCaloriesPer100g: 300,
+    );
+    final rt = FoodItem.fromJson(item.toJson());
+    expect(rt.servingSizeGrams, 40);
+    expect(rt.quantity, 1);
+    expect(rt.dbMatchedName, 'Chapatis');
+    expect(rt.dbSource, 'ICMR');
+    expect(rt.dbCaloriesPer100g, 300);
+    expect(rt.calories, 120);
+  });
+
+  test('FoodItem quantity scales calories', () {
+    final item = FoodItem(
+      name: 'Rice',
+      calories: 200,
+      protein: 4,
+      carbs: 44,
+      fat: 1,
+      quantity: 2,
+    );
+    expect(item.calories, 400);
   });
 }

@@ -146,7 +146,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
       return const Center(child: Text('No profile'));
     }
 
-    return ListView(
+    return RefreshIndicator(
+      color: _ink,
+      onRefresh: () async => _load(),
+      child: ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
         _header(),
@@ -161,6 +164,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         const SizedBox(height: 16),
         _bestWorstCard(profile),
       ],
+      ),
     );
   }
 

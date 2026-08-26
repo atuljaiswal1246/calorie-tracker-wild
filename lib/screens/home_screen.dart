@@ -1,17 +1,22 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
 import '../services/achievements_service.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import 'achievements_screen.dart';
 import 'barcode_scanner_screen.dart';
@@ -153,6 +158,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return List.generate(7, (i) => sunday.add(Duration(days: i)));
   }
 
+  int get _fiberTarget => 30;
+  int get _sugarTarget => (_profile?.calorieGoal ?? 2000) ~/ 200; // ~10% of kcal/4g
+  int get _sodiumTarget => 2300;
+
   String get _initials {
     final name = _profile?.name.trim() ?? 'U';
     final parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
@@ -227,6 +236,71 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _toggleReminders() async {
+    final enabled = widget.storage.remindersEnabled;
+    if (!enabled) {
+      await NotificationService.requestPermissions();
+    }
+    await widget.storage.saveRemindersEnabled(!enabled);
+    if (enabled) {
+      await NotificationService.cancelAll();
+    } else {
+      await NotificationService.scheduleWaterReminder();
+      await NotificationService.scheduleMealReminder();
+    }
+    _load();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(!enabled
+            ? 'Reminders on: water at 4:30pm, meal at 12:30pm'
+            : 'Reminders off'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _exportData() async {
+    final data = widget.storage.exportJson();
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/cal_matters_export_${DateTime.now().millisecondsSinceEpoch}.json');
+    await file.writeAsString(data);
+    if (file.existsSync()) {
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(file.path)]),
+      );
+    }
+  }
+
+  Future<void> _deleteEntry(FoodEntry entry) async {
+    HapticFeedback.mediumImpact();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete meal?'),
+        content: Text(
+          entry.items.isEmpty
+              ? 'This will remove the meal from your log.'
+              : '"${entry.items.first.name}" and ${entry.items.length - 1} other item(s) will be removed.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Color(0xFFFF3B30))),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await widget.storage.deleteEntry(entry.id);
+      _load();
+    }
+  }
+
   // ---- Build ----
 
   @override
@@ -271,9 +345,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final fatGoal = profile.fatGrams;
     final recent = _entries.take(4).toList();
 
-    return ListView(
+    return RefreshIndicator(
+      color: _ink,
+      onRefresh: () async => _load(),
+      child: ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
       children: [
+        _greeting(profile),
+        const SizedBox(height: 14),
         _header(),
         if (!_isOnline) ...[
           const SizedBox(height: 12),
@@ -400,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _macroCard(
                       label: 'Fiber eaten',
                       value: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
-                      target: 30,
+                      target: _fiberTarget.toDouble(),
                       color: const Color(0xFF8D6E63),
                       icon: Symbols.eco,
                       onTap: () => Navigator.of(context).push(
@@ -409,7 +488,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             macroType: MacroType.fiber,
                             entries: _on(_selected),
                             total: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
-                            target: 30,
+                            target: _fiberTarget.toDouble(),
                             color: const Color(0xFF8D6E63),
                           ),
                         ),
@@ -421,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _macroCard(
                       label: 'Sugar eaten',
                       value: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
-                      target: 50,
+                      target: _sugarTarget.toDouble(),
                       color: const Color(0xFFE91E63),
                       icon: Symbols.cookie,
                       onTap: () => Navigator.of(context).push(
@@ -430,7 +509,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             macroType: MacroType.sugar,
                             entries: _on(_selected),
                             total: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
-                            target: 50,
+                            target: _sugarTarget.toDouble(),
                             color: const Color(0xFFE91E63),
                           ),
                         ),
@@ -442,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _macroCard(
                       label: 'Sodium eaten',
                       value: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
-                      target: 2300,
+                      target: _sodiumTarget.toDouble(),
                       color: const Color(0xFF78909C),
                       icon: Symbols.emoji_food_beverage,
                       onTap: () => Navigator.of(context).push(
@@ -451,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             macroType: MacroType.sodium,
                             entries: _on(_selected),
                             total: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
-                            target: 2300,
+                            target: _sodiumTarget.toDouble(),
                             color: const Color(0xFF78909C),
                           ),
                         ),
@@ -513,6 +592,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: _mealCard(e),
               )),
       ],
+      ),
+    );
+  }
+
+  String get _greetingText {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    if (hour < 21) return 'Good evening';
+    return 'Good night';
+  }
+
+  Widget _greeting(Profile profile) {
+    return Text.rich(
+      TextSpan(
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: _muted,
+        ),
+        children: [
+          TextSpan(text: '$_greetingText, '),
+          TextSpan(
+            text: profile.name.split(' ').first,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: _ink,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -549,29 +659,16 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: _cardShadow,
             ),
-            child: const Row(
-              children: [
-                Icon(Icons.insights_rounded, size: 16, color: Color(0xFF1C1C1E)),
-                SizedBox(width: 5),
-                Text(
-                  'Insights',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: _ink,
-                  ),
-                ),
-              ],
-            ),
+            child: const Icon(Icons.insights_rounded, size: 17, color: Color(0xFF1C1C1E)),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         // Achievements badge
         GestureDetector(
           onTap: () {
@@ -591,11 +688,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 const Text('🏆', style: TextStyle(fontSize: 13)),
-                const SizedBox(width: 5),
+                const SizedBox(width: 4),
                 Text(
                   '${AchievementsService(widget.storage).unlockedCount}',
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: _ink,
                   ),
@@ -604,10 +701,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         // Streak pill
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -616,11 +713,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             children: [
               const Text('🔥', style: TextStyle(fontSize: 13)),
-              const SizedBox(width: 5),
+              const SizedBox(width: 4),
               Text(
                 '$_streak',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: _ink,
                 ),
@@ -634,14 +731,73 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _weekSelector({required int calorieGoal}) {
     final today = DateTime.now();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: _cardShadow,
-      ),
-      child: Row(
+    final canGoNext = _selected.isBefore(today);
+    final weekLabel = _weekLabel();
+    return Column(
+      children: [
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () => setState(() =>
+                  _selected = _selected.subtract(const Duration(days: 7))),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(9),
+                  boxShadow: _cardShadow,
+                ),
+                child: const Icon(Icons.chevron_left,
+                    size: 18, color: Color(0xFF8E8E93)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                weekLabel,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1C1C1E),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: canGoNext
+                  ? () => setState(() =>
+                      _selected = _selected.add(const Duration(days: 7)))
+                  : null,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(9),
+                  boxShadow: _cardShadow,
+                ),
+                child: Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: canGoNext
+                      ? const Color(0xFF8E8E93)
+                      : const Color(0xFFE3E3DE),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: _cardShadow,
+          ),
+          child: Row(
         children: _week.map((day) {
           final isSelected = _isSameDay(day, _selected);
           final isFuture = day.isAfter(today);
@@ -722,8 +878,17 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         }).toList(),
-      ),
+          ),
+        ),
+      ],
     );
+  }
+
+  String _weekLabel() {
+    final days = _week;
+    final start = DateFormat('d MMM').format(days.first);
+    final end = DateFormat('d MMM').format(days.last);
+    return '$start – $end';
   }
 
   Widget _caloriesCard({required int goal, required int logged, VoidCallback? onTap}) {
@@ -1011,6 +1176,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () async {
         await widget.storage.addWater(ml);
+        HapticFeedback.lightImpact();
         _load();
       },
       child: Container(
@@ -1572,7 +1738,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _mealCard(FoodEntry entry) {
     final name = entry.items.isEmpty
         ? 'Meal'
-        : entry.items.first.name;
+        : entry.items.first.name +
+            (entry.items.length > 1 ? ' +${entry.items.length - 1} more' : '');
     final time =
         DateFormat('h:mm a').format(entry.dateTime).toLowerCase();
     return GestureDetector(
@@ -1583,6 +1750,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+      onLongPress: () => _deleteEntry(entry),
       child: Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -1734,18 +1902,44 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: _cardShadow,
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Text('🍽️', style: TextStyle(fontSize: 34)),
-          SizedBox(height: 10),
-          Text(
+          const Text('🍽️', style: TextStyle(fontSize: 34)),
+          const SizedBox(height: 10),
+          const Text(
             'No meals logged yet',
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _ink),
           ),
-          SizedBox(height: 4),
-          Text(
-            'Tap + to log your first meal',
+          const SizedBox(height: 4),
+          const Text(
+            'Scan your first meal to get started',
             style: TextStyle(fontSize: 13, color: _muted),
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: _openCapture,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: _ink,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                  SizedBox(width: 6),
+                  Text(
+                    'Scan a meal',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -1942,6 +2136,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                   if (result == true) _load();
                 },
+              ),
+              const Divider(height: 1, color: Color(0xFFECECE7)),
+              _settingsRow(
+                icon: Icons.notifications_active_outlined,
+                label: 'Reminders',
+                subtitle: widget.storage.remindersEnabled
+                    ? 'Water & meal reminders on'
+                    : 'Off',
+                onTap: () async {
+                  await _toggleReminders();
+                },
+              ),
+              const Divider(height: 1, color: Color(0xFFECECE7)),
+              _settingsRow(
+                icon: Icons.share_outlined,
+                label: 'Export data',
+                subtitle: 'Download your logs as JSON',
+                onTap: _exportData,
               ),
             ],
           ),
@@ -2251,6 +2463,32 @@ class _GroupsPageContentState extends State<_GroupsPageContent> {
               ),
               const Spacer(),
               GestureDetector(
+                onTap: () => _showJoinGroupSheet(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _ink.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.person_add, size: 16, color: _ink),
+                      SizedBox(width: 4),
+                      Text(
+                        'Join',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
                 onTap: () => _showCreateGroupSheet(context),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2383,6 +2621,136 @@ class _GroupsPageContentState extends State<_GroupsPageContent> {
     );
   }
 
+  void _showJoinGroupSheet(BuildContext context) {
+    final controller = TextEditingController();
+    bool joining = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(
+              24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Join a group',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _ink,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Enter the 6-character invite code from a friend',
+                style: TextStyle(fontSize: 13, color: _muted),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                textCapitalization: TextCapitalization.characters,
+                maxLength: 6,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 8,
+                  fontFamily: 'monospace',
+                ),
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: 'ABC123',
+                  hintStyle: TextStyle(
+                    fontSize: 24,
+                    letterSpacing: 8,
+                    color: _muted.withOpacity(0.4),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: _ink, width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: FilledButton(
+                  onPressed: joining || controller.text.trim().length < 6
+                      ? null
+                      : () async {
+                          setSheet(() => joining = true);
+                          final code = controller.text.trim().toUpperCase();
+                          final snap = await FirebaseFirestore.instance
+                              .collection('groups')
+                              .where('code', isEqualTo: code)
+                              .limit(1)
+                              .get();
+                          if (snap.docs.isEmpty) {
+                            if (ctx.mounted) {
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                const SnackBar(
+                                  content: Text('No group found with that code.'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                            setSheet(() => joining = false);
+                            return;
+                          }
+                          final doc = snap.docs.first;
+                          final uid = _uid;
+                          if (uid != null) {
+                            await FirebaseFirestore.instance
+                                .collection('groups')
+                                .doc(doc.id)
+                                .update({
+                              'members': FieldValue.arrayUnion([uid]),
+                            });
+                          }
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          setState(() {});
+                        },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _ink,
+                    foregroundColor: Colors.white,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: joining
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text(
+                          'Join',
+                          style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.5),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showCreateGroupSheet(BuildContext context) {
     final nameController = TextEditingController();
     showModalBottomSheet(
@@ -2433,6 +2801,7 @@ class _GroupsPageContentState extends State<_GroupsPageContent> {
                     'name': name,
                     'createdBy': _uid,
                     'members': [_uid],
+                    'code': _generateGroupCode(),
                     'createdAt': FieldValue.serverTimestamp(),
                   });
                   if (ctx.mounted) Navigator.pop(ctx);
@@ -2453,4 +2822,11 @@ class _GroupsPageContentState extends State<_GroupsPageContent> {
       ),
     );
   }
+}
+String _generateGroupCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  final rand = Random();
+  return String.fromCharCodes(
+    List.generate(6, (_) => chars.codeUnitAt(rand.nextInt(chars.length))),
+  );
 }
