@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../models/profile.dart';
 import '../services/auth_service.dart';
+import '../services/billing_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
 import 'auth_screen.dart';
@@ -332,7 +334,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       );
     }
     if (_step == _pricingStep) {
-      return _PricingScreen(
+      return PricingScreen(
         storage: widget.storage,
         onPaid: _onPaid,
         onBack: _back,
@@ -1891,7 +1893,8 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                 alignment: Alignment.centerLeft,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: widget.onBack,
+                  onPressed:
+                      widget.onBack ?? () => Navigator.of(context).maybePop(),
                   tooltip: 'Back',
                 ),
               ),
@@ -2494,48 +2497,87 @@ class _HowCard extends StatelessWidget {
 }
 
 // ---------------- Pricing screen ----------------
-class _PricingScreen extends StatefulWidget {
+class PricingScreen extends StatefulWidget {
   final StorageService storage;
   final VoidCallback onPaid;
-  final VoidCallback onBack;
+  final VoidCallback? onBack;
 
-  const _PricingScreen({
+  const PricingScreen({
     required this.storage,
     required this.onPaid,
-    required this.onBack,
+    this.onBack,
   });
 
   @override
-  State<_PricingScreen> createState() => _PricingScreenState();
+  State<PricingScreen> createState() => PricingScreenState();
 }
 
-class _PricingScreenState extends State<_PricingScreen> {
+class PricingScreenState extends State<PricingScreen> {
   bool _yearly = true; // yearly selected by default
   bool _processing = false;
   bool _approved = false;
+  late final BillingService _billing;
 
   static const _monthlyPrice = 100;
   static const _yearlyPrice = 1100;
+
+  List<ProductDetails> _products = [];
 
   int get _savingsPercent {
     final annualIfMonthly = _monthlyPrice * 12;
     return ((annualIfMonthly - _yearlyPrice) / annualIfMonthly * 100).round();
   }
 
-  Future<void> _continue() async {
-    setState(() => _processing = true);
-    // Record selected plan when purchasing.
-    await widget.storage.startTrial(_yearly ? 'yearly' : 'monthly');
-    await Future.delayed(const Duration(milliseconds: 1200));
+  @override
+  void initState() {
+    super.initState();
+    _billing = BillingService(widget.storage);
+    _billing.onStatusChanged = () {
+      if (!mounted) return;
+      setState(() {});
+    };
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    final products = await _billing.loadProducts();
     if (!mounted) return;
     setState(() {
+      _products = products;
       _processing = false;
-      _approved = true;
     });
-    await Future.delayed(const Duration(milliseconds: 1400));
+  }
+
+  ProductDetails? get _monthlyProduct =>
+      _products.where((p) => p.id == BillingService.monthlyId).firstOrNull;
+  ProductDetails? get _yearlyProduct =>
+      _products.where((p) => p.id == BillingService.yearlyId).firstOrNull;
+
+  Future<void> _continue() async {
+    final product = _yearly ? _yearlyProduct : _monthlyProduct;
+    if (product == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Products unavailable — set them up in Google Play Console.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    setState(() => _processing = true);
+    await _billing.buyUnit(product);
     if (!mounted) return;
-    await widget.storage.savePaid(true);
-    widget.onPaid();
+    setState(() => _processing = false);
+
+    // Purchase flow returns; stream handles final status.
+    // If status became subscribed (immediate), finish.
+    if (_billing.status == BillingStatus.subscribed) {
+      setState(() => _approved = true);
+      await Future.delayed(const Duration(milliseconds: 1200));
+      if (!mounted) return;
+      widget.onPaid();
+    }
+    setState(() {});
   }
 
   @override
@@ -2556,7 +2598,8 @@ class _PricingScreenState extends State<_PricingScreen> {
                 alignment: Alignment.centerLeft,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: widget.onBack,
+                  onPressed:
+                      widget.onBack ?? () => Navigator.of(context).maybePop(),
                   tooltip: 'Back',
                 ),
               ),

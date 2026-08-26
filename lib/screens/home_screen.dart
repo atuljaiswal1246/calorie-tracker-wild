@@ -25,6 +25,7 @@ import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
 import 'meal_plan_screen.dart';
+import 'onboarding_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
 
@@ -742,33 +743,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openPricing() async {
-    // Simple subscribe flow from home: mark paid after confirm.
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Subscribe to continue'),
-        content: Text(
-          widget.storage.subscriptionPlan == 'yearly'
-              ? 'Rs 1100/year (30-day free trial already used)\n\nContinue to unlock all features?'
-              : 'Rs 100/month (15-day free trial already used)\n\nContinue to unlock all features?',
+    // Real Play Billing — push the same pricing screen used in onboarding.
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PricingScreen(
+          storage: widget.storage,
+          onPaid: _load,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Not now'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Subscribe'),
-          ),
-        ],
       ),
     );
-    if (confirmed == true) {
-      await widget.storage.savePaid(true);
-      _load();
-    }
+    _load();
   }
 
   Widget _header() {
