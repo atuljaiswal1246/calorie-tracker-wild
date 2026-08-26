@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
@@ -64,6 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _navIndex = 0; // 0 home, 1 progress, 2 groups, 3 profile
   int _macroPageIndex = 0;
   final PageController _macroPageController = PageController();
+  bool _isOnline = true;
+  late final Stream<List<ConnectivityResult>> _connectivityStream;
 
   final _apiKeyController = TextEditingController();
   final _geminiKeyController = TextEditingController();
@@ -76,6 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _provider = widget.storage.provider;
     _apiKeyController.text = widget.storage.apiKey ?? '';
     _geminiKeyController.text = widget.storage.geminiKey ?? '';
+    _connectivityStream = Connectivity().onConnectivityChanged;
+    _connectivityStream.listen((results) {
+      final online = results.any((r) => r != ConnectivityResult.none);
+      if (mounted && online != _isOnline) {
+        setState(() => _isOnline = online);
+      }
+    });
     _load();
   }
 
@@ -275,6 +285,32 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
       children: [
         _header(),
+        if (!_isOnline) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.wifi_off_rounded, size: 18, color: Color(0xFFFF9500)),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'You\'re offline. AI features unavailable.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1C1C1E),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 22),
         _weekSelector(calorieGoal: goal),
         const SizedBox(height: 20),
