@@ -7,8 +7,10 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
+import '../services/achievements_service.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
+import 'achievements_screen.dart';
 import 'barcode_scanner_screen.dart';
 import 'capture_screen.dart';
 import 'manual_entry_screen.dart';
@@ -508,7 +510,39 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const Spacer(),
-        // Streak pill
+        // Achievements badge
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => AchievementsScreen(storage: widget.storage),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: _cardShadow,
+            ),
+            child: Row(
+              children: [
+                const Text('🏆', style: TextStyle(fontSize: 13)),
+                const SizedBox(width: 5),
+                Text(
+                  '${AchievementsService(widget.storage).unlockedCount}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: _ink,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
         // Streak pill
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),

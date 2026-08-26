@@ -308,6 +308,20 @@ class StorageService {
     );
   }
 
+  // ---- Achievements ----
+
+  static const _achievementsKey = 'unlocked_achievements';
+
+  Map<String, dynamic>? getAchievementsRaw() {
+    final raw = _prefs.getString(_achievementsKey);
+    if (raw == null) return null;
+    return Map<String, dynamic>.from(jsonDecode(raw));
+  }
+
+  Future<void> saveAchievements(Map<String, String> achievements) async {
+    await _prefs.setString(_achievementsKey, jsonEncode(achievements));
+  }
+
   // ---- Payment state ----
 
   static const _paidKey = 'has_paid';
