@@ -35,7 +35,7 @@ export default {
     if (env.QUOTA) {
       const deviceId = (request.headers.get("x-device-id") || "unknown").slice(0, 64);
       const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-      const DAILY_LIMIT = 200;
+      const DAILY_LIMIT = 50;
       const qKey = `quota_${deviceId}_${today}`;
       try {
         const used = parseInt((await env.QUOTA.get(qKey)) || "0", 10) || 0;

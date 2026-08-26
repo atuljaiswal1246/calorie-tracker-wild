@@ -51,3 +51,8 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Node
+functions/node_modules/
+cloudflare_worker/node_modules/
+node_modules/
