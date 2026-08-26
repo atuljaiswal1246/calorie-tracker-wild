@@ -6,6 +6,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/food_entry.dart';
 import '../models/profile.dart';
 
+class WaterEntry {
+  final DateTime date;
+  final int ml;
+
+  const WaterEntry({required this.date, required this.ml});
+
+  Map<String, dynamic> toJson() => {
+        'date': date.toIso8601String(),
+        'ml': ml,
+      };
+
+  factory WaterEntry.fromJson(Map<String, dynamic> json) => WaterEntry(
+        date: DateTime.parse(json['date'] as String),
+        ml: (json['ml'] as num).toInt(),
+      );
+}
+
 class WeightEntry {
   final DateTime date;
   final double weightKg;
@@ -198,6 +215,95 @@ class StorageService {
           e.date.day == normalized.day)).toList();
     await _prefs.setString(
       _weightEntriesKey,
+      jsonEncode(all.map((e) => e.toJson()).toList()),
+    );
+  }
+
+  // ---- Water Entries ----
+
+  static const _waterEntriesKey = 'water_entries';
+  static const _waterGoalKey = 'water_goal_ml';
+  static const int defaultWaterGoalMl = 2500;
+
+  int get waterGoalMl => _prefs.getInt(_waterGoalKey) ?? defaultWaterGoalMl;
+
+  Future<void> saveWaterGoalMl(int ml) async {
+    await _prefs.setInt(_waterGoalKey, ml);
+  }
+
+  List<WaterEntry> get waterEntries {
+    final raw = _prefs.getString(_waterEntriesKey);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List;
+    return list
+        .map((e) => WaterEntry.fromJson(e as Map<String, dynamic>))
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  int waterMlForDay(DateTime day) {
+    final normalized = DateTime(day.year, day.month, day.day);
+    return waterEntries
+        .where((e) =>
+            e.date.year == normalized.year &&
+            e.date.month == normalized.month &&
+            e.date.day == normalized.day)
+        .fold(0, (sum, e) => sum + e.ml);
+  }
+
+  Future<void> addWater(int ml) async {
+    final all = [...waterEntries];
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+
+    // Check if there's already an entry today and merge
+    final todayEntries = all.where((e) =>
+        e.date.year == todayNormalized.year &&
+        e.date.month == todayNormalized.month &&
+        e.date.day == todayNormalized.day).toList();
+
+    // Remove old entries for today
+    all.removeWhere((e) =>
+        e.date.year == todayNormalized.year &&
+        e.date.month == todayNormalized.month &&
+        e.date.day == todayNormalized.day);
+
+    // Add merged entry
+    final existingMl = todayEntries.fold(0, (sum, e) => sum + e.ml);
+    all.add(WaterEntry(date: todayNormalized, ml: existingMl + ml));
+    all.sort((a, b) => a.date.compareTo(b.date));
+    await _prefs.setString(
+      _waterEntriesKey,
+      jsonEncode(all.map((e) => e.toJson()).toList()),
+    );
+  }
+
+  Future<void> undoLastWater() async {
+    final all = [...waterEntries];
+    if (all.isEmpty) return;
+
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+
+    final todayEntries = all.where((e) =>
+        e.date.year == todayNormalized.year &&
+        e.date.month == todayNormalized.month &&
+        e.date.day == todayNormalized.day).toList();
+
+    if (todayEntries.isEmpty) return;
+
+    all.removeWhere((e) =>
+        e.date.year == todayNormalized.year &&
+        e.date.month == todayNormalized.month &&
+        e.date.day == todayNormalized.day);
+
+    final totalMl = todayEntries.fold(0, (sum, e) => sum + e.ml);
+    if (totalMl > 250) {
+      all.add(WaterEntry(date: todayNormalized, ml: totalMl - 250));
+    }
+    all.sort((a, b) => a.date.compareTo(b.date));
+    await _prefs.setString(
+      _waterEntriesKey,
       jsonEncode(all.map((e) => e.toJson()).toList()),
     );
   }

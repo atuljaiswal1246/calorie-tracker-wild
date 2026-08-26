@@ -55,6 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Profile? _profile;
   List<FoodEntry> _entries = [];
+  int _waterMl = 0;
+  int _waterGoalMl = 2500;
   DateTime _selected = DateTime.now();
   int _navIndex = 0; // 0 home, 1 progress, 2 groups, 3 profile
   int _macroPageIndex = 0;
@@ -83,7 +85,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _load() {
-    setState(() => _entries = widget.storage.entries);
+    _entries = widget.storage.entries;
+    _waterMl = widget.storage.waterMlForDay(DateTime.now());
+    _waterGoalMl = widget.storage.waterGoalMl;
+    setState(() {});
   }
 
   // ---- Data helpers (selected day) ----
@@ -434,6 +439,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _paginationDots(),
         const SizedBox(height: 22),
         _logMealSection(),
+        const SizedBox(height: 22),
+        _waterCard(),
         const SizedBox(height: 22),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -797,6 +804,202 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Center(child: child),
         ],
+      ),
+    );
+  }
+
+  Widget _waterCard() {
+    final progress = _waterGoalMl > 0 ? (_waterMl / _waterGoalMl).clamp(0.0, 1.0) : 0.0;
+    final glasses = (_waterMl / 250).round();
+    final goalGlasses = (_waterGoalMl / 250).round();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: _cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Text('💧', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Water',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1C1C1E),
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '${(_waterMl / 1000).toStringAsFixed(1)}L / ${(_waterGoalMl / 1000).toStringAsFixed(1)}L',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF8E8E93),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Progress bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              height: 10,
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: const Color(0xFFECECE7),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$glasses / $goalGlasses glasses',
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF8E8E93),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Quick add buttons
+          Row(
+            children: [
+              _waterButton(250, Icons.water_drop_outlined),
+              const SizedBox(width: 8),
+              _waterButton(500, Icons.water_drop),
+              const SizedBox(width: 8),
+              _waterButtonCustom(),
+              const Spacer(),
+              if (_waterMl > 0)
+                GestureDetector(
+                  onTap: () async {
+                    await widget.storage.undoLastWater();
+                    _load();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3F0),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Undo',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFF3B30),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _waterButton(int ml, IconData icon) {
+    return GestureDetector(
+      onTap: () async {
+        await widget.storage.addWater(ml);
+        _load();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEAF3FF),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: const Color(0xFF007AFF)),
+            const SizedBox(width: 4),
+            Text(
+              '+${ml}ml',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF007AFF),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _waterButtonCustom() {
+    return GestureDetector(
+      onTap: () {
+        final controller = TextEditingController(text: '250');
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Add water'),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: const InputDecoration(
+                suffixText: 'ml',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final ml = int.tryParse(controller.text);
+                  if (ml != null && ml > 0 && ml <= 2000) {
+                    await widget.storage.addWater(ml);
+                    _load();
+                  }
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F0EC),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.add, size: 16, color: Color(0xFF1C1C1E)),
+            SizedBox(width: 4),
+            Text(
+              'Custom',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1C1C1E),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
