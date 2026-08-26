@@ -9,6 +9,7 @@ import '../models/food_entry.dart';
 import '../models/profile.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
+import 'barcode_scanner_screen.dart';
 import 'capture_screen.dart';
 import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
@@ -835,7 +836,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: _openCapture,
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: _logOption(
             icon: Icons.photo_library_outlined,
@@ -843,7 +844,15 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: _openGallery,
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _logOption(
+            icon: Icons.qr_code_scanner,
+            label: 'Barcode',
+            onTap: _openBarcodeScanner,
+          ),
+        ),
+        const SizedBox(width: 8),
         Expanded(
           child: _logOption(
             icon: Symbols.restaurant_menu,
@@ -896,6 +905,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (saved == true) _load();
+  }
+
+  Future<void> _openBarcodeScanner() async {
+    if (!mounted) return;
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => BarcodeScannerScreen(storage: widget.storage),
+      ),
+    );
+    _load();
   }
 
   Widget _mealCard(FoodEntry entry) {
