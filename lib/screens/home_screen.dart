@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
@@ -19,6 +21,7 @@ import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
 import 'meal_plan_screen.dart';
+import 'groups_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
 
@@ -70,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final Stream<List<ConnectivityResult>> _connectivityStream;
 
   final _apiKeyController = TextEditingController();
+  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
   final _geminiKeyController = TextEditingController();
   String _provider = 'openai';
 
@@ -1804,8 +1808,29 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _progressPage() =>
       ProgressScreen(storage: widget.storage);
 
-  Widget _groupsPage() =>
-      _placeholderPage('Groups', Icons.group_outlined, 'Coming soon');
+  Widget _groupsPage() {
+    if (_uid == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.group_outlined, size: 56, color: _muted.withOpacity(0.4)),
+            const SizedBox(height: 14),
+            const Text(
+              'Sign in to use groups',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _ink),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Share your progress with friends and family.',
+              style: TextStyle(fontSize: 14, color: _muted),
+            ),
+          ],
+        ),
+      );
+    }
+    return _GroupsPageContent(storage: widget.storage);
+  }
 
   // ================= Profile tab =================
 
@@ -2165,4 +2190,262 @@ class _RingPainter extends CustomPainter {
   @override
   bool shouldRepaint(_RingPainter old) =>
       old.progress != progress || old.color != color;
+}
+
+class _GroupsPageContent extends StatefulWidget {
+  final StorageService storage;
+  const _GroupsPageContent({required this.storage});
+
+  @override
+  State<_GroupsPageContent> createState() => _GroupsPageContentState();
+}
+
+class _GroupsPageContentState extends State<_GroupsPageContent> {
+  static const _ink = Color(0xFF1C1C1E);
+  static const _muted = Color(0xFF8E8E93);
+  static const _cardShadow = [
+    BoxShadow(
+      color: Color(0x0F000000),
+      blurRadius: 24,
+      offset: Offset(0, 8),
+    ),
+  ];
+
+  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_uid == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.group_outlined, size: 56, color: _muted.withOpacity(0.4)),
+            const SizedBox(height: 14),
+            const Text(
+              'Sign in to use groups',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _ink),
+            ),
+          ],
+        ),
+      );
+    }
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+          child: Row(
+            children: [
+              const Text(
+                'Groups',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: _ink,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => _showCreateGroupSheet(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _ink,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add, size: 16, color: Colors.white),
+                      SizedBox(width: 4),
+                      Text(
+                        'New',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('groups')
+                .where('members', arrayContains: _uid)
+                .snapshots(),
+            builder: (ctx, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final docs = snap.data?.docs ?? [];
+              if (docs.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.group_outlined, size: 56, color: _muted.withOpacity(0.4)),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'No groups yet',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _ink),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Create a group to share progress\nwith friends and family.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: _muted, height: 1.4),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                itemCount: docs.length,
+                itemBuilder: (ctx, i) {
+                  final data = docs[i].data() as Map<String, dynamic>;
+                  final name = data['name'] as String? ?? 'Group';
+                  final members = (data['members'] as List?)?.length ?? 0;
+                  return GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => GroupDetailScreen(
+                          groupId: docs[i].id,
+                          groupName: name,
+                          storage: widget.storage,
+                        ),
+                      ),
+                    ),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: _cardShadow,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: _ink.withOpacity(0.06),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(Icons.group, color: _ink, size: 24),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    color: _ink,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '$members member${members == 1 ? '' : 's'}',
+                                  style: const TextStyle(fontSize: 13, color: _muted),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right, color: _muted),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showCreateGroupSheet(BuildContext context) {
+    final nameController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Create a group',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _ink),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: nameController,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: _ink),
+              decoration: InputDecoration(
+                hintText: 'Group name',
+                hintStyle: const TextStyle(color: _muted),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: _ink, width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: FilledButton(
+                onPressed: () async {
+                  final name = nameController.text.trim();
+                  if (name.isEmpty || _uid == null) return;
+                  await FirebaseFirestore.instance.collection('groups').add({
+                    'name': name,
+                    'createdBy': _uid,
+                    'members': [_uid],
+                    'createdAt': FieldValue.serverTimestamp(),
+                  });
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: _ink,
+                  foregroundColor: Colors.white,
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text(
+                  'Create',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, letterSpacing: -0.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
