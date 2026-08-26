@@ -6,10 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/food_entry.dart';
-import '../services/ai_config.dart';
 import '../services/food_search_service.dart';
 import '../services/gemini_service.dart';
-import '../services/openai_service.dart';
 import '../services/storage_service.dart';
 
 class CaptureScreen extends StatefulWidget {
@@ -84,15 +82,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
   }
 
   Future<void> _analyze() async {
-    // Static built-in provider — users never configure API keys.
-    final provider = AiConfig.provider;
-    final apiKey = AiConfig.geminiApiKey;
-    const providerLabel = 'Gemini';
-
-    if (apiKey.isEmpty) {
-      setState(() => _error = 'AI service unavailable.');
-      return;
-    }
+    // AI runs through the Cloudflare proxy — no key needed client-side.
     final image = _image;
     if (image == null) return;
 
@@ -104,11 +94,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
     try {
       ({List<FoodItem> items, String? mealType}) result;
-      if (provider == 'gemini') {
-        result = await GeminiService(apiKey: apiKey).analyzeImage(image.path);
-      } else {
-        result = await OpenAIService(apiKey: apiKey).analyzeImage(image.path);
-      }
+      result = await GeminiService().analyzeImage(image.path);
       if (!mounted) return;
 
       // Attach database match for comparison

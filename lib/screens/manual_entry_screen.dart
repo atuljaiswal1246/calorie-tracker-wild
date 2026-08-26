@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/food_entry.dart';
-import '../services/ai_config.dart';
 import '../services/food_search_service.dart';
 import '../services/gemini_service.dart';
-import '../services/openai_service.dart';
 import '../services/storage_service.dart';
 
 class ManualEntryScreen extends StatefulWidget {
@@ -153,16 +151,6 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       return;
     }
 
-    // Static built-in provider — users never configure API keys.
-    final provider = AiConfig.provider;
-    final apiKey = AiConfig.geminiApiKey;
-    const providerLabel = 'Gemini';
-
-    if (apiKey.isEmpty) {
-      setState(() => _error = 'AI service unavailable.');
-      return;
-    }
-
     setState(() {
       _analyzing = true;
       _error = null;
@@ -172,11 +160,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
 
     try {
       ({List<FoodItem> items, String? mealType}) result;
-      if (provider == 'gemini') {
-        result = await GeminiService(apiKey: apiKey).analyzeText(text);
-      } else {
-        result = await OpenAIService(apiKey: apiKey).analyzeText(text);
-      }
+      result = await GeminiService().analyzeText(text);
       if (!mounted) return;
 
       // Attach database match for comparison

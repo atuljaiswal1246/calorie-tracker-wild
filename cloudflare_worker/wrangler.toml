@@ -1,0 +1,6 @@
+name = "cal-matters-gemini-proxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Free tier
+workers_dev = true

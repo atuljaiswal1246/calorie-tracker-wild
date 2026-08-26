@@ -7,21 +7,42 @@ import 'package:http/http.dart' as http;
 import '../models/food_entry.dart';
 
 class GeminiService {
-  final String apiKey;
+  final String? apiKey;
 
-  GeminiService({required this.apiKey});
+  GeminiService({this.apiKey});
 
+  /// Cloudflare proxy — key never ships to the client.
   static const _endpoint =
-      'https://generativelanguage.googleapis.com/v1beta/models/';
+      'https://cal-matters-gemini-proxy.atuljaiswal1246.workers.dev';
   static const _maxRetries = 3;
+
+  /// Stable per-install anonymous device id for proxy quota tracking.
+  static String get _deviceId {
+    final dir = Directory.systemTemp;
+    final f = File('${dir.path}/cal_matters_device_id');
+    try {
+      if (f.existsSync()) {
+        final id = f.readAsStringSync().trim();
+        if (id.isNotEmpty) return id;
+      }
+      final id = DateTime.now().microsecondsSinceEpoch.toString();
+      f.writeAsStringSync(id);
+      return id;
+    } catch (_) {
+      return 'unknown';
+    }
+  }
 
   static Future<bool> testKey(String key) async {
     try {
-      final url = Uri.parse('${_endpoint}gemini-3.6-flash:generateContent?key=$key');
       final res = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(_endpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-device-id': _deviceId,
+        },
         body: jsonEncode({
+          'model': 'gemini-3.6-flash',
           'contents': [
             {
               'parts': [
@@ -93,10 +114,10 @@ Rules:
 - Indian household serving sizes. Only include visible foods.
 ''';
 
-    final uri = Uri.parse('$_endpoint$model:generateContent')
-        .replace(queryParameters: {'key': apiKey});
+    final uri = Uri.parse(_endpoint);
 
     final body = jsonEncode({
+      'model': model,
       'contents': [
         {
           'parts': [
@@ -118,7 +139,10 @@ Rules:
 
     final response = await http.post(
       uri,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'x-device-id': _deviceId,
+      },
       body: body,
     );
 
@@ -183,10 +207,10 @@ Rules:
 - Indian household serving sizes. Use quantity if specified, otherwise typical single serving.
 ''';
 
-    final uri = Uri.parse('$_endpoint$model:generateContent')
-        .replace(queryParameters: {'key': apiKey});
+    final uri = Uri.parse(_endpoint);
 
     final body = jsonEncode({
+      'model': model,
       'contents': [
         {
           'parts': [
@@ -202,7 +226,10 @@ Rules:
 
     final response = await http.post(
       uri,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'x-device-id': _deviceId,
+      },
       body: body,
     );
 
