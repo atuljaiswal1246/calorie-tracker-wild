@@ -15,6 +15,28 @@ class OpenAIService {
   static const _endpoint = 'https://api.openai.com/v1/chat/completions';
   static const _maxRetries = 3;
 
+  static Future<bool> testKey(String key) async {
+    try {
+      final res = await http.post(
+        Uri.parse(_endpoint),
+        headers: {
+          'Authorization': 'Bearer $key',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'gpt-4o-mini',
+          'messages': [
+            {'role': 'user', 'content': 'Say "ok"'}
+          ],
+          'max_tokens': 5,
+        }),
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<({List<FoodItem> items, String? mealType})> analyzeImage(String imagePath) async {
     for (int attempt = 0; attempt < _maxRetries; attempt++) {
       try {

@@ -22,6 +22,7 @@ import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
 import 'meal_plan_screen.dart';
 import 'groups_screen.dart';
+import 'api_key_setup_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
 
@@ -72,19 +73,13 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
 
-  final _apiKeyController = TextEditingController();
   String? get _uid => FirebaseAuth.instance.currentUser?.uid;
-  final _geminiKeyController = TextEditingController();
-  String _provider = 'openai';
 
   @override
   void initState() {
     super.initState();
     _profile = widget.storage.profile;
-    _provider = widget.storage.provider;
-    _apiKeyController.text = widget.storage.apiKey ?? '';
-    _geminiKeyController.text = widget.storage.geminiKey ?? '';
-    _connectivityStream = Connectivity().onConnectivityChanged;
+    _load();
     _connectivityStream.listen((results) {
       final online = results.any((r) => r != ConnectivityResult.none);
       if (mounted && online != _isOnline) {
@@ -96,8 +91,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _apiKeyController.dispose();
-    _geminiKeyController.dispose();
     _macroPageController.dispose();
     super.dispose();
   }
@@ -201,20 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (saved == true) _load();
-  }
-
-  Future<void> _saveSettings() async {
-    await widget.storage.saveProvider(_provider);
-    if (_apiKeyController.text.trim().isNotEmpty) {
-      await widget.storage.saveApiKey(_apiKeyController.text);
-    }
-    if (_geminiKeyController.text.trim().isNotEmpty) {
-      await widget.storage.saveGeminiKey(_geminiKeyController.text);
-    }
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Settings saved')),
-    );
   }
 
   Future<void> _signOut() async {
@@ -1940,63 +1919,23 @@ class _HomeScreenState extends State<HomeScreen> {
             boxShadow: _cardShadow,
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('AI provider',
-                  style: TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w700, color: _ink)),
-              const SizedBox(height: 8),
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'openai', label: Text('OpenAI')),
-                  ButtonSegment(value: 'gemini', label: Text('Gemini')),
-                ],
-                selected: {_provider},
-                onSelectionChanged: (s) =>
-                    setState(() => _provider = s.first),
-              ),
-              const SizedBox(height: 14),
-              if (_provider == 'gemini') ...[
-                const Text('Gemini API key',
-                    style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600, color: _muted)),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: _geminiKeyController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    hintText: 'AIza...',
-                    filled: true,
-                    fillColor: _bg,
-                    border: OutlineInputBorder(borderSide: BorderSide.none),
-                  ),
-                ),
-              ] else ...[
-                const Text('OpenAI API key',
-                    style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600, color: _muted)),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: _apiKeyController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    hintText: 'sk-...',
-                    filled: true,
-                    fillColor: _bg,
-                    border: OutlineInputBorder(borderSide: BorderSide.none),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: _saveSettings,
-                style: FilledButton.styleFrom(
-                  backgroundColor: _ink,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text('Save settings'),
+              _settingsRow(
+                icon: Icons.key,
+                label: 'API key',
+                subtitle: widget.storage.apiKey?.isNotEmpty == true ||
+                        widget.storage.geminiKey?.isNotEmpty == true
+                    ? 'Configured'
+                    : 'Not set',
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ApiKeySetupScreen(storage: widget.storage),
+                    ),
+                  );
+                  if (result == true) _load();
+                },
               ),
             ],
           ),
@@ -2031,6 +1970,59 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontWeight: FontWeight.w700,
                   color: _ink)),
         ],
+      ),
+    );
+  }
+
+  Widget _settingsRow({
+    required IconData icon,
+    required String label,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: _ink.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 18, color: _ink),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: _ink,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: _muted,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 20, color: _muted),
+          ],
+        ),
       ),
     );
   }

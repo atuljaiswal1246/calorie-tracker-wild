@@ -15,6 +15,28 @@ class GeminiService {
       'https://generativelanguage.googleapis.com/v1beta/models/';
   static const _maxRetries = 3;
 
+  static Future<bool> testKey(String key) async {
+    try {
+      final url = Uri.parse('${_endpoint}gemini-3.6-flash:generateContent?key=$key');
+      final res = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'contents': [
+            {
+              'parts': [
+                {'text': 'Say "ok"'}
+              ]
+            }
+          ]
+        }),
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<({List<FoodItem> items, String? mealType})> analyzeImage(
     String imagePath, {
     String model = 'gemini-3.6-flash',
