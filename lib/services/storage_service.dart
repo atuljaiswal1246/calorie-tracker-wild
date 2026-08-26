@@ -98,6 +98,20 @@ class StorageService {
     return profile;
   }
 
+  /// Clears the profile (local + cloud) but KEEPS payment state so
+  /// paid users never get re-prompted.
+  Future<void> resetProfile() async {
+    await _prefs.remove(_profileKey);
+    final ref = _profileRef();
+    if (ref != null) {
+      try {
+        await ref.update({'profile': FieldValue.delete()});
+      } catch (_) {
+        // Cloud not reachable — local clear is enough for the reset flow.
+      }
+    }
+  }
+
   // ---- Entries ----
 
   List<FoodEntry> get entries {
@@ -425,8 +439,43 @@ class StorageService {
   // ---- Payment state ----
 
   static const _paidKey = 'has_paid';
+  static const _trialStartKey = 'trial_started_at';
+  static const _planKey = 'subscription_plan'; // 'monthly' | 'yearly'
 
   bool get isPaid => _prefs.getBool(_paidKey) ?? false;
+
+  DateTime? get trialStart {
+    final raw = _prefs.getString(_trialStartKey);
+    return raw == null ? null : DateTime.tryParse(raw);
+  }
+
+  String get subscriptionPlan => _prefs.getString(_planKey) ?? 'monthly';
+
+  /// Trial length in days per plan: monthly = 15, yearly = 30.
+  int get planTrialDays => subscriptionPlan == 'yearly' ? 30 : 15;
+
+  /// Number of days left in trial. 0 = ended. Negative after end.
+  int get trialDaysLeft {
+    final start = trialStart;
+    if (start == null) return 0;
+    final end = start.add(Duration(days: planTrialDays));
+    return end.difference(DateTime.now()).inDays;
+  }
+
+  /// True while trial is active and user hasn't paid yet.
+  bool get isOnTrial => !isPaid && trialStart != null && trialDaysLeft > 0;
+
+  /// True when trial has ended and user hasn't paid.
+  bool get trialExpired => !isPaid && trialStart != null && trialDaysLeft <= 0;
+
+  /// Starts the trial (only if not already started) AND records the plan,
+  /// so plan-relevant trial length applies. Keeps paid state untouched.
+  Future<void> startTrial(String plan) async {
+    await _prefs.setString(_planKey, plan);
+    if (_prefs.getString(_trialStartKey) == null) {
+      await _prefs.setString(_trialStartKey, DateTime.now().toIso8601String());
+    }
+  }
 
   // ---- Recently Logged Foods ----
 

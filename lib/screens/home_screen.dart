@@ -32,12 +32,14 @@ class HomeScreen extends StatefulWidget {
   final StorageService storage;
   final AuthService auth;
   final VoidCallback onSignedOut;
+  final VoidCallback onResetGoals;
 
   const HomeScreen({
     super.key,
     required this.storage,
     required this.auth,
     required this.onSignedOut,
+    required this.onResetGoals,
   });
 
   @override
@@ -255,6 +257,40 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _confirmResetGoals() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Reset goals?'),
+        content: const Text(
+          'This clears your profile and takes you back to the '
+          'questionnaire to set new goals.\n\n'
+          'Your meal logs, water, weight and fasting history are kept. '
+          'Payment and trial status are NOT affected.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Reset',
+              style: TextStyle(color: Color(0xFFFF3B30)),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await widget.storage.resetProfile();
+      if (!mounted) return;
+      widget.onResetGoals();
+    }
+  }
+
   Future<void> _deleteEntry(FoodEntry entry) async {
     HapticFeedback.mediumImpact();
     final confirmed = await showDialog<bool>(
@@ -337,6 +373,11 @@ class _HomeScreenState extends State<HomeScreen> {
         _greeting(profile),
         const SizedBox(height: 14),
         _header(),
+        if (widget.storage.isOnTrial ||
+            widget.storage.trialExpired) ...[
+          const SizedBox(height: 12),
+          _trialBanner(),
+        ],
         if (!_isOnline) ...[
           const SizedBox(height: 12),
           Container(
@@ -607,6 +648,119 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  Widget _trialBanner() {
+    if (widget.storage.isPaid) return const SizedBox.shrink();
+    if (widget.storage.isOnTrial) {
+      final days = widget.storage.trialDaysLeft;
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: _cardShadow,
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.card_giftcard, size: 18, color: Color(0xFFFF9500)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                days == 0
+                    ? 'Trial ends today!'
+                    : '$days day${days == 1 ? '' : 's'} left in your free trial',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _ink,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () => _openPricing(),
+              child: const Text(
+                'Upgrade',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFFF9500),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    if (widget.storage.trialExpired) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3E0),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.lock_outline, size: 18, color: Color(0xFFFF9500)),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Your free trial has ended',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _ink,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () => _openPricing(),
+              child: const Text(
+                'Unlock',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFFF9500),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Future<void> _openPricing() async {
+    // Simple subscribe flow from home: mark paid after confirm.
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Subscribe to continue'),
+        content: Text(
+          widget.storage.subscriptionPlan == 'yearly'
+              ? 'Rs 1100/year (30-day free trial already used)\n\nContinue to unlock all features?'
+              : 'Rs 100/month (15-day free trial already used)\n\nContinue to unlock all features?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Not now'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Subscribe'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await widget.storage.savePaid(true);
+      _load();
+    }
   }
 
   Widget _header() {
@@ -1962,23 +2116,46 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(width: 14),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  profile.name,
-                  style: const TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800,
-                    color: _ink,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          profile.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w800,
+                            color: _ink,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => _showNameEdit(profile),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: _ink.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.edit,
+                              size: 14, color: _ink),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${profile.calorieGoal} kcal/day goal',
-                  style: const TextStyle(fontSize: 13, color: _muted),
-                ),
-              ],
+                  const SizedBox(height: 3),
+                  Text(
+                    '${profile.calorieGoal} kcal/day goal',
+                    style: const TextStyle(fontSize: 13, color: _muted),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -2070,6 +2247,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 subtitle: 'Download your logs as JSON',
                 onTap: _exportData,
               ),
+              const Divider(height: 1, color: Color(0xFFECECE7)),
+              _settingsRow(
+                icon: Icons.restart_alt,
+                label: 'Reset goals',
+                subtitle: 'Start the questionnaire over',
+                onTap: _confirmResetGoals,
+              ),
             ],
           ),
         ),
@@ -2160,10 +2344,52 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _showNameEdit(Profile profile) async {
+    final controller = TextEditingController(text: profile.name);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Edit name',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 40,
+          textCapitalization: TextCapitalization.words,
+          style: const TextStyle(
+              fontSize: 20, fontWeight: FontWeight.w700),
+          decoration: const InputDecoration(
+            hintText: 'Your name',
+            counterText: '',
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (result != null && result.isNotEmpty && result != profile.name) {
+      final updated = profile.copyWith(name: result);
+      await widget.storage.saveProfile(updated);
+      _load();
+    }
+  }
+
   // ================= Floating navigation =================
 
-  Widget _floatingNav() {
-    return Container(
+  Widget _floatingNav() {    return Container(
       height: 64,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       padding: const EdgeInsets.symmetric(horizontal: 10),

@@ -137,7 +137,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
   }
 
   Widget _prebuiltCard(PrebuiltPlan plan) {
-    final color = Color(int.parse(plan.accentHex.replaceFirst('#', 'FF')));
+    final color = Color(int.parse(plan.accentHex.replaceFirst('#', 'FF'), radix: 16));
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -737,7 +737,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
   final _rand = Random();
 
   Color get _accent =>
-      Color(int.parse(widget.plan.accentHex.replaceFirst('#', 'FF')));
+      Color(int.parse(widget.plan.accentHex.replaceFirst('#', 'FF'), radix: 16));
 
   @override
   Widget build(BuildContext context) {

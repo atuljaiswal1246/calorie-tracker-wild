@@ -40,9 +40,17 @@ class _CalorieAppState extends State<CalorieApp> {
   }
 
   Future<void> _init() async {
+    final profileExists = widget.storage.profile != null;
     // If already signed in (app relaunch), restore session.
     if (widget.auth.isSignedIn) {
       await _onAuthenticated();
+    } else if (profileExists) {
+      // Returning guest: route by subscription state.
+      if (widget.storage.trialExpired && !widget.storage.isPaid) {
+        _goTo(_AppScreen.onboarding); // startAtPricing -> pricing
+      } else {
+        _goTo(_AppScreen.home);
+      }
     } else {
       _goTo(_AppScreen.welcome);
     }
@@ -66,11 +74,14 @@ class _CalorieAppState extends State<CalorieApp> {
     if (profile == null) {
       // Signed in but never completed the questionnaire — must fill it.
       _goTo(_AppScreen.onboarding);
-    } else if (!widget.storage.isPaid) {
-      // Has a profile but never paid — grandfather in existing users.
-      await widget.storage.savePaid(true);
+    } else if (widget.storage.isPaid || widget.storage.isOnTrial) {
       _goTo(_AppScreen.home);
+    } else if (widget.storage.trialExpired) {
+      // Trial over without paying — send to pricing.
+      _goTo(_AppScreen.onboarding);
     } else {
+      // Legacy signed-in user without trial state: start one now.
+      await widget.storage.startTrial('monthly');
       _goTo(_AppScreen.home);
     }
   }
@@ -129,8 +140,7 @@ class _CalorieAppState extends State<CalorieApp> {
             auth: widget.auth,
             onComplete: () => _goTo(_AppScreen.home),
             onBack: () => _goTo(_AppScreen.welcome),
-            startAtPricing: widget.storage.isPaid == false &&
-                widget.storage.profile != null,
+            startAtPricing: widget.storage.trialExpired,
           ),
         _AppScreen.home => HomeScreen(
             storage: widget.storage,
@@ -138,6 +148,9 @@ class _CalorieAppState extends State<CalorieApp> {
             onSignedOut: () {
               widget.storage.setUserId(null);
               _goTo(_AppScreen.welcome);
+            },
+            onResetGoals: () {
+              _goTo(_AppScreen.onboarding);
             },
           ),
       },

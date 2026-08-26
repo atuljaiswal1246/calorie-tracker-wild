@@ -31,14 +31,18 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   int _step = 0;
 
-  // 0-7 are questions; 8 = "building your plan"; 9 = plan summary;
-  // 10 = pricing.
-  static const _totalSteps = 8;
-  static const _buildingStep = 8;
-  static const _planStep = 9;
-  static const _pricingStep = 10;
+  // 0-8 are questions; 9 = "building your plan"; 10 = plan summary;
+  // 11 = pricing.
+  static const _totalSteps = 9;
+  static const _buildingStep = 9;
+  static const _planStep = 10;
+  static const _pricingStep = 11;
 
-  // Step 0: goal
+  // Step 0: name
+  String _name = '';
+  static const _maxNameLength = 40;
+
+  // Step 1: goal
   String? _goal;
   static const _goals = [
     _Option(icon: Icons.arrow_downward, label: 'Lose weight', value: 'lose'),
@@ -65,6 +69,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   double _weight = 70;
   double _targetWeight = 65;
   bool _noTarget = false;
+
+  final _nameController = TextEditingController();
 
   // Optional user overrides for the computed targets (null = use computed).
   int? _calorieOverride;
@@ -95,6 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -103,18 +110,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool get _canContinue {
     switch (_step) {
       case 0:
-        return _goal != null;
+        return _name.trim().isNotEmpty;
       case 1:
-        return _sex != null;
+        return _goal != null;
       case 2:
-        return _age >= 10 && _age <= 100;
+        return _sex != null;
       case 3:
-        return _height >= 50 && _height <= 250;
+        return _age >= 10 && _age <= 100;
       case 4:
-        return _weight > 0 && _weight <= 300;
+        return _height >= 50 && _height <= 250;
       case 5:
-        return _workoutFreq != null;
+        return _weight > 0 && _weight <= 300;
       case 6:
+        return _workoutFreq != null;
+      case 7:
         if (_skipTargetQuestions) return true;
         final v = _targetWeight;
         if (v < 30 || v > 300) return false;
@@ -122,7 +131,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         if (_goal == 'lose') return v < _weight;
         if (_goal == 'gain') return v > _weight;
         return true;
-      case 7:
+      case 8:
         return _pace != null;
       default:
         return false;
@@ -134,7 +143,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _step++;
       // Skip target-weight & pace when there's no target OR the goal
       // doesn't involve weight change (maintain / exploring).
-      if (_skipTargetQuestions && _step == 6) _step += 2;
+      if (_skipTargetQuestions && _step == 7) _step += 2;
     });
   }
 
@@ -143,30 +152,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _goToPricing() async {
-    // New users must create an account before paying.
-    if (!widget.auth.isSignedIn) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => AuthScreen(
-            auth: widget.auth,
-            isSignUp: true,
-            onAuthenticated: () {
-              widget.storage.setUserId(widget.auth.currentUser!.uid);
-              Navigator.of(context).pop();
-            },
-            onBack: () => Navigator.of(context).pop(),
-          ),
-        ),
-      );
-      if (!mounted) return;
-      if (!widget.auth.isSignedIn) return; // user backed out of signup
-    }
-    if (!mounted) return;
-    if (widget.storage.isPaid) {
+    // First-time users get a free trial — no account or payment needed.
+    // The pricing step only appears once the trial has ended.
+    if (widget.storage.isPaid || widget.storage.isOnTrial) {
       _finish();
-    } else {
-      setState(() => _step = _pricingStep);
+      return;
     }
+    // Start the free trial (monthly plan by default = 15 days). Sign-up
+    // is still optional — data lives on device until the user subscribes.
+    await widget.storage.startTrial('monthly');
+    if (!mounted) return;
+    _finish();
   }
 
   Future<void> _onPaid() async {
@@ -183,7 +179,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() {
       _step--;
       // Skip the target-weight step when going back past it.
-      if (_skipTargetQuestions && _step == 6) _step--;
+      if (_skipTargetQuestions && _step == 7) _step--;
     });
   }
 
@@ -337,6 +333,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     if (_step == _pricingStep) {
       return _PricingScreen(
+        storage: widget.storage,
         onPaid: _onPaid,
         onBack: _back,
       );
@@ -359,6 +356,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: _TopBar(
                       progress: _progress,
                       stepNumber: _step + 1,
+                      totalSteps: _totalSteps,
                       onBack: _back,
                     ),
                   ),
@@ -441,7 +439,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Profile _buildProfile() {
     return Profile(
-      name: 'User',
+      name: _name.trim().isEmpty ? 'Friend' : _name.trim(),
       age: _age,
       sex: _sex ?? 'unspecified',
       weightKg: _weight,
@@ -461,55 +459,62 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildHeading() {
     switch (_step) {
       case 0:
-        return const Text('Choose your goal',
+        return const Text('What should we\ncall you?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 1:
-        return const Text('Choose your sex',
+        return const Text('Choose your goal',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 2:
-        return const Text('What\'s your age?',
+        return const Text('Choose your sex',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 3:
-        return const Text('What\'s your height?',
+        return const Text('What\'s your age?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 4:
-        return const Text('What\'s your current weight?',
+        return const Text('What\'s your height?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 5:
-        return const Text('How many times do you\nwork out in a week?',
+        return const Text('What\'s your current weight?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 6:
-        return const Text('What\'s your target weight?',
+        return const Text('How many times do you\nwork out in a week?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 7:
+        return const Text('What\'s your target weight?',
+            style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+                letterSpacing: -0.5));
+      case 8:
         return const Text('How fast do you\nwant to lose weight?',
             style: TextStyle(
                 fontSize: 30,
@@ -524,46 +529,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildStep() {
     switch (_step) {
       case 0:
+        return _NameStep(
+          controller: _nameController,
+          onChanged: (v) => setState(() => _name = v),
+        );
+      case 1:
         return _OptionStep(
           options: _goals,
           selected: _goal,
           onSelect: (v) => setState(() => _goal = v),
         );
-      case 1:
+      case 2:
         return _OptionStep(
           options: _sexes,
           selected: _sex,
           onSelect: (v) => setState(() => _sex = v),
         );
-      case 2:
+      case 3:
         return _AgeStep(
           age: _age,
           onChanged: (v) => setState(() => _age = v),
         );
-      case 3:
+      case 4:
         return _HeightStep(
           heightCm: _height,
           onChangedCm: (v) => setState(() => _height = v),
         );
-      case 4:
+      case 5:
         return _WeightStep(
           weightKg: _weight,
           onChangedKg: (v) => setState(() => _weight = v),
         );
-      case 5:
+      case 6:
         return _OptionStep(
           options: _workoutFreqs,
           selected: _workoutFreq,
           onSelect: (v) => setState(() => _workoutFreq = v),
         );
-      case 6:
+      case 7:
         return _TargetWeightStep(
           targetWeight: _targetWeight,
           currentWeight: _weight,
           disabled: _noTarget,
           onChanged: (v) => setState(() => _targetWeight = v),
         );
-      case 7:
+      case 8:
         return _PaceStep(
           selected: _pace,
           onSelect: (v) => setState(() => _pace = v),
@@ -576,7 +586,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildStepFooter() {
-    if (_step == 8) {
+    if (_step == 7) {
       return _NoTargetCard(
         noTarget: _noTarget,
         onChanged: (v) {
@@ -591,7 +601,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   String? _buildWarning() {
-    if (_step == 8) return _targetWeightWarning();
+    if (_step == 7) return _targetWeightWarning();
     return null;
   }
 
@@ -800,11 +810,13 @@ Future<double?> _showFeetInchesEdit(
 class _TopBar extends StatelessWidget {
   final double progress;
   final int stepNumber;
+  final int totalSteps;
   final VoidCallback onBack;
 
   const _TopBar({
     required this.progress,
     required this.stepNumber,
+    required this.totalSteps,
     required this.onBack,
   });
 
@@ -840,7 +852,7 @@ class _TopBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            '$stepNumber/$_totalSteps',
+            '$stepNumber/$totalSteps',
             style: const TextStyle(
                 fontSize: 13,
                 color: Colors.black54,
@@ -851,8 +863,6 @@ class _TopBar extends StatelessWidget {
       ),
     );
   }
-
-  static const _totalSteps = 8;
 }
 
 // ---------------- Bottom bar ----------------
@@ -902,6 +912,66 @@ class _BottomBar extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------- Name step ----------------
+class _NameStep extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  const _NameStep({
+    required this.controller,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          maxLength: 40,
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+            letterSpacing: -0.5,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Your name',
+            hintStyle: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w600,
+              color: Colors.black.withValues(alpha: 0.25),
+            ),
+            counterText: '',
+            filled: true,
+            fillColor: Colors.black.withValues(alpha: 0.04),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 18,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: Colors.black.withValues(alpha: 0.8),
+                width: 1.5,
+              ),
+            ),
+          ),
+          onChanged: onChanged,
+          onSubmitted: (_) => onChanged(controller.text),
+        ),
+      ],
     );
   }
 }
@@ -1164,9 +1234,7 @@ class _AgeStep extends StatelessWidget {
   const _AgeStep({
     required this.age,
     required this.onChanged,
-  });
-
-  @override
+  });  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -1834,6 +1902,18 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Personal greeting
+                    Center(
+                      child: Text(
+                        'Hi ${profile.name.split(' ').first}!',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black45,
+                      ),
+                    ),
+                    ),
+                    const SizedBox(height: 10),
                     // Main heading
                     Text(
                       _headline(),
@@ -2415,10 +2495,15 @@ class _HowCard extends StatelessWidget {
 
 // ---------------- Pricing screen ----------------
 class _PricingScreen extends StatefulWidget {
+  final StorageService storage;
   final VoidCallback onPaid;
   final VoidCallback onBack;
 
-  const _PricingScreen({required this.onPaid, required this.onBack});
+  const _PricingScreen({
+    required this.storage,
+    required this.onPaid,
+    required this.onBack,
+  });
 
   @override
   State<_PricingScreen> createState() => _PricingScreenState();
@@ -2430,7 +2515,7 @@ class _PricingScreenState extends State<_PricingScreen> {
   bool _approved = false;
 
   static const _monthlyPrice = 100;
-  static const _yearlyPrice = 500;
+  static const _yearlyPrice = 1100;
 
   int get _savingsPercent {
     final annualIfMonthly = _monthlyPrice * 12;
@@ -2439,6 +2524,8 @@ class _PricingScreenState extends State<_PricingScreen> {
 
   Future<void> _continue() async {
     setState(() => _processing = true);
+    // Record selected plan when purchasing.
+    await widget.storage.startTrial(_yearly ? 'yearly' : 'monthly');
     await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
     setState(() {
@@ -2447,6 +2534,7 @@ class _PricingScreenState extends State<_PricingScreen> {
     });
     await Future.delayed(const Duration(milliseconds: 1400));
     if (!mounted) return;
+    await widget.storage.savePaid(true);
     widget.onPaid();
   }
 
@@ -2541,7 +2629,7 @@ class _PricingScreenState extends State<_PricingScreen> {
                           // Yearly (default selected)
                           _PlanOptionCard(
                             selected: _yearly,
-                            badge: '7 days free',
+                            badge: '30 days free',
                             left: 'Start for free & save $_savingsPercent%',
                             right: 'Rs $_yearlyPrice/year',
                             sub: 'About Rs $_monthlyPrice/month · Rs $_yearlyPrice billed annually',
@@ -2551,8 +2639,10 @@ class _PricingScreenState extends State<_PricingScreen> {
                           // Monthly
                           _PlanOptionCard(
                             selected: !_yearly,
+                            badge: '15 days free',
                             left: 'Monthly',
                             right: 'Rs $_monthlyPrice/month',
+                            sub: '15 days free, then Rs $_monthlyPrice/month',
                             onTap: () => setState(() => _yearly = false),
                           ),
                         ],
@@ -2601,9 +2691,9 @@ class _PricingScreenState extends State<_PricingScreen> {
                       const SizedBox(height: 12),
                       Text(
                         _yearly
-                            ? '7 days free, then Rs $_yearlyPrice.00 per year.\n'
+                            ? '30 days free, then Rs $_yearlyPrice.00 per year.\n'
                                 'Billed annually and renews automatically unless cancelled.'
-                            : '7 days free, then Rs $_monthlyPrice.00 per month.\n'
+                            : '15 days free, then Rs $_monthlyPrice.00 per month.\n'
                                 'Billed monthly and renews automatically unless cancelled.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(

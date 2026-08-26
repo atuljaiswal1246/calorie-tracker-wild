@@ -193,13 +193,14 @@ class Profile {
       };
 
   Profile copyWith({
+    String? name,
     String? goal,
     String? pace,
     String? workoutFreq,
     double? targetWeightKg,
   }) =>
       Profile(
-        name: name,
+        name: name ?? this.name,
         age: age,
         sex: sex,
         weightKg: weightKg,
