@@ -73,20 +73,26 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
 
-  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+  String? get _uid {
+    try {
+      return FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _profile = widget.storage.profile;
     _load();
+    _connectivityStream = Connectivity().onConnectivityChanged;
     _connectivityStream.listen((results) {
       final online = results.any((r) => r != ConnectivityResult.none);
       if (mounted && online != _isOnline) {
         setState(() => _isOnline = online);
       }
     });
-    _load();
   }
 
   @override
@@ -2203,7 +2209,13 @@ class _GroupsPageContentState extends State<_GroupsPageContent> {
     ),
   ];
 
-  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+  String? get _uid {
+    try {
+      return FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2272,7 +2284,8 @@ class _GroupsPageContentState extends State<_GroupsPageContent> {
             stream: FirebaseFirestore.instance
                 .collection('groups')
                 .where('members', arrayContains: _uid)
-                .snapshots(),
+                .snapshots()
+                .handleError((_) {}),
             builder: (ctx, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
