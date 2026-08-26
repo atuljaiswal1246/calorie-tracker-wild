@@ -322,6 +322,45 @@ class StorageService {
     await _prefs.setString(_achievementsKey, jsonEncode(achievements));
   }
 
+  // ---- Fasting ----
+
+  static const _fastingStartKey = 'fasting_start';
+  static const _fastingGoalKey = 'fasting_goal_hours';
+
+  int get fastingGoalHours => _prefs.getInt(_fastingGoalKey) ?? 16;
+
+  Future<void> saveFastingGoalHours(int hours) async {
+    await _prefs.setInt(_fastingGoalKey, hours);
+  }
+
+  DateTime? get fastingStart {
+    final raw = _prefs.getString(_fastingStartKey);
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  bool get isFasting => fastingStart != null;
+
+  Future<void> startFasting() async {
+    await _prefs.setString(_fastingStartKey, DateTime.now().toIso8601String());
+  }
+
+  Future<void> stopFasting() async {
+    await _prefs.remove(_fastingStartKey);
+  }
+
+  int get fastingElapsedHours {
+    final start = fastingStart;
+    if (start == null) return 0;
+    return DateTime.now().difference(start).inHours;
+  }
+
+  int get fastingElapsedMinutes {
+    final start = fastingStart;
+    if (start == null) return 0;
+    return DateTime.now().difference(start).inMinutes % 60;
+  }
+
   // ---- Payment state ----
 
   static const _paidKey = 'has_paid';

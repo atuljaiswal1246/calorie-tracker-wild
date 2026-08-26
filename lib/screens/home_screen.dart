@@ -444,6 +444,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _logMealSection(),
         const SizedBox(height: 22),
         _waterCard(),
+        const SizedBox(height: 16),
+        _fastingCard(),
         const SizedBox(height: 22),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1064,6 +1066,320 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF1C1C1E),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fastingCard() {
+    final isFasting = widget.storage.isFasting;
+    final start = widget.storage.fastingStart;
+    final goalHours = widget.storage.fastingGoalHours;
+    final elapsedH = widget.storage.fastingElapsedHours;
+    final elapsedM = widget.storage.fastingElapsedMinutes;
+    final progress = isFasting ? (elapsedH / goalHours).clamp(0.0, 1.0) : 0.0;
+    final completed = isFasting && elapsedH >= goalHours;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: _cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Text('⏰', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Fasting',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1C1C1E),
+                    ),
+                  ),
+                ],
+              ),
+              if (isFasting)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: completed
+                        ? const Color(0xFF34C759).withOpacity(0.12)
+                        : const Color(0xFFFF9500).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    completed ? 'Complete' : '$goalHours:00 goal',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: completed ? const Color(0xFF34C759) : const Color(0xFFFF9500),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (isFasting) ...[
+            // Timer display
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${elapsedH.toString().padLeft(2, '0')}:${elapsedM.toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1C1C1E),
+                    letterSpacing: -1,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 4, left: 6),
+                  child: Text(
+                    'elapsed',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF8E8E93),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // Progress bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                height: 8,
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: const Color(0xFFECECE7),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    completed ? const Color(0xFF34C759) : const Color(0xFFFF9500),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Started at ${start != null ? TimeOfDay.fromDateTime(start).format(context) : ''}',
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF8E8E93),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      await widget.storage.stopFasting();
+                      _load();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3F0),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'End fast',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFFF3B30),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: () => _showFastingGoalSheet(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F0EC),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.settings, size: 18, color: Color(0xFF8E8E93)),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            // Not fasting — show start options
+            Row(
+              children: [
+                _fastingPreset('14:10', 14),
+                const SizedBox(width: 8),
+                _fastingPreset('16:8', 16),
+                const SizedBox(width: 8),
+                _fastingPreset('18:6', 18),
+                const SizedBox(width: 8),
+                _fastingPreset('20:4', 20),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () async {
+                await widget.storage.startFasting();
+                _load();
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _ink,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Start fasting',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _fastingPreset(String label, int hours) {
+    return GestureDetector(
+      onTap: () async {
+        await widget.storage.saveFastingGoalHours(hours);
+        setState(() {});
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: widget.storage.fastingGoalHours == hours
+              ? _ink
+              : const Color(0xFFF1F0EC),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: widget.storage.fastingGoalHours == hours
+                ? Colors.white
+                : _ink,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFastingGoalSheet(BuildContext context) {
+    final controller = TextEditingController(
+      text: widget.storage.fastingGoalHours.toString(),
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Fasting Goal',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1C1C1E),
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Set your fasting duration in hours',
+              style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1C1C1E),
+              ),
+              decoration: InputDecoration(
+                suffixText: 'hours',
+                suffixStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF8E8E93),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                      color: Color(0xFF1C1C1E), width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: FilledButton(
+                onPressed: () async {
+                  final val = int.tryParse(controller.text);
+                  if (val == null || val < 8 || val > 24) return;
+                  await widget.storage.saveFastingGoalHours(val);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  _load();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF1C1C1E),
+                  foregroundColor: Colors.white,
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5),
+                ),
               ),
             ),
           ],
