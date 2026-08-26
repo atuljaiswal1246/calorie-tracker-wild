@@ -18,6 +18,7 @@ import 'capture_screen.dart';
 import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
+import 'meal_plan_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
 
@@ -1450,37 +1451,76 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _logMealSection() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _logOption(
-            icon: Symbols.egg_alt,
-            label: 'Scan food',
-            onTap: _openCapture,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _logOption(
+                icon: Symbols.egg_alt,
+                label: 'Scan food',
+                onTap: _openCapture,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _logOption(
+                icon: Icons.photo_library_outlined,
+                label: 'Upload photo',
+                onTap: _openGallery,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _logOption(
+                icon: Icons.qr_code_scanner,
+                label: 'Barcode',
+                onTap: _openBarcodeScanner,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _logOption(
+                icon: Symbols.restaurant_menu,
+                label: 'Add manually',
+                onTap: _openManualEntry,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _logOption(
-            icon: Icons.photo_library_outlined,
-            label: 'Upload photo',
-            onTap: _openGallery,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _logOption(
-            icon: Icons.qr_code_scanner,
-            label: 'Barcode',
-            onTap: _openBarcodeScanner,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _logOption(
-            icon: Symbols.restaurant_menu,
-            label: 'Add manually',
-            onTap: _openManualEntry,
+        const SizedBox(height: 10),
+        GestureDetector(
+          onTap: () async {
+            final result = await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MealPlanScreen(storage: widget.storage),
+              ),
+            );
+            if (result == true) _load();
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: _cardShadow,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.bookmark_outline, size: 18, color: _ink),
+                SizedBox(width: 8),
+                Text(
+                  'Meal plans',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _ink,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

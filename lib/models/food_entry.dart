@@ -159,3 +159,40 @@ class FoodEntry {
             .toList(),
       );
 }
+
+class MealPlan {
+  final String id;
+  final String name;
+  final List<FoodItem> items;
+  final DateTime createdAt;
+
+  MealPlan({
+    required this.id,
+    required this.name,
+    required this.items,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+
+  int get totalCalories => items.fold(0, (s, i) => s + i.calories);
+  double get totalProtein => items.fold(0, (s, i) => s + i.protein);
+  double get totalCarbs => items.fold(0, (s, i) => s + i.carbs);
+  double get totalFat => items.fold(0, (s, i) => s + i.fat);
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'createdAt': createdAt.toIso8601String(),
+        'items': items.map((e) => e.toJson()).toList(),
+      };
+
+  factory MealPlan.fromJson(Map<String, dynamic> json) => MealPlan(
+        id: json['id'] as String? ??
+            DateTime.now().microsecondsSinceEpoch.toString(),
+        name: json['name'] as String? ?? 'Meal Plan',
+        createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+            DateTime.now(),
+        items: ((json['items'] as List?) ?? [])
+            .map((e) => FoodItem.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+}

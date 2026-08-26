@@ -361,6 +361,40 @@ class StorageService {
     return DateTime.now().difference(start).inMinutes % 60;
   }
 
+  // ---- Meal Plans ----
+
+  static const _mealPlansKey = 'meal_plans';
+
+  List<MealPlan> get mealPlans {
+    final raw = _prefs.getString(_mealPlansKey);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List;
+    return list.map((e) => MealPlan.fromJson(e)).toList();
+  }
+
+  Future<void> saveMealPlan(MealPlan plan) async {
+    final plans = mealPlans;
+    plans.add(plan);
+    await _prefs.setString(_mealPlansKey, jsonEncode(plans.map((e) => e.toJson()).toList()));
+  }
+
+  Future<void> deleteMealPlan(String id) async {
+    final plans = mealPlans.where((p) => p.id != id).toList();
+    await _prefs.setString(_mealPlansKey, jsonEncode(plans.map((e) => e.toJson()).toList()));
+  }
+
+  Future<void> logMealPlan(MealPlan plan) async {
+    final now = DateTime.now();
+    final entry = FoodEntry(
+      id: now.millisecondsSinceEpoch.toString(),
+      dateTime: now,
+      mealType: 'meal',
+      imagePath: '',
+      items: plan.items,
+    );
+    await addEntry(entry);
+  }
+
   // ---- Payment state ----
 
   static const _paidKey = 'has_paid';
