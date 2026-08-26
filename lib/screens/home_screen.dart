@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -24,7 +25,6 @@ import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
 import 'meal_plan_screen.dart';
-import 'api_key_setup_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
 
@@ -76,6 +76,14 @@ class _HomeScreenState extends State<HomeScreen> {
   final PageController _macroPageController = PageController();
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
+
+  String? get _signedInEmail {
+    try {
+      return widget.auth.currentUser?.email;
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -2154,6 +2162,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     '${profile.calorieGoal} kcal/day goal',
                     style: const TextStyle(fontSize: 13, color: _muted),
                   ),
+                  if (_signedInEmail != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      _signedInEmail!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, color: _muted),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -2212,24 +2229,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Column(
             children: [
-              _settingsRow(
-                icon: Icons.key,
-                label: 'API key',
-                subtitle: widget.storage.apiKey?.isNotEmpty == true ||
-                        widget.storage.geminiKey?.isNotEmpty == true
-                    ? 'Configured'
-                    : 'Not set',
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ApiKeySetupScreen(storage: widget.storage),
-                    ),
-                  );
-                  if (result == true) _load();
-                },
-              ),
-              const Divider(height: 1, color: Color(0xFFECECE7)),
               _settingsRow(
                 icon: Icons.notifications_active_outlined,
                 label: 'Reminders',

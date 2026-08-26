@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/food_entry.dart';
+import '../services/ai_config.dart';
 import '../services/food_search_service.dart';
 import '../services/gemini_service.dart';
 import '../services/openai_service.dart';
@@ -83,20 +84,13 @@ class _CaptureScreenState extends State<CaptureScreen> {
   }
 
   Future<void> _analyze() async {
-    final provider = widget.storage.provider;
-    String? apiKey;
-    String providerLabel = provider;
+    // Static built-in provider — users never configure API keys.
+    final provider = AiConfig.provider;
+    final apiKey = AiConfig.geminiApiKey;
+    const providerLabel = 'Gemini';
 
-    if (provider == 'gemini') {
-      apiKey = widget.storage.geminiKey;
-      providerLabel = 'Gemini';
-    } else {
-      apiKey = widget.storage.apiKey;
-      providerLabel = 'OpenAI';
-    }
-
-    if (apiKey == null || apiKey.isEmpty) {
-      setState(() => _error = 'Add your $providerLabel API key in Settings first.');
+    if (apiKey.isEmpty) {
+      setState(() => _error = 'AI service unavailable.');
       return;
     }
     final image = _image;

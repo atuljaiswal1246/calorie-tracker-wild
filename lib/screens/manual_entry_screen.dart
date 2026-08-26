@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/food_entry.dart';
+import '../services/ai_config.dart';
 import '../services/food_search_service.dart';
 import '../services/gemini_service.dart';
 import '../services/openai_service.dart';
@@ -152,20 +153,13 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       return;
     }
 
-    final provider = widget.storage.provider;
-    String? apiKey;
-    String providerLabel = provider;
+    // Static built-in provider — users never configure API keys.
+    final provider = AiConfig.provider;
+    final apiKey = AiConfig.geminiApiKey;
+    const providerLabel = 'Gemini';
 
-    if (provider == 'gemini') {
-      apiKey = widget.storage.geminiKey;
-      providerLabel = 'Gemini';
-    } else {
-      apiKey = widget.storage.apiKey;
-      providerLabel = 'OpenAI';
-    }
-
-    if (apiKey == null || apiKey.isEmpty) {
-      setState(() => _error = 'Add your $providerLabel API key in Settings first.');
+    if (apiKey.isEmpty) {
+      setState(() => _error = 'AI service unavailable.');
       return;
     }
 
