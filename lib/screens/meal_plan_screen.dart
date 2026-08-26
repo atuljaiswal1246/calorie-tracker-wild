@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import '../data/prebuilt_plans.dart';
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
 
@@ -69,13 +72,159 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
           ),
         ],
       ),
-      body: _plans.isEmpty
-          ? _buildEmpty()
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-              itemCount: _plans.length,
-              itemBuilder: (ctx, i) => _planCard(_plans[i]),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.auto_awesome, size: 20, color: Color(0xFFFF9500)),
+              SizedBox(width: 8),
+              Text(
+                'Expert-made plans',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1C1C1E),
+                  letterSpacing: -0.4,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            '7-day Indian menus for your goal',
+            style: TextStyle(fontSize: 13, color: _muted),
+          ),
+          const SizedBox(height: 14),
+          ...prebuiltPlans.map((p) => _prebuiltCard(p)),
+          const SizedBox(height: 22),
+          Row(
+            children: [
+              const Icon(Icons.bookmark, size: 20, color: Color(0xFF1C1C1E)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'My templates',
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1C1C1E),
+                    letterSpacing: -0.4,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _showSaveFromTodaySheet(context),
+                child: const Text(
+                  'Save today',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _muted,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_plans.isEmpty)
+            _buildEmpty()
+          else
+            ..._plans.map((p) => _planCard(p)),
+        ],
+      ),
+    );
+  }
+
+  Widget _prebuiltCard(PrebuiltPlan plan) {
+    final color = Color(int.parse(plan.accentHex.replaceFirst('#', 'FF')));
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => PrebuiltPlanDetailScreen(plan: plan, storage: widget.storage),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: _cardShadow,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(plan.emoji, style: const TextStyle(fontSize: 26)),
             ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    plan.title,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1C1C1E),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    plan.tagline,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: _muted,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          plan.focus,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: color,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '7 days · 4 meals',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: _muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: _muted),
+          ],
+        ),
+      ),
     );
   }
 
@@ -554,5 +703,378 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
         ),
       ),
     );
+  }
+}
+
+class PrebuiltPlanDetailScreen extends StatefulWidget {
+  final PrebuiltPlan plan;
+  final StorageService storage;
+
+  const PrebuiltPlanDetailScreen({
+    super.key,
+    required this.plan,
+    required this.storage,
+  });
+
+  @override
+  State<PrebuiltPlanDetailScreen> createState() =>
+      _PrebuiltPlanDetailScreenState();
+}
+
+class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
+  static const _bg = Color(0xFFFAF9F7);
+  static const _ink = Color(0xFF1C1C1E);
+  static const _muted = Color(0xFF8E8E93);
+  static const _cardShadow = [
+    BoxShadow(
+      color: Color(0x0F000000),
+      blurRadius: 24,
+      offset: Offset(0, 8),
+    ),
+  ];
+
+  int _selectedDay = 1;
+  final _rand = Random();
+
+  Color get _accent =>
+      Color(int.parse(widget.plan.accentHex.replaceFirst('#', 'FF')));
+
+  @override
+  Widget build(BuildContext context) {
+    final plan = widget.plan;
+    final day =
+        plan.days.firstWhere((d) => d.day == _selectedDay, orElse: () => plan.days.first);
+
+    return Scaffold(
+      backgroundColor: _bg,
+      appBar: AppBar(
+        backgroundColor: _bg,
+        surfaceTintColor: _accent,
+        title: Text(
+          plan.title,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: _ink,
+            letterSpacing: -0.5,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: _ink),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+        children: [
+          // Plan summary
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _accent.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Text(plan.emoji, style: const TextStyle(fontSize: 30)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${plan.approxKcal} kcal/day · 7 days',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: _ink,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Log any meal or the full day',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: _muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Day selector
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: plan.days.map((d) {
+                final selected = d.day == _selectedDay;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedDay = d.day),
+                    child: Container(
+                      width: 48,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: selected ? _accent : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: selected ? null : _cardShadow,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Day ${d.day}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: selected ? Colors.white : _ink,
+                            ),
+                          ),
+                          Text(
+                            '${d.totalCalories}',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: selected ? Colors.white70 : _muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Meals for selected day
+          ...day.meals.map((meal) => _mealBlock(meal, day)),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: FilledButton(
+              onPressed: () async {
+                await _logDay(day);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Day $_selectedDay logged!'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: _ink,
+                shape: const StadiumBorder(),
+              ),
+              child: const Text(
+                'Log full day',
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mealBlock(PlanMeal meal, PlanDay day) {
+    final title = switch (meal.title) {
+      'breakfast' => 'Breakfast',
+      'lunch' => 'Lunch',
+      'dinner' => 'Dinner',
+      _ => 'Snack',
+    };
+    final icon = switch (meal.title) {
+      'breakfast' => Icons.wb_twilight,
+      'lunch' => Icons.light_mode,
+      'dinner' => Icons.nights_stay,
+      _ => Icons.cookie,
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: _cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: _accent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 18, color: _accent),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: _ink,
+                  ),
+                ),
+              ),
+              Text(
+                '${meal.totalCalories} kcal',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF8E8E93),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...meal.items.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: _ink,
+                            ),
+                          ),
+                          Text(
+                            item.serving,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: _muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '${item.calories} kcal · ${item.protein.toStringAsFixed(0)}P',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF8E8E93),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              _miniPill('P ${meal.totalProtein.toStringAsFixed(0)}g', const Color(0xFFE53935)),
+              const SizedBox(width: 6),
+              _miniPill('C ${meal.totalCarbs.toStringAsFixed(0)}g', const Color(0xFFFF9500)),
+              const SizedBox(width: 6),
+              _miniPill('F ${meal.totalFat.toStringAsFixed(0)}g', const Color(0xFF007AFF)),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => _logMeal(meal),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _ink,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Log',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniPill(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _logMeal(PlanMeal meal) async {
+    await widget.storage.addEntry(FoodEntry(
+      id: (DateTime.now().microsecondsSinceEpoch + _rand.nextInt(9999))
+          .toString(),
+      dateTime: DateTime.now(),
+      mealType: meal.title,
+      imagePath: '',
+      items: meal.items
+          .map((i) => FoodItem(
+                name: i.name,
+                calories: i.calories,
+                protein: i.protein,
+                carbs: i.carbs,
+                fat: i.fat,
+              ))
+          .toList(),
+    ));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logged!'), behavior: SnackBarBehavior.floating),
+    );
+  }
+
+  Future<void> _logDay(PlanDay day) async {
+    for (final meal in day.meals) {
+      await widget.storage.addEntry(FoodEntry(
+        id: (DateTime.now().microsecondsSinceEpoch + _rand.nextInt(99999))
+            .toString(),
+        dateTime: DateTime.now(),
+        mealType: meal.title,
+        imagePath: '',
+        items: meal.items
+            .map((i) => FoodItem(
+                  name: i.name,
+                  calories: i.calories,
+                  protein: i.protein,
+                  carbs: i.carbs,
+                  fat: i.fat,
+                ))
+            .toList(),
+      ));
+    }
+    if (mounted) Navigator.pop(context, true);
   }
 }

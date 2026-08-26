@@ -7,8 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -26,7 +24,6 @@ import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
 import 'meal_plan_screen.dart';
-import 'groups_screen.dart';
 import 'api_key_setup_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
@@ -77,14 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final PageController _macroPageController = PageController();
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
-
-  String? get _uid {
-    try {
-      return FirebaseAuth.instance.currentUser?.uid;
-    } catch (_) {
-      return null;
-    }
-  }
 
   @override
   void initState() {
@@ -150,12 +139,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     return streak;
-  }
-
-  // Week starting Sunday, matching the reference calendar strip.
-  List<DateTime> get _week {
-    final sunday = _selected.subtract(Duration(days: _selected.weekday % 7));
-    return List.generate(7, (i) => sunday.add(Duration(days: i)));
   }
 
   int get _fiberTarget => 30;
@@ -731,164 +714,118 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _weekSelector({required int calorieGoal}) {
     final today = DateTime.now();
-    final canGoNext = _selected.isBefore(today);
-    final weekLabel = _weekLabel();
-    return Column(
-      children: [
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () => setState(() =>
-                  _selected = _selected.subtract(const Duration(days: 7))),
-              child: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(9),
-                  boxShadow: _cardShadow,
-                ),
-                child: const Icon(Icons.chevron_left,
-                    size: 18, color: Color(0xFF8E8E93)),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                weekLabel,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1C1C1E),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: canGoNext
-                  ? () => setState(() =>
-                      _selected = _selected.add(const Duration(days: 7)))
-                  : null,
-              child: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(9),
-                  boxShadow: _cardShadow,
-                ),
-                child: Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: canGoNext
-                      ? const Color(0xFF8E8E93)
-                      : const Color(0xFFE3E3DE),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: _cardShadow,
-          ),
-          child: Row(
-        children: _week.map((day) {
-          final isSelected = _isSameDay(day, _selected);
-          final isFuture = day.isAfter(today);
-          final dayCalories = _calories(day);
-          final progress = calorieGoal > 0 ? (dayCalories / calorieGoal).clamp(0.0, 1.0) : 0.0;
-          final hasLog = _on(day).isNotEmpty;
+    final dates = List<DateTime>.generate(
+      60,
+      (i) => DateTime(today.year, today.month, today.day)
+          .subtract(Duration(days: 59 - i)),
+    );
+    final controller = ScrollController(
+      initialScrollOffset: (dates.length - 1) * 60.0,
+    );
 
-          // Progress ring color: black < 50%, orange 50-79%, green 80+
-          Color ringColor;
-          if (isFuture) {
-            ringColor = const Color(0xFFE3E3DE);
-          } else if (progress >= 0.8) {
-            ringColor = _green;
-          } else if (progress >= 0.5) {
-            ringColor = const Color(0xFFFFA726);
-          } else if (progress > 0) {
-            ringColor = _ink;
-          } else {
-            ringColor = const Color(0xFFE3E3DE);
-          }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: _cardShadow,
+      ),
+      child: SizedBox(
+        height: 62,
+        child: ListView.builder(
+          controller: controller,
+          scrollDirection: Axis.horizontal,
+          itemCount: dates.length,
+          itemBuilder: (context, index) {
+            final day = dates[index];
+            final isSelected = _isSameDay(day, _selected);
+            final isFuture = day.isAfter(today);
+            final dayCalories = _calories(day);
+            final progress = calorieGoal > 0
+                ? (dayCalories / calorieGoal).clamp(0.0, 1.0)
+                : 0.0;
+            final hasLog = _on(day).isNotEmpty;
 
-          Color textColor = const Color(0xFFB0B0AA);
-          FontWeight weight = FontWeight.w500;
-          if (isSelected) {
-            textColor = _ink;
-            weight = FontWeight.w800;
-          } else if (!isFuture && hasLog) {
-            textColor = _ink;
-            weight = FontWeight.w600;
-          }
+            // Progress ring color: black < 50%, orange 50-79%, green 80+
+            Color ringColor;
+            if (isFuture) {
+              ringColor = const Color(0xFFE3E3DE);
+            } else if (progress >= 0.8) {
+              ringColor = _green;
+            } else if (progress >= 0.5) {
+              ringColor = const Color(0xFFFFA726);
+            } else if (progress > 0) {
+              ringColor = _ink;
+            } else {
+              ringColor = const Color(0xFFE3E3DE);
+            }
 
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _selected = day),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFFF4F4F1)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      DateFormat('E').format(day),
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: textColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: 34,
-                      height: 34,
-                      child: CustomPaint(
-                        painter: _RingPainter(
-                          progress: isFuture ? 0 : progress,
-                          color: ringColor,
-                          strokeWidth: 2.5,
+            Color textColor = const Color(0xFFB0B0AA);
+            FontWeight weight = FontWeight.w500;
+            if (isSelected) {
+              textColor = _ink;
+              weight = FontWeight.w800;
+            } else if (!isFuture && hasLog) {
+              textColor = _ink;
+              weight = FontWeight.w600;
+            }
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: GestureDetector(
+                onTap: () => setState(() => _selected = day),
+                child: Container(
+                  width: 52,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFFF4F4F1)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        day.isAfter(today)
+                            ? '—'
+                            : DateFormat('E').format(day),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: textColor,
+                          fontWeight: FontWeight.w500,
                         ),
-                        child: Center(
-                          child: Text(
-                            '${day.day}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: weight,
-                              color: textColor,
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: CustomPaint(
+                          painter: _RingPainter(
+                            progress: isFuture ? 0 : progress,
+                            color: ringColor,
+                            strokeWidth: 2.5,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${day.day}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: weight,
+                                color: textColor,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
-          ),
+            );
+          },
         ),
-      ],
+      ),
     );
-  }
-
-  String _weekLabel() {
-    final days = _week;
-    final start = DateFormat('d MMM').format(days.first);
-    final end = DateFormat('d MMM').format(days.last);
-    return '$start – $end';
   }
 
   Widget _caloriesCard({required int goal, required int logged, VoidCallback? onTap}) {
@@ -1988,30 +1925,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ProgressScreen(storage: widget.storage);
 
   Widget _groupsPage() {
-    if (_uid == null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.group_outlined, size: 56, color: _muted.withOpacity(0.4)),
-            const SizedBox(height: 14),
-            const Text(
-              'Sign in to use groups',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _ink),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Share your progress with friends and family.',
-              style: TextStyle(fontSize: 14, color: _muted),
-            ),
-          ],
-        ),
-      );
-    }
-    return _GroupsPageContent(storage: widget.storage);
+    return MealPlanScreen(storage: widget.storage);
   }
-
-  // ================= Profile tab =================
 
   Widget _profilePage(Profile profile) {
     return ListView(
@@ -2277,17 +2192,35 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          Expanded(child: _navItem(index: 2, icon: Icons.group_outlined, label: 'Groups')),
+          Expanded(
+            child: _navItem(
+              index: 2,
+              icon: Icons.restaurant_menu,
+              label: 'Plans',
+              onTapOverride: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => MealPlanScreen(storage: widget.storage),
+                  ),
+                );
+              },
+            ),
+          ),
           Expanded(child: _navAvatar(index: 3)),
         ],
       ),
     );
   }
 
-  Widget _navItem({required int index, required IconData icon, required String label}) {
+  Widget _navItem({
+    required int index,
+    required IconData icon,
+    required String label,
+    VoidCallback? onTapOverride,
+  }) {
     final active = _navIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _navIndex = index),
+      onTap: onTapOverride ?? () => setState(() => _navIndex = index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -2400,433 +2333,4 @@ class _RingPainter extends CustomPainter {
   @override
   bool shouldRepaint(_RingPainter old) =>
       old.progress != progress || old.color != color;
-}
-
-class _GroupsPageContent extends StatefulWidget {
-  final StorageService storage;
-  const _GroupsPageContent({required this.storage});
-
-  @override
-  State<_GroupsPageContent> createState() => _GroupsPageContentState();
-}
-
-class _GroupsPageContentState extends State<_GroupsPageContent> {
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF8E8E93);
-  static const _cardShadow = [
-    BoxShadow(
-      color: Color(0x0F000000),
-      blurRadius: 24,
-      offset: Offset(0, 8),
-    ),
-  ];
-
-  String? get _uid {
-    try {
-      return FirebaseAuth.instance.currentUser?.uid;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_uid == null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.group_outlined, size: 56, color: _muted.withOpacity(0.4)),
-            const SizedBox(height: 14),
-            const Text(
-              'Sign in to use groups',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _ink),
-            ),
-          ],
-        ),
-      );
-    }
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-          child: Row(
-            children: [
-              const Text(
-                'Groups',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: _ink,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () => _showJoinGroupSheet(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _ink.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.person_add, size: 16, color: _ink),
-                      SizedBox(width: 4),
-                      Text(
-                        'Join',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: _ink,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _showCreateGroupSheet(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _ink,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, size: 16, color: Colors.white),
-                      SizedBox(width: 4),
-                      Text(
-                        'New',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Expanded(
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('groups')
-                .where('members', arrayContains: _uid)
-                .snapshots()
-                .handleError((_) {}),
-            builder: (ctx, snap) {
-              if (snap.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final docs = snap.data?.docs ?? [];
-              if (docs.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.group_outlined, size: 56, color: _muted.withOpacity(0.4)),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'No groups yet',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _ink),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Create a group to share progress\nwith friends and family.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: _muted, height: 1.4),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-                itemCount: docs.length,
-                itemBuilder: (ctx, i) {
-                  final data = docs[i].data() as Map<String, dynamic>;
-                  final name = data['name'] as String? ?? 'Group';
-                  final members = (data['members'] as List?)?.length ?? 0;
-                  return GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => GroupDetailScreen(
-                          groupId: docs[i].id,
-                          groupName: name,
-                          storage: widget.storage,
-                        ),
-                      ),
-                    ),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: _cardShadow,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: _ink.withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(Icons.group, color: _ink, size: 24),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w700,
-                                    color: _ink,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '$members member${members == 1 ? '' : 's'}',
-                                  style: const TextStyle(fontSize: 13, color: _muted),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right, color: _muted),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showJoinGroupSheet(BuildContext context) {
-    final controller = TextEditingController();
-    bool joining = false;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => Padding(
-          padding: EdgeInsets.fromLTRB(
-              24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Join a group',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: _ink,
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Enter the 6-character invite code from a friend',
-                style: TextStyle(fontSize: 13, color: _muted),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                textCapitalization: TextCapitalization.characters,
-                maxLength: 6,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 8,
-                  fontFamily: 'monospace',
-                ),
-                decoration: InputDecoration(
-                  counterText: '',
-                  hintText: 'ABC123',
-                  hintStyle: TextStyle(
-                    fontSize: 24,
-                    letterSpacing: 8,
-                    color: _muted.withOpacity(0.4),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: _ink, width: 2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: FilledButton(
-                  onPressed: joining || controller.text.trim().length < 6
-                      ? null
-                      : () async {
-                          setSheet(() => joining = true);
-                          final code = controller.text.trim().toUpperCase();
-                          final snap = await FirebaseFirestore.instance
-                              .collection('groups')
-                              .where('code', isEqualTo: code)
-                              .limit(1)
-                              .get();
-                          if (snap.docs.isEmpty) {
-                            if (ctx.mounted) {
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                const SnackBar(
-                                  content: Text('No group found with that code.'),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            }
-                            setSheet(() => joining = false);
-                            return;
-                          }
-                          final doc = snap.docs.first;
-                          final uid = _uid;
-                          if (uid != null) {
-                            await FirebaseFirestore.instance
-                                .collection('groups')
-                                .doc(doc.id)
-                                .update({
-                              'members': FieldValue.arrayUnion([uid]),
-                            });
-                          }
-                          if (ctx.mounted) Navigator.pop(ctx);
-                          setState(() {});
-                        },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _ink,
-                    foregroundColor: Colors.white,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: joining
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text(
-                          'Join',
-                          style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: -0.5),
-                        ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showCreateGroupSheet(BuildContext context) {
-    final nameController = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Create a group',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _ink),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: nameController,
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: _ink),
-              decoration: InputDecoration(
-                hintText: 'Group name',
-                hintStyle: const TextStyle(color: _muted),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: _ink, width: 2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: FilledButton(
-                onPressed: () async {
-                  final name = nameController.text.trim();
-                  if (name.isEmpty || _uid == null) return;
-                  await FirebaseFirestore.instance.collection('groups').add({
-                    'name': name,
-                    'createdBy': _uid,
-                    'members': [_uid],
-                    'code': _generateGroupCode(),
-                    'createdAt': FieldValue.serverTimestamp(),
-                  });
-                  if (ctx.mounted) Navigator.pop(ctx);
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: _ink,
-                  foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
-                ),
-                child: const Text(
-                  'Create',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, letterSpacing: -0.5),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-String _generateGroupCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  final rand = Random();
-  return String.fromCharCodes(
-    List.generate(6, (_) => chars.codeUnitAt(rand.nextInt(chars.length))),
-  );
 }
