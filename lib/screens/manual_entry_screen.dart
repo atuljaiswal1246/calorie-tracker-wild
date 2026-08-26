@@ -237,16 +237,22 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
 
   static String _friendlyError(String raw) {
     var s = raw.replaceAll(RegExp(r'key=[^&\s]+'), 'key=***');
-    if (s.contains('SocketException') || s.contains('Connection reset')) {
-      return 'Network error. Check your connection and try again.';
+    if (s.contains('SocketException') || s.contains('Connection reset') || s.contains('Connection refused')) {
+      return 'No internet connection. Check your WiFi or mobile data.';
     }
-    if (s.contains('429') || s.contains('quota')) {
-      return 'Too many requests. Wait a moment and try again.';
+    if (s.contains('429') || s.contains('quota') || s.contains('rate')) {
+      return 'AI service is busy. Please wait a minute and try again.';
     }
-    if (s.contains('403') || s.contains('API key')) {
-      return 'API key error. Check your key in Settings.';
+    if (s.contains('403') || s.contains('API key') || s.contains('invalid_key')) {
+      return 'Invalid API key. Go to Settings and check your key.';
     }
-    return 'Analysis failed. Please try again.';
+    if (s.contains('500') || s.contains('502') || s.contains('503')) {
+      return 'AI service is temporarily down. Please try again later.';
+    }
+    if (s.contains('timeout') || s.contains('Timeout')) {
+      return 'Request timed out. Try again or check your connection.';
+    }
+    return 'Something went wrong. Please try again.';
   }
 
   Future<void> _logAIFood() async {
