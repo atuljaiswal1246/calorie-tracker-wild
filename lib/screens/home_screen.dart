@@ -12,6 +12,7 @@ import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import 'achievements_screen.dart';
 import 'barcode_scanner_screen.dart';
+import 'insights_screen.dart';
 import 'capture_screen.dart';
 import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
@@ -510,6 +511,39 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const Spacer(),
+        // Insights button
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => InsightsScreen(storage: widget.storage),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: _cardShadow,
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.insights_rounded, size: 16, color: Color(0xFF1C1C1E)),
+                SizedBox(width: 5),
+                Text(
+                  'Insights',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _ink,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
         // Achievements badge
         GestureDetector(
           onTap: () {
