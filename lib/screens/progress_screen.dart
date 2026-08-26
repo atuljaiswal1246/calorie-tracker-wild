@@ -479,6 +479,151 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 
+  void _showEditCalorieGoalSheet(BuildContext context) {
+    final profile = _profile;
+    if (profile == null) return;
+
+    final currentGoal = profile.calorieGoal;
+    final controller = TextEditingController(text: currentGoal.toString());
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Edit Calorie Goal',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1C1C1E),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              profile.calorieGoalOverride != null
+                  ? 'Custom goal set'
+                  : 'Auto-calculated: $currentGoal kcal',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF8E8E93),
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              autofocus: true,
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1C1C1E),
+              ),
+              decoration: InputDecoration(
+                suffixText: 'kcal',
+                suffixStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF8E8E93),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                      color: Color(0xFF1C1C1E), width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (profile.calorieGoalOverride != null)
+              GestureDetector(
+                onTap: () async {
+                  final updated = profile.copyWith();
+                  final resetProfile = Profile(
+                    name: updated.name,
+                    age: updated.age,
+                    sex: updated.sex,
+                    weightKg: updated.weightKg,
+                    heightCm: updated.heightCm,
+                    activityLevel: updated.activityLevel,
+                    workoutFreq: updated.workoutFreq,
+                    goal: updated.goal,
+                    pace: updated.pace,
+                    targetWeightKg: updated.targetWeightKg,
+                  );
+                  await widget.storage.saveProfile(resetProfile);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  _load();
+                },
+                child: const Text(
+                  'Reset to auto-calculated',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF007AFF),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: FilledButton(
+                onPressed: () async {
+                  final val = int.tryParse(controller.text);
+                  if (val == null || val < 500 || val > 10000) return;
+                  final updated = Profile(
+                    name: profile.name,
+                    age: profile.age,
+                    sex: profile.sex,
+                    weightKg: profile.weightKg,
+                    heightCm: profile.heightCm,
+                    activityLevel: profile.activityLevel,
+                    workoutFreq: profile.workoutFreq,
+                    goal: profile.goal,
+                    pace: profile.pace,
+                    targetWeightKg: profile.targetWeightKg,
+                    calorieGoalOverride: val,
+                  );
+                  await widget.storage.saveProfile(updated);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  _load();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF1C1C1E),
+                  foregroundColor: Colors.white,
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
@@ -812,18 +957,28 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   color: _ink,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _ink,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Goal: $goal kcal',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+              GestureDetector(
+                onTap: () => _showEditCalorieGoalSheet(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _ink,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Goal: $goal kcal',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.edit, size: 10, color: Colors.white),
+                    ],
                   ),
                 ),
               ),
