@@ -15,6 +15,7 @@ import '../models/food_entry.dart';
 import '../models/profile.dart';
 import '../services/achievements_service.dart';
 import '../services/auth_service.dart';
+import '../services/billing_service.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import 'achievements_screen.dart';
@@ -77,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final PageController _macroPageController = PageController();
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
+  BillingService? _billing;
 
   String? get _signedInEmail {
     try {
@@ -91,6 +93,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _profile = widget.storage.profile;
     _load();
+    _billing = BillingService(widget.storage);
+    _billing!.onStatusChanged = () {
+      if (!mounted) return;
+      _load();
+    };
     _connectivityStream = Connectivity().onConnectivityChanged;
     _connectivityStream.listen((results) {
       final online = results.any((r) => r != ConnectivityResult.none);
@@ -102,6 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _billing?.dispose();
     _macroPageController.dispose();
     super.dispose();
   }
@@ -357,8 +365,87 @@ class _HomeScreenState extends State<HomeScreen> {
               bottom: 14,
               child: _floatingNav(),
             ),
+            // Hard gate: trial expired + not paid -> block everything.
+            if (widget.storage.trialExpired && !widget.storage.isPaid)
+              Positioned.fill(child: _paywallOverlay()),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _paywallOverlay() {
+    return Container(
+      color: const Color(0xFAFAF9F7), // ~98% opaque warm white
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: const Center(
+              child: Text('🔒', style: TextStyle(fontSize: 40)),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Your free trial has ended',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: _ink,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Unlock unlimited food analysis and all features with a '
+            'subscription.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              color: _muted,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: FilledButton(
+              onPressed: _openPricing,
+              style: FilledButton.styleFrom(
+                backgroundColor: _ink,
+                foregroundColor: Colors.white,
+                shape: const StadiumBorder(),
+              ),
+              child: const Text(
+                'Unlock — ₹100/mo or ₹1,100/yr',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => _billing == null
+                ? null
+                : _billing!.restore(),
+            child: const Text(
+              'Restore purchase',
+              style: TextStyle(fontSize: 14, color: _muted),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -877,8 +964,13 @@ class _HomeScreenState extends State<HomeScreen> {
         boxShadow: _cardShadow,
       ),
       child: SizedBox(
-        height: 74,
-        child: ListView.builder(
+        height: 64,
+        child: MediaQuery(
+          data: MediaQueryData(
+            textScaler: TextScaler.noScaling,
+            size: MediaQuery.of(context).size,
+          ),
+          child: ListView.builder(
           controller: controller,
           scrollDirection: Axis.horizontal,
           itemCount: dates.length,
@@ -922,7 +1014,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () => setState(() => _selected = day),
                 child: Container(
                   width: 52,
-                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFFF4F4F1)
@@ -930,21 +1022,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        day.isAfter(today)
-                            ? '—'
-                            : DateFormat('E').format(day),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: textColor,
-                          fontWeight: FontWeight.w500,
+                      SizedBox(
+                        height: 16,
+                        child: Center(
+                          child: Text(
+                            day.isAfter(today)
+                                ? '—'
+                                : DateFormat('E').format(day),
+                            style: TextStyle(
+                              fontSize: 10,
+                              height: 1.2,
+                              color: textColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       SizedBox(
-                        width: 34,
-                        height: 34,
+                        width: 32,
+                        height: 32,
                         child: CustomPaint(
                           painter: _RingPainter(
                             progress: isFuture ? 0 : progress,
@@ -952,12 +1051,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             strokeWidth: 2.5,
                           ),
                           child: Center(
-                            child: Text(
-                              '${day.day}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: weight,
-                                color: textColor,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '${day.day}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: weight,
+                                  color: textColor,
+                                ),
                               ),
                             ),
                           ),
@@ -969,6 +1071,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           },
+          ),
         ),
       ),
     );
