@@ -877,7 +877,7 @@ class _HomeScreenState extends State<HomeScreen> {
         boxShadow: _cardShadow,
       ),
       child: SizedBox(
-        height: 62,
+        height: 74,
         child: ListView.builder(
           controller: controller,
           scrollDirection: Axis.horizontal,
