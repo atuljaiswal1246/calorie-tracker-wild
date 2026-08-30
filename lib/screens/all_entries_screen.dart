@@ -1,10 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/widgets.dart';
 import 'meal_detail_screen.dart';
 
 class AllEntriesScreen extends StatefulWidget {
@@ -17,17 +17,6 @@ class AllEntriesScreen extends StatefulWidget {
 }
 
 class _AllEntriesScreenState extends State<AllEntriesScreen> {
-  static const _bg = Color(0xFFFAF9F7);
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF8E8E93);
-  static const _green = Color(0xFF34C759);
-  static const _proteinColor = Color(0xFFE53935);
-  static const _carbsColor = Color(0xFFFF9500);
-  static const _fatColor = Color(0xFF007AFF);
-  static const _cardShadow = [
-    BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 2)),
-  ];
-
   List<FoodEntry> _allEntries = [];
   int _periodIndex = 0; // 0=week, 1=month, 2=custom
   DateTime _selectedWeekStart = DateTime.now();
@@ -86,7 +75,6 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
           .toList();
     }
 
-    // Collect entries that fall on any of the display days
     final filtered = <FoodEntry>[];
     for (final day in days) {
       for (final entry in _allEntries) {
@@ -96,7 +84,6 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
       }
     }
 
-    // Sort newest first
     filtered.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     return filtered;
   }
@@ -137,18 +124,17 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             : 'this week';
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back_ios_new, color: _ink, size: 20),
+                    child: const Icon(Icons.arrow_back_ios_new, color: AppColors.ink, size: 20),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -157,7 +143,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: _ink,
+                        color: AppColors.ink,
                       ),
                     ),
                   ),
@@ -165,7 +151,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                     '${entries.length} meals',
                     style: const TextStyle(
                       fontSize: 13,
-                      color: _muted,
+                      color: AppColors.muted,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -173,15 +159,11 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Period toggle
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _periodToggle(),
             ),
             const SizedBox(height: 12),
-
-            // Navigator
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _periodIndex == 0
@@ -191,8 +173,6 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                       : _customRangeNavigator(context),
             ),
             const SizedBox(height: 16),
-
-            // Entries list
             Expanded(
               child: entries.isEmpty
                   ? Center(
@@ -203,9 +183,9 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                           const SizedBox(height: 16),
                           Text(
                             'No meals logged $periodLabel',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
-                              color: Colors.grey[500],
+                              color: AppColors.muted,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -217,7 +197,16 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                       itemCount: entries.length,
                       itemBuilder: (context, i) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: _mealCard(entries[i]),
+                        child: MealCard(
+                          entry: entries[i],
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => MealDetailScreen(entry: entries[i]),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
             ),
@@ -227,14 +216,12 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
     );
   }
 
-  // ================= Filters =================
-
   Widget _periodToggle() {
     final labels = ['Week', 'Month', 'Custom'];
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F0EC),
+        color: AppColors.cardAlt,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -246,7 +233,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: active ? _ink : Colors.transparent,
+                  color: active ? AppColors.ink : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Center(
@@ -255,7 +242,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: active ? Colors.white : _muted,
+                      color: active ? Colors.white : AppColors.muted,
                     ),
                   ),
                 ),
@@ -277,9 +264,9 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _cardShadow,
+        boxShadow: AppColors.cardShadowLight,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -291,10 +278,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: _canGoBackWeek ? const Color(0xFFF4F4F1) : const Color(0xFFF4F4F1).withValues(alpha: 0.5),
+                color: _canGoBackWeek ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.chevron_left, color: _canGoBackWeek ? _ink : _muted.withValues(alpha: 0.4), size: 20),
+              child: Icon(Icons.chevron_left, color: _canGoBackWeek ? AppColors.ink : AppColors.muted.withValues(alpha: 0.4), size: 20),
             ),
           ),
           Column(
@@ -304,13 +291,13 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: _ink,
+                  color: AppColors.ink,
                 ),
               ),
               if (isCurrentWeek)
                 const Text(
                   'This week',
-                  style: TextStyle(fontSize: 11, color: _muted, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 11, color: AppColors.muted, fontWeight: FontWeight.w500),
                 ),
             ],
           ),
@@ -321,10 +308,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: isCurrentWeek ? const Color(0xFFF4F4F1).withOpacity(0.5) : const Color(0xFFF4F4F1),
+                color: isCurrentWeek ? AppColors.cardSelected.withValues(alpha: 0.5) : AppColors.cardSelected,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.chevron_right, color: isCurrentWeek ? _muted.withOpacity(0.4) : _ink, size: 20),
+              child: Icon(Icons.chevron_right, color: isCurrentWeek ? AppColors.muted.withValues(alpha: 0.4) : AppColors.ink, size: 20),
             ),
           ),
         ],
@@ -340,9 +327,9 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _cardShadow,
+        boxShadow: AppColors.cardShadowLight,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -354,10 +341,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: _canGoBackMonth ? const Color(0xFFF4F4F1) : const Color(0xFFF4F4F1).withValues(alpha: 0.5),
+                color: _canGoBackMonth ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.chevron_left, color: _canGoBackMonth ? _ink : _muted.withValues(alpha: 0.4), size: 20),
+              child: Icon(Icons.chevron_left, color: _canGoBackMonth ? AppColors.ink : AppColors.muted.withValues(alpha: 0.4), size: 20),
             ),
           ),
           Column(
@@ -367,13 +354,13 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: _ink,
+                  color: AppColors.ink,
                 ),
               ),
               if (isCurrentMonth)
                 const Text(
                   'This month',
-                  style: TextStyle(fontSize: 11, color: _muted, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 11, color: AppColors.muted, fontWeight: FontWeight.w500),
                 ),
             ],
           ),
@@ -384,10 +371,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: isCurrentMonth ? const Color(0xFFF4F4F1).withOpacity(0.5) : const Color(0xFFF4F4F1),
+                color: isCurrentMonth ? AppColors.cardSelected.withValues(alpha: 0.5) : AppColors.cardSelected,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.chevron_right, color: isCurrentMonth ? _muted.withOpacity(0.4) : _ink, size: 20),
+              child: Icon(Icons.chevron_right, color: isCurrentMonth ? AppColors.muted.withValues(alpha: 0.4) : AppColors.ink, size: 20),
             ),
           ),
         ],
@@ -415,10 +402,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             return Theme(
               data: Theme.of(context).copyWith(
                 colorScheme: ColorScheme.light(
-                  primary: _ink,
+                  primary: AppColors.ink,
                   onPrimary: Colors.white,
                   surface: Colors.white,
-                  onSurface: _ink,
+                  onSurface: AppColors.ink,
                 ),
               ),
               child: child!,
@@ -435,165 +422,28 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: _cardShadow,
+          boxShadow: AppColors.cardShadowLight,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.date_range, color: hasRange ? _ink : _muted, size: 20),
+            Icon(Icons.date_range, color: hasRange ? AppColors.ink : AppColors.muted, size: 20),
             const SizedBox(width: 10),
             Text(
               label,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: hasRange ? FontWeight.w700 : FontWeight.w500,
-                color: hasRange ? _ink : _muted,
+                color: hasRange ? AppColors.ink : AppColors.muted,
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.edit_calendar_outlined, color: hasRange ? _ink : _muted, size: 16),
+            Icon(Icons.edit_calendar_outlined, color: hasRange ? AppColors.ink : AppColors.muted, size: 16),
           ],
         ),
       ),
-    );
-  }
-
-  // ================= Meal Card =================
-
-  Widget _mealCard(FoodEntry entry) {
-    final name = entry.items.isEmpty ? 'Meal' : entry.items.first.name;
-    final time = DateFormat('h:mm a, MMM d').format(entry.dateTime).toLowerCase();
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => MealDetailScreen(entry: entry)),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: _cardShadow,
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: _thumbnail(entry, width: 84, height: 84),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: _ink,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '🔥 ${entry.totalCalories} Calories',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _ink,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _macroPill(Icons.egg_alt, _proteinColor, '${entry.totalProtein.toStringAsFixed(0)}g'),
-                      const SizedBox(width: 8),
-                      _macroPill(Icons.grain, _carbsColor, '${entry.totalCarbs.toStringAsFixed(0)}g'),
-                      const SizedBox(width: 8),
-                      _macroPill(Icons.water_drop, _fatColor, '${entry.totalFat.toStringAsFixed(0)}g'),
-                    ],
-                  ),
-                  if (entry.totalFiber > 0 || entry.totalSugar > 0 || entry.totalSodium > 0) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        if (entry.totalFiber > 0) ...[
-                          _macroPill(Icons.grass, const Color(0xFF8D6E63), '${entry.totalFiber.toStringAsFixed(0)}g'),
-                          const SizedBox(width: 8),
-                        ],
-                        if (entry.totalSugar > 0) ...[
-                          _macroPill(Icons.cake, const Color(0xFFE91E63), '${entry.totalSugar.toStringAsFixed(0)}g'),
-                          const SizedBox(width: 8),
-                        ],
-                        if (entry.totalSodium > 0)
-                          _macroPill(Icons.water_drop_outlined, const Color(0xFF78909C), '${entry.totalSodium.toStringAsFixed(0)}mg'),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              time,
-              style: const TextStyle(
-                fontSize: 11,
-                color: _muted,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _thumbnail(FoodEntry entry, {required double width, required double height}) {
-    final hasImage = entry.imagePath.isNotEmpty;
-    return SizedBox(
-      width: width,
-      height: height,
-      child: hasImage
-          ? Image.file(
-              File(entry.imagePath),
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _thumbPlaceholder(),
-            )
-          : _thumbPlaceholder(),
-    );
-  }
-
-  Widget _thumbPlaceholder() {
-    return Container(
-      color: const Color(0xFFF1F0EC),
-      child: const Center(
-        child: Text('🍛', style: TextStyle(fontSize: 30)),
-      ),
-    );
-  }
-
-  Widget _macroPill(IconData icon, Color color, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 12, color: color),
-        const SizedBox(width: 3),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: color,
-          ),
-        ),
-      ],
     );
   }
 }

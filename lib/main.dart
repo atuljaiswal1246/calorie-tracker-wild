@@ -32,6 +32,12 @@ enum _AppScreen { loading, welcome, signIn, onboarding, home }
 
 class _CalorieAppState extends State<CalorieApp> {
   _AppScreen _screen = _AppScreen.loading;
+  // Explicit intent for the next onboarding visit: none (fresh questions),
+  // resume at sign-up (guest dropped mid-flow) or jump to pricing
+  // (unpaid returner). Prevents reactive isSignedIn guessing from opening
+  // wrong screens (e.g. pricing before the questionnaire).
+  bool _onboardingAtSignup = false;
+  bool _onboardingAtPricing = false;
 
   @override
   void initState() {
@@ -41,13 +47,17 @@ class _CalorieAppState extends State<CalorieApp> {
 
   Future<void> _init() async {
     final profileExists = widget.storage.profile != null;
+    _onboardingAtSignup = false;
+    _onboardingAtPricing = false;
     // If already signed in (app relaunch), restore session.
     if (widget.auth.isSignedIn) {
       await _onAuthenticated();
     } else if (profileExists) {
-      // Returning guest: route by subscription state.
-      if (widget.storage.trialExpired && !widget.storage.isPaid) {
-        _goTo(_AppScreen.onboarding); // startAtPricing -> pricing
+      // Guest with a saved plan: not paid -> sign-up, paid -> home.
+      if (!widget.storage.isPaidOrSandbox(
+          authEmail: widget.auth.currentUser?.email)) {
+        _onboardingAtSignup = true;
+        _goTo(_AppScreen.onboarding);
       } else {
         _goTo(_AppScreen.home);
       }
@@ -73,16 +83,18 @@ class _CalorieAppState extends State<CalorieApp> {
     if (!mounted) return;
     if (profile == null) {
       // Signed in but never completed the questionnaire — must fill it.
+      _onboardingAtSignup = false;
+      _onboardingAtPricing = false;
       _goTo(_AppScreen.onboarding);
-    } else if (widget.storage.isPaid || widget.storage.isOnTrial) {
+    } else if (widget.storage.isPaidOrSandbox(
+        authEmail: widget.auth.currentUser?.email)) {
+      // Subscribed (free trial or after) or sandbox dev — full access.
       _goTo(_AppScreen.home);
-    } else if (widget.storage.trialExpired) {
-      // Trial over without paying — send to pricing.
-      _goTo(_AppScreen.onboarding);
     } else {
-      // Legacy signed-in user without trial state: start one now.
-      await widget.storage.startTrial('monthly');
-      _goTo(_AppScreen.home);
+      // Unpaid — pricing (Play offer starts the free trial).
+      _onboardingAtSignup = false;
+      _onboardingAtPricing = true;
+      _goTo(_AppScreen.onboarding);
     }
   }
 
@@ -139,8 +151,13 @@ class _CalorieAppState extends State<CalorieApp> {
             storage: widget.storage,
             auth: widget.auth,
             onComplete: () => _goTo(_AppScreen.home),
-            onBack: () => _goTo(_AppScreen.welcome),
-            startAtPricing: widget.storage.trialExpired,
+            onBack: () {
+              _onboardingAtSignup = false;
+              _onboardingAtPricing = false;
+              _goTo(_AppScreen.welcome);
+            },
+            startAtPricing: _onboardingAtPricing,
+            startAtSignup: _onboardingAtSignup,
           ),
         _AppScreen.home => HomeScreen(
             storage: widget.storage,
@@ -150,6 +167,9 @@ class _CalorieAppState extends State<CalorieApp> {
               _goTo(_AppScreen.welcome);
             },
             onResetGoals: () {
+              // Reset goals = re-answer the questionnaire from scratch.
+              _onboardingAtSignup = false;
+              _onboardingAtPricing = false;
               _goTo(_AppScreen.onboarding);
             },
           ),

@@ -2,11 +2,13 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
+import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
+import 'achievements_screen.dart';
 
 class ProgressScreen extends StatefulWidget {
   final StorageService storage;
@@ -18,23 +20,16 @@ class ProgressScreen extends StatefulWidget {
 }
 
 class _ProgressScreenState extends State<ProgressScreen> {
-  static const _bg = Color(0xFFFAF9F7);
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF8E8E93);
-  static const _green = Color(0xFF34C759);
-  static const _proteinColor = Color(0xFFE53935);
-  static const _carbsColor = Color(0xFFFF9500);
-  static const _fatColor = Color(0xFF007AFF);
-
   Profile? _profile;
   List<FoodEntry> _entries = [];
   List<WeightEntry> _weightEntries = [];
   DateTime _selectedWeekStart = DateTime.now();
   DateTime _selectedMonth = DateTime.now();
-  bool _isMonthly = false;
   int _periodIndex = 0; // 0=week, 1=month, 2=custom
   DateTime? _customStart;
   DateTime? _customEnd;
+  List<DateTime>? _cachedDisplayDays;
+  List<Achievement> _achievements = [];
 
   @override
   void initState() {
@@ -49,6 +44,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     _profile = widget.storage.profile;
     _entries = widget.storage.entries;
     _weightEntries = widget.storage.weightEntries;
+    _achievements = AchievementsService(widget.storage).getAll();
+    _cachedDisplayDays = null;
     setState(() {});
   }
 
@@ -68,7 +65,25 @@ class _ProgressScreenState extends State<ProgressScreen> {
   double _fatForDay(DateTime day) =>
       _entriesForDay(day).fold(0.0, (s, e) => s + e.totalFat);
 
+  int get _streak {
+    var streak = 0;
+    var day = DateTime.now();
+    if (_caloriesForDay(day) == 0) {
+      day = day.subtract(const Duration(days: 1));
+    }
+    while (_caloriesForDay(day) > 0) {
+      streak++;
+      day = day.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
+
   List<DateTime> get _displayDays {
+    _cachedDisplayDays ??= _computeDisplayDays();
+    return _cachedDisplayDays!;
+  }
+
+  List<DateTime> _computeDisplayDays() {
     final earliest = _earliestDate;
     final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     if (_periodIndex == 2 && _customStart != null && _customEnd != null) {
@@ -109,7 +124,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   int get _totalCalories =>
       _displayDays.fold(0, (s, d) => s + _caloriesForDay(d));
 
-  double get _avgCalories => _totalCalories / _displayDays.length;
+  double get _avgCalories => _displayDays.isEmpty ? 0 : _totalCalories / _displayDays.length;
 
   int get _daysOnTarget {
     final goal = _profile?.calorieGoal ?? 1500;
@@ -121,6 +136,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
   double get _totalFat => _displayDays.fold(0.0, (s, d) => s + _fatForDay(d));
 
   int get _totalDaysInPeriod => _displayDays.length;
+
+  int get _passedDaysInPeriod {
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    return _displayDays.where((d) => !d.isAfter(today)).length;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +156,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             : 'this week';
 
     return RefreshIndicator(
-      color: _ink,
+      color: AppColors.ink,
       onRefresh: () async => _load(),
       child: ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
@@ -160,6 +180,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
         _caloriesChart(profile),
         const SizedBox(height: 16),
         _statsRow(profile),
+        const SizedBox(height: 6),
+        const Center(
+          child: Text(
+            'On target = at least 80% of daily goal',
+            style: TextStyle(fontSize: 11, color: AppColors.muted),
+          ),
+        ),
         const SizedBox(height: 20),
         _sectionTitle('Macros $periodLabel'),
         const SizedBox(height: 12),
@@ -167,25 +194,175 @@ class _ProgressScreenState extends State<ProgressScreen> {
         const SizedBox(height: 20),
         _sectionTitle('Daily breakdown'),
         const SizedBox(height: 12),
-        ..._displayDays.reversed.map((day) => _dayRow(day, profile)),
+        if (_displayDays.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: AppColors.cardShadow,
+            ),
+            child: const Center(
+              child: Text(
+                'No data for this period',
+                style: TextStyle(fontSize: 14, color: AppColors.muted),
+              ),
+            ),
+          )
+        else
+          ..._displayDays.reversed.map((day) => _dayRow(day, profile)),
       ],
       ),
     );
   }
 
   Widget _header() {
-    return const Row(
+    final all = _achievements;
+    final unlocked = all.where((a) => a.unlocked).length;
+
+    return Row(
       children: [
-        Text(
+        const Text(
           'Progress',
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
-            color: _ink,
+            color: AppColors.ink,
             letterSpacing: -0.5,
           ),
         ),
+        const Spacer(),
+        Semantics(
+          label: '$_streak day streak. Tap for details.',
+          button: true,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              _showStreakInfo(context);
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppColors.cardShadow,
+              ),
+              child: Row(
+                children: [
+                  const Text('🔥', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$_streak',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Semantics(
+          label: '$unlocked of ${all.length} achievements unlocked. Tap to view.',
+          button: true,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AchievementsScreen(storage: widget.storage),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppColors.cardShadow,
+              ),
+              child: Row(
+                children: [
+                  const Text('🏆', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$unlocked/${all.length}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  void _showStreakInfo(BuildContext context) {
+    final streak = _streak;
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🔥', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 10),
+              Text(
+                streak > 0 ? '$streak day streak' : 'No active streak',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: streak > 0 ? AppColors.ink : AppColors.muted,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                streak > 0
+                    ? 'Log a meal every day to keep it going.\nMiss a day and it resets to zero.'
+                    : 'Log any meal today to start a streak.\nKeep logging daily to build it up.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.ink,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Got it', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -196,18 +373,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final change = latest - startWeight;
     final goal = profile.goal;
 
-    return Container(
+    return Semantics(
+      label: 'Weight: ${latest.toStringAsFixed(1)} kg',
+      child: Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,15 +393,20 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: _ink,
+                  color: AppColors.ink,
                 ),
               ),
-              GestureDetector(
+              Semantics(
+                label: 'Log weight',
+                button: true,
+                child: InkWell(
                 onTap: () => _showLogWeightSheet(context),
+                borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  constraints: const BoxConstraints(minHeight: 44),
                   decoration: BoxDecoration(
-                    color: _ink,
+                    color: AppColors.ink,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Row(
@@ -248,6 +426,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
               ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -256,11 +435,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
             children: [
               Text(
                 '${latest.toStringAsFixed(1)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.w800,
-                  color: _ink,
+                  color: AppColors.ink,
                   letterSpacing: -1,
+                  fontFeatures: [ui.FontFeature.tabularFigures()],
                 ),
               ),
               const Padding(
@@ -270,7 +450,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: _muted,
+                    color: AppColors.muted,
                   ),
                 ),
               ),
@@ -280,11 +460,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: (goal == 'lose'
-                        ? (change < 0 ? _green : const Color(0xFFFF3B30))
-                        : goal == 'gain'
-                            ? (change > 0 ? _green : const Color(0xFFFF3B30))
-                            : _ink.withOpacity(0.08)).withOpacity(0.12),
+                    color: _weightChangeColor(change, goal).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -293,11 +469,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       Icon(
                         change < 0 ? Icons.arrow_downward : Icons.arrow_upward,
                         size: 14,
-                        color: goal == 'lose'
-                            ? (change < 0 ? _green : const Color(0xFFFF3B30))
-                            : goal == 'gain'
-                                ? (change > 0 ? _green : const Color(0xFFFF3B30))
-                                : _ink,
+                        color: _weightChangeColor(change, goal),
                       ),
                       const SizedBox(width: 2),
                       Text(
@@ -305,11 +477,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: goal == 'lose'
-                              ? (change < 0 ? _green : const Color(0xFFFF3B30))
-                              : goal == 'gain'
-                                  ? (change > 0 ? _green : const Color(0xFFFF3B30))
-                                  : _ink,
+                          color: _weightChangeColor(change, goal),
+                          fontFeatures: [ui.FontFeature.tabularFigures()],
                         ),
                       ),
                     ],
@@ -321,14 +490,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.flag, size: 14, color: _muted),
+                Icon(Icons.flag, size: 14, color: AppColors.muted),
                 const SizedBox(width: 4),
                 Text(
                   'Target: ${target.toStringAsFixed(1)} kg',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: _muted,
+                    color: AppColors.muted,
+                    fontFeatures: [ui.FontFeature.tabularFigures()],
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -337,7 +507,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: latest == target ? _green : _ink,
+                    color: latest == target ? AppColors.green : AppColors.ink,
+                    fontFeatures: [ui.FontFeature.tabularFigures()],
                   ),
                 ),
               ],
@@ -345,27 +516,37 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ],
           if (_weightEntries.length >= 2) ...[
             const SizedBox(height: 16),
-            SizedBox(
+            Semantics(
+              label: 'Weight trend chart',
+              child: SizedBox(
               height: 80,
-              child: _weightChart(),
+              child: _weightChart(target),
+            ),
             ),
           ],
         ],
       ),
+    ),
     );
   }
 
-  Widget _weightChart() {
+  Widget _weightChart(double? targetWeight) {
     final entries = _weightEntries;
     if (entries.length < 2) return const SizedBox.shrink();
 
     final weights = entries.map((e) => e.weightKg).toList();
     final minW = weights.reduce((a, b) => a < b ? a : b);
     final maxW = weights.reduce((a, b) => a > b ? a : b);
-    final range = maxW - minW;
+    var yMin = minW;
+    var yMax = maxW;
+    if (targetWeight != null) {
+      if (targetWeight < yMin) yMin = targetWeight;
+      if (targetWeight > yMax) yMax = targetWeight;
+    }
+    final range = yMax - yMin;
     final padding = range > 0 ? range * 0.1 : 1.0;
-    final yMin = minW - padding;
-    final yMax = maxW + padding;
+    yMin -= padding;
+    yMax += padding;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -378,6 +559,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             entries: entries,
             yMin: yMin,
             yMax: yMax,
+            targetWeight: targetWeight,
           ),
         );
       },
@@ -389,11 +571,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
         ? _weightEntries.last.weightKg.toStringAsFixed(1)
         : (_profile?.weightKg ?? 60).toStringAsFixed(1);
     final controller = TextEditingController(text: current);
+    final hasTodayEntry = _weightEntries.isNotEmpty &&
+        _isSameDay(_weightEntries.last.date, DateTime.now());
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -409,7 +593,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1C1C1E),
+                color: AppColors.ink,
               ),
             ),
             const SizedBox(height: 4),
@@ -417,7 +601,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               DateFormat('EEEE, MMM d').format(DateTime.now()),
               style: const TextStyle(
                 fontSize: 13,
-                color: Color(0xFF8E8E93),
+                color: AppColors.muted,
               ),
             ),
             const SizedBox(height: 20),
@@ -431,23 +615,23 @@ class _ProgressScreenState extends State<ProgressScreen> {
               style: const TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1C1C1E),
+                color: AppColors.ink,
               ),
               decoration: InputDecoration(
                 suffixText: 'kg',
                 suffixStyle: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF8E8E93),
+                  color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                  borderSide: const BorderSide(color: AppColors.divider),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(
-                      color: Color(0xFF1C1C1E), width: 2),
+                      color: AppColors.ink, width: 2),
                 ),
               ),
             ),
@@ -464,9 +648,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   _load();
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF1C1C1E),
+                  backgroundColor: AppColors.ink,
                   foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text(
                   'Save',
@@ -477,6 +663,33 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ),
               ),
             ),
+            if (hasTodayEntry) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: OutlinedButton(
+                  onPressed: () async {
+                    await widget.storage.deleteWeightEntry(DateTime.now());
+                    if (ctx.mounted) Navigator.pop(ctx);
+                    _load();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.errorRed,
+                    side: const BorderSide(color: AppColors.errorRed),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "Delete today's entry",
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -493,7 +706,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -509,7 +722,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1C1C1E),
+                color: AppColors.ink,
               ),
             ),
             const SizedBox(height: 4),
@@ -519,7 +732,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   : 'Auto-calculated: $currentGoal kcal',
               style: const TextStyle(
                 fontSize: 13,
-                color: Color(0xFF8E8E93),
+                color: AppColors.muted,
               ),
             ),
             const SizedBox(height: 20),
@@ -533,29 +746,29 @@ class _ProgressScreenState extends State<ProgressScreen> {
               style: const TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1C1C1E),
+                color: AppColors.ink,
               ),
               decoration: InputDecoration(
                 suffixText: 'kcal',
                 suffixStyle: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF8E8E93),
+                  color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                  borderSide: const BorderSide(color: AppColors.divider),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(
-                      color: Color(0xFF1C1C1E), width: 2),
+                      color: AppColors.ink, width: 2),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             if (profile.calorieGoalOverride != null)
-              GestureDetector(
+              InkWell(
                 onTap: () async {
                   final updated = profile.copyWith();
                   final resetProfile = Profile(
@@ -574,12 +787,16 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   if (ctx.mounted) Navigator.pop(ctx);
                   _load();
                 },
-                child: const Text(
-                  'Reset to auto-calculated',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF007AFF),
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    'Reset to auto-calculated',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.accentOrange,
+                    ),
                   ),
                 ),
               ),
@@ -609,9 +826,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   _load();
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF1C1C1E),
+                  backgroundColor: AppColors.ink,
                   foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text(
                   'Save',
@@ -631,27 +850,35 @@ class _ProgressScreenState extends State<ProgressScreen> {
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
+  Color _weightChangeColor(double change, String goal) {
+    if (goal == 'lose') return change < 0 ? AppColors.green : AppColors.missedRed;
+    if (goal == 'gain') return change > 0 ? AppColors.green : AppColors.missedRed;
+    return AppColors.ink;
+  }
+
   Widget _periodToggle() {
     final labels = ['Week', 'Month', 'Custom'];
-    return Container(
+    return Semantics(
+      label: 'Select time period',
+      child: Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F0EC),
+        color: AppColors.cardAlt,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: List.generate(3, (i) {
           final active = _periodIndex == i;
           return Expanded(
-            child: GestureDetector(
+            child: InkWell(
               onTap: () => setState(() {
                 _periodIndex = i;
-                _isMonthly = i == 1;
               }),
+              borderRadius: BorderRadius.circular(11),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: active ? _ink : Colors.transparent,
+                  color: active ? AppColors.ink : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Center(
@@ -660,7 +887,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: active ? Colors.white : _muted,
+                      color: active ? Colors.white : AppColors.muted,
                     ),
                   ),
                 ),
@@ -669,6 +896,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           );
         }),
       ),
+    ),
     );
   }
 
@@ -677,33 +905,31 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final label = '${DateFormat('MMM d').format(_selectedWeekStart)} – ${DateFormat('MMM d').format(end)}';
     final isCurrentWeek = _isSameDay(_selectedWeekStart, _currentWeekStart);
 
-    return Container(
+    return Semantics(
+      label: 'Navigate weeks',
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppColors.cardShadow,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
+          InkWell(
             onTap: _canGoBackWeek ? () => setState(() {
               _selectedWeekStart = _selectedWeekStart.subtract(const Duration(days: 7));
             }) : null,
+            borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(10),
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
-                color: _canGoBackWeek ? const Color(0xFFF4F4F1) : const Color(0xFFF4F4F1).withValues(alpha: 0.5),
+                color: _canGoBackWeek ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.chevron_left, color: _canGoBackWeek ? _ink : _muted.withValues(alpha: 0.4), size: 20),
+              child: Icon(Icons.chevron_left, color: _canGoBackWeek ? AppColors.ink : AppColors.muted.withValues(alpha: 0.4), size: 20),
             ),
           ),
           Column(
@@ -713,7 +939,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: _ink,
+                  color: AppColors.ink,
                 ),
               ),
               if (isCurrentWeek)
@@ -721,27 +947,30 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   'This week',
                   style: TextStyle(
                     fontSize: 11,
-                    color: _muted,
+                    color: AppColors.muted,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
             ],
           ),
-          GestureDetector(
+          InkWell(
             onTap: isCurrentWeek ? null : () => setState(() {
               _selectedWeekStart = _selectedWeekStart.add(const Duration(days: 7));
             }),
+            borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(10),
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
-                color: isCurrentWeek ? const Color(0xFFF4F4F1).withOpacity(0.5) : const Color(0xFFF4F4F1),
+                color: isCurrentWeek ? AppColors.cardSelected.withValues(alpha:0.5) : AppColors.cardSelected,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.chevron_right, color: isCurrentWeek ? _muted.withOpacity(0.4) : _ink, size: 20),
+              child: Icon(Icons.chevron_right, color: isCurrentWeek ? AppColors.muted.withValues(alpha:0.4) : AppColors.ink, size: 20),
             ),
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -778,33 +1007,31 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final now = DateTime.now();
     final isCurrentMonth = _selectedMonth.year == now.year && _selectedMonth.month == now.month;
 
-    return Container(
+    return Semantics(
+      label: 'Navigate months',
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppColors.cardShadow,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
+          InkWell(
             onTap: _canGoBackMonth ? () => setState(() {
               _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
             }) : null,
+            borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(10),
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
-                color: _canGoBackMonth ? const Color(0xFFF4F4F1) : const Color(0xFFF4F4F1).withValues(alpha: 0.5),
+                color: _canGoBackMonth ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.chevron_left, color: _canGoBackMonth ? _ink : _muted.withValues(alpha: 0.4), size: 20),
+              child: Icon(Icons.chevron_left, color: _canGoBackMonth ? AppColors.ink : AppColors.muted.withValues(alpha: 0.4), size: 20),
             ),
           ),
           Column(
@@ -814,7 +1041,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: _ink,
+                  color: AppColors.ink,
                 ),
               ),
               if (isCurrentMonth)
@@ -822,27 +1049,30 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   'This month',
                   style: TextStyle(
                     fontSize: 11,
-                    color: _muted,
+                    color: AppColors.muted,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
             ],
           ),
-          GestureDetector(
+          InkWell(
             onTap: isCurrentMonth ? null : () => setState(() {
               _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
             }),
+            borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(10),
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
-                color: isCurrentMonth ? const Color(0xFFF4F4F1).withOpacity(0.5) : const Color(0xFFF4F4F1),
+                color: isCurrentMonth ? AppColors.cardSelected.withValues(alpha:0.5) : AppColors.cardSelected,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.chevron_right, color: isCurrentMonth ? _muted.withOpacity(0.4) : _ink, size: 20),
+              child: Icon(Icons.chevron_right, color: isCurrentMonth ? AppColors.muted.withValues(alpha:0.4) : AppColors.ink, size: 20),
             ),
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -852,7 +1082,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
         ? '${DateFormat('MMM d').format(_customStart!)} – ${DateFormat('MMM d').format(_customEnd!)}'
         : 'Select date range';
 
-    return GestureDetector(
+    return Semantics(
+      label: 'Select date range',
+      button: true,
+      child: InkWell(
       onTap: () async {
         final now = DateTime.now();
         final picked = await showDateRangePicker(
@@ -869,10 +1102,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
             return Theme(
               data: Theme.of(context).copyWith(
                 colorScheme: ColorScheme.light(
-                  primary: _ink,
+                  primary: AppColors.ink,
                   onPrimary: Colors.white,
-                  surface: Colors.white,
-                  onSurface: _ink,
+                  surface: AppColors.card,
+                  onSurface: AppColors.ink,
                 ),
               ),
               child: child!,
@@ -886,25 +1119,20 @@ class _ProgressScreenState extends State<ProgressScreen> {
           });
         }
       },
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: AppColors.cardShadow,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.date_range,
-              color: hasRange ? _ink : _muted,
+              color: hasRange ? AppColors.ink : AppColors.muted,
               size: 20,
             ),
             const SizedBox(width: 10),
@@ -913,18 +1141,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: hasRange ? FontWeight.w700 : FontWeight.w500,
-                color: hasRange ? _ink : _muted,
+                color: hasRange ? AppColors.ink : AppColors.muted,
               ),
             ),
             const SizedBox(width: 8),
             Icon(
               Icons.edit_calendar_outlined,
-              color: hasRange ? _ink : _muted,
+              color: hasRange ? AppColors.ink : AppColors.muted,
               size: 16,
             ),
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -934,18 +1163,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final maxCal = [goal, ...days.map((d) => _caloriesForDay(d))].reduce((a, b) => a > b ? a : b);
     final useCompact = days.length > 14;
 
-    return Container(
+    return Semantics(
+      label: 'Calories chart',
+      child: Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -958,15 +1183,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: _ink,
+                  color: AppColors.ink,
                 ),
               ),
-              GestureDetector(
+              Semantics(
+                label: 'Edit calorie goal',
+                button: true,
+                child: InkWell(
                 onTap: () => _showEditCalorieGoalSheet(context),
+                borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: _ink,
+                    color: AppColors.ink,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -986,6 +1215,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
               ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -998,6 +1228,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           const SizedBox(height: 4),
         ],
       ),
+    ),
     );
   }
 
@@ -1013,13 +1244,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
         Color barColor;
         if (isFuture || cal == 0) {
-          barColor = const Color(0xFFECECE7);
+          barColor = AppColors.track;
         } else if (hitTarget) {
-          barColor = _green;
+          barColor = AppColors.green;
         } else if (ratio >= 0.5) {
-          barColor = const Color(0xFFFFA726);
+          barColor = AppColors.warningOrange;
         } else {
-          barColor = _ink;
+          barColor = AppColors.ink;
         }
 
         return Expanded(
@@ -1037,6 +1268,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: barColor,
+                        fontFeatures: [ui.FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
@@ -1054,7 +1286,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                    color: isToday ? _ink : _muted,
+                    color: isToday ? AppColors.ink : AppColors.muted,
                   ),
                 ),
               ],
@@ -1076,13 +1308,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
         Color barColor;
         if (cal == 0) {
-          barColor = const Color(0xFFECECE7);
+          barColor = AppColors.track;
         } else if (hitTarget) {
-          barColor = _green;
+          barColor = AppColors.green;
         } else if (ratio >= 0.5) {
-          barColor = const Color(0xFFFFA726);
+          barColor = AppColors.warningOrange;
         } else {
-          barColor = _ink;
+          barColor = AppColors.ink;
         }
 
         // Show every 5th date label to avoid crowding
@@ -1108,7 +1340,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   style: TextStyle(
                     fontSize: 8,
                     fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
-                    color: isToday ? _ink : _muted,
+                    color: isToday ? AppColors.ink : AppColors.muted,
                   ),
                 ),
               ],
@@ -1121,7 +1353,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   Widget _statsRow(Profile profile) {
     final goal = profile.calorieGoal;
-    final periodGoal = goal * _totalDaysInPeriod;
+    final passedGoal = goal * _passedDaysInPeriod;
 
     return Row(
       children: [
@@ -1129,45 +1361,39 @@ class _ProgressScreenState extends State<ProgressScreen> {
           'Avg/day',
           '${_avgCalories.round()}',
           'kcal',
-          _ink,
+          AppColors.ink,
           Icons.local_fire_department,
         ),
         const SizedBox(width: 10),
         _statCard(
           'On target',
           '$_daysOnTarget',
-          '/$_totalDaysInPeriod days',
-          _green,
+          '$_passedDaysInPeriod days',
+          AppColors.green,
           Icons.check_circle_outline,
         ),
         const SizedBox(width: 10),
         _statCard(
           'Remaining',
-          '${(periodGoal - _totalCalories).clamp(0, 999999)}',
-          'kcal',
-          periodGoal > _totalCalories ? _green : _missedRed,
+          '${(passedGoal - _totalCalories).clamp(0, 999999)}',
+          'kcal left',
+          passedGoal > _totalCalories ? AppColors.green : AppColors.missedRed,
           Icons.hourglass_bottom_rounded,
         ),
       ],
     );
   }
 
-  static const _missedRed = Color(0xFFFF3B30);
-
   Widget _statCard(String label, String value, String unit, Color color, IconData icon) {
     return Expanded(
+      child: Semantics(
+      label: '$label: $value $unit',
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: AppColors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1181,6 +1407,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 fontWeight: FontWeight.w800,
                 color: color,
                 letterSpacing: -0.5,
+                fontFeatures: [ui.FontFeature.tabularFigures()],
               ),
             ),
             const SizedBox(height: 2),
@@ -1189,7 +1416,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: _muted,
+                color: AppColors.muted,
               ),
             ),
             const SizedBox(height: 2),
@@ -1198,12 +1425,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: _ink,
+                color: AppColors.ink,
               ),
             ),
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -1213,7 +1441,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w700,
-        color: _ink,
+        color: AppColors.ink,
         letterSpacing: -0.3,
       ),
     );
@@ -1225,18 +1453,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final carbsPct = total > 0 ? _totalCarbs / total : 0.0;
     final fatPct = total > 0 ? _totalFat / total : 0.0;
 
-    return Container(
+    return Semantics(
+      label: 'Macro overview',
+      child: Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         children: [
@@ -1245,38 +1469,41 @@ class _ProgressScreenState extends State<ProgressScreen> {
             borderRadius: BorderRadius.circular(6),
             child: SizedBox(
               height: 16,
-              child: Row(
-                children: [
-                  if (proteinPct > 0)
-                    Expanded(
-                      flex: (proteinPct * 1000).round(),
-                      child: Container(color: _proteinColor),
-                    ),
-                  if (carbsPct > 0)
-                    Expanded(
-                      flex: (carbsPct * 1000).round(),
-                      child: Container(color: _carbsColor),
-                    ),
-                  if (fatPct > 0)
-                    Expanded(
-                      flex: (fatPct * 1000).round(),
-                      child: Container(color: _fatColor),
-                    ),
-                ],
-              ),
+              child: total > 0
+                  ? Row(
+                      children: [
+                        if (proteinPct > 0)
+                          Expanded(
+                            flex: (proteinPct * 1000).round(),
+                            child: Container(color: AppColors.protein),
+                          ),
+                        if (carbsPct > 0)
+                          Expanded(
+                            flex: (carbsPct * 1000).round(),
+                            child: Container(color: AppColors.carbs),
+                          ),
+                        if (fatPct > 0)
+                          Expanded(
+                            flex: (fatPct * 1000).round(),
+                            child: Container(color: AppColors.fat),
+                          ),
+                      ],
+                    )
+                  : Container(color: AppColors.track),
             ),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _macroStat('Protein', _totalProtein, 'g', _proteinColor, '${(proteinPct * 100).round()}%'),
-              _macroStat('Carbs', _totalCarbs, 'g', _carbsColor, '${(carbsPct * 100).round()}%'),
-              _macroStat('Fat', _totalFat, 'g', _fatColor, '${(fatPct * 100).round()}%'),
+              _macroStat('Protein', _totalProtein, 'g', AppColors.protein, '${(proteinPct * 100).round()}%'),
+              _macroStat('Carbs', _totalCarbs, 'g', AppColors.carbs, '${(carbsPct * 100).round()}%'),
+              _macroStat('Fat', _totalFat, 'g', AppColors.fat, '${(fatPct * 100).round()}%'),
             ],
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -1295,6 +1522,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: color,
+            fontFeatures: [ui.FontFeature.tabularFigures()],
           ),
         ),
         const SizedBox(height: 2),
@@ -1303,7 +1531,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w500,
-            color: _muted,
+            color: AppColors.muted,
           ),
         ),
       ],
@@ -1320,31 +1548,28 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
     Color dotColor;
     if (isFuture) {
-      dotColor = const Color(0xFFE3E3DE);
+      dotColor = AppColors.weekRing;
     } else if (hitTarget) {
-      dotColor = _green;
+      dotColor = AppColors.green;
     } else if (cal > 0) {
-      dotColor = const Color(0xFFFFA726);
+      dotColor = AppColors.warningOrange;
     } else {
-      dotColor = const Color(0xFFE3E3DE);
+      dotColor = AppColors.weekRing;
     }
 
     final mealNames = entries.expand((e) => e.items.map((i) => i.name)).take(3).join(', ');
     final progress = goal > 0 ? (cal / goal).clamp(0.0, 1.0) : 0.0;
+    final dayLabel = DateFormat('E').format(day);
 
-    return Container(
+    return Semantics(
+      label: '$dayLabel: $cal calories',
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppColors.cardShadow,
       ),
       child: Row(
         children: [
@@ -1353,7 +1578,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: dotColor.withOpacity(0.12),
+              color: dotColor.withValues(alpha:0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -1392,7 +1617,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isFuture ? _muted : _ink,
+                        color: isFuture ? AppColors.muted : AppColors.ink,
+                        fontFeatures: [ui.FontFeature.tabularFigures()],
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -1400,7 +1626,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: _ink.withOpacity(0.08),
+                          color: AppColors.ink.withValues(alpha:0.08),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
@@ -1408,7 +1634,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
-                            color: _ink,
+                            color: AppColors.ink,
                           ),
                         ),
                       ),
@@ -1422,13 +1648,18 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: _muted,
+                      color: AppColors.muted,
                     ),
                   )
-                else if (!isFuture)
+                else if (!isFuture && entries.isEmpty)
                   const Text(
                     'No meals logged',
-                    style: TextStyle(fontSize: 11, color: _muted),
+                    style: TextStyle(fontSize: 11, color: AppColors.muted),
+                  )
+                else if (isFuture)
+                  const Text(
+                    'Upcoming',
+                    style: TextStyle(fontSize: 11, color: AppColors.muted),
                   ),
               ],
             ),
@@ -1442,11 +1673,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CircularProgressIndicator(
-                    value: progress,
-                    backgroundColor: const Color(0xFFECECE7),
-                    valueColor: AlwaysStoppedAnimation<Color>(dotColor),
-                    strokeWidth: 3,
+                  Transform.rotate(
+                    angle: -3.14159 / 2,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      backgroundColor: AppColors.track,
+                      valueColor: AlwaysStoppedAnimation<Color>(dotColor),
+                      strokeWidth: 3,
+                    ),
                   ),
                   Center(
                     child: Text(
@@ -1455,6 +1689,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         fontSize: 8,
                         fontWeight: FontWeight.w700,
                         color: dotColor,
+                        fontFeatures: [ui.FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
@@ -1463,6 +1698,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ),
         ],
       ),
+    ),
     );
   }
 }
@@ -1471,11 +1707,13 @@ class _WeightChartPainter extends CustomPainter {
   final List<WeightEntry> entries;
   final double yMin;
   final double yMax;
+  final double? targetWeight;
 
   _WeightChartPainter({
     required this.entries,
     required this.yMin,
     required this.yMax,
+    this.targetWeight,
   });
 
   @override
@@ -1483,7 +1721,7 @@ class _WeightChartPainter extends CustomPainter {
     if (entries.length < 2) return;
 
     final paint = Paint()
-      ..color = const Color(0xFF1C1C1E)
+      ..color = AppColors.ink
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -1494,8 +1732,8 @@ class _WeightChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          const Color(0xFF1C1C1E).withOpacity(0.15),
-          const Color(0xFF1C1C1E).withOpacity(0.0),
+          AppColors.ink.withValues(alpha:0.15),
+          AppColors.ink.withValues(alpha:0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
@@ -1529,8 +1767,42 @@ class _WeightChartPainter extends CustomPainter {
     canvas.drawPath(fillPath, fillPaint);
     canvas.drawPath(path, paint);
 
+    if (targetWeight != null) {
+      final tw = targetWeight!;
+      if (tw >= yMin && tw <= yMax) {
+        final targetY = size.height - ((tw - yMin) / yRange) * size.height;
+        final targetPaint = Paint()
+          ..color = AppColors.green
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+        const dashWidth = 4.0;
+        const dashSpace = 3.0;
+        double x = 0;
+        while (x < size.width) {
+          canvas.drawLine(
+            Offset(x, targetY),
+            Offset((x + dashWidth).clamp(0.0, size.width), targetY),
+            targetPaint,
+          );
+          x += dashWidth + dashSpace;
+        }
+        final targetLabel = TextPainter(
+          text: TextSpan(
+            text: '${tw.toStringAsFixed(1)}',
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: AppColors.green,
+            ),
+          ),
+          textDirection: ui.TextDirection.ltr,
+        )..layout();
+        targetLabel.paint(canvas, Offset(size.width - targetLabel.width - 2, targetY - targetLabel.height - 2));
+      }
+    }
+
     final dotPaint = Paint()
-      ..color = const Color(0xFF1C1C1E)
+      ..color = AppColors.ink
       ..style = PaintingStyle.fill;
     for (final p in points) {
       canvas.drawCircle(p, 3, dotPaint);
@@ -1543,7 +1815,7 @@ class _WeightChartPainter extends CustomPainter {
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF1C1C1E),
+          color: AppColors.ink,
         ),
       ),
       textDirection: ui.TextDirection.ltr,
@@ -1557,5 +1829,6 @@ class _WeightChartPainter extends CustomPainter {
   bool shouldRepaint(covariant _WeightChartPainter oldDelegate) =>
       entries != oldDelegate.entries ||
       yMin != oldDelegate.yMin ||
-      yMax != oldDelegate.yMax;
+      yMax != oldDelegate.yMax ||
+      targetWeight != oldDelegate.targetWeight;
 }

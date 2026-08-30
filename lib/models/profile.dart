@@ -2,6 +2,7 @@ class Profile {
   final String name;
   final int age;
   final String sex; // "male", "female", "others", "unspecified"
+  final String? dob; // ISO "yyyy-MM-dd" — age is recomputed from it on load
   final double weightKg;
   final double heightCm;
   final String activityLevel; // sedentary, light, moderate, light_home
@@ -18,6 +19,7 @@ class Profile {
     required this.name,
     required this.age,
     required this.sex,
+    this.dob,
     required this.weightKg,
     required this.heightCm,
     required this.activityLevel,
@@ -30,6 +32,18 @@ class Profile {
     this.carbsOverride,
     this.fatOverride,
   });
+
+  /// Age in years from an ISO date; null if the date is invalid.
+  static int? ageFromDob(String isoDate) {
+    final dob = DateTime.tryParse(isoDate);
+    if (dob == null) return null;
+    final now = DateTime.now();
+    var years = now.year - dob.year;
+    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+      years--;
+    }
+    return years < 0 ? null : years;
+  }
 
   // ---- Basis weight ----
   // For weight loss, all math (BMR, calories, macros) is computed at the
@@ -179,6 +193,7 @@ class Profile {
         'name': name,
         'age': age,
         'sex': sex,
+        'dob': dob,
         'weightKg': weightKg,
         'heightCm': heightCm,
         'activityLevel': activityLevel,
@@ -198,11 +213,13 @@ class Profile {
     String? pace,
     String? workoutFreq,
     double? targetWeightKg,
+    int? calorieGoalOverride,
   }) =>
       Profile(
         name: name ?? this.name,
         age: age,
         sex: sex,
+        dob: dob,
         weightKg: weightKg,
         heightCm: heightCm,
         activityLevel: activityLevel,
@@ -210,16 +227,22 @@ class Profile {
         goal: goal ?? this.goal,
         pace: pace ?? this.pace,
         targetWeightKg: targetWeightKg ?? this.targetWeightKg,
-        calorieGoalOverride: calorieGoalOverride,
+        calorieGoalOverride: calorieGoalOverride ?? this.calorieGoalOverride,
         proteinOverride: proteinOverride,
         carbsOverride: carbsOverride,
         fatOverride: fatOverride,
       );
 
-  factory Profile.fromJson(Map<String, dynamic> json) => Profile(
+  factory Profile.fromJson(Map<String, dynamic> json) {
+    final dob = json['dob'] as String?;
+    // Age is always recomputed from DOB when present so it moves up on
+    // every birthday automatically.
+    final computedAge = dob != null ? ageFromDob(dob) : null;
+    return Profile(
         name: json['name'] as String? ?? '',
-        age: json['age'] as int? ?? 25,
+        age: computedAge ?? (json['age'] as int? ?? 25),
         sex: json['sex'] as String? ?? 'female',
+        dob: dob,
         weightKg: (json['weightKg'] as num?)?.toDouble() ?? 60,
         heightCm: (json['heightCm'] as num?)?.toDouble() ?? 160,
         activityLevel: json['activityLevel'] as String? ?? 'sedentary',
@@ -232,4 +255,5 @@ class Profile {
         carbsOverride: json['carbsOverride'] as int?,
         fatOverride: json['fatOverride'] as int?,
       );
+  }
 }

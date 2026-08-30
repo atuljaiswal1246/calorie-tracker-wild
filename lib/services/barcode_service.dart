@@ -34,24 +34,26 @@ class BarcodeResult {
   bool get isValid => name.isNotEmpty && calories > 0;
 }
 
+enum BarcodeError { network, notFound, unknown }
+
 class BarcodeService {
-  static Future<BarcodeResult?> lookup(String barcode) async {
+  static Future<({BarcodeResult? result, BarcodeError? error})> lookup(String barcode) async {
     try {
       final uri = Uri.parse(
         'https://world.openfoodfacts.org/api/v2/product/$barcode.json',
       );
       final response = await http.get(uri).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode != 200) return null;
+      if (response.statusCode != 200) return (result: null, error: BarcodeError.network);
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      if (data['status'] != 1) return null;
+      if (data['status'] != 1) return (result: null, error: BarcodeError.notFound);
 
       final product = data['product'] as Map<String, dynamic>?;
-      if (product == null) return null;
+      if (product == null) return (result: null, error: BarcodeError.notFound);
 
       final name = product['product_name'] as String? ?? '';
-      if (name.isEmpty) return null;
+      if (name.isEmpty) return (result: null, error: BarcodeError.notFound);
 
       final brand = product['brands'] as String? ?? '';
       final servingSize = product['serving_size'] as String? ?? '';
@@ -59,22 +61,25 @@ class BarcodeService {
       final nutriments =
           product['nutriments'] as Map<String, dynamic>? ?? {};
 
-      return BarcodeResult(
-        barcode: barcode,
-        name: name,
-        brand: brand,
-        calories: _toInt(nutriments['energy-kcal_100g']),
-        protein: _toDouble(nutriments['proteins_100g']),
-        carbs: _toDouble(nutriments['carbohydrates_100g']),
-        fat: _toDouble(nutriments['fat_100g']),
-        fiber: _toDouble(nutriments['fiber_100g']),
-        sugar: _toDouble(nutriments['sugars_100g']),
-        sodium: _toDouble(nutriments['sodium_100g']) * 1000,
-        servingSize: servingSize,
-        imageUrl: product['image_url'] as String? ?? '',
+      return (
+        result: BarcodeResult(
+          barcode: barcode,
+          name: name,
+          brand: brand,
+          calories: _toInt(nutriments['energy-kcal_100g']),
+          protein: _toDouble(nutriments['proteins_100g']),
+          carbs: _toDouble(nutriments['carbohydrates_100g']),
+          fat: _toDouble(nutriments['fat_100g']),
+          fiber: _toDouble(nutriments['fiber_100g']),
+          sugar: _toDouble(nutriments['sugars_100g']),
+          sodium: _toDouble(nutriments['sodium_100g']) * 1000,
+          servingSize: servingSize,
+          imageUrl: product['image_url'] as String? ?? '',
+        ),
+        error: null,
       );
     } catch (_) {
-      return null;
+      return (result: null, error: BarcodeError.network);
     }
   }
 

@@ -56,3 +56,5 @@ app.*.map.json
 functions/node_modules/
 cloudflare_worker/node_modules/
 node_modules/
+tools/serviceAccountKey.json
+tools/node_modules/

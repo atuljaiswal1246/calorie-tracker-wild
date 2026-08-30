@@ -1,10 +1,17 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
+
+/// EMail address that bypasses the paywall — SANDBOX ONLY (iOS dev builds).
+/// Used because iOS has no Play Billing; without this the app is unusable on
+/// the iPhone while testing.
+const String kSandboxEmail = 'atuljaiswal1246@gmail.com';
 
 class WaterEntry {
   final DateTime date;
@@ -43,9 +50,12 @@ class WeightEntry {
 class StorageService {
   static const _profileKey = 'user_profile';
   static const _entriesKey = 'food_entries';
-  static const _apiKey = 'openai_api_key';
-  static const _geminiKey = 'gemini_api_key';
-  static const _providerKey = 'ai_provider'; // 'openai' | 'gemini'
+
+  /// Version key for the payment state. Bumped when the payment model
+  /// changes so stale flags (e.g. old test-stub "paid=true") are wiped.
+  /// Only real Play purchases (BillingService) may set has_paid afterward.
+  static const _paidVersionKey = 'paid_state_version';
+  static const _paidVersion = 2;
 
   final SharedPreferences _prefs;
   String? _userId;
@@ -54,7 +64,20 @@ class StorageService {
 
   static Future<StorageService> init() async {
     final prefs = await SharedPreferences.getInstance();
-    return StorageService(prefs);
+    final svc = StorageService(prefs);
+    await svc._migratePaymentState();
+    return svc;
+  }
+
+  /// Wipe stale payment flags written by older builds (the old test stub
+  /// set has_paid=true locally). Real purchases come from BillingService
+  /// which writes the fresh flag AFTER this version check.
+  Future<void> _migratePaymentState() async {
+    final version = _prefs.getInt(_paidVersionKey) ?? 0;
+    if (version < _paidVersion) {
+      await _prefs.setBool(_paidKey, false);
+      await _prefs.setInt(_paidVersionKey, _paidVersion);
+    }
   }
 
   String? get userId => _userId;
@@ -163,26 +186,6 @@ class StorageService {
       _entriesKey,
       jsonEncode(all.map((e) => e.toJson()).toList()),
     );
-  }
-
-  // ---- Keys (kept local to device) ----
-
-  String? get apiKey => _prefs.getString(_apiKey);
-
-  Future<void> saveApiKey(String key) async {
-    await _prefs.setString(_apiKey, key.trim());
-  }
-
-  String? get geminiKey => _prefs.getString(_geminiKey);
-
-  Future<void> saveGeminiKey(String key) async {
-    await _prefs.setString(_geminiKey, key.trim());
-  }
-
-  String get provider => _prefs.getString(_providerKey) ?? 'openai';
-
-  Future<void> saveProvider(String provider) async {
-    await _prefs.setString(_providerKey, provider);
   }
 
   // ---- Weight Entries ----
@@ -437,45 +440,37 @@ class StorageService {
   }
 
   // ---- Payment state ----
+  // Trial is handled ENTIRELY by Google Play (subscription offer).
+  // The app only tracks: is the user subscribed?
 
   static const _paidKey = 'has_paid';
-  static const _trialStartKey = 'trial_started_at';
   static const _planKey = 'subscription_plan'; // 'monthly' | 'yearly'
 
   bool get isPaid => _prefs.getBool(_paidKey) ?? false;
 
-  DateTime? get trialStart {
-    final raw = _prefs.getString(_trialStartKey);
-    return raw == null ? null : DateTime.tryParse(raw);
-  }
-
   String get subscriptionPlan => _prefs.getString(_planKey) ?? 'monthly';
 
-  /// Trial length in days per plan: monthly = 15, yearly = 30.
-  int get planTrialDays => subscriptionPlan == 'yearly' ? 30 : 15;
+  Future<void> setSubscriptionPlan(String plan) =>
+      _prefs.setString(_planKey, plan);
 
-  /// Number of days left in trial. 0 = ended. Negative after end.
-  int get trialDaysLeft {
-    final start = trialStart;
-    if (start == null) return 0;
-    final end = start.add(Duration(days: planTrialDays));
-    return end.difference(DateTime.now()).inDays;
+  /// Sandbox bypass — iOS only, dev builds ONLY (kDebugMode).
+  /// iOS has no Play Billing, so a signed-in dev user is treated as paid to
+  /// keep the app testable during development.
+  /// GUARANTEED compiled out of release builds: kReleaseMode is checked and
+  /// the flow short-circuits to the real gate, so no user can bypass the
+  /// paywall in a shipping build.
+  bool isPaidOrSandbox({String? authEmail}) {
+    // Release builds always follow the real gate — no sandbox, ever.
+    if (kReleaseMode) return isPaid;
+    if (!Platform.isIOS) return isPaid;
+    // iOS dev build: local flag is historic test stub data (unreliable),
+    // only the dev email unlocks.
+    return authEmail == kSandboxEmail;
   }
 
-  /// True while trial is active and user hasn't paid yet.
-  bool get isOnTrial => !isPaid && trialStart != null && trialDaysLeft > 0;
-
-  /// True when trial has ended and user hasn't paid.
-  bool get trialExpired => !isPaid && trialStart != null && trialDaysLeft <= 0;
-
-  /// Starts the trial (only if not already started) AND records the plan,
-  /// so plan-relevant trial length applies. Keeps paid state untouched.
-  Future<void> startTrial(String plan) async {
-    await _prefs.setString(_planKey, plan);
-    if (_prefs.getString(_trialStartKey) == null) {
-      await _prefs.setString(_trialStartKey, DateTime.now().toIso8601String());
-    }
-  }
+  /// True while the current account is the sandbox email (for messaging).
+  bool isSandboxUser({String? authEmail}) =>
+      !kReleaseMode && Platform.isIOS && authEmail == kSandboxEmail;
 
   // ---- Recently Logged Foods ----
 
@@ -534,9 +529,13 @@ class StorageService {
 
   Future<bool> loadPaidFromCloud() async {
     final ref = _profileRef();
-    if (ref == null) return false;
+    if (ref == null) return isPaid;
     final doc = await ref.get();
-    if (!doc.exists) return false;
+    if (!doc.exists) {
+      // No cloud record — stale local flag must not survive.
+      await _prefs.setBool(_paidKey, false);
+      return false;
+    }
     final data = doc.data() as Map<String, dynamic>?;
     final paid = data?['paid'] as bool? ?? false;
     await _prefs.setBool(_paidKey, paid);

@@ -107,11 +107,14 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     if (!mounted) return;
     Navigator.pop(context); // dismiss loading
 
-    if (result == null || !result.isValid) {
+    if (result.result == null || !result.result!.isValid) {
       setState(() => _scanned = false);
+      final msg = result.error == BarcodeError.network
+          ? 'No internet connection. Check your WiFi or mobile data.'
+          : 'Product not found for barcode: $barcode';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Product not found for barcode: $barcode'),
+          content: Text(msg),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -123,7 +126,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => BarcodeResultScreen(
-          result: result,
+          result: result.result!,
           storage: widget.storage,
         ),
       ),

@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart' show CupertinoDatePicker, CupertinoDatePickerMode;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../models/profile.dart';
@@ -17,6 +19,10 @@ class OnboardingScreen extends StatefulWidget {
   /// Start directly at the pricing step (returning user who hasn't paid).
   final bool startAtPricing;
 
+  /// Start directly at the sign-up step (onboarding already done once,
+  /// user dropped off before creating an account).
+  final bool startAtSignup;
+
   const OnboardingScreen({
     super.key,
     required this.storage,
@@ -24,6 +30,7 @@ class OnboardingScreen extends StatefulWidget {
     required this.onComplete,
     required this.onBack,
     this.startAtPricing = false,
+    this.startAtSignup = false,
   });
 
   @override
@@ -33,16 +40,18 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   int _step = 0;
 
-  // 0-8 are questions; 9 = "building your plan"; 10 = plan summary;
-  // 11 = pricing.
-  static const _totalSteps = 9;
-  static const _buildingStep = 9;
-  static const _planStep = 10;
-  static const _pricingStep = 11;
+  // 0-6 are questions; 7 = "building your plan"; 8 = plan summary;
+  // 9 = sign-up; 10 = pricing.
+  static const _totalSteps = 7;
+  static const _buildingStep = 7;
+  static const _planStep = 8;
+  static const _signupStep = 9;
+  static const _pricingStep = 10;
 
-  // Step 0: name
-  String _name = '';
-  static const _maxNameLength = 40;
+  // Step 0: name/date-of-birth/sex
+  final _nameController = TextEditingController();
+  DateTime? _dob;
+  String? _sex;
 
   // Step 1: goal
   String? _goal;
@@ -56,23 +65,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _Option(icon: Icons.explore_outlined, label: 'Just exploring', value: 'exploring'),
   ];
 
-  // Step 1: sex
-  String? _sex;
-  static const _sexes = [
-    _Option(icon: Icons.male, label: 'Male', value: 'male'),
-    _Option(icon: Icons.female, label: 'Female', value: 'female'),
-    _Option(icon: Icons.emoji_people, label: 'Others', value: 'others'),
-    _Option(icon: Icons.help_outline, label: 'Rather not say', value: 'unspecified'),
-  ];
-
-  // Steps 2-5: age, height, weight, target weight (slider values)
-  int _age = 25;
+  // Steps 2-6: height, weight, workouts, target, pace
   double _height = 165;
   double _weight = 70;
   double _targetWeight = 65;
   bool _noTarget = false;
-
-  final _nameController = TextEditingController();
 
   // Optional user overrides for the computed targets (null = use computed).
   int? _calorieOverride;
@@ -86,19 +83,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // Step 5: workout frequency (workouts per week, matches mainstream apps)
   String? _workoutFreq;
   static const _workoutFreqs = [
-    _Option(icon: Icons.looks_one, label: '0–2 times', value: '0to2'),
-    _Option(icon: Icons.looks_two, label: '3–5 times', value: '3to5'),
-    _Option(icon: Icons.looks_3, label: '6 or more times', value: '6plus'),
+    _Option(icon: Icons.horizontal_rule, label: 'No workout', value: 'none'),
+    _Option(icon: Icons.looks_one, label: '1–2', value: '0to2'),
+    _Option(icon: Icons.looks_two, label: '3–5', value: '3to5'),
+    _Option(icon: Icons.looks_3, label: '6 or more', value: '6plus'),
   ];
 
   @override
   void initState() {
     super.initState();
     _goal = _goals.first.value;
-    _sex = _sexes.first.value;
-    _pace = 'fast'; // fast default
+    _pace = 'fast';
     _workoutFreq = _workoutFreqs.first.value;
-    if (widget.startAtPricing) _step = _pricingStep;
+    if (widget.startAtPricing) {
+      _step = _pricingStep;
+    } else if (widget.startAtSignup) {
+      _restoreFromSavedProfile();
+      _step = _signupStep;
+    }
+  }
+
+  /// Restore all question answers from the saved profile (drop-off recovery:
+  /// user completes questions but abandons at sign-up; we must not clobber
+  /// their real answers with defaults when they finish signing up).
+  void _restoreFromSavedProfile() {
+    final p = widget.storage.profile;
+    if (p == null) return;
+    _nameController.text = p.name == 'Friend' ? '' : p.name;
+    _dob = p.dob != null ? DateTime.tryParse(p.dob!) : null;
+    _sex = p.sex == 'unspecified' ? null : p.sex;
+    _goal = p.goal;
+    _weight = p.weightKg;
+    _targetWeight = p.targetWeightKg ?? p.weightKg;
+    _noTarget = p.targetWeightKg == null;
+    _height = p.heightCm;
+    _workoutFreq = p.workoutFreq;
+    _pace = p.pace;
   }
 
   @override
@@ -112,32 +132,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool get _canContinue {
     switch (_step) {
       case 0:
-        return _name.trim().isNotEmpty;
+        return _nameController.text.trim().isNotEmpty &&
+            _dob != null &&
+            _sex != null;
       case 1:
         return _goal != null;
       case 2:
-        return _sex != null;
-      case 3:
-        return _age >= 10 && _age <= 100;
-      case 4:
-        return _height >= 50 && _height <= 250;
-      case 5:
         return _weight > 0 && _weight <= 300;
-      case 6:
-        return _workoutFreq != null;
-      case 7:
+      case 3:
         if (_skipTargetQuestions) return true;
         final v = _targetWeight;
         if (v < 30 || v > 300) return false;
-        // Goal-consistency: lose must be below current, gain above current.
         if (_goal == 'lose') return v < _weight;
         if (_goal == 'gain') return v > _weight;
         return true;
-      case 8:
+      case 4:
+        return _height >= 50 && _height <= 250;
+      case 5:
+        return _workoutFreq != null;
+      case 6:
         return _pace != null;
       default:
         return false;
     }
+  }
+
+  Future<void> _pickDob() async {
+    var temp = _dob ?? DateTime(2000, 1, 1);
+    final picked = await showModalBottomSheet<DateTime>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _DobSheet(
+        initialDate: temp,
+        onChanged: (d) => temp = d,
+      ),
+    );
+    if (picked != null) setState(() => _dob = picked);
   }
 
   void _next() {
@@ -145,26 +178,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _step++;
       // Skip target-weight & pace when there's no target OR the goal
       // doesn't involve weight change (maintain / exploring).
-      if (_skipTargetQuestions && _step == 7) _step += 2;
+      if (_skipTargetQuestions && _step == 3) _step += 1;
+      if (_skipTargetQuestions && _step == 6) _step += 1;
     });
   }
 
   void _toPlan() {
     setState(() => _step = _planStep);
+    // Drop-off recovery: save the profile NOW, before the sign-up wall.
+    // If the user abandons here, next launch resumes at sign-up with their
+    // answers intact instead of restarting the questionnaire.
+    widget.storage.saveProfile(_buildProfile());
   }
 
   Future<void> _goToPricing() async {
-    // First-time users get a free trial — no account or payment needed.
-    // The pricing step only appears once the trial has ended.
-    if (widget.storage.isPaid || widget.storage.isOnTrial) {
+    // Paid already (restored purchase) or sandbox dev — straight to the app.
+    if (widget.storage.isPaidOrSandbox(
+        authEmail: widget.auth.currentUser?.email)) {
       _finish();
       return;
     }
-    // Start the free trial (monthly plan by default = 15 days). Sign-up
-    // is still optional — data lives on device until the user subscribes.
-    await widget.storage.startTrial('monthly');
-    if (!mounted) return;
-    _finish();
+    // Unpaid: go to the pricing step so the user can start the Play
+    // subscription (its free-trial offer IS the trial — no app timer).
+    if (widget.auth.isSignedIn) {
+      setState(() => _step = _pricingStep);
+    } else {
+      setState(() => _step = _signupStep);
+    }
   }
 
   Future<void> _onPaid() async {
@@ -180,8 +220,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     setState(() {
       _step--;
-      // Skip the target-weight step when going back past it.
-      if (_skipTargetQuestions && _step == 7) _step--;
+      // Skip target & pace when going back past them.
+      if (_skipTargetQuestions && _step == 6) _step--;
+      if (_skipTargetQuestions && _step == 3) _step--;
     });
   }
 
@@ -232,19 +273,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_step == _planStep) {
       return _PlanSummaryScreen(
         profile: _buildProfile(),
-        onGetStarted: _goToPricing,
-        onBack: () => setState(() => _step = _totalSteps - 1),
+        onGetStarted: () {
+          // If already signed in, go straight to pricing; else sign up first.
+          if (widget.auth.isSignedIn) {
+            _goToPricing();
+          } else {
+            setState(() => _step = _signupStep);
+          }
+        },
+        onBack: () => setState(() {
+          _step = _totalSteps - 1;
+          if (_skipTargetQuestions && _step == 6) _step--;
+        }),
         onEditAge: () async {
-          final v = await _showNumberEdit(
-            context,
-            title: 'Enter your age',
-            initialValue: _age.toDouble(),
-            min: 10,
-            max: 100,
-            suffix: 'years',
-            allowDecimal: false,
+          var temp = _dob ?? DateTime(2000, 1, 1);
+          final picked = await showModalBottomSheet<DateTime>(
+            context: context,
+            backgroundColor: Colors.white,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (context) => _DobSheet(
+              initialDate: temp,
+              onChanged: (d) => temp = d,
+            ),
           );
-          if (v != null) setState(() => _age = v.round());
+          if (picked != null) setState(() => _dob = picked);
         },
         onEditHeight: () async {
           final cm = await _showFeetInchesEdit(
@@ -333,6 +387,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         },
       );
     }
+    if (_step == _signupStep) {
+      return AuthScreen(
+        auth: widget.auth,
+        isSignUp: true,
+        onAuthenticated: () async {
+          final uid = widget.auth.currentUser?.uid;
+          if (uid != null) widget.storage.setUserId(uid);
+          // Sandbox dev email on iOS: skip pricing entirely.
+          if (widget.storage.isPaidOrSandbox(
+              authEmail: widget.auth.currentUser?.email)) {
+            _finish();
+            return;
+          }
+          setState(() => _step = _pricingStep);
+        },
+        onBack: () => setState(() => _step = _planStep),
+      );
+    }
     if (_step == _pricingStep) {
       return PricingScreen(
         storage: widget.storage,
@@ -343,7 +415,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
-      body: Column(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Grey section: top bar + heading + fixed slots
@@ -362,12 +437,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onBack: _back,
                     ),
                   ),
-                  // Heading block — FIXED height slot so the middle never moves,
-                  // whether the heading is 1 line or 2 lines.
-                  SizedBox(
-                    height: 96,
+                  // Heading block — grows if it's 2 lines so the content
+                  // below never gets jammed against it.
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 96),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
+                      padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
                       child: Align(
                         alignment: Alignment.topLeft,
                         child: _buildHeading(),
@@ -379,51 +454,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: LayoutBuilder(
                       builder: (context, constraints) =>
                           SingleChildScrollView(
+                        padding: const EdgeInsets.only(top: 28),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
                               minHeight: constraints.maxHeight),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 8),
-                                child: _buildStep(),
-                              ),
-                            ],
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 8),
+                            child: _buildStep(),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  // Warning slot — reserved (min height), warning appears here
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 40),
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 4),
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 200),
-                          opacity: _buildWarning() != null ? 1 : 0,
-                          child: _buildWarning() == null
-                              ? const SizedBox.shrink()
-                              : _WarningBox(message: _buildWarning()!),
+                  // Warning slot — collapse when empty
+                  if (_buildWarning() != null)
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 40),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 4),
+                          child: _WarningBox(message: _buildWarning()!),
                         ),
                       ),
                     ),
-                  ),
-                  // Footer option slot — reserved (min height), card appears here
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 40),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: _buildStepFooter(),
+                  // Footer option slot — collapse when empty
+                  if (_buildStepFooter() is! SizedBox)
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 40),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: _buildStepFooter(),
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -436,14 +503,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 
   Profile _buildProfile() {
+    final dobIso = _dob == null
+        ? null
+        : '${_dob!.year.toString().padLeft(4, '0')}-'
+            '${_dob!.month.toString().padLeft(2, '0')}-'
+            '${_dob!.day.toString().padLeft(2, '0')}';
     return Profile(
-      name: _name.trim().isEmpty ? 'Friend' : _name.trim(),
-      age: _age,
+      name: _nameController.text.trim().isEmpty ? 'Friend' : _nameController.text.trim(),
+      age: _dob != null && Profile.ageFromDob(dobIso!) != null
+          ? Profile.ageFromDob(dobIso)!
+          : 25,
       sex: _sex ?? 'unspecified',
+      dob: dobIso,
       weightKg: _weight,
       heightCm: _height,
       activityLevel: 'sedentary',
@@ -461,7 +537,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildHeading() {
     switch (_step) {
       case 0:
-        return const Text('What should we\ncall you?',
+        return const Text('First things first.',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
@@ -475,14 +551,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 2:
-        return const Text('Choose your sex',
+        return const Text('What\'s your current weight?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 3:
-        return const Text('What\'s your age?',
+        return const Text('What\'s your target weight?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
@@ -496,27 +572,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 5:
-        return const Text('What\'s your current weight?',
+        return const Text('How many times do you\nworkout in a week?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 6:
-        return const Text('How many times do you\nwork out in a week?',
-            style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-                letterSpacing: -0.5));
-      case 7:
-        return const Text('What\'s your target weight?',
-            style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-                letterSpacing: -0.5));
-      case 8:
         return const Text('How fast do you\nwant to lose weight?',
             style: TextStyle(
                 fontSize: 30,
@@ -531,9 +593,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildStep() {
     switch (_step) {
       case 0:
-        return _NameStep(
-          controller: _nameController,
-          onChanged: (v) => setState(() => _name = v),
+        return _AboutYouStep(
+          nameController: _nameController,
+          dob: _dob,
+          sex: _sex,
+          onChanged: () => setState(() {}),
+          onDobTap: _pickDob,
+          onSexChanged: (v) => setState(() => _sex = v),
         );
       case 1:
         return _OptionStep(
@@ -542,15 +608,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           onSelect: (v) => setState(() => _goal = v),
         );
       case 2:
-        return _OptionStep(
-          options: _sexes,
-          selected: _sex,
-          onSelect: (v) => setState(() => _sex = v),
+        return _WeightStep(
+          weightKg: _weight,
+          onChangedKg: (v) => setState(() => _weight = v),
         );
       case 3:
-        return _AgeStep(
-          age: _age,
-          onChanged: (v) => setState(() => _age = v),
+        return _TargetWeightStep(
+          targetWeight: _targetWeight,
+          currentWeight: _weight,
+          disabled: _noTarget,
+          onChanged: (v) => setState(() => _targetWeight = v),
         );
       case 4:
         return _HeightStep(
@@ -558,24 +625,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           onChangedCm: (v) => setState(() => _height = v),
         );
       case 5:
-        return _WeightStep(
-          weightKg: _weight,
-          onChangedKg: (v) => setState(() => _weight = v),
-        );
-      case 6:
         return _OptionStep(
           options: _workoutFreqs,
           selected: _workoutFreq,
           onSelect: (v) => setState(() => _workoutFreq = v),
         );
-      case 7:
-        return _TargetWeightStep(
-          targetWeight: _targetWeight,
-          currentWeight: _weight,
-          disabled: _noTarget,
-          onChanged: (v) => setState(() => _targetWeight = v),
-        );
-      case 8:
+      case 6:
         return _PaceStep(
           selected: _pace,
           onSelect: (v) => setState(() => _pace = v),
@@ -588,7 +643,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildStepFooter() {
-    if (_step == 7) {
+    if (_step == 3) {
       return _NoTargetCard(
         noTarget: _noTarget,
         onChanged: (v) {
@@ -603,7 +658,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   String? _buildWarning() {
-    if (_step == 7) return _targetWeightWarning();
+    if (_step == 3) return _targetWeightWarning();
     return null;
   }
 
@@ -918,62 +973,289 @@ class _BottomBar extends StatelessWidget {
   }
 }
 
-// ---------------- Name step ----------------
-class _NameStep extends StatelessWidget {
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
+// ---------------- About you step (name + dob + sex) ----------------
+class _AboutYouStep extends StatelessWidget {
+  final TextEditingController nameController;
+  final DateTime? dob;
+  final String? sex;
+  final VoidCallback onChanged;
+  final VoidCallback onDobTap;
+  final ValueChanged<String> onSexChanged;
 
-  const _NameStep({
-    required this.controller,
+  const _AboutYouStep({
+    required this.nameController,
+    required this.dob,
+    required this.sex,
     required this.onChanged,
+    required this.onDobTap,
+    required this.onSexChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          controller: controller,
+        _BorderedInput(
+          controller: nameController,
+          hintText: 'Name',
           autofocus: true,
           textCapitalization: TextCapitalization.words,
-          maxLength: 40,
-          style: const TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
-            letterSpacing: -0.5,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Your name',
-            hintStyle: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w600,
-              color: Colors.black.withValues(alpha: 0.25),
-            ),
-            counterText: '',
-            filled: true,
-            fillColor: Colors.black.withValues(alpha: 0.04),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 18,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: Colors.black.withValues(alpha: 0.8),
-                width: 1.5,
-              ),
-            ),
-          ),
+          textInputAction: TextInputAction.next,
           onChanged: onChanged,
-          onSubmitted: (_) => onChanged(controller.text),
+        ),
+        const SizedBox(height: 10),
+        _DateOfBirthField(
+          dob: dob,
+          onTap: onDobTap,
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _SexChip(
+              icon: Icons.male,
+              label: 'Male',
+              selected: sex == 'male',
+              onTap: () => onSexChanged('male'),
+            ),
+            const SizedBox(width: 10),
+            _SexChip(
+              icon: Icons.female,
+              label: 'Female',
+              selected: sex == 'female',
+              onTap: () => onSexChanged('female'),
+            ),
+            const SizedBox(width: 10),
+            _SexChip(
+              icon: Icons.more_horiz,
+              label: 'Other',
+              selected: sex == 'others',
+              onTap: () => onSexChanged('others'),
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _DobSheet extends StatefulWidget {
+  final DateTime initialDate;
+  final ValueChanged<DateTime> onChanged;
+
+  const _DobSheet({required this.initialDate, required this.onChanged});
+
+  @override
+  State<_DobSheet> createState() => _DobSheetState();
+}
+
+class _DobSheetState extends State<_DobSheet> {
+  late DateTime _value = widget.initialDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel',
+                    style: TextStyle(color: Colors.black54)),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => Navigator.pop(context, _value),
+                child: const Text('Done',
+                    style: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+          const Divider(height: 1),
+          SizedBox(
+            height: 260,
+            child: CupertinoDatePicker(
+              mode: CupertinoDatePickerMode.date,
+              initialDateTime: widget.initialDate,
+              minimumDate: DateTime(1900),
+              maximumDate: DateTime.now(),
+              onDateTimeChanged: (d) {
+                setState(() => _value = d);
+                widget.onChanged(d);
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+class _DateOfBirthField extends StatelessWidget {
+  final DateTime? dob;
+  final VoidCallback onTap;
+
+  const _DateOfBirthField({
+    required this.dob,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.black12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        alignment: Alignment.center,
+        child: SizedBox(
+          height: 56,
+          child: Row(
+            children: [
+              const Icon(Icons.calendar_today_outlined,
+                  size: 18, color: Colors.black45),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  dob == null
+                      ? 'Date of birth'
+                      : _formatDob(dob!),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: dob == null
+                        ? Colors.black.withValues(alpha: 0.3)
+                        : Colors.black,
+                  ),
+                ),
+              ),
+              if (dob != null)
+                const Icon(Icons.check_circle,
+                    size: 20, color: AppColors.accent),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDob(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
+  }
+}
+
+class _SexChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SexChip({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = selected ? AppColors.accent : Colors.black87;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.accent.withValues(alpha: 0.08)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? AppColors.accent : Colors.black12,
+              width: selected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 22, color: fg),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BorderedInput extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final bool autofocus;
+  final TextCapitalization? textCapitalization;
+  final TextInputAction? textInputAction;
+  final VoidCallback? onChanged;
+
+  const _BorderedInput({
+    required this.controller,
+    required this.hintText,
+    this.autofocus = false,
+    this.textCapitalization,
+    this.textInputAction,
+    this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.black12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      alignment: Alignment.center,
+      child: TextField(
+        controller: controller,
+        autofocus: autofocus,
+        textCapitalization: textCapitalization ?? TextCapitalization.none,
+        textInputAction: textInputAction,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Colors.black,
+        ),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(
+            fontSize: 16,
+            color: Colors.black.withValues(alpha: 0.3),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+        onChanged: (_) => onChanged?.call(),
+      ),
     );
   }
 }
@@ -993,7 +1275,6 @@ class _OptionStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ...options.map((g) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -1036,7 +1317,6 @@ class _PaceStep extends StatelessWidget {
     final action = isLose ? 'lose' : 'gain';
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ...paces.map((pace) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -1227,37 +1507,6 @@ class _SelectableCard extends StatelessWidget {
   }
 }
 
-// ---------------- Slider input step ----------------
-// ---------------- Age step ----------------
-class _AgeStep extends StatelessWidget {
-  final int age;
-  final ValueChanged<int> onChanged;
-
-  const _AgeStep({
-    required this.age,
-    required this.onChanged,
-  });  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-          height: 200,
-          child: _PickerWheel(
-            label: 'years',
-            min: 10,
-            max: 100,
-            value: age,
-            onChanged: onChanged,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-
-// ---------------- Time period step (single days wheel) ----------------
 // ---------------- Height step (cm OR feet/inches) ----------------
 class _HeightStep extends StatefulWidget {
   final double heightCm;
@@ -1285,7 +1534,6 @@ class _HeightStepState extends State<_HeightStep> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Unit toggle
         Container(
@@ -1518,14 +1766,15 @@ class _WeightStepState extends State<_WeightStep> {
   double get _lbs => widget.weightKg * 2.20462;
 
   @override
-  Widget build(BuildContext context) {
+    Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.black12,
+
+
             borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
@@ -1592,14 +1841,15 @@ class _TargetWeightStepState extends State<_TargetWeightStep> {
   double get _lbs => widget.targetWeight * 2.20462;
 
   @override
-  Widget build(BuildContext context) {
+    Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.black12,
+
+
             borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
@@ -2519,7 +2769,13 @@ class PricingScreenState extends State<PricingScreen> {
   late final BillingService _billing;
 
   static const _monthlyPrice = 100;
-  static const _yearlyPrice = 1100;
+  static const _yearlyPrice = 1000;
+
+  /// "₹1,000" style — symbol + thousands separator.
+  static String _inr(int amount) {
+    final s = amount.toString();
+    return '₹${s.length > 3 ? s.substring(0, s.length - 3) + ',' + s.substring(s.length - 3) : s}';
+  }
 
   List<ProductDetails> _products = [];
 
@@ -2548,10 +2804,15 @@ class PricingScreenState extends State<PricingScreen> {
     });
   }
 
+  /// Prefer the free-trial OFFER entry (Google Play returns one
+  /// ProductDetails per offer; the trial one has rawPrice <= 0).
+  /// Falling back to the base plan if no offer is available.
   ProductDetails? get _monthlyProduct =>
-      _products.where((p) => p.id == BillingService.monthlyId).firstOrNull;
+      _billing.productFor(_products, BillingService.monthlyId,
+          preferTrial: true);
   ProductDetails? get _yearlyProduct =>
-      _products.where((p) => p.id == BillingService.yearlyId).firstOrNull;
+      _billing.productFor(_products, BillingService.yearlyId,
+          preferTrial: true);
 
   Future<void> _continue() async {
     final product = _yearly ? _yearlyProduct : _monthlyProduct;
@@ -2578,6 +2839,21 @@ class PricingScreenState extends State<PricingScreen> {
       widget.onPaid();
     }
     setState(() {});
+  }
+
+  Future<void> _restore() async {
+    setState(() => _processing = true);
+    await _billing.restore();
+    if (!mounted) return;
+    setState(() => _processing = false);
+    // Restore completes via the purchase stream (restored purchases fire
+    // purchaseStream with PurchaseStatus.restored), which sets paid=true.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Restoring your purchases...'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -2674,8 +2950,8 @@ class PricingScreenState extends State<PricingScreen> {
                             selected: _yearly,
                             badge: '30 days free',
                             left: 'Start for free & save $_savingsPercent%',
-                            right: 'Rs $_yearlyPrice/year',
-                            sub: 'About Rs $_monthlyPrice/month · Rs $_yearlyPrice billed annually',
+                            right: '${_inr(_yearlyPrice)}/year',
+                            sub: 'About ${_inr(_monthlyPrice)}/month · ${_inr(_yearlyPrice)} billed annually',
                             onTap: () => setState(() => _yearly = true),
                           ),
                           const SizedBox(height: 14),
@@ -2684,8 +2960,8 @@ class PricingScreenState extends State<PricingScreen> {
                             selected: !_yearly,
                             badge: '15 days free',
                             left: 'Monthly',
-                            right: 'Rs $_monthlyPrice/month',
-                            sub: '15 days free, then Rs $_monthlyPrice/month',
+                            right: '${_inr(_monthlyPrice)}/month',
+                            sub: '15 days free, then ${_inr(_monthlyPrice)}/month',
                             onTap: () => setState(() => _yearly = false),
                           ),
                         ],
@@ -2732,12 +3008,41 @@ class PricingScreenState extends State<PricingScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            _yearly
+                                ? '30 days free, then ${_inr(_yearlyPrice)} per year. '
+                                : '15 days free, then ${_inr(_monthlyPrice)} per month. ',
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black38),
+                          ),
+                          TextButton(
+                            onPressed: _processing ? null : _restore,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 12),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'Restore purchases',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.black45,
+                                fontWeight: FontWeight.w500,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
                       Text(
                         _yearly
-                            ? '30 days free, then Rs $_yearlyPrice.00 per year.\n'
-                                'Billed annually and renews automatically unless cancelled.'
-                            : '15 days free, then Rs $_monthlyPrice.00 per month.\n'
-                                'Billed monthly and renews automatically unless cancelled.',
+                            ? 'Billed annually and renews automatically unless cancelled.'
+                            : 'Billed monthly and renews automatically unless cancelled.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontSize: 12,

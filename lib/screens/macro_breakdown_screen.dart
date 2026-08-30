@@ -50,6 +50,25 @@ class MacroBreakdownScreen extends StatelessWidget {
     }
   }
 
+  String get _emptyEmoji {
+    switch (macroType) {
+      case MacroType.calories:
+        return '🔥';
+      case MacroType.protein:
+        return '🥩';
+      case MacroType.carbs:
+        return '🍞';
+      case MacroType.fat:
+        return '🥑';
+      case MacroType.fiber:
+        return '🥦';
+      case MacroType.sugar:
+        return '🍬';
+      case MacroType.sodium:
+        return '🧂';
+    }
+  }
+
   double _value(FoodItem item) {
     switch (macroType) {
       case MacroType.calories:
@@ -114,7 +133,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _unit == 'kcal' ? '🔥' : '🍽️',
+                    _emptyEmoji,
                     style: const TextStyle(fontSize: 48),
                   ),
                   const SizedBox(height: 16),

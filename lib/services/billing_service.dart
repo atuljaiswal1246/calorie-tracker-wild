@@ -54,7 +54,33 @@ class BillingService {
     }
   }
 
+  /// Picks the product entry to purchase: Google Play returns one
+  /// [ProductDetails] per base plan/offer, so the free-trial offer shows up
+  /// as its own entry whose first pricing phase is free (rawPrice 0).
+  /// Preferring it means subscribing starts the free trial; when the offer
+  /// isn't available (already used / not eligible / iOS), fall back to the
+  /// base plan.
+  ProductDetails? productFor(
+    List<ProductDetails> products,
+    String productId, {
+    bool preferTrial = false,
+  }) {
+    final matches = products.where((p) => p.id == productId).toList();
+    if (matches.isEmpty) return null;
+    if (preferTrial) {
+      for (final p in matches) {
+        if (p.rawPrice <= 0) return p;
+      }
+    }
+    return matches.first;
+  }
+
   /// Launches the store's subscription purchase UI.
+  ///
+  /// On Android the free-trial offer token is read directly off the
+  /// [GooglePlayProductDetails] entry we pass in, so passing the trial entry
+  /// here starts the offer. The purchaseStream listener then saves paid=true
+  /// and flips status to subscribed.
   Future<void> buyUnit(ProductDetails product) async {
     try {
       status = BillingStatus.loading;
@@ -62,8 +88,6 @@ class BillingService {
       await _iap.buyNonConsumable(
         purchaseParam: PurchaseParam(productDetails: product),
       );
-      // On success the purchaseStream listener calls _handlePurchases which
-      // saves paid=true and flips status to subscribed.
     } catch (e) {
       error = 'Purchase failed: $e';
       status = BillingStatus.failed;
@@ -75,16 +99,20 @@ class BillingService {
     for (final purchase in purchases) {
       if (purchase.status == PurchaseStatus.purchased ||
           purchase.status == PurchaseStatus.restored) {
+        // Trial is part of the Play subscription offer — no app timer.
+        // Record which plan the user picked (monthly | yearly).
         final plan = purchase.productID == yearlyId ? 'yearly' : 'monthly';
-        await storage.startTrial(plan);
+        await storage.setSubscriptionPlan(plan);
         await storage.savePaid(true);
         status = BillingStatus.subscribed;
       } else if (purchase.status == PurchaseStatus.error) {
         status = BillingStatus.failed;
         error = 'Purchase error: ${purchase.error?.message}';
       } else if (purchase.status == PurchaseStatus.canceled) {
+        // Cancelled — entitlement no longer renews, revoke paid access.
         status = BillingStatus.failed;
         error = 'Purchase cancelled';
+        await storage.savePaid(false);
       } else {
         status = BillingStatus.pending;
       }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/widgets.dart';
+import 'meal_detail_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   final StorageService storage;
@@ -24,57 +27,98 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('History')),
-      body: _entries.isEmpty
-          ? const Center(child: Text('No meals logged yet'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _entries.length,
-              itemBuilder: (context, index) {
-                final entry = _entries[index];
-                final day = DateFormat('EEE, d MMM yyyy')
-                    .format(entry.dateTime);
-                final time = DateFormat('h:mm a').format(entry.dateTime);
-                final itemsStr =
-                    entry.items.map((e) => e.name).join(', ');
+    final sorted = List<FoodEntry>.from(_entries)
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.orange.shade100,
-                      child: Text(
-                        entry.mealType[0].toUpperCase(),
-                        style: const TextStyle(color: Colors.deepOrange),
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.arrow_back_ios_new, color: AppColors.ink, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'History',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
                       ),
                     ),
-                    title: Text('${_capitalize(entry.mealType)} · $time'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(day),
-                        Text(itemsStr, maxLines: 2, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                    trailing: Text(
-                      '${entry.totalCalories} kcal',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepOrange),
-                    ),
-                    onLongPress: () => _confirmDelete(entry),
                   ),
-                );
-              },
+                  Text(
+                    '${_entries.length} meals',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.muted,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _entries.isEmpty
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('🍽️', style: TextStyle(fontSize: 48)),
+                          SizedBox(height: 16),
+                          Text(
+                            'No meals logged yet',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.muted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                      itemCount: sorted.length,
+                      itemBuilder: (context, index) {
+                        final entry = sorted[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: MealCard(
+                            entry: entry,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => MealDetailScreen(entry: entry),
+                                ),
+                              );
+                            },
+                            onLongPress: () => _confirmDelete(entry),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Future<void> _confirmDelete(FoodEntry entry) async {
+    HapticFeedback.mediumImpact();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete entry?'),
         content: const Text('This cannot be undone.'),
         actions: [
@@ -84,7 +128,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const Text('Delete', style: TextStyle(color: AppColors.missedRed)),
           ),
         ],
       ),
@@ -97,7 +141,4 @@ class _HistoryScreenState extends State<HistoryScreen> {
       });
     }
   }
-
-  String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }

@@ -7,7 +7,7 @@ Cal Matters ("we", "our", or "us") operates the Cal Matters mobile application. 
 ## Information We Collect
 
 ### Food Photos
-When you take or upload a food photo, the image is sent to an AI service (OpenAI or Google Gemini) for analysis. The photo is processed in real-time and is not stored on our servers.
+When you take or upload a food photo, the image is sent to an AI service (AICredits) for analysis. The photo is processed in real-time and is not stored on our servers.
 
 ### Account Information
 If you sign in with Google, we collect your email address and display name for authentication purposes.
@@ -36,7 +36,7 @@ All health and nutrition data is stored locally on your device using SharedPrefe
 
 ## Third-Party Services
 
-- **OpenAI / Google Gemini:** Used for food image analysis. Images are processed temporarily and not retained.
+- **AICredits:** Used for food image analysis. Images are processed temporarily and not retained.
 - **Firebase:** Used for authentication and optional cloud backup.
 - **Open Food Facts:** Used for barcode scanning (public database).
 
@@ -55,4 +55,4 @@ We may update this privacy policy from time to time. You will be notified of any
 ## Contact Us
 
 If you have questions about this privacy policy, please contact us at:
-- Email: support@calmatters.app
+- Email: atuljaiswal1246@gmail.com

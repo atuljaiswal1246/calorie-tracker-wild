@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
 
 class AchievementsScreen extends StatefulWidget {
   final StorageService storage;
@@ -13,11 +14,6 @@ class AchievementsScreen extends StatefulWidget {
 }
 
 class _AchievementsScreenState extends State<AchievementsScreen> {
-  static const _bg = Color(0xFFFAF9F7);
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF8E8E93);
-  static const _gold = Color(0xFFFFD60A);
-
   late AchievementsService _service;
   late List<Achievement> _achievements;
 
@@ -35,12 +31,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final progress = total > 0 ? unlocked / total : 0.0;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
-            // Header
             Row(
               children: [
                 GestureDetector(
@@ -48,14 +43,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.card,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 10,
-                        ),
-                      ],
+                      boxShadow: AppColors.cardShadowLight,
                     ),
                     child: const Icon(Icons.arrow_back_ios_new, size: 18),
                   ),
@@ -66,27 +56,19 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
-                    color: _ink,
+                    color: AppColors.ink,
                     letterSpacing: -0.5,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-
-            // Progress card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.card,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                boxShadow: AppColors.cardShadowLight,
               ),
               child: Column(
                 children: [
@@ -95,17 +77,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                     style: const TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.w800,
-                      color: _ink,
+                      color: AppColors.ink,
                       letterSpacing: -1,
                     ),
                   ),
                   const SizedBox(height: 4),
                   const Text(
                     'badges unlocked',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: _muted,
-                    ),
+                    style: TextStyle(fontSize: 14, color: AppColors.muted),
                   ),
                   const SizedBox(height: 16),
                   ClipRRect(
@@ -114,9 +93,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       height: 10,
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: const Color(0xFFECECE7),
+                        backgroundColor: AppColors.track,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          unlocked == total ? _gold : _ink,
+                          unlocked == total ? AppColors.gold : AppColors.ink,
                         ),
                       ),
                     ),
@@ -125,8 +104,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Achievement grid
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -153,15 +130,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: unlocked ? Colors.white : Colors.white.withOpacity(0.5),
+        color: unlocked ? AppColors.card : AppColors.card.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(20),
         border: unlocked
-            ? Border.all(color: _gold.withOpacity(0.3), width: 2)
+            ? Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 2)
             : null,
         boxShadow: unlocked
             ? [
                 BoxShadow(
-                  color: _gold.withOpacity(0.1),
+                  color: AppColors.gold.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -175,7 +152,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             achievement.emoji,
             style: TextStyle(
               fontSize: 32,
-              color: unlocked ? null : Colors.grey.withOpacity(0.4),
+              color: unlocked ? null : Colors.grey.withValues(alpha: 0.4),
             ),
           ),
           const SizedBox(height: 8),
@@ -185,7 +162,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: unlocked ? _ink : _muted.withOpacity(0.5),
+              color: unlocked ? AppColors.ink : AppColors.muted.withValues(alpha: 0.5),
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -196,7 +173,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 9,
-              color: unlocked ? _muted : _muted.withOpacity(0.4),
+              color: unlocked ? AppColors.muted : AppColors.muted.withValues(alpha: 0.4),
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -210,9 +187,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 height: 5,
                 child: LinearProgressIndicator(
                   value: achievement.progress,
-                  backgroundColor: const Color(0xFFECECE7),
+                  backgroundColor: AppColors.track,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    _muted.withOpacity(0.5),
+                    AppColors.muted.withValues(alpha: 0.5),
                   ),
                 ),
               ),

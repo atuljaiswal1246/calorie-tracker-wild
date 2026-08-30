@@ -162,4 +162,94 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
 - User self-tests on real Android devices; build `flutter build apk --debug` or
   `flutter run` for device testing.
 - Timeline goal from original plan: MVP in ~1 week, submit to Google Play mid-next-week.
+
+## AI Provider Setup (2026-08-29) — AICredits via Cloudflare proxy
+- OpenAI/Gemini paid keys CANNOT be used: OpenAI's Stripe checkout rejects most Indian
+  cards; user's OpenAI 429 (no usable quota). Gemini free tier exists but is NOT viable
+  for production (10 RPM / 1500 RPD, trains on data, no SLA). GEMINI_KEY removed.
+- **Production path: AICredits** (aicredits.in) — OpenAI-compatible API, pay in INR via
+  UPI, min top-up ₹50 (balance: ₹50 as of 2026-08-29). API key = secret `AICREDITS_KEY`
+  on Cloudflare Worker `cal-matters-gemini-proxy` (https://cal-matters-gemini-proxy.atuljaiswal1246.workers.dev).
+- Proxy worker (`cloudflare_worker/worker.js`): forwards to `https://aicredits.in/v1/chat/completions`,
+  adds Bearer AICREDITS_KEY, per-device daily quota via KV binding `QUOTA` = **100/day**.
+  On app restarts the device id regenerates (stored in systemTemp), so quota is per-session-ish.
+- App never ships a key: `OpenAIService` (lib/services/openai_service.dart) POSTs OpenAI
+  format to the proxy with header `x-device-id`. Model: gpt-4o-mini (default).
+- Deploy: `cd cloudflare_worker && wrangler deploy` (secrets must be re-added via
+  `wrangler secret put AICREDITS_KEY` or dashboard if the worker is re-created).
+- Note: curl/python CLI calls to the worker may hit Cloudflare bot-fight 403 — use a
+  browser-like User-Agent or test via the app itself.
+
+## Play Store Launch Plan (verified 2026-08-29)
+- **MANDATORY: 12-testers-for-14-days closed testing** — applies to ALL apps from personal
+  Play Console accounts created after Nov 13, 2023. This is the #1 launch blocker.
+  - Run a **closed test** with ≥12 testers opted in continuously for 14 days BEFORE
+    requesting production access. Testers must actually install/use the app; quitting
+    via the testing web link de-opts them (uninstall does NOT opt out).
+  - Organization accounts are exempt but need a D-U-N-S number (days–weeks + financial/
+    health app restrictions) — plan is to stay PERSONAL.
+  - User's friends volunteering to test: use them to fill the 12-testing slots via a
+    closed-testing email/group link in Play Console.
+- **App category — be careful:** Health apps (Medical/Human Subjects Research) MUST use
+  an Organization account and need the Health apps declaration form. Our app is a
+  nutrition/calorie tracker — NOT a medical app — but Google Play category is
+  "Health & Fitness". Safe path: keep it consumer nutrition (no medical claims/advice
+  in listing or app), it does NOT need the Health apps declaration as long as we don't
+  claim medical/clinical/weight-loss-treatment benefits. Avoid words like "treatment",
+  "diagnose", "clinical" in the store listing. Use "Health & Fitness" category but
+  write the listing around food/calories/logging, not health-advice.
+- **Data safety form** (Play Console > App content): must declare — health/fitness data
+  (calories/macros/weight), photos (sent to AICredits for analysis; NOT stored),
+  email+display name if Google sign-in. Data is not shared/sold; encrypted in transit.
+  **Privacy policy LIVE on Firebase Hosting**: https://calorie-tracker-80a0b.web.app/privacy.html
+  (Firebase project `calorie-tracker-80a0b`; hosting config in `firebase.json` serving the
+  `public/` dir — privacy.html, terms.html, index.html; deploy with `firebase deploy --only hosting`
+  from project root). Also a data-safety README copy at `PRIVACY_POLICY.md`.
+  NOTE: policy updated 2026-08-29 (AICredits + atuljaiswal1246@gmail.com, Last updated
+  2026-08-29) and deployed to Firebase — verified live.
+- **Store listing must match app** — screenshots/text must show current features only
+  (no unshipped "AI magic"). App name "Cal Matters" is FINAL. Contact email shown in
+  Play listing: atuljaiswal1246@gmail.com.
+- **App access declaration:** provide Google sign-in (reviewable login may require listing
+  sign-in instructions/credentials). NOTE: NO guest mode once live — users must sign up and
+  pay (trial/payment) to reach Home. Mention the required login path in the declaration.
+  - **PAYMENT/MONETIZE SETUP — REQUIRED, NOT YET DONE (sequenced after store listing):**
+    1. In Play Console under **Monetize with Play**: create the subscription/one-time
+       product (Play Billing) with INR price point.
+    2. Wire `lib/services/billing_service.dart` (in_app_purchase scaffold exists, NOT hooked;
+       onboarding `_PaymentApprovedScreen` is a test stub calling `savePaid(true)` directly).
+    3. Flip **Financial features** to **Yes** (via Google Play Billing) and complete the
+       financial features declarations in the Dashboard checklist.
+    Doing the checklist now with the stub build: Financial features = No (nothing real yet).
+  **TEST ACCOUNT (created 2026-08-29 via Firebase Auth REST API, user
+  localId 2q8X6tImtlMc5fcwzBQ7Gknuqh32):** email `playtest@calmatters.app`,
+  password `CalPass#2026` (email/password sign-in; email NOT verified — fine, sign-in works).
+- **Future requirements (not launch blockers, do NOT break launch):**
+  - Feb 2027: memory/bitmap/DEX-optimization thresholds (R8/minify already enabled
+    in build.gradle.kts; keep `isMinifyEnabled = true` + proguard rules).
+  - Apr 2027: Zero-Tap Sign-In via Android Restore Credentials API for apps with sign-in.
+
+## Release Build & Sharing
+- Version currently `0.9.0+3` (pubspec.yaml). Bump versionCode above installed builds
+  before `adb install -r` (downgrade errors otherwise); signature of release differs
+  from debug so a debug build must be fully uninstalled first.
+- Signing: `android/app/release-key.jks` (storePassword/keyPassword calorietracker123,
+  alias calorie_tracker) — DO NOT commit these credentials anywhere public.
+- Release APK to share with testers: `build/app/outputs/flutter-apk/app-release.apk`
+  (~77MB); Play upload format = AAB: `build/app/outputs/bundle/release/app-release.aab`
+  (~66MB). Copy to ~/Desktop as CalMatters-<ver>.apk/.aab for sharing.
+- iOS test install: `flutter build ios --profile` then devicectl (see env section).
+  UDID 6C0FE134-9424-5153-9BD9-6FB6D916666B — changes; check `xcrun devicectl list devices`.
+
+## QA Process (pairing mode — ongoing)
+- USER drives visual QA screen-by-screen on Android and iPhone; assistant does the driving/
+  code fixes. Instructions flow from user; wait for user's guidance.
+- Android QA via adb: device 10BDCK24A0000LS (1080x2400). Use `uiautomator dump` for exact
+  tap points (nav pill coords: Home(183,2158) Progress(361,2158) Discover(718,2158)
+  Profile(897,2158), center Scan(540,2158); insights icon (758,290)).
+- Insights screen now has streak+achievements pills (matching Progress screen).
+- Known minor issues to fix later: emoji vs Material-icon inconsistency on some screens
+  (progress stats), y-axis "105" label position in progress chart.
+- AI scan verdict "No food detected" can occur spuriously (bad model response) — consider
+  auto-retry before showing the verdict (NOT yet implemented).
 - Verify changes with `flutter analyze` after edits.

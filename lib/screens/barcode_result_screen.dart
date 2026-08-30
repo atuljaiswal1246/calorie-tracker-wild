@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/food_entry.dart';
 import '../services/barcode_service.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
+import 'barcode_scanner_screen.dart';
 
 class BarcodeResultScreen extends StatefulWidget {
   final BarcodeResult result;
@@ -19,11 +21,6 @@ class BarcodeResultScreen extends StatefulWidget {
 }
 
 class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
-  static const _bg = Color(0xFFFAF9F7);
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF8E8E93);
-  static const _green = Color(0xFF34C759);
-
   double _quantity = 100;
   String _mealType = 'snack';
 
@@ -79,20 +76,74 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
     await widget.storage.addEntry(entry);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Logged!'),
-        backgroundColor: Color(0xFF34C759),
-        behavior: SnackBarBehavior.floating,
+
+    final scanAnother = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('✅', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 10),
+              const Text(
+                'Logged!',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Added to your day.',
+                style: TextStyle(fontSize: 13, color: AppColors.muted),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.ink,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Scan another', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Done', style: TextStyle(color: AppColors.muted)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
-    Navigator.pop(context);
+
+    if (!mounted) return;
+    if (scanAnother == true) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BarcodeScannerScreen(storage: widget.storage),
+        ),
+      );
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
@@ -124,7 +175,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: _ink,
+                      color: AppColors.ink,
                     ),
                   ),
                 ),
@@ -149,12 +200,25 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (_r.imageUrl.isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        _r.imageUrl,
+                        height: 140,
+                        width: double.infinity,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Text(
                     _r.name,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: _ink,
+                      color: AppColors.ink,
                     ),
                   ),
                   if (_r.brand.isNotEmpty) ...[
@@ -163,7 +227,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       _r.brand,
                       style: const TextStyle(
                         fontSize: 14,
-                        color: _muted,
+                        color: AppColors.muted,
                       ),
                     ),
                   ],
@@ -179,50 +243,47 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       style: const TextStyle(
                         fontSize: 11,
                         fontFamily: 'monospace',
-                        color: _muted,
+                        color: AppColors.muted,
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // Quantity slider
+                  // Quantity presets
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         'Amount',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: _ink,
+                          color: AppColors.ink,
                         ),
                       ),
+                      const Spacer(),
                       Text(
                         '${_quantity.round()}g',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: _ink,
+                          color: AppColors.ink,
                         ),
                       ),
                     ],
                   ),
-                  SliderTheme(
-                    data: SliderThemeData(
-                      activeTrackColor: _ink,
-                      inactiveTrackColor: const Color(0xFFECECE7),
-                      thumbColor: _ink,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
-                      trackHeight: 6,
-                    ),
-                    child: Slider(
-                      value: _quantity,
-                      min: 10,
-                      max: 500,
-                      divisions: 49,
-                      onChanged: (v) => setState(() => _quantity = v),
-                    ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _qtyPreset('50g', 50),
+                      const SizedBox(width: 8),
+                      _qtyPreset('100g', 100),
+                      const SizedBox(width: 8),
+                      _qtyPreset('150g', 150),
+                      const SizedBox(width: 8),
+                      _qtyPreset('200g', 200),
+                      const SizedBox(width: 8),
+                      _qtyPreset('Custom', _quantity),
+                    ],
                   ),
                   const SizedBox(height: 16),
 
@@ -235,7 +296,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
-                          color: _ink,
+                          color: AppColors.ink,
                           letterSpacing: -1,
                         ),
                       ),
@@ -246,7 +307,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: _muted,
+                            color: AppColors.muted,
                           ),
                         ),
                       ),
@@ -263,7 +324,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       const SizedBox(width: 8),
                       _macroPill('F', '${_fat.round()}g', const Color(0xFF007AFF)),
                       const SizedBox(width: 8),
-                      _macroPill('Fi', '${_fiber.round()}g', _green),
+                      _macroPill('Fi', '${_fiber.round()}g', AppColors.green),
                     ],
                   ),
                 ],
@@ -282,7 +343,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 3),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: selected ? _ink : Colors.white,
+                        color: selected ? AppColors.ink : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: selected ? null : Border.all(color: const Color(0xFFE5E5EA)),
                       ),
@@ -292,7 +353,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: selected ? Colors.white : _ink,
+                            color: selected ? Colors.white : AppColors.ink,
                           ),
                         ),
                       ),
@@ -320,7 +381,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                   child: FilledButton(
                     onPressed: _log,
                     style: FilledButton.styleFrom(
-                      backgroundColor: _ink,
+                      backgroundColor: AppColors.ink,
                       foregroundColor: Colors.white,
                       shape: const StadiumBorder(),
                     ),
@@ -367,6 +428,62 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _qtyPreset(String label, double grams) {
+    final selected = _quantity == grams;
+    return GestureDetector(
+      onTap: () async {
+        if (label == 'Custom') {
+          final controller = TextEditingController(text: _quantity.round().toString());
+          final result = await showDialog<double>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('Enter amount (g)'),
+              content: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                decoration: const InputDecoration(
+                  suffixText: 'g',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                TextButton(
+                  onPressed: () {
+                    final v = double.tryParse(controller.text);
+                    if (v != null && v > 0) Navigator.pop(ctx, v);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          if (result != null) setState(() => _quantity = result.clamp(10, 1000));
+        } else {
+          setState(() => _quantity = grams);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.ink : const Color(0xFFF1F0EC),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : AppColors.ink,
+          ),
         ),
       ),
     );

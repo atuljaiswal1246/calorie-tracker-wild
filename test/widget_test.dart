@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:calorie_tracker/models/profile.dart';
 import 'package:calorie_tracker/models/food_entry.dart';
-import 'package:calorie_tracker/services/ai_config.dart';
 
 Profile make({
   String sex = 'female',
@@ -321,14 +320,5 @@ void main() {
       quantity: 2,
     );
     expect(item.calories, 400);
-  });
-
-  test('Encrypted Gemini key decrypts correctly', () {
-    final key = AiConfig.geminiApiKey;
-    // Expected key is composed here the same way the encryptor did, to avoid
-    // leaving the full plaintext in the repo.
-    const p1 = 'AQ.Ab8RN6I6FqSo';
-    const p2 = '6scMNJdtRvvqVumvpUgoD_kI7bMEbm-PF9jdAw';
-    expect(key, '$p1$p2');
   });
 }

@@ -7,8 +7,10 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/food_entry.dart';
 import '../services/food_search_service.dart';
-import '../services/gemini_service.dart';
+import '../services/openai_service.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
+import 'manual_entry_screen.dart';
 
 class CaptureScreen extends StatefulWidget {
   final StorageService storage;
@@ -21,14 +23,12 @@ class CaptureScreen extends StatefulWidget {
 }
 
 class _CaptureScreenState extends State<CaptureScreen> {
-  static const _bg = Color(0xFFFAF9F7);
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF8E8E93);
 
   final _picker = ImagePicker();
   File? _image;
   bool _analyzing = false;
   String? _error;
+  String? _qualityWarning;
   List<FoodItem>? _items;
   String _mealType = _autoMealType();
 
@@ -72,10 +72,13 @@ class _CaptureScreenState extends State<CaptureScreen> {
       imageQuality: 70,
     );
     if (picked != null) {
+      final file = File(picked.path);
+      final size = await file.length();
       setState(() {
-        _image = File(picked.path);
+        _image = file;
         _items = null;
         _error = null;
+        _qualityWarning = size < 20000 ? 'Image looks small or dark. Result may be less accurate.' : null;
       });
       _analyze();
     }
@@ -94,7 +97,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
     try {
       ({List<FoodItem> items, String? mealType}) result;
-      result = await GeminiService().analyzeImage(image.path);
+      result = await OpenAIService().analyzeImage(image.path);
       if (!mounted) return;
 
       // Attach database match for comparison
@@ -194,16 +197,137 @@ class _CaptureScreenState extends State<CaptureScreen> {
     await widget.storage.addEntry(entry);
     HapticFeedback.lightImpact();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logged! Added to your day.')),
+
+    final scanAnother = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('✅', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 10),
+              const Text(
+                'Logged!',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Added to your day.',
+                style: TextStyle(fontSize: 13, color: AppColors.muted),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.ink,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Scan another', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Done', style: TextStyle(color: AppColors.muted)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
-    Navigator.of(context).pop(true);
+
+    if (!mounted) return;
+    if (scanAnother == true) {
+      setState(() {
+        _image = null;
+        _items = null;
+        _error = null;
+        _analyzing = false;
+      });
+    } else {
+      Navigator.of(context).pop(true);
+    }
+  }
+
+  Future<void> _confirmDiscard() async {
+    if (_items == null && _image == null) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🗑️', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 10),
+              const Text(
+                'Discard this meal?',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Your analysis will be lost.',
+                style: TextStyle(fontSize: 13, color: AppColors.muted),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.missedRed,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Discard', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Keep editing', style: TextStyle(color: AppColors.muted)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (discard == true && mounted) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -213,8 +337,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: _ink),
-                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+                    onPressed: _confirmDiscard,
                   ),
                   const Expanded(
                     child: Text(
@@ -223,7 +347,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: _ink),
+                          color: AppColors.ink),
                     ),
                   ),
                   const SizedBox(width: 48),
@@ -236,31 +360,104 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Image
+                    // Image with retake button
                     if (_image != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child:
-                            Image.file(_image!, height: 240, fit: BoxFit.cover),
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.file(_image!, width: double.infinity, height: 240, fit: BoxFit.cover),
+                          ),
+                          if (!_analyzing && _items == null)
+                            Positioned(
+                              top: 10,
+                              right: 10,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _image = null;
+                                    _error = null;
+                                    _qualityWarning = null;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
+
+                    // Quality warning
+                    if (_qualityWarning != null && !_analyzing) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.warningBg,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.warningOrange),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                _qualityWarning!,
+                                style: const TextStyle(fontSize: 12, color: AppColors.warningOrange),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     // Camera / Gallery
                     if (widget.initialImage == null && _items == null)
-                      Row(
+                      Column(
                         children: [
-                          Expanded(
-                            child: _outlineBtn(
-                                icon: Icons.photo_camera,
-                                label: 'Camera',
-                                onTap: () => _pickImage(ImageSource.camera)),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.card,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.lightbulb_outline, size: 16, color: AppColors.muted),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Show the full plate for better accuracy',
+                                    style: TextStyle(fontSize: 12, color: AppColors.muted),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _outlineBtn(
-                                icon: Icons.photo_library,
-                                label: 'Gallery',
-                                onTap: () => _pickImage(ImageSource.gallery)),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _outlineBtn(
+                                    icon: Icons.photo_camera,
+                                    label: 'Camera',
+                                    onTap: () => _pickImage(ImageSource.camera)),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _outlineBtn(
+                                    icon: Icons.photo_library,
+                                    label: 'Gallery',
+                                    onTap: () => _pickImage(ImageSource.gallery)),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -271,27 +468,52 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFF0F0),
+                          color: AppColors.errorBg,
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Column(
                           children: [
                             Text(_error!,
                                 style: const TextStyle(
-                                    color: Color(0xFFD32F2F), fontSize: 14)),
+                                    color: AppColors.missedRed, fontSize: 14)),
                             const SizedBox(height: 10),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _analyze,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFD32F2F),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ManualEntryScreen(storage: widget.storage),
+                                        ),
+                                      ).then((v) {
+                                        if (v == true) Navigator.pop(context, true);
+                                      });
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.missedRed,
+                                      side: const BorderSide(color: AppColors.missedRed),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: const Text('Enter manually'),
+                                  ),
                                 ),
-                                child: const Text('Retry'),
-                              ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: _analyze,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.missedRed,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: const Text('Retry'),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -303,11 +525,23 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       const SizedBox(height: 32),
                       const Center(
                           child:
-                              CircularProgressIndicator(color: _ink, strokeWidth: 2)),
+                              CircularProgressIndicator(color: AppColors.ink, strokeWidth: 2)),
                       const SizedBox(height: 12),
                       const Center(
                         child: Text('Analyzing your food...',
-                            style: TextStyle(color: _muted, fontSize: 14)),
+                            style: TextStyle(color: AppColors.muted, fontSize: 14)),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _analyzing = false;
+                              _error = null;
+                            });
+                          },
+                          child: const Text('Cancel', style: TextStyle(color: AppColors.muted)),
+                        ),
                       ),
                     ],
 
@@ -315,33 +549,17 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     if (_items != null && !_analyzing) ...[
                       const SizedBox(height: 16),
 
-                      // Meal type
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: DropdownButton<String>(
-                          value: _mealType,
-                          isExpanded: true,
-                          underline: const SizedBox(),
-                          dropdownColor: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: _ink),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'breakfast', child: Text('Breakfast')),
-                            DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
-                            DropdownMenuItem(
-                                value: 'dinner', child: Text('Dinner')),
-                            DropdownMenuItem(value: 'snack', child: Text('Snack')),
-                          ],
-                          onChanged: (v) => setState(() => _mealType = v!),
-                        ),
+                      // Meal type pills
+                      Row(
+                        children: [
+                          _mealPill('Breakfast', 'breakfast'),
+                          const SizedBox(width: 8),
+                          _mealPill('Lunch', 'lunch'),
+                          const SizedBox(width: 8),
+                          _mealPill('Dinner', 'dinner'),
+                          const SizedBox(width: 8),
+                          _mealPill('Snack', 'snack'),
+                        ],
                       ),
                       const SizedBox(height: 16),
 
@@ -350,6 +568,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
                         return _FoodItemCard(
                           item: item,
                           onChanged: () => setState(() {}),
+                          onDelete: () {
+                            setState(() => _items!.remove(item));
+                            if (_items!.isEmpty) {
+                              setState(() => _items = null);
+                            }
+                          },
                         );
                       }),
 
@@ -366,7 +590,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
             // Sticky Log button at bottom
             if (_items != null && !_analyzing)
               ColoredBox(
-                color: Colors.white,
+                color: AppColors.card,
                 child: SafeArea(
                   top: false,
                   child: Column(
@@ -381,9 +605,11 @@ class _CaptureScreenState extends State<CaptureScreen> {
                           child: FilledButton(
                             onPressed: _log,
                             style: FilledButton.styleFrom(
-                              backgroundColor: _ink,
+                              backgroundColor: AppColors.ink,
                               foregroundColor: Colors.white,
-                              shape: const StadiumBorder(),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                             child: const Text('Log this meal',
                                 style: TextStyle(
@@ -408,23 +634,51 @@ class _CaptureScreenState extends State<CaptureScreen> {
     required String label,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 20, color: _ink),
+            Icon(icon, size: 20, color: AppColors.ink),
             const SizedBox(width: 8),
             Text(label,
                 style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w600, color: _ink)),
+                    fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _mealPill(String label, String value) {
+    final selected = _mealType == value;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _mealType = value),
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.ink : AppColors.card,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : AppColors.muted,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -436,20 +690,25 @@ class _CaptureScreenState extends State<CaptureScreen> {
 class _FoodItemCard extends StatefulWidget {
   final FoodItem item;
   final VoidCallback onChanged;
+  final VoidCallback? onDelete;
 
-  const _FoodItemCard({required this.item, required this.onChanged});
+  const _FoodItemCard({required this.item, required this.onChanged, this.onDelete});
 
   @override
   State<_FoodItemCard> createState() => _FoodItemCardState();
 }
 
 class _FoodItemCardState extends State<_FoodItemCard> {
-  static const _proteinColor = Color(0xFFE53935);
-  static const _carbsColor = Color(0xFFFF9500);
-  static const _fatColor = Color(0xFF007AFF);
-  static const _fiberColor = Color(0xFF8D6E63);
-  static const _sugarColor = Color(0xFFE91E63);
-  static const _sodiumColor = Color(0xFF78909C);
+
+  String _intuitiveServing(double grams) {
+    if (grams <= 0) return '';
+    if (grams < 30) return 'a bite';
+    if (grams < 80) return 'a small serving';
+    if (grams < 150) return 'a cup';
+    if (grams < 250) return 'a bowl';
+    if (grams < 400) return 'a plate';
+    return 'a large plate';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -460,13 +719,13 @@ class _FoodItemCardState extends State<_FoodItemCard> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Name + quantity counter
+          // Name + quantity counter + delete
           Row(
             children: [
               Expanded(
@@ -474,11 +733,19 @@ class _FoodItemCardState extends State<_FoodItemCard> {
                     style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1C1C1E))),
+                        color: AppColors.ink)),
               ),
+              if (widget.onDelete != null)
+                IconButton(
+                  icon: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                  onPressed: widget.onDelete,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              const SizedBox(width: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAF9F7),
+                  color: AppColors.bg,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -499,7 +766,7 @@ class _FoodItemCardState extends State<_FoodItemCard> {
                           style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF1C1C1E))),
+                              color: AppColors.ink)),
                     ),
                     _qtyBtn(
                       icon: Icons.add,
@@ -515,15 +782,23 @@ class _FoodItemCardState extends State<_FoodItemCard> {
           ),
           const SizedBox(height: 12),
 
-          // Calories
+          // Serving size + Calories
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              if (item.servingSizeGrams > 0)
+                Text(
+                  '${_intuitiveServing(item.servingSizeGrams)} · ${item.servingSizeGrams.round()}g',
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.muted),
+                ),
+              const Spacer(),
               Text('${item.calories} kcal',
                   style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1C1C1E))),
+                      color: AppColors.ink)),
             ],
           ),
           const SizedBox(height: 12),
@@ -531,11 +806,11 @@ class _FoodItemCardState extends State<_FoodItemCard> {
           // Macro pills row 1
           Row(
             children: [
-              _macroPill('Protein ${item.protein.toStringAsFixed(1)}g', _proteinColor),
+              _macroPill('Protein ${item.protein.toStringAsFixed(1)}g', AppColors.protein),
               const SizedBox(width: 8),
-              _macroPill('Carbs ${item.carbs.toStringAsFixed(1)}g', _carbsColor),
+              _macroPill('Carbs ${item.carbs.toStringAsFixed(1)}g', AppColors.carbs),
               const SizedBox(width: 8),
-              _macroPill('Fat ${item.fat.toStringAsFixed(1)}g', _fatColor),
+              _macroPill('Fat ${item.fat.toStringAsFixed(1)}g', AppColors.fat),
             ],
           ),
 
@@ -545,14 +820,14 @@ class _FoodItemCardState extends State<_FoodItemCard> {
             Row(
               children: [
                 if (item.fiber > 0)
-                  _macroPill('Fiber ${item.fiber.toStringAsFixed(1)}g', _fiberColor),
+                  _macroPill('Fiber ${item.fiber.toStringAsFixed(1)}g', AppColors.fiber),
                 if (item.fiber > 0 && item.sugar > 0) const SizedBox(width: 8),
                 if (item.sugar > 0)
-                  _macroPill('Sugar ${item.sugar.toStringAsFixed(1)}g', _sugarColor),
+                  _macroPill('Sugar ${item.sugar.toStringAsFixed(1)}g', AppColors.sugar),
                 if ((item.fiber > 0 || item.sugar > 0) && item.sodium > 0)
                   const SizedBox(width: 8),
                 if (item.sodium > 0)
-                  _macroPill('Sodium ${item.sodium.toStringAsFixed(0)}mg', _sodiumColor),
+                  _macroPill('Sodium ${item.sodium.toStringAsFixed(0)}mg', AppColors.sodium),
               ],
             ),
           ],
@@ -575,20 +850,19 @@ class _FoodItemCardState extends State<_FoodItemCard> {
   }
 
   Widget _qtyBtn({required IconData icon, VoidCallback? onTap}) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: onTap != null ? Colors.white : const Color(0xFFECECE7),
+          color: onTap != null ? AppColors.card : AppColors.track,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon,
             size: 18,
-            color: onTap != null
-                ? const Color(0xFF1C1C1E)
-                : const Color(0xFF8E8E93)),
+            color: onTap != null ? AppColors.ink : AppColors.muted),
       ),
     );
   }
@@ -597,7 +871,6 @@ class _FoodItemCardState extends State<_FoodItemCard> {
 // ---- Total Summary Card ----
 
 class _TotalCard extends StatelessWidget {
-  static const _ink = Color(0xFF1C1C1E);
   final List<FoodItem> items;
 
   const _TotalCard({required this.items});
@@ -612,7 +885,7 @@ class _TotalCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _ink,
+        color: AppColors.ink,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
+import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
+import 'achievements_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
   final StorageService storage;
@@ -15,16 +19,9 @@ class InsightsScreen extends StatefulWidget {
 }
 
 class _InsightsScreenState extends State<InsightsScreen> {
-  static const _bg = Color(0xFFFAF9F7);
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF8E8E93);
-  static const _green = Color(0xFF34C759);
-  static const _proteinColor = Color(0xFFE53935);
-  static const _carbsColor = Color(0xFFFF9500);
-  static const _fatColor = Color(0xFF007AFF);
-
   Profile? _profile;
   List<FoodEntry> _entries = [];
+  List<Achievement> _achievements = [];
 
   @override
   void initState() {
@@ -35,6 +32,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   void _load() {
     _profile = widget.storage.profile;
     _entries = widget.storage.entries;
+    _achievements = AchievementsService(widget.storage).getAll();
     setState(() {});
   }
 
@@ -63,6 +61,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
         .reduce((a, b) => a.isBefore(b) ? a : b);
   }
 
+  bool get _hasAnyData => _entries.isNotEmpty;
+
   // ---- Last 7 days data ----
 
   List<DateTime> get _last7Days {
@@ -70,15 +70,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return List.generate(7, (i) => today.subtract(Duration(days: 6 - i)));
   }
 
-  List<DateTime> get _last30Days {
-    final today = DateTime.now();
-    return List.generate(30, (i) => today.subtract(Duration(days: 29 - i)));
-  }
-
   int get _totalCalories7d =>
       _last7Days.fold(0, (s, d) => s + _caloriesForDay(d));
 
-  double get _avgCalories7d => _totalCalories7d / 7;
+  int get _daysWithData7d =>
+      _last7Days.where((d) => _caloriesForDay(d) > 0).length;
+
+  double get _avgCalories7d {
+    final days = _daysWithData7d;
+    return days > 0 ? _totalCalories7d / days : 0;
+  }
 
   int get _daysOnTarget7d {
     final goal = _profile?.calorieGoal ?? 1500;
@@ -105,6 +106,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
     final today = DateTime.now();
     int streak = 0;
     var day = DateTime(today.year, today.month, today.day);
+    // If today has no entries, start counting from yesterday
+    if (_caloriesForDay(day) == 0) {
+      day = day.subtract(const Duration(days: 1));
+    }
     while (_caloriesForDay(day) > 0) {
       streak++;
       day = day.subtract(const Duration(days: 1));
@@ -132,12 +137,19 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   // Best/worst day in last 7
-  DateTime get _bestDay7d => _last7Days
-      .reduce((a, b) => _caloriesForDay(a) > _caloriesForDay(b) ? a : b);
+  DateTime? get _bestDay7d {
+    final daysWithEntries = _last7Days.where((d) => _caloriesForDay(d) > 0);
+    if (daysWithEntries.isEmpty) return null;
+    return daysWithEntries
+        .reduce((a, b) => _caloriesForDay(a) > _caloriesForDay(b) ? a : b);
+  }
 
-  DateTime get _worstDay7d => _last7Days
-      .where((d) => _caloriesForDay(d) > 0)
-      .fold(_last7Days.first, (a, b) => _caloriesForDay(a) < _caloriesForDay(b) ? a : b);
+  DateTime? get _worstDay7d {
+    final daysWithEntries = _last7Days.where((d) => _caloriesForDay(d) > 0);
+    if (daysWithEntries.isEmpty) return null;
+    return daysWithEntries
+        .reduce((a, b) => _caloriesForDay(a) < _caloriesForDay(b) ? a : b);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,80 +158,272 @@ class _InsightsScreenState extends State<InsightsScreen> {
       return const Center(child: Text('No profile'));
     }
 
-    return RefreshIndicator(
-      color: _ink,
-      onRefresh: () async => _load(),
-      child: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-      children: [
-        _header(),
-        const SizedBox(height: 20),
-        _summaryCard(profile),
-        const SizedBox(height: 16),
-        _calorieTrendCard(profile),
-        const SizedBox(height: 16),
-        _macroDistributionCard(),
-        const SizedBox(height: 16),
-        _streaksCard(),
-        const SizedBox(height: 16),
-        _bestWorstCard(profile),
-      ],
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      body: SafeArea(
+        child: RefreshIndicator(
+          color: AppColors.ink,
+          onRefresh: () async => _load(),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+            children: [
+              _header(),
+              const SizedBox(height: 20),
+              if (!_hasAnyData) ...[
+                _emptyState(),
+              ] else ...[
+                _summaryCard(profile),
+                const SizedBox(height: 16),
+                _calorieTrendCard(profile),
+                const SizedBox(height: 16),
+                _macroDistributionCard(),
+                const SizedBox(height: 16),
+                _streaksCard(),
+                const SizedBox(height: 16),
+                _bestWorstCard(profile),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _header() {
-    return const Row(
+    final all = _achievements;
+    final unlocked = all.where((a) => a.unlocked).length;
+
+    return Row(
       children: [
-        Text(
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: AppColors.cardShadowLight,
+            ),
+            child: const Icon(Icons.arrow_back_ios_new, size: 18),
+          ),
+        ),
+        const SizedBox(width: 12),
+        const Text(
           'Insights',
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
-            color: _ink,
+            color: AppColors.ink,
             letterSpacing: -0.5,
+          ),
+        ),
+        const Spacer(),
+        Semantics(
+          label: '$_currentStreak day streak. Tap for details.',
+          button: true,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              _showStreakInfo(context);
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppColors.cardShadow,
+              ),
+              child: Row(
+                children: [
+                  const Text('🔥', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$_currentStreak',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Semantics(
+          label: '$unlocked of ${all.length} achievements unlocked. Tap to view.',
+          button: true,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AchievementsScreen(storage: widget.storage),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppColors.cardShadow,
+              ),
+              child: Row(
+                children: [
+                  const Text('🏆', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$unlocked/${all.length}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  // ---- Summary card ----
+  void _showStreakInfo(BuildContext context) {
+    final streak = _currentStreak;
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🔥', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 12),
+              Text(
+                streak == 1 ? '1 day streak' : '$streak day streak',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Log at least one meal every day to keep your streak alive.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppColors.muted),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.ink,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Got it'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-  Widget _summaryCard(Profile profile) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
+  // ---- Empty state ----
+
+  Widget _emptyState() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 60),
+      child: Column(
+        children: [
+          const Text('📊', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 16),
+          const Text(
+            'No data yet',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Start logging meals to see your insights here.',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.muted,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'This Week',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: _ink,
+    );
+  }
+
+  // ---- Summary card ----
+
+  Widget _summaryCard(Profile profile) {
+    return Semantics(
+      label: 'Weekly summary',
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'This Week',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _summaryStat('Avg/day', '${_avgCalories7d.round()}', 'kcal', _ink),
-              _summaryStat('On target', '$_daysOnTarget7d', '/7 days', _green),
-              _summaryStat('Total', '${(_totalCalories7d / 1000).toStringAsFixed(1)}', 'kcal', _ink),
-            ],
-          ),
-        ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _summaryStat(
+                  'Avg/day',
+                  '${_avgCalories7d.round()}',
+                  'kcal',
+                  AppColors.ink,
+                ),
+                _summaryStat(
+                  'On target',
+                  '$_daysOnTarget7d',
+                  '/7 days',
+                  AppColors.green,
+                ),
+                _summaryStat(
+                  'Total',
+                  '${_totalCalories7d}',
+                  'kcal',
+                  AppColors.ink,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -234,6 +438,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: color,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
           const SizedBox(height: 2),
@@ -242,7 +447,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: _muted,
+              color: AppColors.muted,
             ),
           ),
           const SizedBox(height: 2),
@@ -251,7 +456,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: _ink,
+              color: AppColors.ink,
             ),
           ),
         ],
@@ -267,56 +472,53 @@ class _InsightsScreenState extends State<InsightsScreen> {
     final cals = days.map((d) => _caloriesForDay(d)).toList();
     final maxCal = [goal, ...cals].reduce((a, b) => a > b ? a : b);
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                '7-Day Trend',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: _ink,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: _ink,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'Goal: $goal',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+    return Semantics(
+      label: '7-day calorie trend',
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '7-Day Trend',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 120,
-            child: _trendChart(days, cals, goal, maxCal),
-          ),
-        ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.ink,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Goal: $goal',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 120,
+              child: _trendChart(days, cals, goal, maxCal),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -332,14 +534,20 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
         Color barColor;
         if (cal == 0) {
-          barColor = const Color(0xFFECECE7);
+          barColor = AppColors.track;
         } else if (hitTarget) {
-          barColor = _green;
+          barColor = AppColors.green;
         } else if (ratio >= 0.5) {
-          barColor = const Color(0xFFFFA726);
+          barColor = AppColors.warningOrange;
         } else {
-          barColor = _ink;
+          barColor = AppColors.ink;
         }
+
+        final dayLabel = DateFormat('E').format(days[i]);
+        // Use first 2 letters for ambiguous single-letter days (Sat/Sun, Thu/Tue)
+        final shortLabel = (dayLabel == 'Saturday' || dayLabel == 'Sunday')
+            ? dayLabel.substring(0, 2)
+            : dayLabel[0];
 
         return Expanded(
           child: Padding(
@@ -356,6 +564,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                         color: barColor,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
@@ -369,11 +578,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  DateFormat('E').format(days[i])[0],
+                  shortLabel,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                    color: isToday ? _ink : _muted,
+                    color: isToday ? AppColors.ink : AppColors.muted,
                   ),
                 ),
               ],
@@ -396,70 +605,69 @@ class _InsightsScreenState extends State<InsightsScreen> {
     final carbsPct = total > 0 ? totalC / total : 0.0;
     final fatPct = total > 0 ? totalF / total : 0.0;
 
-    final avgP = totalP / 7;
-    final avgC = totalC / 7;
-    final avgF = totalF / 7;
+    final avgP = _daysWithData7d > 0 ? totalP / _daysWithData7d : 0.0;
+    final avgC = _daysWithData7d > 0 ? totalC / _daysWithData7d : 0.0;
+    final avgF = _daysWithData7d > 0 ? totalF / _daysWithData7d : 0.0;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Macro Split (7-day avg)',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: _ink,
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Stacked bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: SizedBox(
-              height: 16,
-              child: Row(
-                children: [
-                  if (proteinPct > 0)
-                    Expanded(
-                      flex: (proteinPct * 1000).round(),
-                      child: Container(color: _proteinColor),
-                    ),
-                  if (carbsPct > 0)
-                    Expanded(
-                      flex: (carbsPct * 1000).round(),
-                      child: Container(color: _carbsColor),
-                    ),
-                  if (fatPct > 0)
-                    Expanded(
-                      flex: (fatPct * 1000).round(),
-                      child: Container(color: _fatColor),
-                    ),
-                ],
+    return Semantics(
+      label: 'Macro distribution',
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Macro Split (7-day avg)',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _macroStat('Protein', '${avgP.round()}g', '${(proteinPct * 100).round()}%', _proteinColor),
-              _macroStat('Carbs', '${avgC.round()}g', '${(carbsPct * 100).round()}%', _carbsColor),
-              _macroStat('Fat', '${avgF.round()}g', '${(fatPct * 100).round()}%', _fatColor),
-            ],
-          ),
-        ],
+            const SizedBox(height: 16),
+            // Stacked bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                height: 16,
+                child: total > 0
+                    ? Row(
+                        children: [
+                          if (proteinPct > 0)
+                            Expanded(
+                              flex: (proteinPct * 1000).round(),
+                              child: Container(color: AppColors.protein),
+                            ),
+                          if (carbsPct > 0)
+                            Expanded(
+                              flex: (carbsPct * 1000).round(),
+                              child: Container(color: AppColors.carbs),
+                            ),
+                          if (fatPct > 0)
+                            Expanded(
+                              flex: (fatPct * 1000).round(),
+                              child: Container(color: AppColors.fat),
+                            ),
+                        ],
+                      )
+                    : Container(color: AppColors.track),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _macroStat('Protein', '${avgP.round()}g', '${(proteinPct * 100).round()}%', AppColors.protein),
+                _macroStat('Carbs', '${avgC.round()}g', '${(carbsPct * 100).round()}%', AppColors.carbs),
+                _macroStat('Fat', '${avgF.round()}g', '${(fatPct * 100).round()}%', AppColors.fat),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -480,6 +688,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: color,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
           const SizedBox(height: 2),
@@ -488,7 +697,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: _muted,
+              color: AppColors.muted,
             ),
           ),
         ],
@@ -499,65 +708,95 @@ class _InsightsScreenState extends State<InsightsScreen> {
   // ---- Streaks card ----
 
   Widget _streaksCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Logging Stats',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: _ink,
+    return Semantics(
+      label: 'Logging stats',
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Logging Stats',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _streakStat('🔥', 'Current', '$_currentStreak days', _ink),
-              _streakStat('⚡', 'Longest', '$_longestStreak days', _green),
-              _streakStat('📝', 'Total logged', '$_totalDaysLogged days', _ink),
-            ],
-          ),
-        ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _streakBox(
+                    Icons.local_fire_department,
+                    _currentStreak > 0 ? '$_currentStreak days' : '—',
+                    'Current streak',
+                    _currentStreak > 0 ? AppColors.ink : AppColors.muted,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _streakBox(
+                    Icons.bolt,
+                    _longestStreak > 0 ? '$_longestStreak days' : '—',
+                    'Best streak',
+                    _longestStreak > 0 ? AppColors.green : AppColors.muted,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _streakBox(
+                    Icons.edit_note,
+                    '$_totalDaysLogged days',
+                    'Days logged',
+                    _totalDaysLogged > 0 ? AppColors.ink : AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _streakStat(String emoji, String label, String value, Color color) {
-    return Expanded(
+  Widget _streakBox(IconData icon, String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 24)),
+          Icon(icon, size: 22, color: color),
           const SizedBox(height: 8),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w500,
-              color: _muted,
+              color: AppColors.muted,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -567,59 +806,60 @@ class _InsightsScreenState extends State<InsightsScreen> {
   // ---- Best/worst day ----
 
   Widget _bestWorstCard(Profile profile) {
-    final bestCal = _caloriesForDay(_bestDay7d);
-    final worstCal = _caloriesForDay(_worstDay7d);
+    final bestDay = _bestDay7d;
+    final worstDay = _worstDay7d;
+    if (bestDay == null || worstDay == null) return const SizedBox.shrink();
+
+    final bestCal = _caloriesForDay(bestDay);
+    final worstCal = _caloriesForDay(worstDay);
     final goal = profile.calorieGoal;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'This Week',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: _ink,
+    return Semantics(
+      label: 'Best and lowest days',
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Highlights',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _dayCard(
-                  'Best day',
-                  DateFormat('E, MMM d').format(_bestDay7d),
-                  '$bestCal kcal',
-                  bestCal >= goal * 0.8 ? _green : _ink,
-                  Icons.check_circle,
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _dayCard(
+                    'Most food',
+                    DateFormat('E, MMM d').format(bestDay),
+                    '$bestCal kcal',
+                    bestCal >= goal * 0.8 ? AppColors.green : AppColors.ink,
+                    Icons.check_circle,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _dayCard(
-                  'Lowest day',
-                  DateFormat('E, MMM d').format(_worstDay7d),
-                  '$worstCal kcal',
-                  _muted,
-                  Icons.trending_down,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _dayCard(
+                    'Least food',
+                    DateFormat('E, MMM d').format(worstDay),
+                    '$worstCal kcal',
+                    AppColors.muted,
+                    Icons.trending_down,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -628,13 +868,13 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
+        color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 18),
+          Icon(icon, color: color, size: 22),
           const SizedBox(height: 8),
           Text(
             value,
@@ -642,6 +882,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               fontSize: 16,
               fontWeight: FontWeight.w800,
               color: color,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
           const SizedBox(height: 2),
@@ -650,7 +891,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: _muted,
+              color: AppColors.muted,
             ),
           ),
           const SizedBox(height: 2),
@@ -659,7 +900,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: _ink,
+              color: AppColors.ink,
             ),
           ),
         ],

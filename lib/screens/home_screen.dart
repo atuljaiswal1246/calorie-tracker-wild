@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -18,10 +16,13 @@ import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/widgets.dart';
 import 'achievements_screen.dart';
 import 'barcode_scanner_screen.dart';
 import 'insights_screen.dart';
 import 'capture_screen.dart';
+import 'discover_screen.dart';
 import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
@@ -49,25 +50,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Design tokens — premium, minimal, warm-white background, black primary.
-  static const _bg = Color(0xFFFAF9F7);
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF8E8E93);
-  static const _track = Color(0xFFECECE7);
-  static const _proteinColor = Color(0xFFE53935); // coral/red
-  static const _carbsColor = Color(0xFFFF9500); // warm orange
-  static const _fatColor = Color(0xFF007AFF); // blue
-  static const _green = Color(0xFF34C759); // completed day
-  static const _missedRed = Color(0xFFFF3B30); // missed day
-  static const _avatarBlue = Color(0xFFEAF3FF); // profile avatar bg
-  static const _cardShadow = [
-    BoxShadow(
-      color: Color(0x0F000000),
-      blurRadius: 24,
-      offset: Offset(0, 8),
-    ),
-  ];
-
   Profile? _profile;
   List<FoodEntry> _entries = [];
   int _waterMl = 0;
@@ -76,6 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int _navIndex = 0; // 0 home, 1 progress, 2 groups, 3 profile
   int _macroPageIndex = 0;
   final PageController _macroPageController = PageController();
+  int _logPageIndex = 0;
+  final PageController _logPageController = PageController();
+  late final ScrollController _weekScrollController;
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
   BillingService? _billing;
@@ -92,6 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _profile = widget.storage.profile;
+    _weekScrollController = ScrollController(
+      initialScrollOffset: 59 * 60.0,
+    );
     _load();
     _billing = BillingService(widget.storage);
     _billing!.onStatusChanged = () {
@@ -111,10 +99,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _billing?.dispose();
     _macroPageController.dispose();
+    _logPageController.dispose();
+    _weekScrollController.dispose();
     super.dispose();
   }
 
   void _load() {
+    _profile = widget.storage.profile;
     _entries = widget.storage.entries;
     _waterMl = widget.storage.waterMlForDay(DateTime.now());
     _waterGoalMl = widget.storage.waterGoalMl;
@@ -139,29 +130,22 @@ class _HomeScreenState extends State<HomeScreen> {
       _on(day).fold(0.0, (s, e) => s + e.totalFat);
 
   int get _streak {
-    final goal = _profile?.calorieGoal ?? 1500;
     var streak = 0;
     var day = DateTime.now();
 
-    // Find the start of this Sun-Sat week
-    final today = DateTime.now();
-    final weekStart = today.subtract(Duration(days: today.weekday % 7));
+    if (_calories(day) == 0) {
+      day = day.subtract(const Duration(days: 1));
+    }
 
-    while (!day.isBefore(weekStart)) {
-      final logged = _calories(day);
-      final hitTarget = goal > 0 && logged >= goal * 0.8;
-      if (hitTarget) {
-        streak++;
-        day = day.subtract(const Duration(days: 1));
-      } else {
-        break;
-      }
+    while (_calories(day) > 0) {
+      streak++;
+      day = day.subtract(const Duration(days: 1));
     }
     return streak;
   }
 
   int get _fiberTarget => 30;
-  int get _sugarTarget => (_profile?.calorieGoal ?? 2000) ~/ 200; // ~10% of kcal/4g
+  int get _sugarTarget => (_profile?.calorieGoal ?? 2000) ~/ 200;
   int get _sodiumTarget => 2300;
 
   String get _initials {
@@ -178,10 +162,76 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---- Actions ----
 
   Future<void> _openCapture() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: ImageSource.camera,
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Log a meal',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.ink),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Column(
+                          children: [
+                            Icon(Icons.photo_camera, size: 28, color: AppColors.ink),
+                            SizedBox(height: 8),
+                            Text('Camera', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Column(
+                          children: [
+                            Icon(Icons.photo_library, size: 28, color: AppColors.ink),
+                            SizedBox(height: 8),
+                            Text('Gallery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+    if (source == null) return;
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: source);
     if (picked == null) return;
     if (!mounted) return;
     final saved = await Navigator.of(context).push<bool>(
@@ -197,9 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openGallery() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked == null) return;
     if (!mounted) return;
     final saved = await Navigator.of(context).push<bool>(
@@ -293,10 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Reset',
-              style: TextStyle(color: Color(0xFFFF3B30)),
-            ),
+            child: const Text('Reset', style: TextStyle(color: AppColors.missedRed)),
           ),
         ],
       ),
@@ -326,7 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Color(0xFFFF3B30))),
+            child: const Text('Delete', style: TextStyle(color: AppColors.missedRed)),
           ),
         ],
       ),
@@ -347,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Stack(
           children: [
@@ -363,10 +408,18 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 20,
               right: 20,
               bottom: 14,
-              child: _floatingNav(),
+              child: FloatingNav(
+                currentIndex: _navIndex,
+                onTap: (i) {
+                  setState(() => _navIndex = i);
+                  if (i == 0) _load();
+                },
+                onCenterTap: _openCapture,
+                avatarInitials: _initials,
+              ),
             ),
-            // Hard gate: trial expired + not paid -> block everything.
-            if (widget.storage.trialExpired && !widget.storage.isPaid)
+            if (!widget.storage.isPaidOrSandbox(
+                authEmail: widget.auth.currentUser?.email))
               Positioned.fill(child: _paywallOverlay()),
           ],
         ),
@@ -376,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _paywallOverlay() {
     return Container(
-      color: const Color(0xFAFAF9F7), // ~98% opaque warm white
+      color: AppColors.bg,
       padding: const EdgeInsets.symmetric(horizontal: 28),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -385,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 88,
             height: 88,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF3E0),
+              color: AppColors.warningBg,
               borderRadius: BorderRadius.circular(24),
             ),
             child: const Center(
@@ -399,20 +452,15 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w800,
-              color: _ink,
+              color: AppColors.ink,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 10),
           const Text(
-            'Unlock unlimited food analysis and all features with a '
-            'subscription.',
+            'Unlock unlimited food analysis and all features with a subscription.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: _muted,
-              height: 1.5,
-            ),
+            style: TextStyle(fontSize: 15, color: AppColors.muted, height: 1.5),
           ),
           const SizedBox(height: 28),
           SizedBox(
@@ -421,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: FilledButton(
               onPressed: _openPricing,
               style: FilledButton.styleFrom(
-                backgroundColor: _ink,
+                backgroundColor: AppColors.ink,
                 foregroundColor: Colors.white,
                 shape: const StadiumBorder(),
               ),
@@ -437,12 +485,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () => _billing == null
-                ? null
-                : _billing!.restore(),
+            onPressed: () => _billing?.restore(),
             child: const Text(
               'Restore purchase',
-              style: TextStyle(fontSize: 14, color: _muted),
+              style: TextStyle(fontSize: 14, color: AppColors.muted),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () {},
+            child: const Text(
+              'Maybe later',
+              style: TextStyle(fontSize: 14, color: AppColors.muted),
             ),
           ),
         ],
@@ -458,260 +512,267 @@ class _HomeScreenState extends State<HomeScreen> {
     final proteinGoal = profile.proteinGrams;
     final carbsGoal = profile.carbsGrams;
     final fatGoal = profile.fatGrams;
-    final recent = _entries.take(4).toList();
+    final recent = _on(_selected).take(4).toList();
 
     return RefreshIndicator(
-      color: _ink,
+      color: AppColors.ink,
       onRefresh: () async => _load(),
       child: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
-      children: [
-        _greeting(profile),
-        const SizedBox(height: 14),
-        _header(),
-        if (widget.storage.isOnTrial ||
-            widget.storage.trialExpired) ...[
-          const SizedBox(height: 12),
-          _trialBanner(),
-        ],
-        if (!_isOnline) ...[
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF3E0),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.wifi_off_rounded, size: 18, color: Color(0xFFFF9500)),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'You\'re offline. AI features unavailable.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1C1C1E),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
+        children: [
+          _greeting(profile),
+          const SizedBox(height: 14),
+          _header(),
+          if (!_isOnline) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.warningBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.wifi_off_rounded, size: 18, color: AppColors.accentOrange),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'You\'re offline. AI features unavailable.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
+                      ),
                     ),
                   ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 22),
+          _weekSelector(calorieGoal: goal),
+          const SizedBox(height: 20),
+          CaloriesCard(
+            goal: goal,
+            logged: logged,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MacroBreakdownScreen(
+                  macroType: MacroType.calories,
+                  entries: _on(_selected),
+                  total: logged.toDouble(),
+                  target: goal.toDouble(),
+                  color: AppColors.ink,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 140,
+            child: PageView(
+              controller: _macroPageController,
+              onPageChanged: (i) => setState(() => _macroPageIndex = i),
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: MacroCard(
+                        label: 'Protein eaten',
+                        value: _protein(_selected),
+                        target: proteinGoal.toDouble(),
+                        color: AppColors.protein,
+                        icon: Symbols.egg,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MacroBreakdownScreen(
+                              macroType: MacroType.protein,
+                              entries: _on(_selected),
+                              total: _protein(_selected),
+                              target: proteinGoal.toDouble(),
+                              color: AppColors.protein,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: MacroCard(
+                        label: 'Carbs eaten',
+                        value: _carbs(_selected),
+                        target: carbsGoal.toDouble(),
+                        color: AppColors.carbs,
+                        icon: Symbols.rice_bowl,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MacroBreakdownScreen(
+                              macroType: MacroType.carbs,
+                              entries: _on(_selected),
+                              total: _carbs(_selected),
+                              target: carbsGoal.toDouble(),
+                              color: AppColors.carbs,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: MacroCard(
+                        label: 'Fat eaten',
+                        value: _fat(_selected),
+                        target: fatGoal.toDouble(),
+                        color: AppColors.fat,
+                        icon: Symbols.avocado_bean,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MacroBreakdownScreen(
+                              macroType: MacroType.fat,
+                              entries: _on(_selected),
+                              total: _fat(_selected),
+                              target: fatGoal.toDouble(),
+                              color: AppColors.fat,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: MacroCard(
+                        label: 'Fiber eaten',
+                        value: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
+                        target: _fiberTarget.toDouble(),
+                        color: AppColors.fiber,
+                        icon: Symbols.eco,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MacroBreakdownScreen(
+                              macroType: MacroType.fiber,
+                              entries: _on(_selected),
+                              total: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
+                              target: _fiberTarget.toDouble(),
+                              color: AppColors.fiber,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: MacroCard(
+                        label: 'Sugar eaten',
+                        value: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
+                        target: _sugarTarget.toDouble(),
+                        color: AppColors.sugar,
+                        icon: Symbols.cookie,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MacroBreakdownScreen(
+                              macroType: MacroType.sugar,
+                              entries: _on(_selected),
+                              total: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
+                              target: _sugarTarget.toDouble(),
+                              color: AppColors.sugar,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: MacroCard(
+                        label: 'Sodium eaten',
+                        value: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
+                        target: _sodiumTarget.toDouble(),
+                        color: AppColors.sodium,
+                        icon: Symbols.emoji_food_beverage,
+                        unit: 'mg',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MacroBreakdownScreen(
+                              macroType: MacroType.sodium,
+                              entries: _on(_selected),
+                              total: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
+                              target: _sodiumTarget.toDouble(),
+                              color: AppColors.sodium,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ],
-        const SizedBox(height: 22),
-        _weekSelector(calorieGoal: goal),
-        const SizedBox(height: 20),
-        _caloriesCard(
-          goal: goal,
-          logged: logged,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => MacroBreakdownScreen(
-                macroType: MacroType.calories,
-                entries: _on(_selected),
-                total: logged.toDouble(),
-                target: goal.toDouble(),
-                color: _ink,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        SizedBox(
-          height: 140,
-          child: PageView(
-            controller: _macroPageController,
-            onPageChanged: (i) => setState(() => _macroPageIndex = i),
+          const SizedBox(height: 14),
+          PaginationDots(count: 2, current: _macroPageIndex),
+          const SizedBox(height: 22),
+          _logMealSection(),
+          const SizedBox(height: 22),
+          _waterCard(),
+          const SizedBox(height: 16),
+          _fastingCard(),
+          const SizedBox(height: 22),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Page 1: Protein, Carbs, Fat
-              Row(
-                children: [
-                  Expanded(
-                    child: _macroCard(
-                      label: 'Protein eaten',
-                      value: _protein(_selected),
-                      target: proteinGoal.toDouble(),
-                      color: _proteinColor,
-                      icon: Symbols.egg,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MacroBreakdownScreen(
-                            macroType: MacroType.protein,
-                            entries: _on(_selected),
-                            total: _protein(_selected),
-                            target: proteinGoal.toDouble(),
-                            color: _proteinColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _macroCard(
-                      label: 'Carbs eaten',
-                      value: _carbs(_selected),
-                      target: carbsGoal.toDouble(),
-                      color: _carbsColor,
-                      icon: Symbols.rice_bowl,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MacroBreakdownScreen(
-                            macroType: MacroType.carbs,
-                            entries: _on(_selected),
-                            total: _carbs(_selected),
-                            target: carbsGoal.toDouble(),
-                            color: _carbsColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _macroCard(
-                      label: 'Fat eaten',
-                      value: _fat(_selected),
-                      target: fatGoal.toDouble(),
-                      color: _fatColor,
-                      icon: Symbols.avocado_bean,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MacroBreakdownScreen(
-                            macroType: MacroType.fat,
-                            entries: _on(_selected),
-                            total: _fat(_selected),
-                            target: fatGoal.toDouble(),
-                            color: _fatColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              const Text(
+                'Recently uploaded',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                  letterSpacing: -0.4,
+                ),
               ),
-              // Page 2: Fiber, Sugar, Sodium
-              Row(
-                children: [
-                  Expanded(
-                    child: _macroCard(
-                      label: 'Fiber eaten',
-                      value: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
-                      target: _fiberTarget.toDouble(),
-                      color: const Color(0xFF8D6E63),
-                      icon: Symbols.eco,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MacroBreakdownScreen(
-                            macroType: MacroType.fiber,
-                            entries: _on(_selected),
-                            total: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
-                            target: _fiberTarget.toDouble(),
-                            color: const Color(0xFF8D6E63),
-                          ),
-                        ),
-                      ),
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AllEntriesScreen(storage: widget.storage),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Text(
+                    'View all',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.muted,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _macroCard(
-                      label: 'Sugar eaten',
-                      value: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
-                      target: _sugarTarget.toDouble(),
-                      color: const Color(0xFFE91E63),
-                      icon: Symbols.cookie,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MacroBreakdownScreen(
-                            macroType: MacroType.sugar,
-                            entries: _on(_selected),
-                            total: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
-                            target: _sugarTarget.toDouble(),
-                            color: const Color(0xFFE91E63),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _macroCard(
-                      label: 'Sodium eaten',
-                      value: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
-                      target: _sodiumTarget.toDouble(),
-                      color: const Color(0xFF78909C),
-                      icon: Symbols.emoji_food_beverage,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MacroBreakdownScreen(
-                            macroType: MacroType.sodium,
-                            entries: _on(_selected),
-                            total: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
-                            target: _sodiumTarget.toDouble(),
-                            color: const Color(0xFF78909C),
-                          ),
-                        ),
-                      ),
-                      unit: 'mg',
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 14),
-        _paginationDots(),
-        const SizedBox(height: 22),
-        _logMealSection(),
-        const SizedBox(height: 22),
-        _waterCard(),
-        const SizedBox(height: 16),
-        _fastingCard(),
-        const SizedBox(height: 22),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Recently uploaded',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.w800,
-                color: _ink,
-                letterSpacing: -0.4,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => AllEntriesScreen(storage: widget.storage),
+          const SizedBox(height: 12),
+          if (recent.isEmpty)
+            EmptyCard(onScanTap: _openCapture)
+          else
+            ...recent.map((e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: MealCard(
+                    entry: e,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MealDetailScreen(entry: e),
+                        ),
+                      );
+                    },
+                    onLongPress: () => _deleteEntry(e),
                   ),
-                );
-              },
-              child: const Text(
-                'View all',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: _muted,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (recent.isEmpty)
-          _emptyCard()
-        else
-          ...recent.map((e) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _mealCard(e),
-              )),
-      ],
+                )),
+        ],
       ),
     );
   }
@@ -730,7 +791,7 @@ class _HomeScreenState extends State<HomeScreen> {
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
-          color: _muted,
+          color: AppColors.muted,
         ),
         children: [
           TextSpan(text: '$_greetingText, '),
@@ -738,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> {
             text: profile.name.split(' ').first,
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              color: _ink,
+              color: AppColors.ink,
             ),
           ),
         ],
@@ -746,91 +807,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _trialBanner() {
-    if (widget.storage.isPaid) return const SizedBox.shrink();
-    if (widget.storage.isOnTrial) {
-      final days = widget.storage.trialDaysLeft;
-      return Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: _cardShadow,
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.card_giftcard, size: 18, color: Color(0xFFFF9500)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                days == 0
-                    ? 'Trial ends today!'
-                    : '$days day${days == 1 ? '' : 's'} left in your free trial',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: _ink,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _openPricing(),
-              child: const Text(
-                'Upgrade',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFFFF9500),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    if (widget.storage.trialExpired) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFF3E0),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.lock_outline, size: 18, color: Color(0xFFFF9500)),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Your free trial has ended',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: _ink,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _openPricing(),
-              child: const Text(
-                'Unlock',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFFFF9500),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return const SizedBox.shrink();
-  }
-
   Future<void> _openPricing() async {
-    // Real Play Billing — push the same pricing screen used in onboarding.
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PricingScreen(
@@ -849,10 +826,18 @@ class _HomeScreenState extends State<HomeScreen> {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: _ink,
+            color: AppColors.ink,
             borderRadius: BorderRadius.circular(11),
           ),
-          child: const Icon(Icons.eco, color: Colors.white, size: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: Image.asset(
+              'assets/icons/app_icon.png',
+              width: 38,
+              height: 38,
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
         const SizedBox(width: 10),
         const Text(
@@ -860,13 +845,12 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
-            color: _ink,
+            color: AppColors.ink,
             letterSpacing: -0.5,
           ),
         ),
         const Spacer(),
-        // Insights button
-        GestureDetector(
+        InkWell(
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -874,19 +858,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           },
+          borderRadius: BorderRadius.circular(20),
           child: Container(
-            padding: const EdgeInsets.all(7),
+            padding: const EdgeInsets.all(10),
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: _cardShadow,
+              boxShadow: AppColors.cardShadow,
             ),
-            child: const Icon(Icons.insights_rounded, size: 17, color: Color(0xFF1C1C1E)),
+            child: const Icon(Icons.insights_rounded, size: 17, color: AppColors.ink),
           ),
         ),
         const SizedBox(width: 6),
-        // Achievements badge
-        GestureDetector(
+        InkWell(
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -897,9 +882,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: _cardShadow,
+              boxShadow: AppColors.cardShadow,
             ),
             child: Row(
               children: [
@@ -910,7 +895,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: _ink,
+                    color: AppColors.ink,
                   ),
                 ),
               ],
@@ -918,27 +903,37 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(width: 6),
-        // Streak pill
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-            color: Colors.white,
+        Semantics(
+          label: '$_streak day streak. Tap for details.',
+          button: true,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              _showStreakInfo(context);
+            },
             borderRadius: BorderRadius.circular(20),
-            boxShadow: _cardShadow,
-          ),
-          child: Row(
-            children: [
-              const Text('🔥', style: TextStyle(fontSize: 13)),
-              const SizedBox(width: 4),
-              Text(
-                '$_streak',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: _ink,
-                ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppColors.cardShadow,
               ),
-            ],
+              child: Row(
+                children: [
+                  const Text('🔥', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$_streak',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -952,320 +947,128 @@ class _HomeScreenState extends State<HomeScreen> {
       (i) => DateTime(today.year, today.month, today.day)
           .subtract(Duration(days: 59 - i)),
     );
-    final controller = ScrollController(
-      initialScrollOffset: (dates.length - 1) * 60.0,
-    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: _cardShadow,
+        boxShadow: AppColors.cardShadow,
       ),
       child: SizedBox(
         height: 64,
-        child: MediaQuery(
-          data: MediaQueryData(
-            textScaler: TextScaler.noScaling,
-            size: MediaQuery.of(context).size,
-          ),
-          child: ListView.builder(
-          controller: controller,
+        child: SingleChildScrollView(
+          controller: _weekScrollController,
           scrollDirection: Axis.horizontal,
-          itemCount: dates.length,
-          itemBuilder: (context, index) {
-            final day = dates[index];
-            final isSelected = _isSameDay(day, _selected);
-            final isFuture = day.isAfter(today);
-            final dayCalories = _calories(day);
-            final progress = calorieGoal > 0
-                ? (dayCalories / calorieGoal).clamp(0.0, 1.0)
-                : 0.0;
-            final hasLog = _on(day).isNotEmpty;
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: dates.map((day) {
+              final isSelected = _isSameDay(day, _selected);
+              final isFuture = day.isAfter(today);
+              final dayCalories = _calories(day);
+              final progress = calorieGoal > 0
+                  ? (dayCalories / calorieGoal).clamp(0.0, 1.0)
+                  : 0.0;
+              final hasLog = _on(day).isNotEmpty;
 
-            // Progress ring color: black < 50%, orange 50-79%, green 80+
-            Color ringColor;
-            if (isFuture) {
-              ringColor = const Color(0xFFE3E3DE);
-            } else if (progress >= 0.8) {
-              ringColor = _green;
-            } else if (progress >= 0.5) {
-              ringColor = const Color(0xFFFFA726);
-            } else if (progress > 0) {
-              ringColor = _ink;
-            } else {
-              ringColor = const Color(0xFFE3E3DE);
-            }
+              Color ringColor;
+              if (isFuture) {
+                ringColor = AppColors.weekRing;
+              } else if (progress >= 0.8) {
+                ringColor = AppColors.green;
+              } else if (progress >= 0.5) {
+                ringColor = AppColors.warningOrange;
+              } else if (progress > 0) {
+                ringColor = AppColors.ink;
+              } else {
+                ringColor = AppColors.weekRing;
+              }
 
-            Color textColor = const Color(0xFFB0B0AA);
-            FontWeight weight = FontWeight.w500;
-            if (isSelected) {
-              textColor = _ink;
-              weight = FontWeight.w800;
-            } else if (!isFuture && hasLog) {
-              textColor = _ink;
-              weight = FontWeight.w600;
-            }
+              Color textColor = AppColors.faint;
+              FontWeight weight = FontWeight.w500;
+              if (isSelected) {
+                textColor = AppColors.ink;
+                weight = FontWeight.w800;
+              } else if (!isFuture && hasLog) {
+                textColor = AppColors.ink;
+                weight = FontWeight.w600;
+              }
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: GestureDetector(
-                onTap: () => setState(() => _selected = day),
-                child: Container(
-                  width: 52,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFFF4F4F1)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        height: 16,
-                        child: Center(
-                          child: Text(
-                            day.isAfter(today)
-                                ? '—'
-                                : DateFormat('E').format(day),
-                            style: TextStyle(
-                              fontSize: 10,
-                              height: 1.2,
-                              color: textColor,
-                              fontWeight: FontWeight.w500,
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: InkWell(
+                  onTap: () => setState(() => _selected = day),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 52,
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.cardSelected : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          height: 16,
+                          child: Center(
+                            child: Text(
+                              day.isAfter(today) ? '—' : DateFormat('E').format(day),
+                              style: TextStyle(
+                                fontSize: 10,
+                                height: 1.2,
+                                color: textColor,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: CustomPaint(
-                          painter: _RingPainter(
-                            progress: isFuture ? 0 : progress,
-                            color: ringColor,
-                            strokeWidth: 2.5,
-                          ),
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                '${day.day}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: weight,
-                                  color: textColor,
+                        const SizedBox(height: 2),
+                        SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: CustomPaint(
+                            painter: _RingPainter(
+                              progress: isFuture ? 0 : progress,
+                              color: ringColor,
+                              strokeWidth: 2.5,
+                            ),
+                            child: Center(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '${day.day}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: weight,
+                                    color: textColor,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            }).toList(),
           ),
         ),
       ),
     );
   }
 
-  Widget _caloriesCard({required int goal, required int logged, VoidCallback? onTap}) {
-    final progress = goal == 0 ? 0.0 : (logged / goal).clamp(0.0, 1.0);
-    final over = logged > goal;
-
-    // Color logic: black < 50%, orange 50-79%, green 80-100%, red if over
-    Color accentColor;
-    if (over) {
-      accentColor = _missedRed;
-    } else if (progress >= 0.8) {
-      accentColor = _green;
-    } else if (progress >= 0.5) {
-      accentColor = const Color(0xFFFFA726);
-    } else {
-      accentColor = _ink;
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: _cardShadow,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '$logged',
-                      style: TextStyle(
-                        fontSize: 46,
-                        fontWeight: FontWeight.w800,
-                        color: accentColor,
-                        letterSpacing: -1.5,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '/$goal',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: _muted,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  over ? 'Calories over target' : 'Calories eaten',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: over ? _missedRed : _muted,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _ring(
-            progress: progress,
-            color: accentColor,
-            size: 104,
-            stroke: 11,
-            child: Icon(
-              over ? Icons.warning_rounded : Icons.local_fire_department,
-              color: accentColor,
-              size: 36,
-            ),
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _macroCard({
-    required String label,
-    required double value,
-    required double target,
-    required Color color,
-    required IconData icon,
-    String unit = 'g',
-    VoidCallback? onTap,
-  }) {
-    final progress = target == 0 ? 0.0 : (value / target).clamp(0.0, 1.0);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: _cardShadow,
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                value.toStringAsFixed(0),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: _ink,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Text(
-                '/${target.toStringAsFixed(0)}$unit',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: _muted,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: _muted,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _ring(
-            progress: progress,
-            color: color,
-            size: 52,
-            stroke: 5,
-            child: Icon(icon, color: color, size: 28),
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _ring({
-    required double progress,
-    required Color color,
-    required double size,
-    required double stroke,
-    required Widget child,
-  }) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          CircularProgressIndicator(
-            value: progress,
-            strokeWidth: stroke,
-            strokeCap: StrokeCap.round,
-            backgroundColor: _track,
-            color: color,
-          ),
-          Center(child: child),
-        ],
-      ),
-    );
-  }
-
   Widget _waterCard() {
     final progress = _waterGoalMl > 0 ? (_waterMl / _waterGoalMl).clamp(0.0, 1.0) : 0.0;
-    final glasses = (_waterMl / 250).round();
-    final goalGlasses = (_waterGoalMl / 250).round();
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _cardShadow,
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1273,84 +1076,64 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Text('💧', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 8),
-                  const Text(
+                  Text('💧', style: TextStyle(fontSize: 16)),
+                  SizedBox(width: 6),
+                  Text(
                     'Water',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1C1C1E),
+                      color: AppColors.ink,
                     ),
                   ),
                 ],
               ),
-              Text(
-                '${(_waterMl / 1000).toStringAsFixed(1)}L / ${(_waterGoalMl / 1000).toStringAsFixed(1)}L',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF8E8E93),
-                ),
+              Row(
+                children: [
+                  Text(
+                    '${(_waterMl / 1000).toStringAsFixed(1)} / ${(_waterGoalMl / 1000).toStringAsFixed(1)} L',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                  if (_waterMl > 0) ...[
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: () async {
+                        await widget.storage.undoLastWater();
+                        _load();
+                      },
+                      child: const Icon(Icons.undo, size: 14, color: AppColors.missedRed),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Progress bar
+          const SizedBox(height: 10),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(4),
             child: SizedBox(
-              height: 10,
+              height: 8,
               child: LinearProgressIndicator(
                 value: progress,
-                backgroundColor: const Color(0xFFECECE7),
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
+                backgroundColor: AppColors.track,
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.fat),
               ),
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            '$glasses / $goalGlasses glasses',
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF8E8E93),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Quick add buttons
+          const SizedBox(height: 10),
           Row(
             children: [
-              _waterButton(250, Icons.water_drop_outlined),
+              _waterButton(250, Icons.water_drop),
               const SizedBox(width: 8),
               _waterButton(500, Icons.water_drop),
               const SizedBox(width: 8),
               _waterButtonCustom(),
-              const Spacer(),
-              if (_waterMl > 0)
-                GestureDetector(
-                  onTap: () async {
-                    await widget.storage.undoLastWater();
-                    _load();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3F0),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Undo',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFFF3B30),
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ],
@@ -1359,94 +1142,111 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _waterButton(int ml, IconData icon) {
-    return GestureDetector(
-      onTap: () async {
-        await widget.storage.addWater(ml);
-        HapticFeedback.lightImpact();
-        _load();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEAF3FF),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: const Color(0xFF007AFF)),
-            const SizedBox(width: 4),
-            Text(
-              '+${ml}ml',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF007AFF),
+    return Expanded(
+      child: InkWell(
+        onTap: () async {
+          await widget.storage.addWater(ml);
+          HapticFeedback.lightImpact();
+          _load();
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: const BoxConstraints(minHeight: 44),
+          decoration: BoxDecoration(
+            color: AppColors.chipBlue,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: AppColors.fat),
+              const SizedBox(width: 4),
+              Text(
+                '+${ml}ml',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.fat,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _waterButtonCustom() {
-    return GestureDetector(
-      onTap: () {
-        final controller = TextEditingController(text: '250');
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Add water'),
-            content: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              autofocus: true,
-              decoration: const InputDecoration(
-                suffixText: 'ml',
-                border: OutlineInputBorder(),
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          final controller = TextEditingController(text: '250');
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Add water'),
+              content: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  suffixText: 'ml',
+                  border: OutlineInputBorder(),
+                ),
               ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    final ml = int.tryParse(controller.text);
+                    if (ml != null && ml > 0 && ml <= 2000) {
+                      await widget.storage.addWater(ml);
+                      _load();
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    } else {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        const SnackBar(
+                          content: Text('Enter a value between 1–2000 ml'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  final ml = int.tryParse(controller.text);
-                  if (ml != null && ml > 0 && ml <= 2000) {
-                    await widget.storage.addWater(ml);
-                    _load();
-                  }
-                  if (ctx.mounted) Navigator.pop(ctx);
-                },
-                child: const Text('Add'),
+          );
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: const BoxConstraints(minHeight: 44),
+          decoration: BoxDecoration(
+            color: AppColors.chipNeutral,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add, size: 14, color: AppColors.ink),
+              SizedBox(width: 4),
+              Text(
+                'Custom',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.ink,
+                ),
               ),
             ],
           ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1F0EC),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.add, size: 16, color: Color(0xFF1C1C1E)),
-            SizedBox(width: 4),
-            Text(
-              'Custom',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1C1C1E),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -1464,9 +1264,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _cardShadow,
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1474,16 +1274,16 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Text('⏰', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 8),
-                  const Text(
+                  Text('⏰', style: TextStyle(fontSize: 18)),
+                  SizedBox(width: 8),
+                  Text(
                     'Fasting',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1C1C1E),
+                      color: AppColors.ink,
                     ),
                   ),
                 ],
@@ -1493,8 +1293,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: completed
-                        ? const Color(0xFF34C759).withOpacity(0.12)
-                        : const Color(0xFFFF9500).withOpacity(0.12),
+                        ? AppColors.green.withValues(alpha: 0.12)
+                        : AppColors.accentOrange.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -1502,7 +1302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: completed ? const Color(0xFF34C759) : const Color(0xFFFF9500),
+                      color: completed ? AppColors.green : AppColors.accentOrange,
                     ),
                   ),
                 ),
@@ -1510,7 +1310,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 12),
           if (isFasting) ...[
-            // Timer display
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -1519,9 +1318,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF1C1C1E),
+                    color: AppColors.ink,
                     letterSpacing: -1,
                     fontFamily: 'monospace',
+                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
                 const Padding(
@@ -1531,23 +1331,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF8E8E93),
+                      color: AppColors.muted,
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            // Progress bar
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: SizedBox(
                 height: 8,
                 child: LinearProgressIndicator(
                   value: progress,
-                  backgroundColor: const Color(0xFFECECE7),
+                  backgroundColor: AppColors.track,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    completed ? const Color(0xFF34C759) : const Color(0xFFFF9500),
+                    completed ? AppColors.green : AppColors.accentOrange,
                   ),
                 ),
               ),
@@ -1555,24 +1354,46 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 4),
             Text(
               'Started at ${start != null ? TimeOfDay.fromDateTime(start).format(context) : ''}',
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF8E8E93),
-              ),
+              style: const TextStyle(fontSize: 11, color: AppColors.muted),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () async {
-                      await widget.storage.stopFasting();
-                      _load();
+                  child: InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('End fast?'),
+                          content: const Text('This will stop your current fast early.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () async {
+                                Navigator.pop(ctx);
+                                await widget.storage.stopFasting();
+                                _load();
+                              },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.missedRed,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('End fast'),
+                            ),
+                          ],
+                        ),
+                      );
                     },
+                    borderRadius: BorderRadius.circular(12),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      constraints: const BoxConstraints(minHeight: 36),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3F0),
+                        color: AppColors.undoRed,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Center(
@@ -1581,7 +1402,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFFFF3B30),
+                            color: AppColors.missedRed,
                           ),
                         ),
                       ),
@@ -1589,53 +1410,65 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                GestureDetector(
+                InkWell(
                   onTap: () => _showFastingGoalSheet(context),
+                  borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
+                    constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F0EC),
+                      color: AppColors.chipNeutral,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.settings, size: 18, color: Color(0xFF8E8E93)),
+                    child: const Icon(Icons.settings, size: 18, color: AppColors.muted),
                   ),
                 ),
               ],
             ),
           ] else ...[
-            // Not fasting — show start options
             Row(
               children: [
-                _fastingPreset('14:10', 14),
+                Expanded(child: _fastingPreset('14:10', 14)),
                 const SizedBox(width: 8),
-                _fastingPreset('16:8', 16),
+                Expanded(child: _fastingPreset('16:8', 16)),
                 const SizedBox(width: 8),
-                _fastingPreset('18:6', 18),
+                Expanded(child: _fastingPreset('18:6', 18)),
                 const SizedBox(width: 8),
-                _fastingPreset('20:4', 20),
+                Expanded(child: _fastingPreset('20:4', 20)),
               ],
             ),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () async {
-                await widget.storage.startFasting();
-                _load();
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: _ink,
-                  borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 4),
+            Center(
+              child: Text(
+                '${goalHours}h fast / ${24 - goalHours}h eating window',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w500,
                 ),
-                child: const Center(
-                  child: Text(
-                    'Start fasting',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 48,
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () async {
+                  await widget.storage.startFasting();
+                  _load();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.ink,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Start fasting',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -1647,27 +1480,88 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _fastingPreset(String label, int hours) {
-    return GestureDetector(
+    final isSelected = widget.storage.fastingGoalHours == hours;
+    return InkWell(
       onTap: () async {
         await widget.storage.saveFastingGoalHours(hours);
+        HapticFeedback.lightImpact();
         setState(() {});
       },
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        constraints: const BoxConstraints(minHeight: 44),
         decoration: BoxDecoration(
-          color: widget.storage.fastingGoalHours == hours
-              ? _ink
-              : const Color(0xFFF1F0EC),
+          color: isSelected ? AppColors.ink : AppColors.chipNeutral,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: widget.storage.fastingGoalHours == hours
-                ? Colors.white
-                : _ink,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? Colors.white : AppColors.ink,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showStreakInfo(BuildContext context) {
+    final streak = _streak;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🔥', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 10),
+              Text(
+                streak > 0 ? '$streak day streak' : 'No active streak',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: streak > 0 ? AppColors.ink : AppColors.muted,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                streak > 0
+                    ? 'Log a meal every day to keep it going.\nMiss a day and it resets to zero.'
+                    : 'Log any meal today to start a streak.\nKeep logging daily to build it up.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.muted,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.ink,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Got it', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1698,13 +1592,13 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1C1C1E),
+                color: AppColors.ink,
               ),
             ),
             const SizedBox(height: 4),
             const Text(
               'Set your fasting duration in hours',
-              style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93)),
+              style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
             const SizedBox(height: 20),
             TextField(
@@ -1714,14 +1608,14 @@ class _HomeScreenState extends State<HomeScreen> {
               style: const TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1C1C1E),
+                color: AppColors.ink,
               ),
               decoration: InputDecoration(
                 suffixText: 'hours',
                 suffixStyle: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF8E8E93),
+                  color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -1729,8 +1623,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                      color: Color(0xFF1C1C1E), width: 2),
+                  borderSide: const BorderSide(color: AppColors.ink, width: 2),
                 ),
               ),
             ),
@@ -1747,7 +1640,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _load();
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF1C1C1E),
+                  backgroundColor: AppColors.ink,
                   foregroundColor: Colors.white,
                   shape: const StadiumBorder(),
                 ),
@@ -1766,105 +1659,94 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _paginationDots() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: _macroPageIndex == 0 ? _ink : const Color(0xFFE3E3DE),
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: _macroPageIndex == 1 ? _ink : const Color(0xFFE3E3DE),
-            shape: BoxShape.circle,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _logMealSection() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _logOption(
-                icon: Symbols.egg_alt,
-                label: 'Scan food',
-                onTap: _openCapture,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _logOption(
-                icon: Icons.photo_library_outlined,
-                label: 'Upload photo',
-                onTap: _openGallery,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _logOption(
-                icon: Icons.qr_code_scanner,
-                label: 'Barcode',
-                onTap: _openBarcodeScanner,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _logOption(
-                icon: Symbols.restaurant_menu,
-                label: 'Add manually',
-                onTap: _openManualEntry,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        GestureDetector(
-          onTap: () async {
-            final result = await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => MealPlanScreen(storage: widget.storage),
-              ),
-            );
-            if (result == true) _load();
-          },
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: _cardShadow,
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    final actions = [
+      (Icons.center_focus_strong, 'Scan food', _openCapture),
+      (Icons.photo_library_outlined, 'Upload photo', _openGallery),
+      (Icons.qr_code_scanner, 'Barcode', _openBarcodeScanner),
+      (Icons.edit_note, 'Add manually', _openManualEntry),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 100,
+            child: PageView(
+              controller: _logPageController,
+              onPageChanged: (i) => setState(() => _logPageIndex = i),
               children: [
-                Icon(Icons.bookmark_outline, size: 18, color: _ink),
-                SizedBox(width: 8),
-                Text(
-                  'Meal plans',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: _ink,
+                // Page 1: first 3 actions
+                Row(
+                  children: [
+                    for (int i = 0; i < 3; i++) ...[
+                      if (i > 0) const SizedBox(width: 10),
+                      Expanded(
+                        child: _logOption(
+                          icon: actions[i].$1,
+                          label: actions[i].$2,
+                          onTap: actions[i].$3,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                // Page 2: 4th action centered
+                Center(
+                  child: _logOption(
+                    icon: actions[3].$1,
+                    label: actions[3].$2,
+                    onTap: actions[3].$3,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 10),
+          PaginationDots(count: 2, current: _logPageIndex),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () async {
+              final result = await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => MealPlanScreen(storage: widget.storage),
+                ),
+              );
+              if (result == true) _load();
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.cardAlt,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.bookmark_outline, size: 18, color: AppColors.ink),
+                  SizedBox(width: 8),
+                  Text(
+                    'Meal plans',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1873,26 +1755,31 @@ class _HomeScreenState extends State<HomeScreen> {
     required String label,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: _cardShadow,
+          color: AppColors.cardAlt,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 24, color: _ink),
+            Icon(icon, size: 24, color: AppColors.ink),
             const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _ink,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.ink,
+                ),
               ),
             ),
           ],
@@ -1921,263 +1808,34 @@ class _HomeScreenState extends State<HomeScreen> {
     _load();
   }
 
-  Widget _mealCard(FoodEntry entry) {
-    final name = entry.items.isEmpty
-        ? 'Meal'
-        : entry.items.first.name +
-            (entry.items.length > 1 ? ' +${entry.items.length - 1} more' : '');
-    final time =
-        DateFormat('h:mm a').format(entry.dateTime).toLowerCase();
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MealDetailScreen(entry: entry),
-          ),
-        );
-      },
-      onLongPress: () => _deleteEntry(entry),
-      child: Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: _cardShadow,
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: _thumbnail(entry, width: 84, height: 84),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: _ink,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '🔥 ${entry.totalCalories} Calories',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _ink,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _macroPill(Icons.egg_alt, _proteinColor,
-                        '${entry.totalProtein.toStringAsFixed(0)}g'),
-                    const SizedBox(width: 8),
-                    _macroPill(Icons.grain, _carbsColor,
-                        '${entry.totalCarbs.toStringAsFixed(0)}g'),
-                    const SizedBox(width: 8),
-                    _macroPill(Icons.water_drop, _fatColor,
-                        '${entry.totalFat.toStringAsFixed(0)}g'),
-                  ],
-                ),
-                if (entry.totalFiber > 0 || entry.totalSugar > 0 || entry.totalSodium > 0) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      if (entry.totalFiber > 0) ...[
-                        _macroPill(Icons.grass, const Color(0xFF8D6E63),
-                            '${entry.totalFiber.toStringAsFixed(0)}g'),
-                        const SizedBox(width: 8),
-                      ],
-                      if (entry.totalSugar > 0) ...[
-                        _macroPill(Icons.cake, const Color(0xFFE91E63),
-                            '${entry.totalSugar.toStringAsFixed(0)}g'),
-                        const SizedBox(width: 8),
-                      ],
-                      if (entry.totalSodium > 0)
-                        _macroPill(Icons.water_drop_outlined, const Color(0xFF78909C),
-                            '${entry.totalSodium.toStringAsFixed(0)}mg'),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: 6),
-          Column(
-            children: [
-              Text(
-                time,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: _muted,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _thumbnail(FoodEntry entry, {required double width, required double height}) {
-    final hasImage = entry.imagePath.isNotEmpty;
-    return SizedBox(
-      width: width,
-      height: height,
-      child: hasImage
-          ? Image.file(
-              File(entry.imagePath),
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _thumbPlaceholder(),
-            )
-          : _thumbPlaceholder(),
-    );
-  }
-
-  Widget _thumbPlaceholder() {
-    return Container(
-      color: const Color(0xFFF1F0EC),
-      child: const Center(
-        child: Text('🍛', style: TextStyle(fontSize: 30)),
-      ),
-    );
-  }
-
-  Widget _macroPill(IconData icon, Color color, String text) {
-    return Row(
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Icon(icon, size: 10, color: color),
-        ),
-        const SizedBox(width: 3),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: _ink,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _emptyCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: _cardShadow,
-      ),
-      child: Column(
-        children: [
-          const Text('🍽️', style: TextStyle(fontSize: 34)),
-          const SizedBox(height: 10),
-          const Text(
-            'No meals logged yet',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _ink),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Scan your first meal to get started',
-            style: TextStyle(fontSize: 13, color: _muted),
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: _openCapture,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: _ink,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.camera_alt, size: 16, color: Colors.white),
-                  SizedBox(width: 6),
-                  Text(
-                    'Scan a meal',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ================= Placeholder tabs =================
 
-  Widget _placeholderPage(String title, IconData icon, String subtitle) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 150),
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w800,
-            color: _ink,
-            letterSpacing: -0.5,
-          ),
-        ),
-        const SizedBox(height: 24),
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 44),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: _cardShadow,
-          ),
-          child: Column(
-            children: [
-              Icon(icon, size: 40, color: _muted),
-              const SizedBox(height: 12),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 14, color: _muted),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _progressPage() => ProgressScreen(storage: widget.storage);
 
-  Widget _progressPage() =>
-      ProgressScreen(storage: widget.storage);
-
-  Widget _groupsPage() {
-    return MealPlanScreen(storage: widget.storage);
-  }
+  Widget _groupsPage() => DiscoverScreen(storage: widget.storage);
 
   Widget _profilePage(Profile profile) {
+    final bmi = profile.weightKg / ((profile.heightCm / 100) * (profile.heightCm / 100));
+    final bmiLabel = bmi < 18.5
+        ? 'Underweight'
+        : bmi < 25
+            ? 'Normal'
+            : bmi < 30
+                ? 'Overweight'
+                : 'Obese';
+    final bmiColor = bmi < 18.5
+        ? AppColors.fat
+        : bmi < 25
+            ? AppColors.green
+            : bmi < 30
+                ? AppColors.accentOrange
+                : AppColors.missedRed;
+
+    final weightEntries = widget.storage.weightEntries;
+    final recentWeights = weightEntries.length > 7
+        ? weightEntries.sublist(weightEntries.length - 7)
+        : weightEntries;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 150),
       children: [
@@ -2186,11 +1844,13 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
-            color: _ink,
+            color: AppColors.ink,
             letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 20),
+
+        // Avatar + name + email
         Row(
           children: [
             Container(
@@ -2198,7 +1858,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 64,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
-                color: _avatarBlue,
+                color: AppColors.chipBlue,
                 shape: BoxShape.circle,
               ),
               child: Text(
@@ -2206,7 +1866,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: _ink,
+                  color: AppColors.ink,
                 ),
               ),
             ),
@@ -2225,21 +1885,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(
                             fontSize: 19,
                             fontWeight: FontWeight.w800,
-                            color: _ink,
+                            color: AppColors.ink,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      GestureDetector(
+                      InkWell(
                         onTap: () => _showNameEdit(profile),
+                        borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: _ink.withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.edit,
-                              size: 14, color: _ink),
+                          padding: const EdgeInsets.all(10),
+                          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                          child: const Icon(Icons.edit, size: 14, color: AppColors.ink),
                         ),
                       ),
                     ],
@@ -2247,7 +1904,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 3),
                   Text(
                     '${profile.calorieGoal} kcal/day goal',
-                    style: const TextStyle(fontSize: 13, color: _muted),
+                    style: const TextStyle(fontSize: 13, color: AppColors.muted),
                   ),
                   if (_signedInEmail != null) ...[
                     const SizedBox(height: 3),
@@ -2255,7 +1912,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _signedInEmail!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: _muted),
+                      style: const TextStyle(fontSize: 12, color: AppColors.muted),
                     ),
                   ],
                 ],
@@ -2264,20 +1921,34 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 24),
+
+        // Profile details card
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.card,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: _cardShadow,
+            boxShadow: AppColors.cardShadow,
           ),
           child: Column(
             children: [
+              _profileRow('Sex', profile.sex == 'male' ? 'Male' : profile.sex == 'female' ? 'Female' : 'Other'),
+              const Divider(height: 1, color: AppColors.divider),
+              _profileRow('Age', '${profile.age} years'),
+              const Divider(height: 1, color: AppColors.divider),
+              _profileRow('Height', '${profile.heightCm.round()} cm'),
+              const Divider(height: 1, color: AppColors.divider),
+              _profileRow('Weight', '${profile.weightKg.round()} kg'),
+              const Divider(height: 1, color: AppColors.divider),
+              _profileRow(
+                  'Target', profile.targetWeightKg == null ? '—' : '${profile.targetWeightKg!.round()} kg'),
+              const Divider(height: 1, color: AppColors.divider),
               _profileRow('Goal', profile.goal == 'lose'
                   ? 'Lose weight'
                   : profile.goal == 'gain'
                       ? 'Gain weight'
                       : 'Maintain'),
+              const Divider(height: 1, color: AppColors.divider),
               _profileRow('Workouts', switch (profile.workoutFreq) {
                 '3to5' => '3–5 times / week',
                 '6plus' => '6+ times / week',
@@ -2285,24 +1956,170 @@ class _HomeScreenState extends State<HomeScreen> {
                 'none' => 'No workouts',
                 _ => '0–2 times / week',
               }),
-              _profileRow('Height', '${profile.heightCm.round()} cm'),
-              _profileRow(
-                  'Weight', '${profile.weightKg.round()} kg'),
-              _profileRow(
-                  'Target', profile.targetWeightKg == null
-                      ? '—'
-                      : '${profile.targetWeightKg!.round()} kg'),
+              const Divider(height: 1, color: AppColors.divider),
               _profileRow('Daily calories', '${profile.calorieGoal} kcal'),
             ],
           ),
         ),
+        const SizedBox(height: 12),
+
+        // Edit calorie goal button
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => _showCalorieGoalEdit(profile),
+            icon: const Icon(Icons.edit, size: 16),
+            label: const Text('Edit calorie goal'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.ink,
+              side: const BorderSide(color: AppColors.divider),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
         const SizedBox(height: 24),
+
+        // BMI card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: AppColors.cardShadow,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: bmiColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(Icons.monitor_weight_outlined, size: 24, color: bmiColor),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'BMI',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Text(
+                          bmi.toStringAsFixed(1),
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: bmiColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          bmiLabel,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: bmiColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Weight history
+        if (recentWeights.isNotEmpty) ...[
+          const Text(
+            'Weight history',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: AppColors.cardShadow,
+            ),
+            child: Column(
+              children: [
+                // Mini chart
+                SizedBox(
+                  height: 60,
+                  child: _MiniWeightChart(entries: recentWeights),
+                ),
+                const SizedBox(height: 10),
+                // Latest entries
+                ...recentWeights.reversed.take(5).map((e) {
+                  final idx = recentWeights.indexOf(e);
+                  final prev = idx > 0 ? recentWeights[idx - 1] : null;
+                  final diff = prev != null ? e.weightKg - prev.weightKg : 0.0;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${e.date.day}/${e.date.month}',
+                          style: const TextStyle(fontSize: 13, color: AppColors.muted),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${e.weightKg.round()} kg',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (diff != 0)
+                          Text(
+                            '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(1)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: diff < 0 ? AppColors.green : AppColors.missedRed,
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 24),
+
+        // Settings
         const Text(
           'Settings',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w800,
-            color: _ink,
+            color: AppColors.ink,
             letterSpacing: -0.3,
           ),
         ),
@@ -2310,9 +2127,9 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.card,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: _cardShadow,
+            boxShadow: AppColors.cardShadow,
           ),
           child: Column(
             children: [
@@ -2322,18 +2139,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 subtitle: widget.storage.remindersEnabled
                     ? 'Water & meal reminders on'
                     : 'Off',
-                onTap: () async {
-                  await _toggleReminders();
-                },
+                onTap: () async => _toggleReminders(),
               ),
-              const Divider(height: 1, color: Color(0xFFECECE7)),
+              const Divider(height: 1, color: AppColors.divider),
               _settingsRow(
                 icon: Icons.share_outlined,
                 label: 'Export data',
                 subtitle: 'Download your logs as JSON',
                 onTap: _exportData,
               ),
-              const Divider(height: 1, color: Color(0xFFECECE7)),
+              const Divider(height: 1, color: AppColors.divider),
               _settingsRow(
                 icon: Icons.restart_alt,
                 label: 'Reset goals',
@@ -2343,12 +2158,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        Center(
+          child: Text(
+            'Calorie Tracker v0.9.0',
+            style: TextStyle(fontSize: 12, color: AppColors.muted.withValues(alpha: 0.6)),
+          ),
+        ),
         const SizedBox(height: 20),
         OutlinedButton(
           onPressed: _signOut,
           style: OutlinedButton.styleFrom(
-            foregroundColor: _missedRed,
-            side: BorderSide(color: _missedRed.withValues(alpha: 0.4)),
+            foregroundColor: AppColors.missedRed,
+            side: BorderSide(color: AppColors.missedRed.withValues(alpha: 0.4)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
@@ -2359,19 +2181,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _showCalorieGoalEdit(Profile profile) async {
+    final controller = TextEditingController(text: '${profile.calorieGoal}');
+    final result = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Edit calorie goal',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          decoration: const InputDecoration(
+            suffixText: 'kcal/day',
+            hintText: '1500',
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (v) {
+            final val = int.tryParse(v.trim());
+            if (val != null && val > 0) Navigator.pop(ctx, val);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final val = int.tryParse(controller.text.trim());
+              if (val != null && val > 0) Navigator.pop(ctx, val);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (result != null && result > 0) {
+      final updated = profile.copyWith(calorieGoalOverride: result);
+      await widget.storage.saveProfile(updated);
+      _load();
+    }
+  }
+
   Widget _profileRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: const TextStyle(fontSize: 14, color: _muted)),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: _ink)),
+          Text(label, style: const TextStyle(fontSize: 14, color: AppColors.muted)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+          ),
         ],
       ),
     );
@@ -2383,9 +2254,8 @@ class _HomeScreenState extends State<HomeScreen> {
     String? subtitle,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
@@ -2394,10 +2264,10 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _ink.withOpacity(0.06),
+                color: AppColors.ink.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, size: 18, color: _ink),
+              child: Icon(icon, size: 18, color: AppColors.ink),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -2409,21 +2279,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: _ink,
+                      color: AppColors.ink,
                     ),
                   ),
                   if (subtitle != null)
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: _muted,
-                      ),
+                      style: const TextStyle(fontSize: 12, color: AppColors.muted),
                     ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, size: 20, color: _muted),
+            const Icon(Icons.chevron_right, size: 20, color: AppColors.muted),
           ],
         ),
       ),
@@ -2445,8 +2312,7 @@ class _HomeScreenState extends State<HomeScreen> {
           autofocus: true,
           maxLength: 40,
           textCapitalization: TextCapitalization.words,
-          style: const TextStyle(
-              fontSize: 20, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           decoration: const InputDecoration(
             hintText: 'Your name',
             counterText: '',
@@ -2472,132 +2338,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _load();
     }
   }
-
-  // ================= Floating navigation =================
-
-  Widget _floatingNav() {    return Container(
-      height: 64,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: _cardShadow,
-      ),
-      child: Row(
-        children: [
-          Expanded(child: _navItem(index: 0, icon: Icons.home_rounded, label: 'Home')),
-          Expanded(child: _navItem(index: 1, icon: Icons.bar_chart_rounded, label: 'Progress')),
-          Expanded(
-            child: GestureDetector(
-              onTap: _openCapture,
-              child: Center(
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: const BoxDecoration(
-                    color: _ink,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.center_focus_strong, color: Colors.white, size: 24),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: _navItem(
-              index: 2,
-              icon: Icons.restaurant_menu,
-              label: 'Plans',
-              onTapOverride: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => MealPlanScreen(storage: widget.storage),
-                  ),
-                );
-              },
-            ),
-          ),
-          Expanded(child: _navAvatar(index: 3)),
-        ],
-      ),
-    );
-  }
-
-  Widget _navItem({
-    required int index,
-    required IconData icon,
-    required String label,
-    VoidCallback? onTapOverride,
-  }) {
-    final active = _navIndex == index;
-    return GestureDetector(
-      onTap: onTapOverride ?? () => setState(() => _navIndex = index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-              color: active ? const Color(0xFFF0F0EC) : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon,
-                size: 22,
-                color: active ? _ink : const Color(0xFFB0B0AA)),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              color: active ? _ink : const Color(0xFFB0B0AA),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _navAvatar({required int index}) {
-    final active = _navIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _navIndex = index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: _avatarBlue,
-              shape: BoxShape.circle,
-              border: active ? Border.all(color: _ink, width: 1.6) : null,
-            ),
-            child: Text(
-              _initials,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: _ink,
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'Profile',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              color: active ? _ink : const Color(0xFFB0B0AA),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _RingPainter extends CustomPainter {
@@ -2616,14 +2356,12 @@ class _RingPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    // Background circle
     final bgPaint = Paint()
-      ..color = color.withOpacity(0.15)
+      ..color = color.withValues(alpha: 0.15)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
     canvas.drawCircle(center, radius, bgPaint);
 
-    // Progress arc
     if (progress > 0) {
       final arcPaint = Paint()
         ..color = color
@@ -2634,7 +2372,7 @@ class _RingPainter extends CustomPainter {
       final rect = Rect.fromCircle(center: center, radius: radius);
       canvas.drawArc(
         rect,
-        -3.14159 / 2, // Start from top
+        -3.14159 / 2,
         2 * 3.14159 * progress.clamp(0.0, 1.0),
         false,
         arcPaint,
@@ -2645,4 +2383,95 @@ class _RingPainter extends CustomPainter {
   @override
   bool shouldRepaint(_RingPainter old) =>
       old.progress != progress || old.color != color;
+}
+
+class _MiniWeightChart extends StatelessWidget {
+  final List<WeightEntry> entries;
+  const _MiniWeightChart({required this.entries});
+
+  @override
+  Widget build(BuildContext context) {
+    if (entries.length < 2) {
+      return const Center(
+        child: Text('Need 2+ entries for a trend', style: TextStyle(fontSize: 12, color: AppColors.muted)),
+      );
+    }
+
+    final weights = entries.map((e) => e.weightKg).toList();
+    final minW = weights.reduce((a, b) => a < b ? a : b) - 1;
+    final maxW = weights.reduce((a, b) => a > b ? a : b) + 1;
+    final range = maxW - minW;
+
+    return CustomPaint(
+      size: const Size(double.infinity, 60),
+      painter: _MiniWeightChartPainter(
+        weights: weights,
+        minWeight: minW,
+        range: range,
+      ),
+    );
+  }
+}
+
+class _MiniWeightChartPainter extends CustomPainter {
+  final List<double> weights;
+  final double minWeight;
+  final double range;
+
+  _MiniWeightChartPainter({
+    required this.weights,
+    required this.minWeight,
+    required this.range,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (weights.length < 2 || range <= 0) return;
+
+    final path = Path();
+    final step = size.width / (weights.length - 1);
+
+    for (int i = 0; i < weights.length; i++) {
+      final x = i * step;
+      final y = size.height - ((weights[i] - minWeight) / range * size.height);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+
+    // Fill
+    final fillPath = Path.from(path);
+    fillPath.lineTo(size.width, size.height);
+    fillPath.lineTo(0, size.height);
+    fillPath.close();
+    canvas.drawPath(
+      fillPath,
+      Paint()..color = AppColors.accentOrange.withValues(alpha: 0.1),
+    );
+
+    // Line
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = AppColors.accentOrange
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+
+    // Dots
+    final dotPaint = Paint()..color = AppColors.accentOrange;
+    for (int i = 0; i < weights.length; i++) {
+      final x = i * step;
+      final y = size.height - ((weights[i] - minWeight) / range * size.height);
+      canvas.drawCircle(Offset(x, y), 3, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MiniWeightChartPainter old) =>
+      old.weights != weights || old.minWeight != minWeight || old.range != range;
 }

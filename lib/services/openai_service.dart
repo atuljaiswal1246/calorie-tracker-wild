@@ -6,22 +6,42 @@ import 'package:http/http.dart' as http;
 
 import '../models/food_entry.dart';
 
+/// Calls AICredits (OpenAI-compatible) through the Cloudflare worker proxy.
+/// No API key is needed or stored in the app — the worker owns the key.
 class OpenAIService {
-  final String apiKey;
   final String model;
 
-  OpenAIService({required this.apiKey, this.model = 'gpt-4o-mini'});
+  OpenAIService({this.model = 'gpt-4o-mini'});
 
-  static const _endpoint = 'https://api.openai.com/v1/chat/completions';
+  /// Cloudflare proxy — key never ships to the client.
+  static const _endpoint =
+      'https://cal-matters-gemini-proxy.atuljaiswal1246.workers.dev';
   static const _maxRetries = 3;
 
-  static Future<bool> testKey(String key) async {
+  /// Stable per-install anonymous device id for proxy quota tracking.
+  static String get _deviceId {
+    final dir = Directory.systemTemp;
+    final f = File('${dir.path}/cal_matters_device_id');
+    try {
+      if (f.existsSync()) {
+        final id = f.readAsStringSync().trim();
+        if (id.isNotEmpty) return id;
+      }
+      final id = DateTime.now().microsecondsSinceEpoch.toString();
+      f.writeAsStringSync(id);
+      return id;
+    } catch (_) {
+      return 'unknown';
+    }
+  }
+
+  static Future<bool> testKey() async {
     try {
       final res = await http.post(
         Uri.parse(_endpoint),
         headers: {
-          'Authorization': 'Bearer $key',
           'Content-Type': 'application/json',
+          'x-device-id': _deviceId,
         },
         body: jsonEncode({
           'model': 'gpt-4o-mini',
@@ -111,14 +131,14 @@ Rules:
       Uri.parse(_endpoint),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
+        'x-device-id': _deviceId,
       },
       body: body,
     );
 
     if (response.statusCode != 200) {
       throw Exception(
-          'OpenAI request failed (${response.statusCode}): ${response.body}');
+          'AI request failed (${response.statusCode}): ${response.body}');
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -183,14 +203,14 @@ Rules:
       Uri.parse(_endpoint),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
+        'x-device-id': _deviceId,
       },
       body: body,
     );
 
     if (response.statusCode != 200) {
       throw Exception(
-          'OpenAI request failed (${response.statusCode}): ${response.body}');
+          'AI request failed (${response.statusCode}): ${response.body}');
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -223,7 +243,6 @@ Rules:
       }
     }
 
-    // No food detected or unparseable response
     return (items: [], mealType: null);
   }
 
