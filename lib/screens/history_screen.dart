@@ -97,7 +97,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => MealDetailScreen(entry: entry),
+                                  builder: (_) => MealDetailScreen(
+                                    entry: entry,
+                                    storage: widget.storage,
+                                    onDeleted: () => _confirmDelete(entry),
+                                  ),
                                 ),
                               );
                             },

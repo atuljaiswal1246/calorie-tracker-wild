@@ -256,6 +256,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   double? _targetWeightValue() {
     if (_noTarget) return null;
+    // Maintain / exploring skip the target question; never attach the
+    // stale default (65) as if the user chose a target.
+    if (_goal == 'maintain' || _goal == 'exploring') return null;
     return _targetWeight;
   }
 
@@ -579,12 +582,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 6:
-        return const Text('How fast do you\nwant to lose weight?',
-            style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-                letterSpacing: -0.5));
+        return Text(
+          _goal == 'gain'
+              ? 'How fast do you\nwant to gain weight?'
+              : 'How fast do you\nwant to lose weight?',
+          style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+              letterSpacing: -0.5));
       default:
         return const SizedBox.shrink();
     }
@@ -2167,16 +2173,20 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                     ),
                     ),
                     const SizedBox(height: 10),
-                    // Main heading
-                    Text(
-                      _headline(),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 26,
-                          height: 1.15,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
-                          letterSpacing: -0.5),
+                    // Main heading — full-width CENTER (matches greeting)
+                    Container(
+                      width: double.infinity,
+                      alignment: Alignment.center,
+                      child: Text(
+                        _headline(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 26,
+                            height: 1.15,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                            letterSpacing: -0.5),
+                      ),
                     ),
                     const SizedBox(height: 20),
 
@@ -2237,6 +2247,17 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 24),
+
+                    // Body Mass Index
+                    const Text('Your BMI',
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                            letterSpacing: -0.3)),
+                    const SizedBox(height: 10),
+                    _BmiCard(profile: profile),
                     const SizedBox(height: 24),
 
                     // What you selected (editable)
@@ -2487,8 +2508,7 @@ class _WeightGraph extends StatelessWidget {
                     endWeight: end,
                     weeks: weeksToShow,
                     color: isLoss ? Colors.black : Colors.black,
-                  ),
-                );
+                  ),                );
               },
             ),
           ),
@@ -2539,7 +2559,9 @@ class _WeightLinePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // Draw a gentle curve from top (start) to bottom (end).
+    final gain = endWeight > startWeight;
+
+    // Curve goes DOWN for weight loss, UP for weight gain.
     final path = Path();
     final startX = size.width * 0.1;
     final endX = size.width * 0.9;
@@ -2549,9 +2571,11 @@ class _WeightLinePainter extends CustomPainter {
     for (var i = 0; i <= weeks; i++) {
       final t = i / weeks;
       final x = startX + (endX - startX) * t;
-      // smooth curve: ease the descent
+      // smooth ease between start and end Y
       final eased = t * t * (3 - 2 * t);
-      final y = topY + (bottomY - topY) * eased;
+      final y = gain
+          ? bottomY + (topY - bottomY) * eased
+          : topY + (bottomY - topY) * eased;
       if (i == 0) {
         path.moveTo(x, y);
       } else {
@@ -2564,8 +2588,8 @@ class _WeightLinePainter extends CustomPainter {
     final dotPaint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(startX, topY), 4, dotPaint);
-    canvas.drawCircle(Offset(endX, bottomY), 4, dotPaint);
+    canvas.drawCircle(Offset(startX, gain ? bottomY : topY), 4, dotPaint);
+    canvas.drawCircle(Offset(endX, gain ? topY : bottomY), 4, dotPaint);
   }
 
   @override
@@ -2650,6 +2674,167 @@ class _CalorieCard extends StatelessWidget {
                 fontSize: 14, color: Colors.black54, height: 1.4),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------- BMI card ----------------
+class _BmiCard extends StatelessWidget {
+  final Profile profile;
+
+  const _BmiCard({required this.profile});
+
+  /// BMI categories (WHO): <18.5 under, 18.5-24.9 healthy,
+  /// 25-29.9 overweight, 30+ obese.
+  static String _category(double bmi) {
+    if (bmi < 18.5) return 'under';
+    if (bmi < 25) return 'normal';
+    if (bmi < 30) return 'over';
+    return 'obese';
+  }
+
+  static (String label, String message) _info(double bmi) {
+    switch (_category(bmi)) {
+      case 'under':
+        return ('Underweight',
+            'You\'re below the healthy range — fueling up will help.');
+      case 'over':
+        return ('Overweight',
+            'You\'re slightly above the healthy range — your plan adjusts for this.');
+      case 'obese':
+        return ('Obese',
+            'You\'re above the healthy range — your plan is tuned for a safe pace.');
+      default:
+        return ('Normal',
+            'You\'re within the healthy range — keep it up!');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final weight = profile.weightKg;
+    final heightM = profile.heightCm / 100.0;
+    final bmi = heightM > 0 ? (weight / (heightM * heightM)).toDouble() : 0.0;
+    final (label, message) = _info(bmi);
+    final category = _category(bmi);
+
+    final categoryColor = switch (category) {
+      'under' => const Color(0xFF4DABF7),
+      'over' => const Color(0xFFFB8C00),
+      'obese' => const Color(0xFFE53935),
+      _ => const Color(0xFF43A047),
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                bmi.toStringAsFixed(1),
+                style: const TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
+                    letterSpacing: -1),
+              ),
+              const SizedBox(width: 8),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 6),
+                child: Text('BMI',
+                    style: TextStyle(fontSize: 16, color: Colors.black54)),
+              ),
+              const Spacer(),
+              // Category pill
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: categoryColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      switch (category) {
+                        'under' => Icons.trending_down,
+                        'over' || 'obese' => Icons.trending_up,
+                        _ => Icons.check_circle,
+                      },
+                      size: 14,
+                      color: categoryColor,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: categoryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: const TextStyle(
+                fontSize: 14, color: Colors.black54, height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          // Category scale (4 segments)
+          Row(
+            children: [
+              _segment('Under', const Color(0xFF4DABF7),
+                  category == 'under'),
+              const SizedBox(width: 6),
+              _segment('Normal', const Color(0xFF43A047),
+                  category == 'normal'),
+              const SizedBox(width: 6),
+              _segment('Over', const Color(0xFFFB8C00),
+                  category == 'over'),
+              const SizedBox(width: 6),
+              _segment('Obese', const Color(0xFFE53935),
+                  category == 'obese'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _segment(String label, Color color, bool active) {
+    return Expanded(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? color : color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: active ? Colors.white : color,
+          ),
+        ),
       ),
     );
   }

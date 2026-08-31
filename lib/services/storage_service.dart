@@ -147,6 +147,8 @@ class StorageService {
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
   }
 
+  int get entryCount => entries.length;
+
   Future<void> addEntry(FoodEntry entry) async {
     final all = [...entries, entry];
     await _saveEntries(all);
@@ -164,6 +166,16 @@ class StorageService {
     final ref = _profileRef();
     if (ref != null) {
       await ref.collection('entries').doc(id).delete();
+    }
+  }
+
+  Future<void> updateEntry(FoodEntry entry) async {
+    final all = entries.map((e) => e.id == entry.id ? entry : e).toList();
+    await _saveEntries(all);
+
+    final ref = _profileRef();
+    if (ref != null) {
+      await ref.collection('entries').doc(entry.id).set(entry.toJson());
     }
   }
 
@@ -420,11 +432,42 @@ class StorageService {
   // ---- Reminders ----
 
   static const _remindersKey = 'reminders_enabled';
+  static const _mealRemindersKey = 'meal_reminders_enabled';
 
-  bool get remindersEnabled => _prefs.getBool(_remindersKey) ?? false;
+  /// Water reminders default ON. Meal prompts default OFF (opt-in).
+  bool get remindersEnabled => _prefs.getBool(_remindersKey) ?? true;
 
   Future<void> saveRemindersEnabled(bool enabled) async {
     await _prefs.setBool(_remindersKey, enabled);
+  }
+
+  bool get mealRemindersEnabled => _prefs.getBool(_mealRemindersKey) ?? false;
+
+  Future<void> saveMealRemindersEnabled(bool enabled) async {
+    await _prefs.setBool(_mealRemindersKey, enabled);
+  }
+
+  /// Meal-reminder re-prompt bookkeeping: fires at most TWICE ever —
+  /// first log, then once more ~4 logs later, then never again.
+  static const _mealPromptSentKey = 'meal_prompt_sent';
+  static const _mealPromptLogCountKey = 'meal_prompt_log_count';
+
+  int get _mealPromptSentCount => _prefs.getInt(_mealPromptSentKey) ?? 0;
+
+  Future<void> recordMealPrompt() async {
+    await _prefs.setInt(_mealPromptSentKey, _mealPromptSentCount + 1);
+    await _prefs.setInt(_mealPromptLogCountKey, entryCount);
+  }
+
+  /// Show prompt after a meal when: not opted in, shown <2 times, and
+  /// (never shown before) OR (>=4 meals logged since the last prompt).
+  bool shouldRePromptMealPromptsNow() {
+    if (mealRemindersEnabled) return false;
+    final sent = _mealPromptSentCount;
+    if (sent >= 2) return false;
+    if (sent == 0) return true;
+    final lastShownAt = _prefs.getInt(_mealPromptLogCountKey) ?? 0;
+    return entryCount >= lastShownAt + 4;
   }
 
   // ---- Export ----

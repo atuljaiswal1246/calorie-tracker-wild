@@ -1,9 +1,16 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
+  static bool _tzInit = false;
 
   static Future<void> init() async {
+    if (!_tzInit) {
+      tz_data.initializeTimeZones();
+      _tzInit = true;
+    }
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const darwin = DarwinInitializationSettings();
     const settings = InitializationSettings(android: android, iOS: darwin);
@@ -21,32 +28,70 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
   }
 
-  static Future<void> scheduleWaterReminder() async {
-    await _cancel(1001);
-    await _scheduleDaily(
-      id: 1001,
-      title: '💧 Hydration reminder',
-      body: 'Have a glass of water — you got this!',
-    );
-  }
+  /// Water nudges across the day (approx times, staggered).
+  static const waterTimes = [
+    (9, 0),
+    (11, 30),
+    (14, 0),
+    (16, 30),
+    (19, 0),
+    (21, 30),
+  ];
 
-  static Future<void> scheduleMealReminder() async {
-    await _cancel(1002);
-    await _scheduleDaily(
-      id: 1002,
-      title: '🍽️ Meal time',
-      body: 'Don\'t forget to log your next meal!',
-    );
-  }
-
-  static Future<void> cancelAll() async {
+  /// Schedule configured reminders: N water nudges + meal logging prompts.
+  static Future<void> scheduleAll({bool water = true, bool meal = true}) async {
     await _plugin.cancelAll();
+
+    if (water) {
+      var id = 1000;
+      for (final (hour, minute) in waterTimes) {
+        await _scheduleDaily(
+          id: id++,
+          hour: hour,
+          minute: minute,
+          title: '💧 Hydration reminder',
+          body: 'Time for a glass of water — stay on track!',
+        );
+      }
+    }
+
+    if (meal) {
+      // Meal-time prompts (log what you ate).
+      await _scheduleDaily(
+        id: 2001,
+        hour: 12,
+        minute: 30,
+        title: '🍽️ Lunch time',
+        body: 'Have you logged your lunch yet?',
+      );
+      await _scheduleDaily(
+        id: 2002,
+        hour: 19,
+        minute: 30,
+        title: '🍽️ Dinner time',
+        body: 'Log your dinner when you\'re done eating.',
+      );
+      // Evening nudge — one last chance before the day resets.
+      await _scheduleDaily(
+        id: 2003,
+        hour: 21,
+        minute: 45,
+        title: '🌙 Almost done for today',
+        body: 'Quick nudge: did you log everything you ate today?',
+      );
+    }
   }
 
-  static Future<void> _cancel(int id) => _plugin.cancel(id: id);
+  static Future<void> cancelAll() => _plugin.cancelAll();
+
+  /// Re-schedule with the current water+meal settings (after a change).
+  static Future<void> resync({required bool water, required bool meal}) =>
+      scheduleAll(water: water, meal: meal);
 
   static Future<void> _scheduleDaily({
     required int id,
+    required int hour,
+    required int minute,
     required String title,
     required String body,
   }) async {
@@ -60,13 +105,20 @@ class NotificationService {
       ),
       iOS: DarwinNotificationDetails(),
     );
-    await _plugin.periodicallyShowWithDuration(
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(
+        tz.local, now.year, now.month, now.day, hour, minute);
+    if (!scheduled.isAfter(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+    await _plugin.zonedSchedule(
       id: id,
       title: title,
       body: body,
-      repeatDurationInterval: const Duration(days: 1),
+      scheduledDate: scheduled,
       notificationDetails: details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 }

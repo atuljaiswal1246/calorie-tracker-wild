@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/food_entry.dart';
 import '../services/food_search_service.dart';
+import '../services/notification_service.dart';
 import '../services/openai_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
@@ -198,6 +199,13 @@ class _CaptureScreenState extends State<CaptureScreen> {
     HapticFeedback.lightImpact();
     if (!mounted) return;
 
+    // First meal ever logged (or the one re-prompt ~4 meals later):
+    // ask to enable meal reminders. Max twice ever.
+    if (widget.storage.shouldRePromptMealPromptsNow()) {
+      await _askMealReminders();
+      if (!mounted) return;
+    }
+
     final scanAnother = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
@@ -267,6 +275,42 @@ class _CaptureScreenState extends State<CaptureScreen> {
     }
   }
 
+  /// First-log moment: ask if the user wants meal-time prompts.
+  Future<void> _askMealReminders() async {
+    // Count THIS prompt as shown, whether they accept or decline.
+    await widget.storage.recordMealPrompt();
+    final enable = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Turn on meal reminders?'),
+        content: const Text(
+          'Get a gentle nudge at lunch, dinner and night to log your meals. '
+          'You can turn this off anytime in Settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Turn on'),
+          ),
+        ],
+      ),
+    );
+    if (enable == true) {
+      await NotificationService.requestPermissions();
+      await widget.storage.saveMealRemindersEnabled(true);
+      if (widget.storage.remindersEnabled) {
+        await NotificationService.scheduleAll(
+          water: true,
+          meal: true,
+        );
+      }
+    }
+  }
+
   Future<void> _confirmDiscard() async {
     if (_items == null && _image == null) {
       Navigator.of(context).pop();
@@ -322,6 +366,148 @@ class _CaptureScreenState extends State<CaptureScreen> {
       ),
     );
     if (discard == true && mounted) Navigator.of(context).pop();
+  }
+
+  /// Pre-log edit: correct an item's calories/macros/servings.
+  Future<void> _editItem(FoodItem item) async {
+    final ctrlCal = TextEditingController(text: item.calories.toString());
+    final ctrlPro = TextEditingController(text: item.protein.toStringAsFixed(1));
+    final ctrlCarbs =
+        TextEditingController(text: item.carbs.toStringAsFixed(1));
+    final ctrlFat = TextEditingController(text: item.fat.toStringAsFixed(1));
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(item.name,
+                  style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink)),
+              const SizedBox(height: 4),
+              const Text('Adjust and save. Quantity edits apply per serving.',
+                  style: TextStyle(fontSize: 13, color: AppColors.muted)),
+              const SizedBox(height: 20),
+              _editField('Calories (kcal)', ctrlCal, isNumber: true),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                      child: _editField('Protein (g)', ctrlPro,
+                          isNumber: true)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child: _editField('Carbs (g)', ctrlCarbs,
+                          isNumber: true)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child: _editField('Fat (g)', ctrlFat,
+                          isNumber: true)),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 52,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.ink,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Save',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (saved == true) {
+      // Rebuild the item with corrected base values (per 1 serving).
+      final q = item.quantity == 0 ? 1.0 : item.quantity;
+      setState(() {
+        item.quantity = 1;
+        final calories = int.tryParse(ctrlCal.text.trim()) ?? item.calories;
+        final protein = double.tryParse(ctrlPro.text.trim()) ?? item.protein;
+        final carbs = double.tryParse(ctrlCarbs.text.trim()) ?? item.carbs;
+        final fat = double.tryParse(ctrlFat.text.trim()) ?? item.fat;
+        // Can't modify final fields in place — replace item with a new one.
+        final i = _items!.indexOf(item);
+        if (i >= 0) {
+          _items![i] = FoodItem(
+            name: item.name,
+            servingSizeGrams: item.servingSizeGrams,
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            fiber: item.fiber,
+            sugar: item.sugar,
+            sodium: item.sodium,
+            quantity: q,
+          );
+        }
+      });
+    }
+    ctrlCal.dispose();
+    ctrlPro.dispose();
+    ctrlCarbs.dispose();
+    ctrlFat.dispose();
+  }
+
+  Widget _editField(String label, TextEditingController ctrl,
+      {bool isNumber = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.muted)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: ctrl,
+          keyboardType: isNumber
+              ? const TextInputType.numberWithOptions(decimal: true)
+              : null,
+          style: const TextStyle(
+              fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.ink),
+          decoration: InputDecoration(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            filled: true,
+            fillColor: AppColors.bg,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.ink, width: 1.5),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -418,8 +604,10 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     ],
                     const SizedBox(height: 16),
 
-                    // Camera / Gallery
-                    if (widget.initialImage == null && _items == null)
+                    // Camera / Gallery. Show whenever we have no photo in
+                    // hand (fresh open OR after "Scan another"), regardless
+                    // of how we entered the screen.
+                    if (_image == null && _items == null)
                       Column(
                         children: [
                           Container(
@@ -568,6 +756,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                         return _FoodItemCard(
                           item: item,
                           onChanged: () => setState(() {}),
+                          onEdit: () => _editItem(item),
                           onDelete: () {
                             setState(() => _items!.remove(item));
                             if (_items!.isEmpty) {
@@ -691,8 +880,14 @@ class _FoodItemCard extends StatefulWidget {
   final FoodItem item;
   final VoidCallback onChanged;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
 
-  const _FoodItemCard({required this.item, required this.onChanged, this.onDelete});
+  const _FoodItemCard({
+    required this.item,
+    required this.onChanged,
+    this.onDelete,
+    this.onEdit,
+  });
 
   @override
   State<_FoodItemCard> createState() => _FoodItemCardState();
@@ -735,6 +930,14 @@ class _FoodItemCardState extends State<_FoodItemCard> {
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink)),
               ),
+              if (widget.onEdit != null)
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined,
+                      size: 18, color: AppColors.muted),
+                  onPressed: widget.onEdit,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
               if (widget.onDelete != null)
                 IconButton(
                   icon: const Icon(Icons.close, size: 18, color: AppColors.muted),

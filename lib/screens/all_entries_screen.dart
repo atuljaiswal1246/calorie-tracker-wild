@@ -202,7 +202,12 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => MealDetailScreen(entry: entries[i]),
+                                builder: (_) => MealDetailScreen(
+                                  entry: entries[i],
+                                  storage: widget.storage,
+                                  onDeleted: () =>
+                                      widget.storage.deleteEntry(entries[i].id),
+                                ),
                               ),
                             );
                           },

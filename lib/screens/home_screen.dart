@@ -81,6 +81,14 @@ class _HomeScreenState extends State<HomeScreen> {
       initialScrollOffset: 59 * 60.0,
     );
     _load();
+    // Water reminders default ON: ensure they're scheduled any app start.
+    if (widget.storage.remindersEnabled) {
+      NotificationService.requestPermissions();
+      NotificationService.scheduleAll(
+        water: true,
+        meal: widget.storage.mealRemindersEnabled,
+      );
+    }
     _billing = BillingService(widget.storage);
     _billing!.onStatusChanged = () {
       if (!mounted) return;
@@ -295,16 +303,19 @@ class _HomeScreenState extends State<HomeScreen> {
     if (enabled) {
       await NotificationService.cancelAll();
     } else {
-      await NotificationService.scheduleWaterReminder();
-      await NotificationService.scheduleMealReminder();
+      // Water nudges always; meal prompts only if user opted in.
+      await NotificationService.scheduleAll(
+        water: true,
+        meal: widget.storage.mealRemindersEnabled,
+      );
     }
     _load();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(!enabled
-            ? 'Reminders on: water at 4:30pm, meal at 12:30pm'
-            : 'Reminders off'),
+            ? 'Water reminders on (6 nudges/day). Meal prompts via Settings.'
+            : 'Water reminders off'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -762,12 +773,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: MealCard(
                     entry: e,
-                    onTap: () {
-                      Navigator.of(context).push(
+                    onTap: () async {
+                      await Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => MealDetailScreen(entry: e),
+                          builder: (_) => MealDetailScreen(
+                            entry: e,
+                            storage: widget.storage,
+                            onDeleted: () => _deleteEntry(e),
+                          ),
                         ),
                       );
+                      _load();
                     },
                     onLongPress: () => _deleteEntry(e),
                   ),
@@ -1663,8 +1679,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final actions = [
       (Icons.center_focus_strong, 'Scan food', _openCapture),
       (Icons.photo_library_outlined, 'Upload photo', _openGallery),
-      (Icons.qr_code_scanner, 'Barcode', _openBarcodeScanner),
       (Icons.edit_note, 'Add manually', _openManualEntry),
+      (Icons.qr_code_2, 'Barcode', _openBarcodeScanner),
     ];
 
     return Container(
@@ -1697,13 +1713,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ],
                 ),
-                // Page 2: 4th action centered
-                Center(
-                  child: _logOption(
-                    icon: actions[3].$1,
-                    label: actions[3].$2,
-                    onTap: actions[3].$3,
-                  ),
+                // Page 2: 4th action — SAME 1/3 width as page-1 tiles
+                Row(
+                  children: [
+                    Expanded(
+                      child: _logOption(
+                        icon: actions[3].$1,
+                        label: actions[3].$2,
+                        onTap: actions[3].$3,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(child: SizedBox()),
+                    const SizedBox(width: 10),
+                    const Expanded(child: SizedBox()),
+                  ],
                 ),
               ],
             ),
@@ -1757,8 +1781,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.cardAlt,
           borderRadius: BorderRadius.circular(16),
@@ -1767,7 +1793,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 24, color: AppColors.ink),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
