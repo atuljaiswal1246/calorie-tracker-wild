@@ -8,6 +8,9 @@ class FoodItem {
   final double _fiber;
   final double _sugar;
   final double _sodium;
+  final double _calcium;
+  final double _iron;
+  final double _vitaminC;
   double quantity;
 
   // Database comparison fields (populated when matched from local DB)
@@ -31,6 +34,9 @@ class FoodItem {
     double fiber = 0,
     double sugar = 0,
     double sodium = 0,
+    double calcium = 0,
+    double iron = 0,
+    double vitaminC = 0,
     this.quantity = 1,
     this.dbMatchedName,
     this.dbSource,
@@ -47,7 +53,10 @@ class FoodItem {
         _fat = fat,
         _fiber = fiber,
         _sugar = sugar,
-        _sodium = sodium;
+        _sodium = sodium,
+        _calcium = calcium,
+        _iron = iron,
+        _vitaminC = vitaminC;
 
   int get calories => (_calories * quantity).round();
   double get protein => _protein * quantity;
@@ -56,6 +65,9 @@ class FoodItem {
   double get fiber => _fiber * quantity;
   double get sugar => _sugar * quantity;
   double get sodium => _sodium * quantity;
+  double get calcium => _calcium * quantity;
+  double get iron => _iron * quantity;
+  double get vitaminC => _vitaminC * quantity;
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -67,6 +79,9 @@ class FoodItem {
         'fiber': _fiber,
         'sugar': _sugar,
         'sodium': _sodium,
+        'calcium': _calcium,
+        'iron': _iron,
+        'vitaminC': _vitaminC,
         'quantity': quantity,
         if (dbMatchedName != null) 'dbMatchedName': dbMatchedName,
         if (dbSource != null) 'dbSource': dbSource,
@@ -89,6 +104,9 @@ class FoodItem {
         fiber: (json['fiber'] as num?)?.toDouble() ?? 0,
         sugar: (json['sugar'] as num?)?.toDouble() ?? 0,
         sodium: (json['sodium'] as num?)?.toDouble() ?? 0,
+        calcium: (json['calcium'] as num?)?.toDouble() ?? 0,
+        iron: (json['iron'] as num?)?.toDouble() ?? 0,
+        vitaminC: (json['vitaminC'] as num?)?.toDouble() ?? 0,
         quantity: (json['quantity'] as num?)?.toDouble() ?? 1,
         dbMatchedName: json['dbMatchedName'] as String?,
         dbSource: json['dbSource'] as String?,

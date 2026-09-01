@@ -181,6 +181,56 @@ class MacroBreakdownScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
+                // ---- Micronutrient gaps ----
+                const Padding(
+                  padding: EdgeInsets.only(left: 4, bottom: 10),
+                  child: Text(
+                    'Micronutrient gaps',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _microRow('Iron', '🩸', _sumIron(), 18, 'mg',
+                          limit: false),
+                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      _microRow('Calcium', '🦴', _sumCalcium(), 1000, 'mg',
+                          limit: false),
+                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      _microRow('Vitamin C', '🍊', _sumVitaminC(), 75, 'mg',
+                          limit: false),
+                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      _microRow('Fiber', '🌾', _sumFiber(), 30, 'g',
+                          limit: false),
+                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      _microRow('Sugar', '🍬', _sumSugar(), 36, 'g',
+                          limit: true),
+                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      _microRow('Sodium', '🧂', _sumSodium(), 2300, 'mg',
+                          limit: true),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
                 // Per-item breakdown
                 ...groupedItems.map((g) {
                   final val = g.totalValue;
@@ -309,6 +359,80 @@ class MacroBreakdownScreen extends StatelessWidget {
                 }),
               ],
             ),
+    );
+  }
+
+  double _sumIron() => entries
+      .fold(0.0, (s, e) => s + e.items.fold(0.0, (a, i) => a + i.iron));
+  double _sumCalcium() => entries
+      .fold(0.0, (s, e) => s + e.items.fold(0.0, (a, i) => a + i.calcium));
+  double _sumVitaminC() => entries
+      .fold(0.0, (s, e) => s + e.items.fold(0.0, (a, i) => a + i.vitaminC));
+  double _sumFiber() => entries
+      .fold(0.0, (s, e) => s + e.items.fold(0.0, (a, i) => a + i.fiber));
+  double _sumSugar() => entries
+      .fold(0.0, (s, e) => s + e.items.fold(0.0, (a, i) => a + i.sugar));
+  double _sumSodium() => entries
+      .fold(0.0, (s, e) => s + e.items.fold(0.0, (a, i) => a + i.sodium));
+
+  /// One micronutrient row. `limit` = nutrients you should stay UNDER
+  /// (sugar/sodium); otherwise a gap = we want to reach the target.
+  Widget _microRow(String label, String emoji, double value, double target,
+      String unit, {required bool limit}) {
+    const green = Color(0xFF66BB6A);
+    const red = Color(0xFFEF5350);
+    final hasData = value > 0;
+    final met = limit ? value <= target : value >= target;
+    final color = hasData ? (met ? green : red) : Colors.grey;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 86,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: hasData
+                    ? (value / target).clamp(0.0, 1.0).toDouble()
+                    : 0,
+                backgroundColor: color.withOpacity(0.12),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                minHeight: 6,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 110,
+            child: Text(
+              hasData
+                  ? '$unit ${value.toStringAsFixed(value < 10 ? 1 : 0)}  '
+                      '/ $target'
+                  : 'No data',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: hasData ? color : Colors.grey,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
