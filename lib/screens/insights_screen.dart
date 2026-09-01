@@ -6,6 +6,7 @@ import '../models/food_entry.dart';
 import '../models/profile.dart';
 import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
+import '../services/weekly_summary_service.dart';
 import '../theme/app_colors.dart';
 import 'achievements_screen.dart';
 
@@ -22,10 +23,15 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Profile? _profile;
   List<FoodEntry> _entries = [];
   List<Achievement> _achievements = [];
+  late WeeklySummaryService _summaryService;
+  String? _summaryText;
+  bool _summaryLoading = false;
+  String? _summaryError;
 
   @override
   void initState() {
     super.initState();
+    _summaryService = WeeklySummaryService(widget.storage);
     _load();
   }
 
@@ -33,7 +39,30 @@ class _InsightsScreenState extends State<InsightsScreen> {
     _profile = widget.storage.profile;
     _entries = widget.storage.entries;
     _achievements = AchievementsService(widget.storage).getAll();
+    _summaryText = _summaryService.cached();
+    if (_summaryText == null || _summaryText!.isEmpty) _summaryText = null;
     setState(() {});
+  }
+
+  Future<void> _generateSummary() async {
+    setState(() {
+      _summaryLoading = true;
+      _summaryError = null;
+    });
+    try {
+      final text = await _summaryService.generate();
+      if (mounted) {
+        setState(() => _summaryText = text);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _summaryError = 'Couldn\'t generate right now. Try again in a bit.';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _summaryLoading = false);
+    }
   }
 
   // ---- Data helpers ----
@@ -173,6 +202,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 _emptyState(),
               ] else ...[
                 _summaryCard(profile),
+                const SizedBox(height: 16),
+                _aiSummaryCard(),
                 const SizedBox(height: 16),
                 _calorieTrendCard(profile),
                 const SizedBox(height: 16),
@@ -424,6 +455,169 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// AI-written weekly review (Asha) — cached per week, regenerable.
+  Widget _aiSummaryCard() {
+    final range = DateFormat('MMM d').format(DateTime.now()
+            .subtract(const Duration(days: 6))) +
+        ' – ' +
+        DateFormat('MMM d').format(DateTime.now());
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFF4B4B), Color(0xFFFF7A45)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF4B4B).withValues(alpha: 0.25),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('✨', style: TextStyle(fontSize: 15)),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  'Your week in Asha\'s words',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+              Text(
+                range,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (_summaryLoading) ...[
+            Row(
+              children: [
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Asha is reading your week…',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ] else if (_summaryText != null)
+            Text(
+              _summaryText!,
+              style: const TextStyle(
+                fontSize: 13.5,
+                height: 1.5,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
+            )
+          else ...[
+            Text(
+              'Tap to get a personal recap — what went right, '
+              'what to fix this week.',
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.4,
+                color: Colors.white.withValues(alpha: 0.92),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFFFF4B4B),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 8),
+                ),
+                onPressed: _generateSummary,
+                icon: const Icon(Icons.auto_awesome, size: 16),
+                label: const Text(
+                  'Generate my week',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (_summaryError != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _summaryError!,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
+            ),
+          ],
+          if (_summaryText != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Text(
+                  'Regenerate',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: _generateSummary,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      Icons.refresh,
+                      size: 15,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }

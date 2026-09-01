@@ -220,6 +220,22 @@ class StorageService {
     await _prefs.setString(_exerciseKey, jsonEncode(all.map((e) => e.toJson()).toList()));
   }
 
+  // ---- Weekly AI summary (cached per ISO week) ----
+
+  /// Calendar week key (Monday-based) so the cache resets every week.
+  static String weekKey(DateTime day) {
+    final d = DateTime(day.year, day.month, day.day);
+    final monday = d.subtract(Duration(days: d.weekday - 1));
+    return '${monday.year}-${monday.month}-${monday.day}';
+  }
+
+  String? getWeeklySummary(String key) =>
+      _prefs.getString('weekly_summary_$key');
+
+  Future<void> saveWeeklySummary(String key, String text) async {
+    await _prefs.setString('weekly_summary_$key', text);
+  }
+
   int get entryCount => entries.length;
 
   Future<void> addEntry(FoodEntry entry) async {
