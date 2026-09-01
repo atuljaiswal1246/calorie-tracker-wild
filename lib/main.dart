@@ -118,6 +118,13 @@ class _CalorieAppState extends State<CalorieApp> {
     return MaterialApp(
       title: 'Cal Matters',
       debugShowCheckedModeBanner: false,
+      // Standard UX: tapping anywhere outside a text field dismisses the
+      // keyboard, on every screen of the app.
+      builder: (context, child) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: child,
+      ),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,

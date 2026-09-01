@@ -25,6 +25,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _entries = widget.storage.entries;
   }
 
+  Future<void> _refresh() async {
+    try {
+      final cloud = await widget.storage.loadEntriesFromCloud();
+      if (mounted && cloud != null) {
+        setState(() => _entries = cloud);
+      }
+    } catch (_) {
+      // Offline — pull-to-refresh silently keeps local data.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sorted = List<FoodEntry>.from(_entries)
@@ -85,8 +96,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ],
                       ),
                     )
-                  : ListView.builder(
+                  : RefreshIndicator(
+                      color: AppColors.ink,
+                      onRefresh: _refresh,
+                      child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: sorted.length,
                       itemBuilder: (context, index) {
                         final entry = sorted[index];
@@ -110,6 +127,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         );
                       },
                     ),
+                  ),
             ),
           ],
         ),

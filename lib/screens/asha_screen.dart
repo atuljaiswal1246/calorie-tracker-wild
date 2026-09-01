@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../services/asha_prompts.dart';
@@ -199,6 +200,8 @@ SPEAK STYLE:
                   : ListView(
                       controller: _scroll,
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                       children: [
                         ..._messages.map((m) => _bubble(m)),
                         if (_sending) const _TypingBubble(),
@@ -385,7 +388,10 @@ SPEAK STYLE:
                       ),
                     )
                   : GestureDetector(
-                      onTap: () => _send(),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        _send();
+                      },
                       child: Container(
                         width: 44,
                         height: 44,

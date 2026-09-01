@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -39,6 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _toggleWater(bool enabled) async {
+    HapticFeedback.selectionClick();
     if (!enabled) {
       await NotificationService.requestPermissions();
     }
@@ -56,6 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _toggleMeal(bool enabled) async {
+    HapticFeedback.selectionClick();
     if (!enabled) {
       await NotificationService.requestPermissions();
     }
@@ -169,6 +172,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [
                   // ------- Reminders -------
                   const _SectionLabel('Reminders'),

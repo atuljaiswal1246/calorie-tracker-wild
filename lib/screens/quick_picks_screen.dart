@@ -182,6 +182,8 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
                         )
                       : ListView(
                           padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
                           children: [
                             const Text(
                               'Tap a dish, pick your portion, log it — no AI needed.',
@@ -212,7 +214,10 @@ class _PickTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
