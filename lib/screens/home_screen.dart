@@ -273,14 +273,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openGallery() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
+    final picked = await picker.pickMultiImage(
+      maxWidth: 800,
+      imageQuality: 70,
+      limit: 5,
+    );
+    if (picked.isEmpty) return;
     if (!mounted) return;
+    final files = picked.map((x) => File(x.path)).toList();
     final saved = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => CaptureScreen(
           storage: widget.storage,
-          initialImage: File(picked.path),
+          initialImage: files.length == 1 ? files.first : null,
+          initialImages: files.length > 1 ? files : null,
         ),
       ),
     );

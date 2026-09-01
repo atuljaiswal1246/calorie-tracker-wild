@@ -16,8 +16,14 @@ import 'manual_entry_screen.dart';
 class CaptureScreen extends StatefulWidget {
   final StorageService storage;
   final File? initialImage;
+  final List<File>? initialImages;
 
-  const CaptureScreen({super.key, required this.storage, this.initialImage});
+  const CaptureScreen({
+    super.key,
+    required this.storage,
+    this.initialImage,
+    this.initialImages,
+  });
 
   @override
   State<CaptureScreen> createState() => _CaptureScreenState();
@@ -33,6 +39,15 @@ class _CaptureScreenState extends State<CaptureScreen> {
   List<FoodItem>? _items;
   String _mealType = _autoMealType();
 
+  // ---- Batch (gallery auto-log) mode ----
+  bool _batchMode = false;
+  late List<File> _batchFiles;
+  final Map<String, List<FoodItem>> _batchResults = {};
+  final Set<String> _batchFailed = {};
+  String _batchMealType = _autoMealType();
+  bool _batchAnalyzing = false;
+  int _batchIndex = 0;
+
   static String _autoMealType() {
     final hour = DateTime.now().hour;
     if (hour < 11) return 'breakfast';
@@ -44,25 +59,192 @@ class _CaptureScreenState extends State<CaptureScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialImage != null) {
-      _copyToPermanent(widget.initialImage!);
+    final images = widget.initialImages;
+    if (images != null && images.length > 1) {
+      _enterBatchMode(images);
+      return;
+    }
+    final fallback = widget.initialImage ?? (images != null && images.isNotEmpty ? images.first : null);
+    if (fallback != null) {
+      _copyToPermanent(fallback);
     }
   }
 
-  Future<void> _copyToPermanent(File source) async {
+  // ---- Batch helpers ----
+
+  void _enterBatchMode(List<File> images) {
+    _batchMode = true;
+    _batchFiles = [];
+    // Copy each picked photo to a permanent location, then analyze.
+    var remaining = images.length;
+    for (final img in images) {
+      _toPermanent(img).then((path) {
+        if (!mounted) return;
+        _batchFiles.add(File(path));
+        remaining--;
+        if (remaining == 0) _analyzeBatch();
+      }).catchError((_) {
+        if (!mounted) return;
+        _batchFiles.add(img);
+        remaining--;
+        if (remaining == 0) _analyzeBatch();
+      });
+    }
+  }
+
+  Future<void> _analyzeBatch() async {
+    setState(() {
+      _batchAnalyzing = true;
+      _batchIndex = 0;
+    });
+    for (final file in _batchFiles) {
+      setState(() => _batchIndex = _batchFiles.indexOf(file) + 1);
+      try {
+        final result = await OpenAIService().analyzeImage(file.path);
+        if (!mounted) return;
+        setState(() {
+          if (result.items.isEmpty) {
+            _batchFailed.add(file.path);
+          } else {
+            _batchResults[file.path] = result.items;
+          }
+        });
+      } catch (_) {
+        if (!mounted) return;
+        setState(() => _batchFailed.add(file.path));
+      }
+    }
+    if (!mounted) return;
+    setState(() => _batchAnalyzing = false);
+  }
+
+  Future<void> _logBatch() async {
+    final successes = _batchResults.entries.toList();
+    if (successes.isEmpty) return;
+
+    for (final e in successes) {
+      final savedPath = await _toPermanent(File(e.key));
+      final entry = FoodEntry(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        dateTime: DateTime.now(),
+        mealType: _batchMealType,
+        items: e.value,
+        imagePath: savedPath,
+      );
+      await widget.storage.addEntry(entry);
+    }
+    HapticFeedback.lightImpact();
+    if (!mounted) return;
+    await _showLoggedDialog();
+  }
+
+  Future<void> _askMealRemindersOnce() async {
+    if (widget.storage.shouldRePromptMealPromptsNow()) {
+      await _askMealReminders();
+    }
+  }
+
+  /// Success dialog for batch: "Scan another" resets, "Done" exits to Home.
+  Future<void> _showLoggedDialog() async {
+    if (mounted) {
+      _askMealRemindersOnce();
+    }
+    final scanAnother = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.card,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('✅', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 10),
+              const Text(
+                'Logged!',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Added to your day.',
+                style: TextStyle(fontSize: 13, color: AppColors.muted),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.ink,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Scan another',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child:
+                      const Text('Done', style: TextStyle(color: AppColors.muted)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (scanAnother == true) {
+      setState(() {
+        _batchMode = false;
+        _batchFiles = [];
+        _batchResults.clear();
+        _batchFailed.clear();
+        _batchIndex = 0;
+        _image = null;
+        _items = null;
+        _error = null;
+      });
+    } else {
+      Navigator.pop(context, true);
+    }
+  }
+
+  /// Copy a picked image into app docs (permanent storage).
+  Future<String> _toPermanent(File source) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
       final ext = source.path.split('.').last;
-      final fileName = 'meal_${DateTime.now().microsecondsSinceEpoch}.$ext';
+      final fileName = 'meal_${DateTime.now().microsecondsSinceEpoch}_${source.path.hashCode.abs()}.$ext';
       final dest = '${appDir.path}/$fileName';
       final permanentFile = await source.copy(dest);
-      final exists = await permanentFile.exists();
-      setState(() {
-        _image = exists ? permanentFile : source;
-      });
+      if (await permanentFile.exists()) return permanentFile.path;
     } catch (e) {
-      setState(() => _image = source);
+      debugPrint('Image copy failed: $e');
     }
+    return source.path;
+  }
+
+  Future<void> _copyToPermanent(File source) async {
+    final path = await _toPermanent(source);
+    if (!mounted) return;
+    setState(() {
+      _image = File(path);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _analyze());
   }
 
@@ -572,7 +754,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
+              child: _batchMode
+                  ? _batchBody()
+                  : SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1002,6 +1186,241 @@ class _CaptureScreenState extends State<CaptureScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // ---- Batch (gallery auto-log) UI ----
+
+  Widget _batchBody() {
+    final total = _batchFiles.length;
+    final done = _batchResults.length + _batchFailed.length;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text('📸', style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Batch review — $total photo${total == 1 ? '' : 's'}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+              if (_batchAnalyzing)
+                Text(
+                  '$_batchIndex / $total',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_batchAnalyzing) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.ink),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Analyzing photo $_batchIndex of $total…',
+                    style: const TextStyle(
+                        fontSize: 13.5, color: AppColors.ink),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (_batchFailed.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.warningBg,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline,
+                      size: 15, color: AppColors.warningOrange),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${_batchFailed.length} photo(s) had no food '
+                      'detected — skipped.',
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.warningOrange),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ..._batchFiles.map((file) {
+            final items = _batchResults[file.path];
+            final failed = _batchFailed.contains(file.path);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        file,
+                        width: 58,
+                        height: 58,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: items != null
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...items.take(3).map((i) => Text(
+                                      '• ${i.name} — ${i.calories} kcal',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.ink,
+                                        height: 1.4,
+                                      ),
+                                    )),
+                                if (items.length > 3)
+                                  Text(
+                                    '+${items.length - 3} more',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.muted,
+                                    ),
+                                  ),
+                              ],
+                            )
+                          : failed
+                              ? const Text(
+                                  'No food detected',
+                                  style: TextStyle(
+                                      fontSize: 12.5,
+                                      color: AppColors.muted),
+                                )
+                              : Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 13,
+                                      height: 13,
+                                      child:
+                                          CircularProgressIndicator(
+                                        strokeWidth: 1.8,
+                                        color: AppColors.muted,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Waiting…',
+                                      style: TextStyle(
+                                          fontSize: 12.5,
+                                          color: AppColors.muted),
+                                    ),
+                                  ],
+                                ),
+                    ),
+                    if (items != null)
+                      Text(
+                        '${items.fold(0, (s, i) => s + i.calories)} kcal',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          if (!_batchAnalyzing && _batchResults.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Meal type (applies to all):',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.muted,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _mealPill('Breakfast', 'breakfast'),
+                const SizedBox(width: 6),
+                _mealPill('Lunch', 'lunch'),
+                const SizedBox(width: 6),
+                _mealPill('Dinner', 'dinner'),
+                const SizedBox(width: 6),
+                _mealPill('Snack', 'snack'),
+              ],
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 52,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.ink,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _logBatch,
+                child: Text(
+                  'Log ${_batchResults.length} photo'
+                  '${_batchResults.length == 1 ? '' : 's'}'
+                  ' (${_batchResults.values.fold(0, (s, list) => s + list.fold(0, (a, i) => a + i.calories))} kcal)',
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ] else if (!_batchAnalyzing && _batchResults.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                'No food was detected in any photo.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13.5, color: AppColors.muted),
+              ),
+            ),
+        ],
       ),
     );
   }
