@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../models/food_entry.dart';
+import '../theme/app_colors.dart';
 
 enum MacroType { calories, protein, carbs, fat, fiber, sugar, sodium }
 
@@ -13,7 +14,7 @@ class MacroBreakdownScreen extends StatelessWidget {
   final double target;
   final Color color;
 
-  const MacroBreakdownScreen({
+  MacroBreakdownScreen({
     super.key,
     required this.macroType,
     required this.entries,
@@ -109,18 +110,18 @@ class MacroBreakdownScreen extends StatelessWidget {
       ..sort((a, b) => b.totalValue.compareTo(a.totalValue));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF9F7),
+      backgroundColor: Color(0xFFFAF9F7),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           '$_title Breakdown',
-          style: const TextStyle(
-            color: Colors.black,
+          style: TextStyle(
+            color: AppColors.ink,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -134,9 +135,9 @@ class MacroBreakdownScreen extends StatelessWidget {
                 children: [
                   Text(
                     _emptyEmoji,
-                    style: const TextStyle(fontSize: 48),
+                    style: TextStyle(fontSize: 48),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     'No $_title logged yet',
                     style: TextStyle(
@@ -149,11 +150,11 @@ class MacroBreakdownScreen extends StatelessWidget {
               ),
             )
           : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 32),
               children: [
                 // Summary bar
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.black,
                     borderRadius: BorderRadius.circular(20),
@@ -174,15 +175,15 @@ class MacroBreakdownScreen extends StatelessWidget {
                       _summaryStat(
                         '${(target - total).toStringAsFixed(0)}$_unit',
                         'Remaining',
-                        target > total ? const Color(0xFF66BB6A) : const Color(0xFFEF5350),
+                        target > total ? Color(0xFF66BB6A) : const Color(0xFFEF5350),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 // ---- Micronutrient gaps ----
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(left: 4, bottom: 10),
                   child: Text(
                     'Micronutrient gaps',
@@ -195,15 +196,15 @@ class MacroBreakdownScreen extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  padding: EdgeInsets.symmetric(vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.card,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.04),
                         blurRadius: 10,
-                        offset: const Offset(0, 2),
+                        offset: Offset(0, 2),
                       ),
                     ],
                   ),
@@ -211,25 +212,25 @@ class MacroBreakdownScreen extends StatelessWidget {
                     children: [
                       _microRow('Iron', '🩸', _sumIron(), 18, 'mg',
                           limit: false),
-                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      Divider(height: 1, color: Color(0xFFF0EDE8)),
                       _microRow('Calcium', '🦴', _sumCalcium(), 1000, 'mg',
                           limit: false),
-                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      Divider(height: 1, color: Color(0xFFF0EDE8)),
                       _microRow('Vitamin C', '🍊', _sumVitaminC(), 75, 'mg',
                           limit: false),
-                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      Divider(height: 1, color: Color(0xFFF0EDE8)),
                       _microRow('Fiber', '🌾', _sumFiber(), 30, 'g',
                           limit: false),
-                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      Divider(height: 1, color: Color(0xFFF0EDE8)),
                       _microRow('Sugar', '🍬', _sumSugar(), 36, 'g',
                           limit: true),
-                      const Divider(height: 1, color: Color(0xFFF0EDE8)),
+                      Divider(height: 1, color: Color(0xFFF0EDE8)),
                       _microRow('Sodium', '🧂', _sumSodium(), 2300, 'mg',
                           limit: true),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 // Per-item breakdown
                 ...groupedItems.map((g) {
@@ -238,17 +239,17 @@ class MacroBreakdownScreen extends StatelessWidget {
                   final entry = g.latestEntry;
 
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
+                    padding: EdgeInsets.only(bottom: 10),
                     child: Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.card,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.04),
                             blurRadius: 10,
-                            offset: const Offset(0, 2),
+                            offset: Offset(0, 2),
                           ),
                         ],
                       ),
@@ -275,7 +276,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                               ),
                               child: Icon(Icons.restaurant, color: color, size: 20),
                             ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
 
                           // Name + count + bar
                           Expanded(
@@ -289,16 +290,16 @@ class MacroBreakdownScreen extends StatelessWidget {
                                         g.name,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.black,
+                                          color: AppColors.ink,
                                         ),
                                       ),
                                     ),
                                     if (g.count > 1)
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: color.withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(6),
@@ -314,7 +315,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                                       ),
                                   ],
                                 ),
-                                const SizedBox(height: 6),
+                                SizedBox(height: 6),
                                 // Progress bar
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(4),
@@ -328,7 +329,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
 
                           // Value + percentage
                           Column(
@@ -342,7 +343,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                                   color: color,
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              SizedBox(height: 2),
                               Text(
                                 '${(pct * 100).toStringAsFixed(0)}%',
                                 style: TextStyle(
@@ -386,19 +387,19 @@ class MacroBreakdownScreen extends StatelessWidget {
     final color = hasData ? (met ? green : red) : Colors.grey;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 10),
+          Text(emoji, style: TextStyle(fontSize: 16)),
+          SizedBox(width: 10),
           SizedBox(
             width: 86,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.black,
+                color: AppColors.ink,
               ),
             ),
           ),
@@ -415,7 +416,7 @@ class MacroBreakdownScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           SizedBox(
             width: 110,
             child: Text(
@@ -447,7 +448,7 @@ class MacroBreakdownScreen extends StatelessWidget {
             color: color,
           ),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(

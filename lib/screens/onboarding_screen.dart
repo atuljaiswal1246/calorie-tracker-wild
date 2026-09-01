@@ -28,7 +28,7 @@ class OnboardingScreen extends StatefulWidget {
   /// app — resume where they left off, never restart).
   final int? startAtStep;
 
-  const OnboardingScreen({
+  OnboardingScreen({
     super.key,
     required this.storage,
     required this.auth,
@@ -61,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // Step 1: goal
   String? _goal;
-  static const _goals = [
+  static final _goals = [
     _Option(icon: Icons.arrow_downward, label: 'Lose weight', value: 'lose'),
     _Option(icon: Icons.balance, label: 'Maintain weight', value: 'maintain'),
     _Option(
@@ -88,7 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // Step 5: workout frequency (workouts per week, matches mainstream apps)
   String? _workoutFreq;
-  static const _workoutFreqs = [
+  static final _workoutFreqs = [
     _Option(icon: Icons.horizontal_rule, label: 'No workout', value: 'none'),
     _Option(icon: Icons.looks_one, label: '1–2', value: '0to2'),
     _Option(icon: Icons.looks_two, label: '3–5', value: '3to5'),
@@ -217,7 +217,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final picked = await showModalBottomSheet<DateTime>(
       context: context,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => _DobSheet(
@@ -355,7 +355,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           final picked = await showModalBottomSheet<DateTime>(
             context: context,
             backgroundColor: Colors.white,
-            shape: const RoundedRectangleBorder(
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
             builder: (context) => _DobSheet(
@@ -437,7 +437,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: Color(0xFFF7F7F7),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         behavior: HitTestBehavior.translucent,
@@ -452,7 +452,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    color: const Color(0xFFF7F7F7),
+                    color: Color(0xFFF7F7F7),
                     child: _TopBar(
                       progress: _progress,
                       stepNumber: _step + 1,
@@ -463,9 +463,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Heading block — grows if it's 2 lines so the content
                   // below never gets jammed against it.
                   ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 96),
+                    constraints: BoxConstraints(minHeight: 96),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
+                      padding: EdgeInsets.fromLTRB(24, 14, 24, 8),
                       child: Align(
                         alignment: Alignment.topLeft,
                         child: _buildHeading(),
@@ -477,12 +477,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: LayoutBuilder(
                       builder: (context, constraints) =>
                           SingleChildScrollView(
-                        padding: const EdgeInsets.only(top: 28),
+                        padding: EdgeInsets.only(top: 28),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
                               minHeight: constraints.maxHeight),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                                 horizontal: 24, vertical: 8),
                             child: _buildStep(),
                           ),
@@ -493,10 +493,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Warning slot — collapse when empty
                   if (_buildWarning() != null)
                     ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 40),
+                      constraints: BoxConstraints(minHeight: 40),
                       child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                               horizontal: 24, vertical: 4),
                           child: _WarningBox(message: _buildWarning()!),
                         ),
@@ -505,9 +505,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Footer option slot — collapse when empty
                   if (_buildStepFooter() is! SizedBox)
                     ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 40),
+                      constraints: BoxConstraints(minHeight: 40),
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                        padding: EdgeInsets.fromLTRB(24, 0, 24, 8),
                         child: Align(
                           alignment: Alignment.topCenter,
                           child: _buildStepFooter(),
@@ -560,42 +560,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildHeading() {
     switch (_step) {
       case 0:
-        return const Text('First things first.',
+        return Text('First things first.',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 1:
-        return const Text('Choose your goal',
+        return Text('Choose your goal',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 2:
-        return const Text('What\'s your current weight?',
+        return Text('What\'s your current weight?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 3:
-        return const Text('What\'s your target weight?',
+        return Text('What\'s your target weight?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 4:
-        return const Text('What\'s your height?',
+        return Text('What\'s your height?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
                 letterSpacing: -0.5));
       case 5:
-        return const Text('How many times do you\nworkout in a week?',
+        return Text('How many times do you\nworkout in a week?',
             style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
@@ -606,13 +606,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           _goal == 'gain'
               ? 'How fast do you\nwant to gain weight?'
               : 'How fast do you\nwant to lose weight?',
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.w700,
               color: Colors.black,
               letterSpacing: -0.5));
       default:
-        return const SizedBox.shrink();
+        return SizedBox.shrink();
     }
   }
 
@@ -664,7 +664,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           isLose: _goal == 'lose',
         );
       default:
-        return const SizedBox.shrink();
+        return SizedBox.shrink();
     }
   }
 
@@ -680,7 +680,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         },
       );
     }
-    return const SizedBox.shrink();
+    return SizedBox.shrink();
   }
 
   String? _buildWarning() {
@@ -712,26 +712,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 class _WarningBox extends StatelessWidget {
   final String message;
 
-  const _WarningBox({required this.message});
+  _WarningBox({required this.message});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7E6),
+        color: Color(0xFFFFF7E6),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE6C567)),
+        border: Border.all(color: Color(0xFFE6C567)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 20, color: Color(0xFF8A6D1F)),
-          const SizedBox(width: 10),
+          Icon(Icons.info_outline, size: 20, color: Color(0xFF8A6D1F)),
+          SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 14, color: Color(0xFF6B5414), height: 1.3),
             ),
           ),
@@ -745,7 +745,7 @@ class _Option {
   final IconData icon;
   final String label;
   final String value;
-  const _Option({
+  _Option({
     required this.icon,
     required this.label,
     required this.value,
@@ -772,16 +772,16 @@ Future<double?> _showNumberEdit(
     builder: (context) => AlertDialog(
       backgroundColor: Colors.white,
       title: Text(title,
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.4)),
       content: TextField(
         controller: controller,
         autofocus: true,
         keyboardType: TextInputType.numberWithOptions(decimal: allowDecimal),
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
         decoration: InputDecoration(
           suffixText: suffix,
-          border: const OutlineInputBorder(),
+          border: OutlineInputBorder(),
         ),
         onSubmitted: (_) => Navigator.pop(
             context, _parseAndClamp(controller.text, min, max, allowDecimal)),
@@ -789,17 +789,17 @@ Future<double?> _showNumberEdit(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text('Cancel'),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
-            shape: const StadiumBorder(),
+            shape: StadiumBorder(),
           ),
           onPressed: () => Navigator.pop(
               context, _parseAndClamp(controller.text, min, max, allowDecimal)),
-          child: const Text('OK'),
+          child: Text('OK'),
         ),
       ],
     ),
@@ -826,7 +826,7 @@ Future<double?> _showFeetInchesEdit(
     context: context,
     builder: (context) => AlertDialog(
       backgroundColor: Colors.white,
-      title: const Text('Enter your height',
+      title: Text('Enter your height',
           style: TextStyle(
               fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.4)),
       content: Row(
@@ -837,21 +837,21 @@ Future<double?> _showFeetInchesEdit(
               autofocus: true,
               keyboardType: TextInputType.number,
               style:
-                  const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-              decoration: const InputDecoration(
+                  TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+              decoration: InputDecoration(
                 suffixText: 'ft',
                 border: OutlineInputBorder(),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: TextField(
               controller: inchesController,
               keyboardType: TextInputType.number,
               style:
-                  const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-              decoration: const InputDecoration(
+                  TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+              decoration: InputDecoration(
                 suffixText: 'in',
                 border: OutlineInputBorder(),
               ),
@@ -862,13 +862,13 @@ Future<double?> _showFeetInchesEdit(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text('Cancel'),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
-            shape: const StadiumBorder(),
+            shape: StadiumBorder(),
           ),
           onPressed: () {
             final feet = int.tryParse(feetController.text);
@@ -880,7 +880,7 @@ Future<double?> _showFeetInchesEdit(
             final i = (inches ?? 0).clamp(0, 11);
             Navigator.pop(context, (feet * 30.48 + i * 2.54).round());
           },
-          child: const Text('OK'),
+          child: Text('OK'),
         ),
       ],
     ),
@@ -896,7 +896,7 @@ class _TopBar extends StatelessWidget {
   final int totalSteps;
   final VoidCallback onBack;
 
-  const _TopBar({
+  _TopBar({
     required this.progress,
     required this.stepNumber,
     required this.totalSteps,
@@ -906,22 +906,22 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 24, 4),
+      padding: EdgeInsets.fromLTRB(16, 10, 24, 4),
       child: Row(
         children: [
           IconButton(
             onPressed: onBack,
             padding: EdgeInsets.zero,
             constraints:
-                const BoxConstraints(minWidth: 36, minHeight: 36),
+                BoxConstraints(minWidth: 36, minHeight: 36),
             iconSize: 20,
             style: IconButton.styleFrom(
               backgroundColor: Colors.black.withValues(alpha: 0.05),
               foregroundColor: Colors.black54,
             ),
-            icon: const Icon(Icons.arrow_back),
+            icon: Icon(Icons.arrow_back),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(4),
@@ -933,10 +933,10 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Text(
             '$stepNumber/$totalSteps',
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 13,
                 color: Colors.black54,
                 fontWeight: FontWeight.w600,
@@ -954,7 +954,7 @@ class _BottomBar extends StatelessWidget {
   final VoidCallback onContinue;
   final bool isLast;
 
-  const _BottomBar({
+  _BottomBar({
     required this.canContinue,
     required this.onContinue,
     required this.isLast,
@@ -971,7 +971,7 @@ class _BottomBar extends StatelessWidget {
             // 2px boundary divider above the continue button
             Container(height: 2, color: Colors.black12),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              padding: EdgeInsets.fromLTRB(16, 14, 16, 16),
               child: SizedBox(
                 height: 54,
                 width: double.infinity,
@@ -979,12 +979,12 @@ class _BottomBar extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
-                    shape: const StadiumBorder(),
+                    shape: StadiumBorder(),
                   ),
                   onPressed: canContinue ? onContinue : null,
                   child: Text(
                     isLast ? 'Finish' : 'Continue',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.5),
@@ -1008,7 +1008,7 @@ class _AboutYouStep extends StatelessWidget {
   final VoidCallback onDobTap;
   final ValueChanged<String> onSexChanged;
 
-  const _AboutYouStep({
+  _AboutYouStep({
     required this.nameController,
     required this.dob,
     required this.sex,
@@ -1030,12 +1030,12 @@ class _AboutYouStep extends StatelessWidget {
           textInputAction: TextInputAction.next,
           onChanged: onChanged,
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         _DateOfBirthField(
           dob: dob,
           onTap: onDobTap,
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         Row(
           children: [
             _SexChip(
@@ -1044,14 +1044,14 @@ class _AboutYouStep extends StatelessWidget {
               selected: sex == 'male',
               onTap: () => onSexChanged('male'),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             _SexChip(
               icon: Icons.female,
               label: 'Female',
               selected: sex == 'female',
               onTap: () => onSexChanged('female'),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             _SexChip(
               icon: Icons.more_horiz,
               label: 'Other',
@@ -1069,7 +1069,7 @@ class _DobSheet extends StatefulWidget {
   final DateTime initialDate;
   final ValueChanged<DateTime> onChanged;
 
-  const _DobSheet({required this.initialDate, required this.onChanged});
+  _DobSheet({required this.initialDate, required this.onChanged});
 
   @override
   State<_DobSheet> createState() => _DobSheetState();
@@ -1088,19 +1088,19 @@ class _DobSheetState extends State<_DobSheet> {
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel',
+                child: Text('Cancel',
                     style: TextStyle(color: Colors.black54)),
               ),
-              const Spacer(),
+              Spacer(),
               TextButton(
                 onPressed: () => Navigator.pop(context, _value),
-                child: const Text('Done',
+                child: Text('Done',
                     style: TextStyle(
                         color: Colors.black, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
           SizedBox(
             height: 260,
             child: CupertinoDatePicker(
@@ -1114,7 +1114,7 @@ class _DobSheetState extends State<_DobSheet> {
               },
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
         ],
       ),
     );
@@ -1125,7 +1125,7 @@ class _DateOfBirthField extends StatelessWidget {
   final DateTime? dob;
   final VoidCallback onTap;
 
-  const _DateOfBirthField({
+  _DateOfBirthField({
     required this.dob,
     required this.onTap,
   });
@@ -1140,15 +1140,15 @@ class _DateOfBirthField extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.black12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         alignment: Alignment.center,
         child: SizedBox(
           height: 56,
           child: Row(
             children: [
-              const Icon(Icons.calendar_today_outlined,
+              Icon(Icons.calendar_today_outlined,
                   size: 18, color: Colors.black45),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Text(
                   dob == null
@@ -1164,7 +1164,7 @@ class _DateOfBirthField extends StatelessWidget {
                 ),
               ),
               if (dob != null)
-                const Icon(Icons.check_circle,
+                Icon(Icons.check_circle,
                     size: 20, color: AppColors.accent),
             ],
           ),
@@ -1188,7 +1188,7 @@ class _SexChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _SexChip({
+  _SexChip({
     required this.icon,
     required this.label,
     required this.selected,
@@ -1202,8 +1202,8 @@ class _SexChip extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          duration: Duration(milliseconds: 150),
+          padding: EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.accent.withValues(alpha: 0.08)
@@ -1217,7 +1217,7 @@ class _SexChip extends StatelessWidget {
           child: Column(
             children: [
               Icon(icon, size: 22, color: fg),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(
                 label,
                 style: TextStyle(
@@ -1242,7 +1242,7 @@ class _BorderedInput extends StatelessWidget {
   final TextInputAction? textInputAction;
   final VoidCallback? onChanged;
 
-  const _BorderedInput({
+  _BorderedInput({
     required this.controller,
     required this.hintText,
     this.autofocus = false,
@@ -1259,14 +1259,14 @@ class _BorderedInput extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.black12),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16),
       alignment: Alignment.center,
       child: TextField(
         controller: controller,
         autofocus: autofocus,
         textCapitalization: textCapitalization ?? TextCapitalization.none,
         textInputAction: textInputAction,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: Colors.black,
@@ -1278,7 +1278,7 @@ class _BorderedInput extends StatelessWidget {
             color: Colors.black.withValues(alpha: 0.3),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          contentPadding: EdgeInsets.symmetric(vertical: 16),
         ),
         onChanged: (_) => onChanged?.call(),
       ),
@@ -1292,7 +1292,7 @@ class _OptionStep extends StatelessWidget {
   final String? selected;
   final ValueChanged<String> onSelect;
 
-  const _OptionStep({
+  _OptionStep({
     required this.options,
     required this.selected,
     required this.onSelect,
@@ -1303,7 +1303,7 @@ class _OptionStep extends StatelessWidget {
     return Column(
       children: [
         ...options.map((g) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: EdgeInsets.only(bottom: 10),
               child: _SelectableCard(
                 selected: selected == g.value,
                 icon: g.icon,
@@ -1323,7 +1323,7 @@ class _PaceStep extends StatelessWidget {
   final Map<String, String> Function(String pace) detailFor;
   final bool isLose;
 
-  const _PaceStep({
+  _PaceStep({
     required this.selected,
     required this.onSelect,
     required this.detailFor,
@@ -1345,7 +1345,7 @@ class _PaceStep extends StatelessWidget {
     return Column(
       children: [
         ...paces.map((pace) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: EdgeInsets.only(bottom: 10),
               child: _PaceCard(
                 selected: selected == pace.value,
                 icon: pace.icon,
@@ -1355,11 +1355,11 @@ class _PaceStep extends StatelessWidget {
                 onTap: () => onSelect(pace.value),
               ),
             )),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         // Live summary of what the selected pace means
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
@@ -1372,7 +1372,7 @@ class _PaceStep extends StatelessWidget {
             '(~${currentDetail['weekly']} kg ${action == 'lose' ? 'lost' : 'gained'} '
             'per week).',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: Colors.black54,
@@ -1392,7 +1392,7 @@ class _PaceCard extends StatelessWidget {
   final bool isLose;
   final VoidCallback onTap;
 
-  const _PaceCard({
+  _PaceCard({
     required this.selected,
     required this.icon,
     required this.name,
@@ -1406,8 +1406,8 @@ class _PaceCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: Duration(milliseconds: 150),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -1431,34 +1431,34 @@ class _PaceCard extends StatelessWidget {
                   color: selected ? AppColors.accent : Colors.black54,
                   size: 22),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Colors.black)),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     '${detail['kcal']} kcal/day · ~${detail['weekly']} kg '
                         '${isLose ? 'lost' : 'gained'} per week',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 12, color: Colors.black54),
                   ),
                 ],
               ),
             ),
             Text(detail['time'] ?? '',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: Colors.black87)),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             if (selected)
-              const Icon(Icons.check_circle,
+              Icon(Icons.check_circle,
                   color: AppColors.accent, size: 22),
           ],
         ),
@@ -1473,7 +1473,7 @@ class _SelectableCard extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _SelectableCard({
+  _SelectableCard({
     required this.selected,
     required this.icon,
     required this.label,
@@ -1485,8 +1485,8 @@ class _SelectableCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: Duration(milliseconds: 150),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -1511,7 +1511,7 @@ class _SelectableCard extends StatelessWidget {
                   color: selected ? AppColors.accent : Colors.black54,
                   size: 22),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Text(
                 label,
@@ -1524,7 +1524,7 @@ class _SelectableCard extends StatelessWidget {
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle,
+              Icon(Icons.check_circle,
                   color: AppColors.accent, size: 22),
           ],
         ),
@@ -1538,7 +1538,7 @@ class _HeightStep extends StatefulWidget {
   final double heightCm;
   final ValueChanged<double> onChangedCm;
 
-  const _HeightStep({
+  _HeightStep({
     required this.heightCm,
     required this.onChangedCm,
   });
@@ -1563,7 +1563,7 @@ class _HeightStepState extends State<_HeightStep> {
       children: [
         // Unit toggle
         Container(
-          padding: const EdgeInsets.all(4),
+          padding: EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.black12,
             borderRadius: BorderRadius.circular(24),
@@ -1584,7 +1584,7 @@ class _HeightStepState extends State<_HeightStep> {
             ],
           ),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: 28),
         if (_useFeet)
           Row(
             children: [
@@ -1597,7 +1597,7 @@ class _HeightStepState extends State<_HeightStep> {
                   onChanged: (v) => _fromFeetInches(v, _inches),
                 ),
               ),
-              const SizedBox(width: 20),
+              SizedBox(width: 20),
               Expanded(
                 child: _PickerWheel(
                   label: 'inches',
@@ -1634,7 +1634,7 @@ class _UnitButton extends StatelessWidget {
   final bool active;
   final VoidCallback onTap;
 
-  const _UnitButton({
+  _UnitButton({
     required this.label,
     required this.active,
     required this.onTap,
@@ -1645,8 +1645,8 @@ class _UnitButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+        duration: Duration(milliseconds: 150),
+        padding: EdgeInsets.symmetric(horizontal: 22, vertical: 8),
         decoration: BoxDecoration(
           color: active ? AppColors.accent : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
@@ -1673,7 +1673,7 @@ class _PickerWheel extends StatefulWidget {
   final int value;
   final ValueChanged<int> onChanged;
 
-  const _PickerWheel({
+  _PickerWheel({
     required this.label,
     required this.min,
     required this.max,
@@ -1738,7 +1738,7 @@ class _PickerWheelState extends State<_PickerWheel> {
               ListWheelScrollView.useDelegate(
                 controller: _controller,
                 itemExtent: _itemExtent,
-                physics: const FixedExtentScrollPhysics(),
+                physics: FixedExtentScrollPhysics(),
                 onSelectedItemChanged: (i) =>
                     widget.onChanged(widget.min + i),
                 childDelegate: ListWheelChildBuilderDelegate(
@@ -1762,9 +1762,9 @@ class _PickerWheelState extends State<_PickerWheel> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(widget.label,
-            style: const TextStyle(fontSize: 13, color: Colors.black54)),
+            style: TextStyle(fontSize: 13, color: Colors.black54)),
       ],
     );
   }
@@ -1777,7 +1777,7 @@ class _WeightStep extends StatefulWidget {
   final double weightKg;
   final ValueChanged<double> onChangedKg;
 
-  const _WeightStep({
+  _WeightStep({
     required this.weightKg,
     required this.onChangedKg,
   });
@@ -1796,7 +1796,7 @@ class _WeightStepState extends State<_WeightStep> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(4),
+          padding: EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.black12,
 
@@ -1819,7 +1819,7 @@ class _WeightStepState extends State<_WeightStep> {
             ],
           ),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: 28),
         SizedBox(
           height: 200,
           child: _useLbs
@@ -1850,7 +1850,7 @@ class _TargetWeightStep extends StatefulWidget {
   final bool disabled;
   final ValueChanged<double> onChanged;
 
-  const _TargetWeightStep({
+  _TargetWeightStep({
     required this.targetWeight,
     required this.currentWeight,
     required this.disabled,
@@ -1871,7 +1871,7 @@ class _TargetWeightStepState extends State<_TargetWeightStep> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(4),
+          padding: EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.black12,
 
@@ -1894,11 +1894,11 @@ class _TargetWeightStepState extends State<_TargetWeightStep> {
             ],
           ),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: 28),
         SizedBox(
           height: 200,
           child: widget.disabled
-              ? const SizedBox.shrink()
+              ? SizedBox.shrink()
               : _useLbs
                   ? _PickerWheel(
                       label: 'lbs',
@@ -1924,7 +1924,7 @@ class _NoTargetCard extends StatelessWidget {
   final bool noTarget;
   final ValueChanged<bool> onChanged;
 
-  const _NoTargetCard({
+  _NoTargetCard({
     required this.noTarget,
     required this.onChanged,
   });
@@ -1934,8 +1934,8 @@ class _NoTargetCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => onChanged(!noTarget),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: Duration(milliseconds: 150),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -1959,7 +1959,7 @@ class _NoTargetCard extends StatelessWidget {
                   color: noTarget ? AppColors.accent : Colors.black54,
                   size: 20),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Text(
                 'I don\'t have a target, just tracking',
@@ -1972,7 +1972,7 @@ class _NoTargetCard extends StatelessWidget {
               ),
             ),
             if (noTarget)
-              const Icon(Icons.check_circle,
+              Icon(Icons.check_circle,
                   color: AppColors.accent, size: 22),
           ],
         ),
@@ -1986,7 +1986,7 @@ class _NoTargetCard extends StatelessWidget {
 class _BuildingPlanScreen extends StatefulWidget {
   final VoidCallback onDone;
 
-  const _BuildingPlanScreen({required this.onDone});
+  _BuildingPlanScreen({required this.onDone});
 
   @override
   State<_BuildingPlanScreen> createState() => _BuildingPlanScreenState();
@@ -2010,13 +2010,13 @@ class _BuildingPlanScreenState extends State<_BuildingPlanScreen> {
 
   void _startSequence() async {
     for (var i = 0; i < _items.length; i++) {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(Duration(milliseconds: 500));
       if (!mounted) return;
       setState(() => _visible = i + 1);
     }
     if (!mounted) return;
     setState(() => _finished = true);
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.delayed(Duration(milliseconds: 700));
     if (!mounted) return;
     widget.onDone();
   }
@@ -2024,10 +2024,10 @@ class _BuildingPlanScreenState extends State<_BuildingPlanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: Color(0xFFF7F7F7),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2035,21 +2035,21 @@ class _BuildingPlanScreenState extends State<_BuildingPlanScreen> {
               Text(
                 _finished ? 'Your goal is ready!' : 'Setting your goal...',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                   color: Colors.black,
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               ...List.generate(_items.length, (i) {
                 final show = i < _visible;
                 return AnimatedOpacity(
-                  duration: const Duration(milliseconds: 300),
+                  duration: Duration(milliseconds: 300),
                   opacity: show ? 1 : 0,
                   child: AnimatedPadding(
-                    duration: const Duration(milliseconds: 300),
+                    duration: Duration(milliseconds: 300),
                     padding: EdgeInsets.only(
                         bottom: show ? 16 : 0, top: show ? 16 : 0),
                     child: Row(
@@ -2061,7 +2061,7 @@ class _BuildingPlanScreenState extends State<_BuildingPlanScreen> {
                           color: show ? Colors.green.shade600 : Colors.black26,
                           size: 24,
                         ),
-                        const SizedBox(width: 14),
+                        SizedBox(width: 14),
                         Expanded(
                           child: Text(
                             _items[i],
@@ -2098,7 +2098,7 @@ class _PlanSummaryScreen extends StatefulWidget {
   final Future<void> Function() onEditTarget;
   final Future<void> Function() onEditCalories;
 
-  const _PlanSummaryScreen({
+  _PlanSummaryScreen({
     required this.profile,
     required this.onGetStarted,
     required this.onBack,
@@ -2158,11 +2158,11 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+              padding: EdgeInsets.fromLTRB(8, 6, 8, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  icon: Icon(Icons.arrow_back, color: Colors.black),
                   onPressed:
                       widget.onBack ?? () => Navigator.of(context).maybePop(),
                   tooltip: 'Back',
@@ -2171,7 +2171,7 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                padding: EdgeInsets.fromLTRB(20, 0, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -2179,14 +2179,14 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                     Center(
                       child: Text(
                         'Hi ${profile.name.split(' ').first}!',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
                           color: Colors.black45,
                       ),
                     ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     // Main heading — full-width CENTER (matches greeting)
                     Container(
                       width: double.infinity,
@@ -2194,7 +2194,7 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                       child: Text(
                         _headline(),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 26,
                             height: 1.15,
                             fontWeight: FontWeight.w800,
@@ -2202,7 +2202,7 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                             letterSpacing: -0.5),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Representational weight progress graph (or maintain card)
                     if (profile.targetWeightKg == null) ...[
@@ -2210,109 +2210,109 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                     ] else ...[
                       _WeightGraph(profile: profile),
                     ],
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // Daily recommendation
-                    const Text('Your daily recommendation',
+                    Text('Your daily recommendation',
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
                             letterSpacing: -0.3)),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     _CalorieCard(
                       profile: profile,
                       onEdit: widget.onEditCalories,
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // Macros (not editable — part of the locked plan)
-                    const Text('Your daily macros',
+                    Text('Your daily macros',
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
                             letterSpacing: -0.3)),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
                           child: _MacroChip(
                               label: 'Protein',
                               grams: profile.proteinGrams,
-                              color: const Color(0xFFE53935)),
+                              color: Color(0xFFE53935)),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Expanded(
                           child: _MacroChip(
                               label: 'Carbs',
                               grams: profile.carbsGrams,
-                              color: const Color(0xFF43A047)),
+                              color: Color(0xFF43A047)),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Expanded(
                           child: _MacroChip(
                               label: 'Fat',
                               grams: profile.fatGrams,
-                              color: const Color(0xFFFB8C00)),
+                              color: Color(0xFFFB8C00)),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // Body Mass Index — category label is the hero, number
                     // is secondary.
-                    const Text('Your BMI',
+                    Text('Your BMI',
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
                             letterSpacing: -0.3)),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     _BmiCard(profile: profile),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // Why Cal Matters
-                    const Text('Why Cal Matters',
+                    Text('Why Cal Matters',
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
                             letterSpacing: -0.3)),
-                    const SizedBox(height: 10),
-                    const _HowCard(
+                    SizedBox(height: 10),
+                    _HowCard(
                       icon: Icons.auto_awesome,
                       title: 'Made for you',
                       subtitle:
                           'A plan built around your body, goal and workouts.',
                     ),
-                    const _HowCard(
+                    _HowCard(
                       icon: Icons.trending_up,
                       title: 'Simple & honest',
                       subtitle:
                           'Realistic targets and clear progress — no shortcuts.',
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // AI disclosure
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F7F7),
+                        color: Color(0xFFF7F7F7),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.smart_toy_outlined,
+                          Icon(Icons.smart_toy_outlined,
                               size: 22, color: Colors.black54),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               'Cal Matters uses AI to analyze your food photos '
                               'and estimate calories and macros. Estimates may '
                               'vary — always listen to your body.',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.black54,
                                   height: 1.4),
@@ -2331,7 +2331,7 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  padding: EdgeInsets.fromLTRB(16, 14, 16, 16),
                   child: SizedBox(
                     height: 54,
                     width: double.infinity,
@@ -2339,10 +2339,10 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                       style: FilledButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
-                        shape: const StadiumBorder(),
+                        shape: StadiumBorder(),
                       ),
                       onPressed: widget.onGetStarted,
-                      child: const Text(
+                      child: Text(
                         "Let's get started",
                         style: TextStyle(
                             fontSize: 17,
@@ -2365,12 +2365,12 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
 class _MaintainCard extends StatelessWidget {
   final Profile profile;
 
-  const _MaintainCard({required this.profile});
+  _MaintainCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+      padding: EdgeInsets.fromLTRB(16, 20, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -2379,12 +2379,12 @@ class _MaintainCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.balance, size: 28, color: Colors.black),
-          const SizedBox(height: 10),
-          const Text('Keep your weight steady',
+          Icon(Icons.balance, size: 28, color: Colors.black),
+          SizedBox(height: 10),
+          Text('Keep your weight steady',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          const Text(
+          SizedBox(height: 4),
+          Text(
             'No target — we\'ll help you stay at your current weight '
             'by matching your daily intake to what your body uses.',
             style: TextStyle(fontSize: 13, color: Colors.black54, height: 1.4),
@@ -2399,7 +2399,7 @@ class _MaintainCard extends StatelessWidget {
 class _WeightGraph extends StatelessWidget {
   final Profile profile;
 
-  const _WeightGraph({required this.profile});
+  _WeightGraph({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -2412,7 +2412,7 @@ class _WeightGraph extends StatelessWidget {
     final weeksToShow = weeks.clamp(1, 12);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -2425,14 +2425,14 @@ class _WeightGraph extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('${start.toStringAsFixed(0)} kg',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w700)),
               Text('→ ${end.toStringAsFixed(0)} kg',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w700)),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           // Simple representative line
           SizedBox(
             height: 80,
@@ -2449,24 +2449,24 @@ class _WeightGraph extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Week 1',
-                  style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                  style: TextStyle(fontSize: 12, color: Colors.black54)),
               Text('Week $weeks',
-                  style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                  style: TextStyle(fontSize: 12, color: Colors.black54)),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Center(
             child: Text(
               profile.weeklyChangeKg == 0
                   ? 'Maintain your weight'
                   : '${profile.weeklyChangeKg < 0 ? 'Losing' : 'Gaining'} '
                       '~${profile.weeklyChangeKg.abs().toStringAsFixed(1)} kg per week',
-              style: const TextStyle(fontSize: 12, color: Colors.black38),
+              style: TextStyle(fontSize: 12, color: Colors.black38),
             ),
           ),
         ],
@@ -2538,7 +2538,7 @@ class _CalorieCard extends StatelessWidget {
   final Profile profile;
   final Future<void> Function() onEdit;
 
-  const _CalorieCard({required this.profile, required this.onEdit});
+  _CalorieCard({required this.profile, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -2548,7 +2548,7 @@ class _CalorieCard extends StatelessWidget {
     final adjustment = goal - tdee;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -2560,14 +2560,14 @@ class _CalorieCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Calories',
+              Text('Calories',
                   style: TextStyle(
                       fontSize: 13,
                       color: Colors.black54,
                       letterSpacing: -0.3)),
               GestureDetector(
                 onTap: onEdit,
-                child: const Row(
+                child: Row(
                   children: [
                     Text('Edit',
                         style: TextStyle(
@@ -2582,23 +2582,23 @@ class _CalorieCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text('$goal',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 44,
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
                       letterSpacing: -1)),
-              const SizedBox(width: 8),
-              const Text('kcal / day',
+              SizedBox(width: 8),
+              Text('kcal / day',
                   style: TextStyle(fontSize: 16, color: Colors.black54)),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             adjustment == 0
                 ? 'Your maintenance calories — eat this to stay on track.'
@@ -2607,7 +2607,7 @@ class _CalorieCard extends StatelessWidget {
                         'maintenance of $tdee kcal.'
                     : 'That\'s a ${adjustment.abs()} kcal/day surplus over your '
                         'maintenance of $tdee kcal.',
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 14, color: Colors.black54, height: 1.4),
           ),
         ],
@@ -2620,7 +2620,7 @@ class _CalorieCard extends StatelessWidget {
 class _BmiCard extends StatelessWidget {
   final Profile profile;
 
-  const _BmiCard({required this.profile});
+  _BmiCard({required this.profile});
 
   /// BMI categories (WHO): <18.5 under, 18.5-24.9 healthy,
   /// 25-29.9 overweight, 30+ obese.
@@ -2657,15 +2657,15 @@ class _BmiCard extends StatelessWidget {
     final category = _category(bmi);
 
     final categoryColor = switch (category) {
-      'under' => const Color(0xFF4DABF7),
-      'over' => const Color(0xFFFB8C00),
-      'obese' => const Color(0xFFE53935),
-      _ => const Color(0xFF43A047),
+      'under' => Color(0xFF4DABF7),
+      'over' => Color(0xFFFB8C00),
+      'obese' => Color(0xFFE53935),
+      _ => Color(0xFF43A047),
     };
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: categoryColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
@@ -2694,7 +2694,7 @@ class _BmiCard extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Text(
                   label,
@@ -2708,36 +2708,36 @@ class _BmiCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           // Number secondary — small, quiet under the headline
           Text(
             'BMI $bmi • ${_categoryRange(category)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: Colors.black54,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             message,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 13.5, color: Colors.black54, height: 1.4),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           // Category scale (4 segments)
           Row(
             children: [
-              _segment('Under', const Color(0xFF4DABF7),
+              _segment('Under', Color(0xFF4DABF7),
                   category == 'under'),
-              const SizedBox(width: 6),
-              _segment('Normal', const Color(0xFF43A047),
+              SizedBox(width: 6),
+              _segment('Normal', Color(0xFF43A047),
                   category == 'normal'),
-              const SizedBox(width: 6),
-              _segment('Over', const Color(0xFFFB8C00),
+              SizedBox(width: 6),
+              _segment('Over', Color(0xFFFB8C00),
                   category == 'over'),
-              const SizedBox(width: 6),
-              _segment('Obese', const Color(0xFFE53935),
+              SizedBox(width: 6),
+              _segment('Obese', Color(0xFFE53935),
                   category == 'obese'),
             ],
           ),
@@ -2756,8 +2756,8 @@ class _BmiCard extends StatelessWidget {
   Widget _segment(String label, Color color, bool active) {
     return Expanded(
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: active ? color : color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
@@ -2783,7 +2783,7 @@ class _DetailRow extends StatelessWidget {
   final String value;
   final Future<void> Function()? onEdit;
 
-  const _DetailRow({
+  _DetailRow({
     required this.icon,
     required this.label,
     required this.value,
@@ -2793,8 +2793,8 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -2803,20 +2803,20 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 20, color: Colors.black54),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 14, color: Colors.black54)),
           ),
           Text(value,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 15, fontWeight: FontWeight.w700)),
           if (onEdit != null) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             GestureDetector(
               onTap: onEdit,
-              child: const Icon(Icons.edit_outlined,
+              child: Icon(Icons.edit_outlined,
                   size: 18, color: Colors.black38),
             ),
           ],
@@ -2832,7 +2832,7 @@ class _HowCard extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _HowCard({
+  _HowCard({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -2841,22 +2841,22 @@ class _HowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 22, color: Colors.black),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 13, color: Colors.black54, height: 1.35)),
               ],
             ),
@@ -2872,7 +2872,7 @@ class PricingScreen extends StatefulWidget {
   final StorageService storage;
   final VoidCallback onPaid;
 
-  const PricingScreen({
+  PricingScreen({
     required this.storage,
     required this.onPaid,
   });
@@ -2919,7 +2919,7 @@ class PricingScreenState extends State<PricingScreen> {
     setState(() {});
     if (_billing.status == BillingStatus.subscribed && !_approved) {
       setState(() => _approved = true);
-      Future.delayed(const Duration(milliseconds: 1200), () {
+      Future.delayed(Duration(milliseconds: 1200), () {
         if (!mounted) return;
         widget.onPaid();
       });
@@ -2949,7 +2949,7 @@ class PricingScreenState extends State<PricingScreen> {
     final product = _yearly ? _yearlyProduct : _monthlyProduct;
     if (product == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Products unavailable — set them up in Google Play Console.'),
           behavior: SnackBarBehavior.floating,
         ),
@@ -2977,7 +2977,7 @@ class PricingScreenState extends State<PricingScreen> {
     // Restore completes via the purchase stream (restored purchases fire
     // purchaseStream with PurchaseStatus.restored), which sets paid=true.
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text('Restoring your purchases...'),
         behavior: SnackBarBehavior.floating,
       ),
@@ -2987,7 +2987,7 @@ class PricingScreenState extends State<PricingScreen> {
   @override
   Widget build(BuildContext context) {
     if (_approved) {
-      return const _PaymentApprovedScreen();
+      return _PaymentApprovedScreen();
     }
     return Scaffold(
       backgroundColor: Colors.white,
@@ -2997,7 +2997,7 @@ class PricingScreenState extends State<PricingScreen> {
           children: [
             // No back button: once at the payment page the only way is
             // forward (pay or restore an existing purchase).
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.zero,
@@ -3012,8 +3012,8 @@ class PricingScreenState extends State<PricingScreen> {
                         children: [
                           // App placeholder (phone mockup)
                           Container(
-                            color: const Color(0xFFF7F7F7),
-                            child: const Center(
+                            color: Color(0xFFF7F7F7),
+                            child: Center(
                               child: _PricingHeroMock(),
                             ),
                           ),
@@ -3022,7 +3022,7 @@ class PricingScreenState extends State<PricingScreen> {
                             alignment: Alignment.bottomCenter,
                             child: Container(
                               height: 150,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
@@ -3035,7 +3035,7 @@ class PricingScreenState extends State<PricingScreen> {
                             ),
                           ),
                           // Heading overlaid on the faded area
-                          const Align(
+                          Align(
                             alignment: Alignment.bottomCenter,
                             child: Padding(
                               padding:
@@ -3055,11 +3055,11 @@ class PricingScreenState extends State<PricingScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 28),
+                    SizedBox(height: 28),
 
                     // Plan options
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -3072,7 +3072,7 @@ class PricingScreenState extends State<PricingScreen> {
                             sub: 'About ${_inr(_monthlyPrice)}/month · ${_inr(_yearlyPrice)} billed annually',
                             onTap: () => setState(() => _yearly = true),
                           ),
-                          const SizedBox(height: 14),
+                          SizedBox(height: 14),
                           // Monthly
                           _PlanOptionCard(
                             selected: !_yearly,
@@ -3085,7 +3085,7 @@ class PricingScreenState extends State<PricingScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -3096,7 +3096,7 @@ class PricingScreenState extends State<PricingScreen> {
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -3106,17 +3106,17 @@ class PricingScreenState extends State<PricingScreen> {
                           style: FilledButton.styleFrom(
                             backgroundColor: Colors.black,
                             foregroundColor: Colors.white,
-                            shape: const StadiumBorder(),
+                            shape: StadiumBorder(),
                           ),
                           onPressed: _processing ? null : _continue,
                           child: _processing
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 22,
                                   height: 22,
                                   child: CircularProgressIndicator(
                                       strokeWidth: 2, color: Colors.white),
                                 )
-                              : const Text(
+                              : Text(
                                   'Continue',
                                   style: TextStyle(
                                       fontSize: 17,
@@ -3125,7 +3125,7 @@ class PricingScreenState extends State<PricingScreen> {
                                 ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Wrap(
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
@@ -3134,17 +3134,17 @@ class PricingScreenState extends State<PricingScreen> {
                             _yearly
                                 ? '3 days free, then ${_inr(_yearlyPrice)} per year. '
                                 : '3 days free, then ${_inr(_monthlyPrice)} per month. ',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 12, color: Colors.black38),
                           ),
                           TextButton(
                             onPressed: _processing ? null : _restore,
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
-                              minimumSize: const Size(0, 12),
+                              minimumSize: Size(0, 12),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: const Text(
+                            child: Text(
                               'Restore purchases',
                               style: TextStyle(
                                 fontSize: 12,
@@ -3156,13 +3156,13 @@ class PricingScreenState extends State<PricingScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         _yearly
                             ? 'Billed annually and renews automatically unless cancelled.'
                             : 'Billed monthly and renews automatically unless cancelled.',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 12,
                             color: Colors.black38,
                             height: 1.5),
@@ -3181,7 +3181,7 @@ class PricingScreenState extends State<PricingScreen> {
 
 // ---------------- Pricing hero placeholder (phone mockup) ----------------
 class _PricingHeroMock extends StatelessWidget {
-  const _PricingHeroMock();
+  _PricingHeroMock();
 
   @override
   Widget build(BuildContext context) {
@@ -3192,7 +3192,7 @@ class _PricingHeroMock extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
         border: Border.all(color: Colors.black12, width: 3),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 24,
@@ -3204,52 +3204,52 @@ class _PricingHeroMock extends StatelessWidget {
         borderRadius: BorderRadius.circular(29),
         child: Column(
           children: [
-            Container(height: 28, color: const Color(0xFFF6F6F6)),
+            Container(height: 28, color: Color(0xFFF6F6F6)),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Today's calories",
+                    Text("Today's calories",
                         style: TextStyle(
                             fontSize: 13, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 6),
-                    const Text('1520',
+                    SizedBox(height: 6),
+                    Text('1520',
                         style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.w800,
                             height: 1)),
-                    const Text('of 1829 kcal goal',
+                    Text('of 1829 kcal goal',
                         style: TextStyle(
                             fontSize: 11, color: Colors.black54)),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(6),
                       child: LinearProgressIndicator(
                         value: 0.83,
                         minHeight: 8,
                         color: Colors.black,
-                        backgroundColor: const Color(0xFFEEEEEE),
+                        backgroundColor: Color(0xFFEEEEEE),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
                           child: _HeroMacro('Protein', '68g'),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Expanded(
                           child: _HeroMacro('Carbs', '190g'),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Expanded(
                           child: _HeroMacro('Fat', '55g'),
                         ),
                       ],
                     ),
-                    const Spacer(),
+                    Spacer(),
                     Container(
                       height: 36,
                       alignment: Alignment.center,
@@ -3257,7 +3257,7 @@ class _PricingHeroMock extends StatelessWidget {
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Text('Log a meal',
+                      child: Text('Log a meal',
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -3278,23 +3278,23 @@ class _HeroMacro extends StatelessWidget {
   final String label;
   final String value;
 
-  const _HeroMacro(this.label, this.value);
+  _HeroMacro(this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F6F6),
+        color: Color(0xFFF6F6F6),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
           Text(value,
               style:
-                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                  TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 9, color: Colors.black54)),
         ],
       ),
@@ -3311,7 +3311,7 @@ class _PlanOptionCard extends StatelessWidget {
   final String? sub;
   final VoidCallback onTap;
 
-  const _PlanOptionCard({
+  _PlanOptionCard({
     required this.selected,
     required this.left,
     required this.right,
@@ -3325,8 +3325,8 @@ class _PlanOptionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(16),
+        duration: Duration(milliseconds: 150),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -3340,35 +3340,35 @@ class _PlanOptionCard extends StatelessWidget {
           children: [
             if (badge != null && selected) ...[
               Container(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                     horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.black,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(badge!,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w600)),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
             ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Text(left,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: Colors.black)),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Text(right,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w800)),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Icon(
                   selected
                       ? Icons.check_circle
@@ -3379,9 +3379,9 @@ class _PlanOptionCard extends StatelessWidget {
               ],
             ),
             if (sub != null) ...[
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(sub!,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12, color: Colors.black54)),
             ],
           ],
@@ -3393,7 +3393,7 @@ class _PlanOptionCard extends StatelessWidget {
 
 // ---------------- Payment approved (testing phase) ----------------
 class _PaymentApprovedScreen extends StatelessWidget {
-  const _PaymentApprovedScreen();
+  _PaymentApprovedScreen();
 
   @override
   Widget build(BuildContext context) {
@@ -3401,25 +3401,25 @@ class _PaymentApprovedScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Center(
+              Center(
                 child: Icon(Icons.check_circle,
                     color: Colors.green, size: 80),
               ),
-              const SizedBox(height: 20),
-              const Text('Payment approved!',
+              SizedBox(height: 20),
+              Text('Payment approved!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
                       letterSpacing: -0.5)),
-              const SizedBox(height: 8),
-              const Text('Welcome to Cal Matters.',
+              SizedBox(height: 8),
+              Text('Welcome to Cal Matters.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.black54)),
             ],
@@ -3435,7 +3435,7 @@ class _MacroChip extends StatelessWidget {
   final int grams;
   final Color color;
 
-  const _MacroChip({
+  _MacroChip({
     required this.label,
     required this.grams,
     required this.color,
@@ -3444,7 +3444,7 @@ class _MacroChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -3453,11 +3453,11 @@ class _MacroChip extends StatelessWidget {
       child: Column(
         children: [
           Text('$grams g',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.4)),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -3467,9 +3467,9 @@ class _MacroChip extends StatelessWidget {
                 decoration:
                     BoxDecoration(color: color, shape: BoxShape.circle),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               Text(label,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12, color: Colors.black54)),
             ],
           ),

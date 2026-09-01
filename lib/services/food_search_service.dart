@@ -18,7 +18,7 @@ class FoodDBItem {
   final double vitaminC;
   final String source;
 
-  const FoodDBItem({
+  FoodDBItem({
     required this.name,
     this.nameHindi = '',
     this.category = '',

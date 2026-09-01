@@ -7,7 +7,7 @@ class PaginationDots extends StatelessWidget {
   final int count;
   final int current;
 
-  const PaginationDots({
+  PaginationDots({
     super.key,
     required this.count,
     required this.current,
@@ -19,7 +19,7 @@ class PaginationDots extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(count, (i) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2.5),
+          padding: EdgeInsets.symmetric(horizontal: 2.5),
           child: Container(
             width: 7,
             height: 7,

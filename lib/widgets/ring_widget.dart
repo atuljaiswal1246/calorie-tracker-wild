@@ -10,7 +10,7 @@ class RingWidget extends StatelessWidget {
   final double strokeWidth;
   final Widget child;
 
-  const RingWidget({
+  RingWidget({
     super.key,
     required this.progress,
     required this.color,

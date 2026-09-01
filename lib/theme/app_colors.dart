@@ -3,67 +3,101 @@ import 'package:flutter/material.dart';
 /// Shared color & design-token system for Cal Matters.
 ///
 /// Every screen should import this file instead of defining local color
-/// constants. This keeps the palette consistent and makes global tweaks easy.
+/// constants. Surfaces & text tokens are brightness-aware (light/dark);
+/// macro/accent colors stay identical in both modes.
 class AppColors {
   AppColors._();
 
+  /// Flipped by main() / Settings. Screens read these at build time.
+  static final ValueNotifier<bool> darkNotifier = ValueNotifier(false);
+
+  static bool get dark => darkNotifier.value;
+
   // ── Background & surface ──────────────────────────────────────────────
-  static const bg = Color(0xFFFAF9F7); // warm-white page background
-  static const card = Colors.white; // card / container fill
-  static const cardAlt = Color(0xFFF1F0EC); // secondary surface (placeholders, inactive toggles)
-  static const cardSelected = Color(0xFFF4F4F1); // selected day background
-  static const cardHover = Color(0xFFF0F0EC); // nav item active bg
+  static Color get bg => dark ? Color(0xFF0E0F11) : const Color(0xFFFAF9F7);
+  static Color get card => dark ? Color(0xFF1B1C1E) : Colors.white;
+  static Color get cardAlt =>
+      dark ? Color(0xFF26272B) : const Color(0xFFF1F0EC);
+  static Color get cardSelected =>
+      dark ? Color(0xFF232428) : const Color(0xFFF4F4F1);
+  static Color get cardHover =>
+      dark ? Color(0xFF2A2B2F) : const Color(0xFFF0F0EC);
 
   // ── Ink / text ────────────────────────────────────────────────────────
-  static const ink = Color(0xFF1C1C1E); // primary text
-  static const muted = Color(0xFF6E6E73); // secondary text
-  static const faint = Color(0xFF8A8A85); // inactive nav / disabled text
+  static Color get ink => dark ? Color(0xFFF2F2F4) : const Color(0xFF1C1C1E);
+  static Color get muted =>
+      dark ? Color(0xFF9A9AA2) : const Color(0xFF6E6E73);
+  static Color get faint =>
+      dark ? Color(0xFF6D6D75) : const Color(0xFF8A8A85);
 
-  // ── Macro colors ──────────────────────────────────────────────────────
-  static const protein = Color(0xFFE53935); // coral / red
-  static const carbs = Color(0xFFFF9500); // warm orange
-  static const fat = Color(0xFF007AFF); // blue
-  static const accent = Color(0xFF007AFF); // alias for fat (used in onboarding)
-  static const water = Color(0xFF007AFF); // water progress bar (semantic, same hex as fat)
-  static const fiber = Color(0xFF8D6E63); // brown
-  static const sugar = Color(0xFFE91E63); // pink
-  static const sodium = Color(0xFF78909C); // blue-grey
+  // ── Macro colors (same in both themes) ────────────────────────────────
+  static const protein = Color(0xFFE53935);
+  static const carbs = Color(0xFFFF9500);
+  static const fat = Color(0xFF007AFF);
+  static const accent = Color(0xFF007AFF);
+  static const water = Color(0xFF007AFF);
+  static const fiber = Color(0xFF8D6E63);
+  static const sugar = Color(0xFFE91E63);
+  static const sodium = Color(0xFF78909C);
 
-  // ── Semantic ──────────────────────────────────────────────────────────
-  static const green = Color(0xFF34C759); // completed / on-target
-  static const missedRed = Color(0xFFFF3B30); // missed / over / delete
-  static const warningOrange = Color(0xFFFFA726); // 50–79 % progress
-  static const accentOrange = Color(0xFFFF9500); // trial / upgrade CTA
-  static const gold = Color(0xFFFFD60A); // achievements
+  // ── Semantic (surface-adjacent tokens stay loud in dark too) ──────────
+  static const green = Color(0xFF34C759);
+  static const missedRed = Color(0xFFFF3B30);
+  static const warningOrange = Color(0xFFFFA726);
+  static const accentOrange = Color(0xFFFF9500);
+  static const gold = Color(0xFFFFD60A);
 
   // ── Misc surfaces ─────────────────────────────────────────────────────
-  static const track = Color(0xFFECECE7); // ring / progress-bar background
-  static const divider = Color(0xFFECECE7); // divider line
-  static const weekRing = Color(0xFFE3E3DE); // week-selector future-day ring
-  static const chipBlue = Color(0xFFEAF3FF); // water button bg
-  static const accentSoft = chipBlue; // alias for selected picker bg (onboarding)
-  static const chipNeutral = Color(0xFFF1F0EC); // custom button bg
-  static const undoRed = Color(0xFFFFF3F0); // undo / end-fast bg
-  static const warningBg = Color(0xFFFFF3E0); // offline / trial banner bg
+  static Color get track =>
+      dark ? Color(0xFF2E2F33) : const Color(0xFFECECE7);
+  static Color get divider =>
+      dark ? Color(0xFF2A2B2F) : const Color(0xFFECECE7);
+  static Color get weekRing =>
+      dark ? Color(0xFF333438) : const Color(0xFFE3E3DE);
+  static const chipBlue = Color(0xFFEAF3FF);
+  static const accentSoft = chipBlue;
+  static Color get chipNeutral =>
+      dark ? Color(0xFF26272B) : const Color(0xFFF1F0EC);
+  static Color get undoRed =>
+      dark ? Color(0xFF33201E) : const Color(0xFFFFF3F0);
+  static Color get warningBg =>
+      dark ? Color(0xFF33290F) : const Color(0xFFFFF3E0);
 
   // ── Error state ─────────────────────────────────────────────────────
-  static const errorBg = Color(0xFFFFF0F0); // error banner background
-  static const errorRed = Color(0xFFD32F2F); // error text / button
+  static Color get errorBg =>
+      dark ? Color(0xFF38201E) : const Color(0xFFFFF0F0);
+  static const errorRed = Color(0xFFD32F2F);
 
   // ── Shadows ───────────────────────────────────────────────────────────
-  static const cardShadow = [
-    BoxShadow(
-      color: Color(0x0F000000),
-      blurRadius: 24,
-      offset: Offset(0, 8),
-    ),
-  ];
+  static List<BoxShadow> get cardShadow => dark
+      ? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 24,
+            offset: Offset(0, 8),
+          ),
+        ]
+      : [
+          BoxShadow(
+            color: Color(0x0F000000),
+            blurRadius: 24,
+            offset: Offset(0, 8),
+          ),
+        ];
 
-  static const cardShadowLight = [
-    BoxShadow(
-      color: Color(0x0A000000),
-      blurRadius: 10,
-      offset: Offset(0, 2),
-    ),
-  ];
+  static List<BoxShadow> get cardShadowLight => dark
+      ? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ]
+      : [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ];
 }

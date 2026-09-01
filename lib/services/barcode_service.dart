@@ -16,7 +16,7 @@ class BarcodeResult {
   final String servingSize;
   final String imageUrl;
 
-  const BarcodeResult({
+  BarcodeResult({
     required this.barcode,
     required this.name,
     this.brand = '',
@@ -42,7 +42,7 @@ class BarcodeService {
       final uri = Uri.parse(
         'https://world.openfoodfacts.org/api/v2/product/$barcode.json',
       );
-      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      final response = await http.get(uri).timeout(Duration(seconds: 10));
 
       if (response.statusCode != 200) return (result: null, error: BarcodeError.network);
 

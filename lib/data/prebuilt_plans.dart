@@ -6,7 +6,7 @@ class PlanMealItem {
   final double carbs;
   final double fat;
 
-  const PlanMealItem({
+  PlanMealItem({
     required this.name,
     required this.serving,
     required this.calories,
@@ -20,7 +20,7 @@ class PlanMeal {
   final String title; // breakfast | lunch | dinner | snack
   final List<PlanMealItem> items;
 
-  const PlanMeal({required this.title, required this.items});
+  PlanMeal({required this.title, required this.items});
 
   int get totalCalories => items.fold(0, (s, i) => s + i.calories);
   double get totalProtein => items.fold(0, (s, i) => s + i.protein);
@@ -32,7 +32,7 @@ class PlanDay {
   final int day;
   final List<PlanMeal> meals;
 
-  const PlanDay({required this.day, required this.meals});
+  PlanDay({required this.day, required this.meals});
 
   int get totalCalories => meals.fold(0, (s, m) => s + m.totalCalories);
 }
@@ -47,7 +47,7 @@ class PrebuiltPlan {
   final String accentHex;
   final List<PlanDay> days;
 
-  const PrebuiltPlan({
+  PrebuiltPlan({
     required this.id,
     required this.title,
     required this.tagline,
@@ -61,7 +61,7 @@ class PrebuiltPlan {
   int get totalCalories => days.fold(0, (s, d) => s + d.totalCalories);
 }
 
-const prebuiltPlans = <PrebuiltPlan>[
+final prebuiltPlans = <PrebuiltPlan>[
   PrebuiltPlan(
     id: 'weight_loss_veg',
     title: 'Weight Loss',

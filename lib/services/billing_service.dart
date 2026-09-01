@@ -15,8 +15,8 @@ class BillingService {
     _init();
   }
 
-  static const String monthlyId = 'cal_matters_monthly';
-  static const String yearlyId = 'cal_matters_yearly';
+  static String monthlyId = 'cal_matters_monthly';
+  static String yearlyId = 'cal_matters_yearly';
 
   BillingStatus status = BillingStatus.unknown;
   String? error;

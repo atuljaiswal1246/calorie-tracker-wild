@@ -6,7 +6,7 @@ import '../theme/app_colors.dart';
 
 class ChallengesScreen extends StatefulWidget {
   final StorageService storage;
-  const ChallengesScreen({super.key, required this.storage});
+  ChallengesScreen({super.key, required this.storage});
 
   @override
   State<ChallengesScreen> createState() => _ChallengesScreenState();
@@ -52,11 +52,11 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     // Streak
     var streakDay = today;
     if (!entries.any((e) => e.isOn(streakDay))) {
-      streakDay = streakDay.subtract(const Duration(days: 1));
+      streakDay = streakDay.subtract(Duration(days: 1));
     }
     while (entries.any((e) => e.isOn(streakDay))) {
       currentStreak++;
-      streakDay = streakDay.subtract(const Duration(days: 1));
+      streakDay = streakDay.subtract(Duration(days: 1));
     }
 
     // Water
@@ -139,24 +139,24 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       backgroundColor: AppColors.bg,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
             Row(
               children: [
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: AppColors.card,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: AppColors.cardShadowLight,
                     ),
-                    child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                    child: Icon(Icons.arrow_back_ios_new, size: 18),
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Text(
+                SizedBox(width: 12),
+                Text(
                   'Challenges',
                   style: TextStyle(
                     fontSize: 26,
@@ -167,12 +167,12 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               '$completed of ${_challenges.length} completed',
-              style: const TextStyle(fontSize: 13, color: AppColors.muted),
+              style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             ..._challenges.map((c) => _challengeCard(c)),
           ],
         ),
@@ -183,8 +183,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
   Widget _challengeCard(_Challenge c) {
     final isComplete = c.current >= c.target;
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
@@ -201,7 +201,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
             ),
             child: Icon(c.icon, size: 24, color: c.color),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,12 +215,12 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                     decoration: isComplete ? TextDecoration.lineThrough : null,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   '${c.current} / ${c.target}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
@@ -236,8 +236,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
             ),
           ),
           if (isComplete) ...[
-            const SizedBox(width: 10),
-            const Icon(Icons.check_circle, size: 24, color: AppColors.green),
+            SizedBox(width: 10),
+            Icon(Icons.check_circle, size: 24, color: AppColors.green),
           ],
         ],
       ),
@@ -254,7 +254,7 @@ class _Challenge {
   final IconData icon;
   final Color color;
 
-  const _Challenge({
+  _Challenge({
     required this.title,
     required this.subtitle,
     required this.progress,

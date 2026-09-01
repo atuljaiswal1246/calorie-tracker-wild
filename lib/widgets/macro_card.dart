@@ -13,7 +13,7 @@ class MacroCard extends StatelessWidget {
   final String unit;
   final VoidCallback? onTap;
 
-  const MacroCard({
+  MacroCard({
     super.key,
     required this.label,
     required this.value,
@@ -34,7 +34,7 @@ class MacroCard extends StatelessWidget {
         label: '$label: ${value.toStringAsFixed(0)} of ${target.toStringAsFixed(0)}$unit',
         button: true,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(20),
@@ -50,19 +50,19 @@ class MacroCard extends StatelessWidget {
                     value.toStringAsFixed(0),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: AppColors.ink,
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(width: 2),
+                  SizedBox(width: 2),
                   Text(
                     '/${target.toStringAsFixed(0)}$unit',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: AppColors.muted,
@@ -70,18 +70,18 @@ class MacroCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   color: AppColors.muted,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               RingWidget(
                 progress: progress,
                 color: color,

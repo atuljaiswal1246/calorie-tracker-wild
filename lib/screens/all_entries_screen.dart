@@ -10,7 +10,7 @@ import 'meal_detail_screen.dart';
 class AllEntriesScreen extends StatefulWidget {
   final StorageService storage;
 
-  const AllEntriesScreen({super.key, required this.storage});
+  AllEntriesScreen({super.key, required this.storage});
 
   @override
   State<AllEntriesScreen> createState() => _AllEntriesScreenState();
@@ -101,8 +101,8 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
   bool get _canGoBackWeek {
     final earliest = _earliestDate;
     if (earliest == null) return true;
-    final prevWeekStart = _selectedWeekStart.subtract(const Duration(days: 7));
-    final weekEnd = prevWeekStart.add(const Duration(days: 6));
+    final prevWeekStart = _selectedWeekStart.subtract(Duration(days: 7));
+    final weekEnd = prevWeekStart.add(Duration(days: 6));
     return !weekEnd.isBefore(DateTime(earliest.year, earliest.month, earliest.day));
   }
 
@@ -129,15 +129,15 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back_ios_new, color: AppColors.ink, size: 20),
+                    child: Icon(Icons.arrow_back_ios_new, color: AppColors.ink, size: 20),
                   ),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  SizedBox(width: 12),
+                  Expanded(
                     child: Text(
                       'All Meals',
                       style: TextStyle(
@@ -149,7 +149,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                   ),
                   Text(
                     '${entries.length} meals',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       color: AppColors.muted,
                       fontWeight: FontWeight.w500,
@@ -158,32 +158,32 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: _periodToggle(),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: _periodIndex == 0
                   ? _weekNavigator()
                   : _periodIndex == 1
                       ? _monthNavigator()
                       : _customRangeNavigator(context),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Expanded(
               child: entries.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('🍽️', style: TextStyle(fontSize: 48)),
-                          const SizedBox(height: 16),
+                          Text('🍽️', style: TextStyle(fontSize: 48)),
+                          SizedBox(height: 16),
                           Text(
                             'No meals logged $periodLabel',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               color: AppColors.muted,
                               fontWeight: FontWeight.w500,
@@ -193,10 +193,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 100),
                       itemCount: entries.length,
                       itemBuilder: (context, i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: EdgeInsets.only(bottom: 10),
                         child: MealCard(
                           entry: entries[i],
                           onTap: () {
@@ -224,7 +224,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
   Widget _periodToggle() {
     final labels = ['Week', 'Month', 'Custom'];
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.cardAlt,
         borderRadius: BorderRadius.circular(14),
@@ -236,7 +236,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             child: GestureDetector(
               onTap: () => setState(() => _periodIndex = i),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: active ? AppColors.ink : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
@@ -260,14 +260,14 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
   }
 
   Widget _weekNavigator() {
-    final end = _selectedWeekStart.add(const Duration(days: 6));
+    final end = _selectedWeekStart.add(Duration(days: 6));
     final label = '${DateFormat('MMM d').format(_selectedWeekStart)} – ${DateFormat('MMM d').format(end)}';
     final now = DateTime.now();
     final currentWeekStart = now.subtract(Duration(days: now.weekday % 7));
     final isCurrentWeek = _isSameDay(_selectedWeekStart, currentWeekStart);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -278,10 +278,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
         children: [
           GestureDetector(
             onTap: _canGoBackWeek ? () => setState(() {
-              _selectedWeekStart = _selectedWeekStart.subtract(const Duration(days: 7));
+              _selectedWeekStart = _selectedWeekStart.subtract(Duration(days: 7));
             }) : null,
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: _canGoBackWeek ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
@@ -293,14 +293,14 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
               ),
               if (isCurrentWeek)
-                const Text(
+                Text(
                   'This week',
                   style: TextStyle(fontSize: 11, color: AppColors.muted, fontWeight: FontWeight.w500),
                 ),
@@ -308,10 +308,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
           ),
           GestureDetector(
             onTap: isCurrentWeek ? null : () => setState(() {
-              _selectedWeekStart = _selectedWeekStart.add(const Duration(days: 7));
+              _selectedWeekStart = _selectedWeekStart.add(Duration(days: 7));
             }),
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: isCurrentWeek ? AppColors.cardSelected.withValues(alpha: 0.5) : AppColors.cardSelected,
                 borderRadius: BorderRadius.circular(10),
@@ -330,7 +330,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
     final isCurrentMonth = _selectedMonth.year == now.year && _selectedMonth.month == now.month;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -344,7 +344,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
             }) : null,
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: _canGoBackMonth ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
@@ -356,14 +356,14 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
               ),
               if (isCurrentMonth)
-                const Text(
+                Text(
                   'This month',
                   style: TextStyle(fontSize: 11, color: AppColors.muted, fontWeight: FontWeight.w500),
                 ),
@@ -374,7 +374,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
             }),
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: isCurrentMonth ? AppColors.cardSelected.withValues(alpha: 0.5) : AppColors.cardSelected,
                 borderRadius: BorderRadius.circular(10),
@@ -402,7 +402,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
           lastDate: now,
           initialDateRange: _customStart != null && _customEnd != null
               ? DateTimeRange(start: _customStart!, end: _customEnd!)
-              : DateTimeRange(start: now.subtract(const Duration(days: 6)), end: now),
+              : DateTimeRange(start: now.subtract(Duration(days: 6)), end: now),
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
@@ -425,7 +425,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
@@ -435,7 +435,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.date_range, color: hasRange ? AppColors.ink : AppColors.muted, size: 20),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Text(
               label,
               style: TextStyle(
@@ -444,7 +444,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                 color: hasRange ? AppColors.ink : AppColors.muted,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Icon(Icons.edit_calendar_outlined, color: hasRange ? AppColors.ink : AppColors.muted, size: 16),
           ],
         ),

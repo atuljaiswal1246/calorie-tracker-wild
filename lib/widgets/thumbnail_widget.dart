@@ -11,7 +11,7 @@ class ThumbnailWidget extends StatelessWidget {
   final double height;
   final double borderRadius;
 
-  const ThumbnailWidget({
+  ThumbnailWidget({
     super.key,
     required this.imagePath,
     this.width = 84,
@@ -41,7 +41,7 @@ class ThumbnailWidget extends StatelessWidget {
   Widget _placeholder() {
     return Container(
       color: AppColors.cardAlt,
-      child: const Center(
+      child: Center(
         child: Text('🍛', style: TextStyle(fontSize: 30)),
       ),
     );

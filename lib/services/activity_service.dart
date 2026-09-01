@@ -125,7 +125,7 @@ class ActivityService {
       // Watchdog: some budget Androids have no step sensor at all and never
       // emit (nor error). If we hear nothing in a few seconds, drop to the
       // manual tier so the user is never stuck with 0 steps.
-      Timer(const Duration(seconds: 8),
+      Timer(Duration(seconds: 8),
           () { if (_source == StepsSource.sensor && _sensorBaseline == null) _degradeToManual(); });
     } catch (_) {
       _degradeToManual();
@@ -177,7 +177,7 @@ class ActivityService {
 
   Future<void> deleteExercise(String id) => storage.deleteExercise(id);
 
-  static const List<({String name, String emoji, double met})> activities = [
+  static List<({String name, String emoji, double met})> activities = [
     (name: 'Walking', emoji: '🚶', met: 3.5),
     (name: 'Brisk walk', emoji: '🏃', met: 4.5),
     (name: 'Running', emoji: '🏃‍♂️', met: 9.0),

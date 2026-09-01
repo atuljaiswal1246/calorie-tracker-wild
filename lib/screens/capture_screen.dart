@@ -18,7 +18,7 @@ class CaptureScreen extends StatefulWidget {
   final File? initialImage;
   final List<File>? initialImages;
 
-  const CaptureScreen({
+  CaptureScreen({
     super.key,
     required this.storage,
     this.initialImage,
@@ -155,15 +155,15 @@ class _CaptureScreenState extends State<CaptureScreen> {
         backgroundColor: AppColors.card,
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('✅', style: TextStyle(fontSize: 32)),
-              const SizedBox(height: 10),
-              const Text(
+              Text('✅', style: TextStyle(fontSize: 32)),
+              SizedBox(height: 10),
+              Text(
                 'Logged!',
                 style: TextStyle(
                   fontSize: 17,
@@ -171,12 +171,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   color: AppColors.ink,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Added to your day.',
                 style: TextStyle(fontSize: 13, color: AppColors.muted),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
@@ -184,22 +184,22 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.ink,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Scan another',
+                  child: Text('Scan another',
                       style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
                   child:
-                      const Text('Done', style: TextStyle(color: AppColors.muted)),
+                      Text('Done', style: TextStyle(color: AppColors.muted)),
                 ),
               ),
             ],
@@ -403,15 +403,15 @@ class _CaptureScreenState extends State<CaptureScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('✅', style: TextStyle(fontSize: 32)),
-              const SizedBox(height: 10),
-              const Text(
+              Text('✅', style: TextStyle(fontSize: 32)),
+              SizedBox(height: 10),
+              Text(
                 'Logged!',
                 style: TextStyle(
                   fontSize: 17,
@@ -419,12 +419,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   color: AppColors.ink,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Added to your day.',
                 style: TextStyle(fontSize: 13, color: AppColors.muted),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
@@ -432,20 +432,20 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.ink,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Scan another', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text('Scan another', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Done', style: TextStyle(color: AppColors.muted)),
+                  child: Text('Done', style: TextStyle(color: AppColors.muted)),
                 ),
               ),
             ],
@@ -474,19 +474,19 @@ class _CaptureScreenState extends State<CaptureScreen> {
     final enable = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Turn on meal reminders?'),
-        content: const Text(
+        title: Text('Turn on meal reminders?'),
+        content: Text(
           'Get a gentle nudge at lunch, dinner and night to log your meals. '
           'You can turn this off anytime in Settings.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Not now'),
+            child: Text('Not now'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Turn on'),
+            child: Text('Turn on'),
           ),
         ],
       ),
@@ -534,24 +534,24 @@ class _CaptureScreenState extends State<CaptureScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🗑️', style: TextStyle(fontSize: 32)),
-              const SizedBox(height: 10),
-              const Text(
+              Text('🗑️', style: TextStyle(fontSize: 32)),
+              SizedBox(height: 10),
+              Text(
                 'Discard this meal?',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Your analysis will be lost.',
                 style: TextStyle(fontSize: 13, color: AppColors.muted),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
@@ -559,18 +559,18 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.missedRed,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Discard', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text('Discard', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Keep editing', style: TextStyle(color: AppColors.muted)),
+                  child: Text('Keep editing', style: TextStyle(color: AppColors.muted)),
                 ),
               ),
             ],
@@ -593,45 +593,45 @@ class _CaptureScreenState extends State<CaptureScreen> {
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
             bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          padding: EdgeInsets.fromLTRB(24, 20, 24, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(item.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 19,
                       fontWeight: FontWeight.w800,
                       color: AppColors.ink)),
-              const SizedBox(height: 4),
-              const Text('Adjust and save. Quantity edits apply per serving.',
+              SizedBox(height: 4),
+              Text('Adjust and save. Quantity edits apply per serving.',
                   style: TextStyle(fontSize: 13, color: AppColors.muted)),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               _editField('Calories (kcal)', ctrlCal, isNumber: true),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                       child: _editField('Protein (g)', ctrlPro,
                           isNumber: true)),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                       child: _editField('Carbs (g)', ctrlCarbs,
                           isNumber: true)),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                       child: _editField('Fat (g)', ctrlFat,
                           isNumber: true)),
                 ],
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 height: 52,
                 child: FilledButton(
@@ -642,7 +642,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text('Save',
+                  child: Text('Save',
                       style:
                           TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 ),
@@ -692,21 +692,21 @@ class _CaptureScreenState extends State<CaptureScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.muted)),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         TextField(
           controller: ctrl,
           keyboardType: isNumber
-              ? const TextInputType.numberWithOptions(decimal: true)
+              ? TextInputType.numberWithOptions(decimal: true)
               : null,
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.ink),
           decoration: InputDecoration(
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             filled: true,
             fillColor: AppColors.bg,
             border: OutlineInputBorder(
@@ -732,14 +732,14 @@ class _CaptureScreenState extends State<CaptureScreen> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+              padding: EdgeInsets.fromLTRB(8, 6, 8, 0),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+                    icon: Icon(Icons.arrow_back, color: AppColors.ink),
                     onPressed: _confirmDiscard,
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Nutrition',
                       textAlign: TextAlign.center,
@@ -749,7 +749,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                           color: AppColors.ink),
                     ),
                   ),
-                  const SizedBox(width: 48),
+                  SizedBox(width: 48),
                 ],
               ),
             ),
@@ -757,7 +757,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               child: _batchMode
                   ? _batchBody()
                   : SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -782,12 +782,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                   });
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.all(6),
+                                  padding: EdgeInsets.all(6),
                                   decoration: BoxDecoration(
                                     color: Colors.black.withValues(alpha: 0.5),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                  child: Icon(Icons.close, size: 16, color: Colors.white),
                                 ),
                               ),
                             ),
@@ -796,28 +796,28 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
                     // Quality warning
                     if (_qualityWarning != null && !_analyzing) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: AppColors.warningBg,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.warningOrange),
-                            const SizedBox(width: 6),
+                            Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.warningOrange),
+                            SizedBox(width: 6),
                             Expanded(
                               child: Text(
                                 _qualityWarning!,
-                                style: const TextStyle(fontSize: 12, color: AppColors.warningOrange),
+                                style: TextStyle(fontSize: 12, color: AppColors.warningOrange),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ],
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // Camera / Gallery. Show whenever we have no photo in
                     // hand (fresh open OR after "Scan another"), regardless
@@ -826,12 +826,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: AppColors.card,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Row(
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Icon(Icons.lightbulb_outline,
@@ -852,7 +852,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -861,7 +861,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                     label: 'Camera',
                                     onTap: () => _pickImage(ImageSource.camera)),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Expanded(
                                 child: _outlineBtn(
                                     icon: Icons.photo_library,
@@ -870,7 +870,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           TextButton(
                             onPressed: () {
                               Navigator.push(
@@ -883,7 +883,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                 if (v == true) Navigator.pop(context, true);
                               });
                             },
-                            child: const Text(
+                            child: Text(
                               'Type it manually (best for vegetable curries)',
                               style: TextStyle(
                                   fontSize: 12.5, color: AppColors.muted),
@@ -894,9 +894,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
                     // Error
                     if (_error != null) ...[
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Container(
-                        padding: const EdgeInsets.all(14),
+                        padding: EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: AppColors.errorBg,
                           borderRadius: BorderRadius.circular(14),
@@ -904,9 +904,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
                         child: Column(
                           children: [
                             Text(_error!,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     color: AppColors.missedRed, fontSize: 14)),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             Row(
                               children: [
                                 Expanded(
@@ -923,14 +923,14 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                     },
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: AppColors.missedRed,
-                                      side: const BorderSide(color: AppColors.missedRed),
+                                      side: BorderSide(color: AppColors.missedRed),
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10)),
                                     ),
-                                    child: const Text('Enter manually'),
+                                    child: Text('Enter manually'),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                SizedBox(width: 10),
                                 Expanded(
                                   child: ElevatedButton(
                                     onPressed: _analyze,
@@ -940,7 +940,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10)),
                                     ),
-                                    child: const Text('Retry'),
+                                    child: Text('Retry'),
                                   ),
                                 ),
                               ],
@@ -952,16 +952,16 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
                     // Analyzing
                     if (_analyzing) ...[
-                      const SizedBox(height: 32),
-                      const Center(
+                      SizedBox(height: 32),
+                      Center(
                           child:
                               CircularProgressIndicator(color: AppColors.ink, strokeWidth: 2)),
-                      const SizedBox(height: 12),
-                      const Center(
+                      SizedBox(height: 12),
+                      Center(
                         child: Text('Analyzing your food...',
                             style: TextStyle(color: AppColors.muted, fontSize: 14)),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Center(
                         child: TextButton(
                           onPressed: () {
@@ -970,31 +970,31 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               _error = null;
                             });
                           },
-                          child: const Text('Cancel', style: TextStyle(color: AppColors.muted)),
+                          child: Text('Cancel', style: TextStyle(color: AppColors.muted)),
                         ),
                       ),
                     ],
 
                     // Results
                     if (_items != null && !_analyzing) ...[
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // Generic-veg-curry suggestion: the model can't tell
                       // bhindi from aloo gobi, so typing the exact name
                       // gets far better macros.
                       if (_hasGenericVegCurry) ...[
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFF7E6),
+                            color: Color(0xFFFFF7E6),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                                color: const Color(0xFFE6C567)),
+                                color: Color(0xFFE6C567)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
                                   Icon(Icons.info_outline,
                                       size: 16,
@@ -1014,7 +1014,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: 10),
                               SizedBox(
                                 height: 44,
                                 child: OutlinedButton(
@@ -1033,15 +1033,15 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                     });
                                   },
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF8A6D1F),
-                                    side: const BorderSide(
+                                    foregroundColor: Color(0xFF8A6D1F),
+                                    side: BorderSide(
                                         color: Color(0xFFE6C567)),
                                     shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.circular(10),
                                     ),
                                   ),
-                                  child: const Text(
+                                  child: Text(
                                     'Type it manually',
                                     style: TextStyle(
                                         fontWeight: FontWeight.w600),
@@ -1051,22 +1051,22 @@ class _CaptureScreenState extends State<CaptureScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                       ],
 
                       // Meal type pills
                       Row(
                         children: [
                           _mealPill('Breakfast', 'breakfast'),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           _mealPill('Lunch', 'lunch'),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           _mealPill('Dinner', 'dinner'),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           _mealPill('Snack', 'snack'),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // Food items
                       ..._items!.map((item) {
@@ -1083,7 +1083,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                         );
                       }),
 
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
 
                       // Total summary card (black)
                       _TotalCard(items: _items!),
@@ -1104,7 +1104,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     children: [
                       Container(height: 2, color: Colors.black12),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                        padding: EdgeInsets.fromLTRB(16, 14, 16, 16),
                         child: SizedBox(
                           height: 54,
                           width: double.infinity,
@@ -1117,7 +1117,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Log this meal',
+                            child: Text('Log this meal',
                                 style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w600,
@@ -1144,7 +1144,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
@@ -1153,9 +1153,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 20, color: AppColors.ink),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink)),
           ],
         ),
@@ -1170,7 +1170,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
         onTap: () => setState(() => _mealType = value),
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected ? AppColors.ink : AppColors.card,
             borderRadius: BorderRadius.circular(10),
@@ -1197,18 +1197,18 @@ class _CaptureScreenState extends State<CaptureScreen> {
     final done = _batchResults.length + _batchFailed.length;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Text('📸', style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: 8),
+              Text('📸', style: TextStyle(fontSize: 18)),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Batch review — $total photo${total == 1 ? '' : 's'}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
@@ -1219,7 +1219,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               if (_batchAnalyzing)
                 Text(
                   '$_batchIndex / $total',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.muted,
@@ -1227,51 +1227,51 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           if (_batchAnalyzing) ...[
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: AppColors.ink),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Text(
                     'Analyzing photo $_batchIndex of $total…',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 13.5, color: AppColors.ink),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
           ],
           if (_batchFailed.isNotEmpty)
             Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(10),
+              margin: EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppColors.warningBg,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline,
+                  Icon(Icons.info_outline,
                       size: 15, color: AppColors.warningOrange),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       '${_batchFailed.length} photo(s) had no food '
                       'detected — skipped.',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 12, color: AppColors.warningOrange),
                     ),
                   ),
@@ -1282,9 +1282,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
             final items = _batchResults[file.path];
             final failed = _batchFailed.contains(file.path);
             return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: EdgeInsets.only(bottom: 10),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(14),
@@ -1301,7 +1301,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: items != null
                           ? Column(
@@ -1309,7 +1309,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               children: [
                                 ...items.take(3).map((i) => Text(
                                       '• ${i.name} — ${i.calories} kcal',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.ink,
@@ -1319,7 +1319,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                 if (items.length > 3)
                                   Text(
                                     '+${items.length - 3} more',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.muted,
                                     ),
@@ -1327,7 +1327,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               ],
                             )
                           : failed
-                              ? const Text(
+                              ? Text(
                                   'No food detected',
                                   style: TextStyle(
                                       fontSize: 12.5,
@@ -1335,7 +1335,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                 )
                               : Row(
                                   children: [
-                                    const SizedBox(
+                                    SizedBox(
                                       width: 13,
                                       height: 13,
                                       child:
@@ -1344,8 +1344,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                         color: AppColors.muted,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    const Text(
+                                    SizedBox(width: 8),
+                                    Text(
                                       'Waiting…',
                                       style: TextStyle(
                                           fontSize: 12.5,
@@ -1357,7 +1357,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     if (items != null)
                       Text(
                         '${items.fold(0, (s, i) => s + i.calories)} kcal',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
                           color: AppColors.ink,
@@ -1369,8 +1369,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
             );
           }),
           if (!_batchAnalyzing && _batchResults.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8),
+            Text(
               'Meal type (applies to all):',
               style: TextStyle(
                 fontSize: 13,
@@ -1378,19 +1378,19 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 color: AppColors.muted,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               children: [
                 _mealPill('Breakfast', 'breakfast'),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 _mealPill('Lunch', 'lunch'),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 _mealPill('Dinner', 'dinner'),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 _mealPill('Snack', 'snack'),
               ],
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             SizedBox(
               height: 52,
               child: FilledButton(
@@ -1406,13 +1406,13 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   'Log ${_batchResults.length} photo'
                   '${_batchResults.length == 1 ? '' : 's'}'
                   ' (${_batchResults.values.fold(0, (s, list) => s + list.fold(0, (a, i) => a + i.calories))} kcal)',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 15, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
           ] else if (!_batchAnalyzing && _batchResults.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Text(
                 'No food was detected in any photo.',
@@ -1434,7 +1434,7 @@ class _FoodItemCard extends StatefulWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
 
-  const _FoodItemCard({
+  _FoodItemCard({
     required this.item,
     required this.onChanged,
     this.onDelete,
@@ -1463,8 +1463,8 @@ class _FoodItemCardState extends State<_FoodItemCard> {
     final hasSecondary = item.fiber > 0 || item.sugar > 0 || item.sodium > 0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1477,27 +1477,27 @@ class _FoodItemCardState extends State<_FoodItemCard> {
             children: [
               Expanded(
                 child: Text(item.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink)),
               ),
               if (widget.onEdit != null)
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined,
+                  icon: Icon(Icons.edit_outlined,
                       size: 18, color: AppColors.muted),
                   onPressed: widget.onEdit,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  constraints: BoxConstraints(),
                 ),
               if (widget.onDelete != null)
                 IconButton(
-                  icon: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                  icon: Icon(Icons.close, size: 18, color: AppColors.muted),
                   onPressed: widget.onDelete,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  constraints: BoxConstraints(),
                 ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.bg,
@@ -1516,9 +1516,9 @@ class _FoodItemCardState extends State<_FoodItemCard> {
                           : null,
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: EdgeInsets.symmetric(horizontal: 12),
                       child: Text('${item.quantity.round()}',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: AppColors.ink)),
@@ -1535,7 +1535,7 @@ class _FoodItemCardState extends State<_FoodItemCard> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
 
           // Serving size + Calories
           Row(
@@ -1543,44 +1543,44 @@ class _FoodItemCardState extends State<_FoodItemCard> {
               if (item.servingSizeGrams > 0)
                 Text(
                   '${_intuitiveServing(item.servingSizeGrams)} · ${item.servingSizeGrams.round()}g',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: AppColors.muted),
                 ),
-              const Spacer(),
+              Spacer(),
               Text('${item.calories} kcal',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink)),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
 
           // Macro pills row 1
           Row(
             children: [
               _macroPill('Protein ${item.protein.toStringAsFixed(1)}g', AppColors.protein),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _macroPill('Carbs ${item.carbs.toStringAsFixed(1)}g', AppColors.carbs),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _macroPill('Fat ${item.fat.toStringAsFixed(1)}g', AppColors.fat),
             ],
           ),
 
           // Macro pills row 2
           if (hasSecondary) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               children: [
                 if (item.fiber > 0)
                   _macroPill('Fiber ${item.fiber.toStringAsFixed(1)}g', AppColors.fiber),
-                if (item.fiber > 0 && item.sugar > 0) const SizedBox(width: 8),
+                if (item.fiber > 0 && item.sugar > 0) SizedBox(width: 8),
                 if (item.sugar > 0)
                   _macroPill('Sugar ${item.sugar.toStringAsFixed(1)}g', AppColors.sugar),
                 if ((item.fiber > 0 || item.sugar > 0) && item.sodium > 0)
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                 if (item.sodium > 0)
                   _macroPill('Sodium ${item.sodium.toStringAsFixed(0)}mg', AppColors.sodium),
               ],
@@ -1593,7 +1593,7 @@ class _FoodItemCardState extends State<_FoodItemCard> {
 
   Widget _macroPill(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
@@ -1628,7 +1628,7 @@ class _FoodItemCardState extends State<_FoodItemCard> {
 class _TotalCard extends StatelessWidget {
   final List<FoodItem> items;
 
-  const _TotalCard({required this.items});
+  _TotalCard({required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -1638,7 +1638,7 @@ class _TotalCard extends StatelessWidget {
     final totalF = items.fold(0.0, (s, i) => s + i.fat);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.ink,
         borderRadius: BorderRadius.circular(20),
@@ -1646,12 +1646,12 @@ class _TotalCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Total',
+          Text('Total',
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Colors.white)),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -1669,14 +1669,14 @@ class _TotalCard extends StatelessWidget {
   Widget _totalStat(String emoji, String value, String label) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(height: 4),
+        Text(emoji, style: TextStyle(fontSize: 20)),
+        SizedBox(height: 4),
         Text(value,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Colors.white)),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(label,
             style: TextStyle(
                 fontSize: 12,

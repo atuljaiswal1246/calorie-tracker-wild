@@ -8,7 +8,7 @@ class QuickPick {
   final String label;
   final String dbName;
 
-  const QuickPick({required this.label, required this.dbName});
+  QuickPick({required this.label, required this.dbName});
 
   factory QuickPick.fromJson(Map<String, dynamic> json) => QuickPick(
         label: json['label'] as String? ?? '',

@@ -10,7 +10,7 @@ class MacroPill extends StatelessWidget {
   final double iconSize;
   final double fontSize;
 
-  const MacroPill({
+  MacroPill({
     super.key,
     required this.icon,
     required this.color,
@@ -33,7 +33,7 @@ class MacroPill extends StatelessWidget {
           ),
           child: Icon(icon, size: iconSize, color: color),
         ),
-        const SizedBox(width: 3),
+        SizedBox(width: 3),
         Text(
           text,
           style: TextStyle(

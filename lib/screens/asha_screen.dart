@@ -13,7 +13,7 @@ import '../theme/app_colors.dart';
 class AshaScreen extends StatefulWidget {
   final StorageService storage;
 
-  const AshaScreen({super.key, required this.storage});
+  AshaScreen({super.key, required this.storage});
 
   @override
   State<AshaScreen> createState() => _AshaScreenState();
@@ -137,7 +137,7 @@ SPEAK STYLE:
       if (_scroll.hasClients) {
         _scroll.animateTo(
           _scroll.position.maxScrollExtent + 80,
-          duration: const Duration(milliseconds: 300),
+          duration: Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
       }
@@ -153,14 +153,14 @@ SPEAK STYLE:
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 20, 6),
+              padding: EdgeInsets.fromLTRB(8, 6, 20, 6),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+                    icon: Icon(Icons.arrow_back, color: AppColors.ink),
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Container(
                     width: 34,
                     height: 34,
@@ -168,11 +168,11 @@ SPEAK STYLE:
                       color: AppColors.protein,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.auto_awesome,
+                    child: Icon(Icons.auto_awesome,
                         size: 17, color: Colors.white),
                   ),
-                  const SizedBox(width: 10),
-                  const Column(
+                  SizedBox(width: 10),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -199,18 +199,18 @@ SPEAK STYLE:
                   ? _emptyState()
                   : ListView(
                       controller: _scroll,
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
                       keyboardDismissBehavior:
                           ScrollViewKeyboardDismissBehavior.onDrag,
                       children: [
                         ..._messages.map((m) => _bubble(m)),
-                        if (_sending) const _TypingBubble(),
+                        if (_sending) _TypingBubble(),
                         if (_error != null)
                           Padding(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all(8),
                             child: Text(
                               _error!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 12, color: AppColors.missedRed),
                             ),
                           ),
@@ -229,7 +229,7 @@ SPEAK STYLE:
   Widget _emptyState() {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
+        padding: EdgeInsets.symmetric(horizontal: 40),
         child: Column(
           children: [
             Container(
@@ -239,11 +239,11 @@ SPEAK STYLE:
                 color: AppColors.protein.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.auto_awesome,
+              child: Icon(Icons.auto_awesome,
                   size: 32, color: AppColors.protein),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               'Namaste! I\'m Asha.',
               style: TextStyle(
                 fontSize: 20,
@@ -251,25 +251,25 @@ SPEAK STYLE:
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     'Wait, first this —',
                     style: TextStyle(
                         fontSize: 12, color: AppColors.muted),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Text(
                     _currentPrompt,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
@@ -279,8 +279,8 @@ SPEAK STYLE:
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-            const Text(
+            SizedBox(height: 14),
+            Text(
               'Ask me anything — I read your goal and today\'s log, so the '
               'advice is yours, not copy-paste luck.',
               textAlign: TextAlign.center,
@@ -298,14 +298,14 @@ SPEAK STYLE:
       height: 46,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         itemCount: _hints.length,
         itemBuilder: (context, i) => Padding(
-          padding: const EdgeInsets.only(right: 8),
+          padding: EdgeInsets.only(right: 8),
           child: ActionChip(
             label: Text(
               _hints[i],
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 12, color: AppColors.ink),
             ),
             backgroundColor: AppColors.card,
@@ -325,14 +325,14 @@ SPEAK STYLE:
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: const BoxConstraints(maxWidth: 300),
+        margin: EdgeInsets.only(bottom: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        constraints: BoxConstraints(maxWidth: 300),
         decoration: BoxDecoration(
           color: isUser ? AppColors.ink : AppColors.card,
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
             bottomLeft: Radius.circular(isUser ? 16 : 4),
             bottomRight: Radius.circular(isUser ? 4 : 16),
           ),
@@ -355,7 +355,7 @@ SPEAK STYLE:
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          padding: EdgeInsets.fromLTRB(12, 8, 12, 12),
           child: Row(
             children: [
               Expanded(
@@ -367,7 +367,7 @@ SPEAK STYLE:
                     hintText: 'Ask Asha anything…',
                     filled: true,
                     fillColor: AppColors.bg,
-                    contentPadding: const EdgeInsets.symmetric(
+                    contentPadding: EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
@@ -376,9 +376,9 @@ SPEAK STYLE:
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _sending
-                  ? const Padding(
+                  ? Padding(
                       padding: EdgeInsets.all(10),
                       child: SizedBox(
                         width: 22,
@@ -395,11 +395,11 @@ SPEAK STYLE:
                       child: Container(
                         width: 44,
                         height: 44,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.ink,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.arrow_upward,
+                        child: Icon(Icons.arrow_upward,
                             size: 20, color: Colors.white),
                       ),
                     ),
@@ -412,15 +412,15 @@ SPEAK STYLE:
 }
 
 class _TypingBubble extends StatelessWidget {
-  const _TypingBubble();
+  _TypingBubble();
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        margin: EdgeInsets.only(bottom: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(16),

@@ -13,7 +13,7 @@ class MealDetailScreen extends StatefulWidget {
   /// Called after the user confirms deletion (parent pops + refreshes).
   final Future<void> Function()? onDeleted;
 
-  const MealDetailScreen({
+  MealDetailScreen({
     super.key,
     required this.entry,
     this.storage,
@@ -37,7 +37,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete meal?'),
+        title: Text('Delete meal?'),
         content: Text(
           widget.entry.items.isEmpty
               ? 'This will remove the meal from your log.'
@@ -47,11 +47,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete',
+            child: Text('Delete',
                 style: TextStyle(color: Color(0xFFE03131))),
           ),
         ],
@@ -79,7 +79,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     await storage.updateEntry(updated);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text('Meal updated'),
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 1),
@@ -95,17 +95,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         widget.entry.mealType.substring(1);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF9F7),
+      backgroundColor: Color(0xFFFAF9F7),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           mealLabel,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -115,12 +115,12 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         actions: [
           if (widget.storage != null) ...[
             IconButton(
-              icon: const Icon(Icons.save_outlined, color: Colors.black),
+              icon: Icon(Icons.save_outlined, color: Colors.black),
               tooltip: 'Save changes',
               onPressed: _save,
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: Color(0xFFE03131)),
+              icon: Icon(Icons.delete_outline, color: Color(0xFFE03131)),
               tooltip: 'Delete',
               onPressed: _confirmDelete,
             ),
@@ -133,7 +133,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             if (widget.entry.imagePath.isNotEmpty &&
                 File(widget.entry.imagePath).existsSync())
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                padding: EdgeInsets.fromLTRB(20, 8, 20, 16),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.file(
@@ -146,11 +146,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               ),
 
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
                   Icon(Icons.access_time, size: 16, color: Colors.grey[500]),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   Text(
                     time,
                     style: TextStyle(fontSize: 14, color: Colors.grey[500]),
@@ -158,18 +158,18 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             ...List.generate(_items.length, (i) => _itemCard(i)),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Totals (live from current quantities)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.black,
                   borderRadius: BorderRadius.circular(20),
@@ -177,7 +177,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Total',
                       style: TextStyle(
                         color: Colors.white,
@@ -185,7 +185,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -204,7 +204,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
           ],
         ),
       ),
@@ -225,9 +225,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   Widget _itemCard(int index) {
     final item = _items[index];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -235,7 +235,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
               blurRadius: 10,
-              offset: const Offset(0, 2),
+              offset: Offset(0, 2),
             ),
           ],
         ),
@@ -248,7 +248,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 Expanded(
                   child: Text(
                     item.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
@@ -257,7 +257,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 ),
                 Text(
                   '${item.calories} kcal',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Colors.black,
@@ -265,44 +265,44 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Row(
               children: [
-                _macroTag('Protein', '${item.protein.toStringAsFixed(1)}g', const Color(0xFFFF6B6B)),
-                const SizedBox(width: 8),
-                _macroTag('Carbs', '${item.carbs.toStringAsFixed(1)}g', const Color(0xFFFFA94D)),
-                const SizedBox(width: 8),
-                _macroTag('Fat', '${item.fat.toStringAsFixed(1)}g', const Color(0xFF4DABF7)),
+                _macroTag('Protein', '${item.protein.toStringAsFixed(1)}g', Color(0xFFFF6B6B)),
+                SizedBox(width: 8),
+                _macroTag('Carbs', '${item.carbs.toStringAsFixed(1)}g', Color(0xFFFFA94D)),
+                SizedBox(width: 8),
+                _macroTag('Fat', '${item.fat.toStringAsFixed(1)}g', Color(0xFF4DABF7)),
               ],
             ),
             if (item.fiber > 0 || item.sugar > 0 || item.sodium > 0) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Row(
                 children: [
                   if (item.fiber > 0) ...[
-                    _macroTag('Fiber', '${item.fiber.toStringAsFixed(1)}g', const Color(0xFF8D6E63)),
-                    const SizedBox(width: 8),
+                    _macroTag('Fiber', '${item.fiber.toStringAsFixed(1)}g', Color(0xFF8D6E63)),
+                    SizedBox(width: 8),
                   ],
                   if (item.sugar > 0) ...[
-                    _macroTag('Sugar', '${item.sugar.toStringAsFixed(1)}g', const Color(0xFFE91E63)),
-                    const SizedBox(width: 8),
+                    _macroTag('Sugar', '${item.sugar.toStringAsFixed(1)}g', Color(0xFFE91E63)),
+                    SizedBox(width: 8),
                   ],
                   if (item.sodium > 0)
-                    _macroTag('Sodium', '${item.sodium.toStringAsFixed(0)}mg', const Color(0xFF78909C)),
+                    _macroTag('Sodium', '${item.sodium.toStringAsFixed(0)}mg', Color(0xFF78909C)),
                 ],
               ),
             ],
             if (widget.storage != null) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Divider(color: Colors.grey[200], height: 1),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Row(
                 children: [
-                  const Text(
+                  Text(
                     'Servings',
                     style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
-                  const Spacer(),
+                  Spacer(),
                   InkWell(
                     onTap: () {
                       setState(() {
@@ -316,10 +316,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       width: 34,
                       height: 34,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F1F1),
+                        color: Color(0xFFF1F1F1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.remove, size: 18),
+                      child: Icon(Icons.remove, size: 18),
                     ),
                   ),
                   Container(
@@ -327,7 +327,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     alignment: Alignment.center,
                     child: Text(
                       item.quantity.toStringAsFixed(1),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -344,10 +344,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       width: 34,
                       height: 34,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F1F1),
+                        color: Color(0xFFF1F1F1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.add, size: 18),
+                      child: Icon(Icons.add, size: 18),
                     ),
                   ),
                 ],
@@ -361,7 +361,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   Widget _macroTag(String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
@@ -380,8 +380,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   Widget _totalStat(String emoji, String value, String label, Color color) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(height: 4),
+        Text(emoji, style: TextStyle(fontSize: 20)),
+        SizedBox(height: 4),
         Text(
           value,
           style: TextStyle(

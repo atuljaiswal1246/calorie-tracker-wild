@@ -13,13 +13,13 @@ import '../models/profile.dart';
 /// EMail address that bypasses the paywall — SANDBOX ONLY (iOS dev builds).
 /// Used because iOS has no Play Billing; without this the app is unusable on
 /// the iPhone while testing.
-const String kSandboxEmail = 'atuljaiswal1246@gmail.com';
+String kSandboxEmail = 'atuljaiswal1246@gmail.com';
 
 class WaterEntry {
   final DateTime date;
   final int ml;
 
-  const WaterEntry({required this.date, required this.ml});
+  WaterEntry({required this.date, required this.ml});
 
   Map<String, dynamic> toJson() => {
         'date': date.toIso8601String(),
@@ -36,7 +36,7 @@ class WeightEntry {
   final DateTime date;
   final double weightKg;
 
-  const WeightEntry({required this.date, required this.weightKg});
+  WeightEntry({required this.date, required this.weightKg});
 
   Map<String, dynamic> toJson() => {
         'date': date.toIso8601String(),
@@ -263,6 +263,16 @@ class StorageService {
     await _prefs.setString('weekly_summary_$key', text);
   }
 
+  // ---- Dark mode ----
+
+  static const _darkModeKey = 'dark_mode';
+
+  bool get darkMode => _prefs.getBool(_darkModeKey) ?? false;
+
+  Future<void> saveDarkMode(bool value) async {
+    await _prefs.setBool(_darkModeKey, value);
+  }
+
   int get entryCount => entries.length;
 
   Future<void> addEntry(FoodEntry entry) async {
@@ -368,7 +378,7 @@ class StorageService {
 
   static const _waterEntriesKey = 'water_entries';
   static const _waterGoalKey = 'water_goal_ml';
-  static const int defaultWaterGoalMl = 2500;
+  static int defaultWaterGoalMl = 2500;
 
   int get waterGoalMl => _prefs.getInt(_waterGoalKey) ?? defaultWaterGoalMl;
 

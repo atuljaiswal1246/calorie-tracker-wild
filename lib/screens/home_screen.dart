@@ -41,7 +41,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback onSignedOut;
   final VoidCallback onResetGoals;
 
-  const HomeScreen({
+  HomeScreen({
     super.key,
     required this.storage,
     required this.auth,
@@ -160,12 +160,12 @@ class _HomeScreenState extends State<HomeScreen> {
     var day = DateTime.now();
 
     if (_calories(day) == 0) {
-      day = day.subtract(const Duration(days: 1));
+      day = day.subtract(Duration(days: 1));
     }
 
     while (_calories(day) > 0) {
       streak++;
-      day = day.subtract(const Duration(days: 1));
+      day = day.subtract(Duration(days: 1));
     }
     return streak;
   }
@@ -191,20 +191,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          padding: EdgeInsets.fromLTRB(24, 20, 24, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Log a meal',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.ink),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -212,12 +212,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () => Navigator.pop(ctx, ImageSource.camera),
                       borderRadius: BorderRadius.circular(14),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: EdgeInsets.symmetric(vertical: 20),
                         decoration: BoxDecoration(
                           color: AppColors.bg,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Column(
+                        child: Column(
                           children: [
                             Icon(Icons.photo_camera, size: 28, color: AppColors.ink),
                             SizedBox(height: 8),
@@ -227,18 +227,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: InkWell(
                       onTap: () => Navigator.pop(ctx, ImageSource.gallery),
                       borderRadius: BorderRadius.circular(14),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: EdgeInsets.symmetric(vertical: 20),
                         decoration: BoxDecoration(
                           color: AppColors.bg,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Column(
+                        child: Column(
                           children: [
                             Icon(Icons.photo_library, size: 28, color: AppColors.ink),
                             SizedBox(height: 8),
@@ -298,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete meal?'),
+        title: Text('Delete meal?'),
         content: Text(
           entry.items.isEmpty
               ? 'This will remove the meal from your log.'
@@ -307,11 +307,11 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.missedRed)),
+            child: Text('Delete', style: TextStyle(color: AppColors.missedRed)),
           ),
         ],
       ),
@@ -328,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final profile = _profile;
     if (profile == null) {
-      return const Scaffold(body: Center(child: Text('No profile found')));
+      return Scaffold(body: Center(child: Text('No profile found')));
     }
 
     return Scaffold(
@@ -370,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _paywallOverlay() {
     return Container(
       color: AppColors.bg,
-      padding: const EdgeInsets.symmetric(horizontal: 28),
+      padding: EdgeInsets.symmetric(horizontal: 28),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -381,12 +381,12 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.warningBg,
               borderRadius: BorderRadius.circular(24),
             ),
-            child: const Center(
+            child: Center(
               child: Text('🔒', style: TextStyle(fontSize: 40)),
             ),
           ),
-          const SizedBox(height: 24),
-          const Text(
+          SizedBox(height: 24),
+          Text(
             'Your free trial has ended',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -396,13 +396,13 @@ class _HomeScreenState extends State<HomeScreen> {
               letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 10),
-          const Text(
+          SizedBox(height: 10),
+          Text(
             'Unlock unlimited food analysis and all features with a subscription.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 15, color: AppColors.muted, height: 1.5),
           ),
-          const SizedBox(height: 28),
+          SizedBox(height: 28),
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -411,9 +411,9 @@ class _HomeScreenState extends State<HomeScreen> {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.ink,
                 foregroundColor: Colors.white,
-                shape: const StadiumBorder(),
+                shape: StadiumBorder(),
               ),
-              child: const Text(
+              child: Text(
                 'Unlock — ₹100/mo or ₹1,000/yr',
                 style: TextStyle(
                   fontSize: 17,
@@ -423,10 +423,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           TextButton(
             onPressed: () => _billing?.restore(),
-            child: const Text(
+            child: Text(
               'Restore purchase',
               style: TextStyle(fontSize: 14, color: AppColors.muted),
             ),
@@ -450,20 +450,20 @@ class _HomeScreenState extends State<HomeScreen> {
       color: AppColors.ink,
       onRefresh: () async => _load(),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 150),
         children: [
           _greeting(profile),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           _header(),
           if (!_isOnline) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.warningBg,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(Icons.wifi_off_rounded, size: 18, color: AppColors.accentOrange),
                   SizedBox(width: 10),
@@ -481,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
           // Asha — always visible, chat-style prompt on Home
           InkWell(
             onTap: () {
@@ -494,9 +494,9 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(18),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(14),
+              padding: EdgeInsets.all(14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [Color(0xFFE53935), Color(0xFFFF7043)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -512,15 +512,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.auto_awesome,
+                    child: Icon(Icons.auto_awesome,
                         size: 21, color: Colors.white),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Ask Asha',
                           style: TextStyle(
                             fontSize: 15,
@@ -529,20 +529,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             letterSpacing: -0.3,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         _AshaTicker(),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right,
+                  Icon(Icons.chevron_right,
                       color: Colors.white70, size: 20),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _weekSelector(calorieGoal: goal),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           CaloriesCard(
             goal: goal,
             logged: logged,
@@ -558,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           SizedBox(
             height: 140,
             child: PageView(
@@ -587,7 +587,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: MacroCard(
                         label: 'Carbs eaten',
@@ -608,7 +608,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: MacroCard(
                         label: 'Fat eaten',
@@ -653,7 +653,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: MacroCard(
                         label: 'Sugar eaten',
@@ -674,7 +674,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: MacroCard(
                         label: 'Sodium eaten',
@@ -701,21 +701,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           PaginationDots(count: 2, current: _macroPageIndex),
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
           _activityCard(),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           _logMealSection(),
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
           _waterCard(),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _fastingCard(),
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Recently uploaded',
                 style: TextStyle(
                   fontSize: 19,
@@ -733,7 +733,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 borderRadius: BorderRadius.circular(8),
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Text(
                     'View all',
@@ -747,12 +747,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           if (recent.isEmpty)
             EmptyCard(onScanTap: _openCapture)
           else
             ...recent.map((e) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: EdgeInsets.only(bottom: 10),
                   child: MealCard(
                     entry: e,
                     onTap: () async {
@@ -786,7 +786,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _greeting(Profile profile) {
     return Text.rich(
       TextSpan(
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.muted,
@@ -795,7 +795,7 @@ class _HomeScreenState extends State<HomeScreen> {
           TextSpan(text: '$_greetingText, '),
           TextSpan(
             text: profile.name.split(' ').first,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
               color: AppColors.ink,
             ),
@@ -837,8 +837,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 10),
-        const Text(
+        SizedBox(width: 10),
+        Text(
           'Cal Matters',
           style: TextStyle(
             fontSize: 22,
@@ -847,7 +847,7 @@ class _HomeScreenState extends State<HomeScreen> {
             letterSpacing: -0.5,
           ),
         ),
-        const Spacer(),
+        Spacer(),
         InkWell(
           onTap: () {
             Navigator.of(context).push(
@@ -858,17 +858,17 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           borderRadius: BorderRadius.circular(20),
           child: Container(
-            padding: const EdgeInsets.all(10),
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            padding: EdgeInsets.all(10),
+            constraints: BoxConstraints(minWidth: 44, minHeight: 44),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
               boxShadow: AppColors.cardShadow,
             ),
-            child: const Icon(Icons.insights_rounded, size: 17, color: AppColors.ink),
+            child: Icon(Icons.insights_rounded, size: 17, color: AppColors.ink),
           ),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: 6),
         InkWell(
           onTap: () {
             Navigator.of(context).push(
@@ -878,7 +878,7 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
@@ -886,11 +886,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Row(
               children: [
-                const Text('🏆', style: TextStyle(fontSize: 13)),
-                const SizedBox(width: 4),
+                Text('🏆', style: TextStyle(fontSize: 13)),
+                SizedBox(width: 4),
                 Text(
                   '${AchievementsService(widget.storage).unlockedCount}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
@@ -900,7 +900,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: 6),
         Semantics(
           label: '$_streak day streak. Tap for details.',
           button: true,
@@ -911,7 +911,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(20),
@@ -919,11 +919,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Row(
                 children: [
-                  const Text('🔥', style: TextStyle(fontSize: 13)),
-                  const SizedBox(width: 4),
+                  Text('🔥', style: TextStyle(fontSize: 13)),
+                  SizedBox(width: 4),
                   Text(
                     '$_streak',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
@@ -947,7 +947,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(22),
@@ -958,7 +958,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SingleChildScrollView(
           controller: _weekScrollController,
           scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
+          physics: BouncingScrollPhysics(),
           child: Row(
             children: dates.map((day) {
               final isSelected = _isSameDay(day, _selected);
@@ -993,13 +993,13 @@ class _HomeScreenState extends State<HomeScreen> {
               }
 
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: EdgeInsets.symmetric(horizontal: 4),
                 child: InkWell(
                   onTap: () => setState(() => _selected = day),
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
                     width: 52,
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
                       color: isSelected ? AppColors.cardSelected : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
@@ -1021,7 +1021,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         SizedBox(
                           width: 32,
                           height: 32,
@@ -1066,7 +1066,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final minutes = _todayExercises.fold(0, (s, e) => s + e.minutes);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1078,7 +1078,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Activity',
                 style: TextStyle(
                   fontSize: 15,
@@ -1088,14 +1088,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.green.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   _stepsEnabled ? _activity.sourceLabel : 'Tap to track',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF2E7D32),
@@ -1104,7 +1104,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Row(
             children: [
               SizedBox(
@@ -1118,29 +1118,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       strokeWidth: 4,
                       backgroundColor: AppColors.green.withValues(alpha: 0.15),
                       valueColor:
-                          const AlwaysStoppedAnimation(AppColors.green),
+                          AlwaysStoppedAnimation(AppColors.green),
                     ),
-                    const Center(
+                    Center(
                       child: Icon(Icons.directions_walk,
                           size: 17, color: AppColors.green),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${steps.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')} / $stepGoal',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: AppColors.ink,
                       ),
                     ),
-                    const Text(
+                    Text(
                       'steps today',
                       style: TextStyle(fontSize: 12, color: AppColors.muted),
                     ),
@@ -1148,7 +1148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               if (_enablingSteps)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: SizedBox(
                     width: 18,
@@ -1162,11 +1162,11 @@ class _HomeScreenState extends State<HomeScreen> {
               else if (!_stepsEnabled)
                 TextButton.icon(
                   onPressed: _enableSteps,
-                  icon: const Icon(Icons.auto_awesome, size: 15),
-                  label: const Text('Track'),
+                  icon: Icon(Icons.auto_awesome, size: 15),
+                  label: Text('Track'),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.green,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 8),
                   ),
                 )
               else
@@ -1174,8 +1174,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: _stepsSource == StepsSource.healthConnect
                       ? null
                       : _manualStepsDialog,
-                  icon: const Icon(Icons.edit, size: 15),
-                  label: const Text('Add'),
+                  icon: Icon(Icons.edit, size: 15),
+                  label: Text('Add'),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.ink,
                     disabledForegroundColor: AppColors.muted,
@@ -1183,17 +1183,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             ],
           ),
-          const Divider(height: 22, color: AppColors.divider),
+          Divider(height: 22, color: AppColors.divider),
           Row(
             children: [
-              const Text('🔥', style: TextStyle(fontSize: 18)),
-              const SizedBox(width: 8),
+              Text('🔥', style: TextStyle(fontSize: 18)),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
                   kcals > 0
                       ? '$kcals kcal burned · $minutes min today'
                       : 'No workouts logged today',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                     color: AppColors.ink,
@@ -1202,14 +1202,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               TextButton.icon(
                 onPressed: _addExerciseSheet,
-                icon: const Icon(Icons.add, size: 17),
-                label: const Text('Exercise'),
+                icon: Icon(Icons.add, size: 17),
+                label: Text('Exercise'),
                 style: TextButton.styleFrom(foregroundColor: AppColors.ink),
               ),
             ],
           ),
           if (_todayExercises.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Wrap(
               spacing: 6,
               runSpacing: 6,
@@ -1228,11 +1228,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text('Keep'),
+                                child: Text('Keep'),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text('Remove',
+                                child: Text('Remove',
                                     style:
                                         TextStyle(color: AppColors.missedRed)),
                               ),
@@ -1247,7 +1247,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: AppColors.bg,
@@ -1255,7 +1255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Text(
                           '${e.name.split(' ').first} · ${e.minutes}m · ${e.calories}k',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: AppColors.muted,
@@ -1288,7 +1288,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       if (source == StepsSource.manual) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
                 'No step sensor found — use "Add" to log steps manually.'),
             duration: Duration(seconds: 2),
@@ -1306,22 +1306,22 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Add steps'),
+        title: Text('Add steps'),
         content: TextField(
           controller: ctrl,
           autofocus: true,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: 'e.g. 2500'),
+          decoration: InputDecoration(hintText: 'e.g. 2500'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, null),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () =>
                 Navigator.pop(ctx, int.tryParse(ctrl.text.trim()) ?? 0),
-            child: const Text('Add'),
+            child: Text('Add'),
           ),
         ],
       ),
@@ -1335,7 +1335,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await showModalBottomSheet<ExerciseEntry>(
       context: context,
       backgroundColor: AppColors.bg,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
       isScrollControlled: true,
@@ -1352,7 +1352,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final progress = _waterGoalMl > 0 ? (_waterMl / _waterGoalMl).clamp(0.0, 1.0) : 0.0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1364,7 +1364,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Text('💧', style: TextStyle(fontSize: 16)),
                   SizedBox(width: 6),
@@ -1382,27 +1382,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     '${(_waterMl / 1000).toStringAsFixed(1)} / ${(_waterGoalMl / 1000).toStringAsFixed(1)} L',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.muted,
                     ),
                   ),
                   if (_waterMl > 0) ...[
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     GestureDetector(
                       onTap: () async {
                         await widget.storage.undoLastWater();
                         _load();
                       },
-                      child: const Icon(Icons.undo, size: 14, color: AppColors.missedRed),
+                      child: Icon(Icons.undo, size: 14, color: AppColors.missedRed),
                     ),
                   ],
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: SizedBox(
@@ -1410,17 +1410,17 @@ class _HomeScreenState extends State<HomeScreen> {
               child: LinearProgressIndicator(
                 value: progress,
                 backgroundColor: AppColors.track,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.fat),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.fat),
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Row(
             children: [
               _waterButton(250, Icons.water_drop),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _waterButton(500, Icons.water_drop),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _waterButtonCustom(),
             ],
           ),
@@ -1439,8 +1439,8 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          constraints: const BoxConstraints(minHeight: 44),
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: BoxConstraints(minHeight: 44),
           decoration: BoxDecoration(
             color: AppColors.chipBlue,
             borderRadius: BorderRadius.circular(10),
@@ -1450,10 +1450,10 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 14, color: AppColors.fat),
-              const SizedBox(width: 4),
+              SizedBox(width: 4),
               Text(
                 '+${ml}ml',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.fat,
@@ -1474,12 +1474,12 @@ class _HomeScreenState extends State<HomeScreen> {
           showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: const Text('Add water'),
+              title: Text('Add water'),
               content: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
                 autofocus: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   suffixText: 'ml',
                   border: OutlineInputBorder(),
                 ),
@@ -1487,7 +1487,7 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
+                  child: Text('Cancel'),
                 ),
                 FilledButton(
                   onPressed: () async {
@@ -1498,14 +1498,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (ctx.mounted) Navigator.pop(ctx);
                     } else {
                       ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text('Enter a value between 1–2000 ml'),
                           duration: Duration(seconds: 2),
                         ),
                       );
                     }
                   },
-                  child: const Text('Add'),
+                  child: Text('Add'),
                 ),
               ],
             ),
@@ -1513,13 +1513,13 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          constraints: const BoxConstraints(minHeight: 44),
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: BoxConstraints(minHeight: 44),
           decoration: BoxDecoration(
             color: AppColors.chipNeutral,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1550,7 +1550,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final completed = isFasting && elapsedH >= goalHours;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1562,7 +1562,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Text('⏰', style: TextStyle(fontSize: 18)),
                   SizedBox(width: 8),
@@ -1578,7 +1578,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               if (isFasting)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: completed
                         ? AppColors.green.withValues(alpha: 0.12)
@@ -1596,14 +1596,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           if (isFasting) ...[
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   '${elapsedH.toString().padLeft(2, '0')}:${elapsedM.toString().padLeft(2, '0')}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
@@ -1612,7 +1612,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(bottom: 4, left: 6),
                   child: Text(
                     'elapsed',
@@ -1625,7 +1625,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: SizedBox(
@@ -1639,12 +1639,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               'Started at ${start != null ? TimeOfDay.fromDateTime(start).format(context) : ''}',
-              style: const TextStyle(fontSize: 11, color: AppColors.muted),
+              style: TextStyle(fontSize: 11, color: AppColors.muted),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -1653,12 +1653,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text('End fast?'),
-                          content: const Text('This will stop your current fast early.'),
+                          title: Text('End fast?'),
+                          content: Text('This will stop your current fast early.'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Cancel'),
+                              child: Text('Cancel'),
                             ),
                             FilledButton(
                               onPressed: () async {
@@ -1670,7 +1670,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 backgroundColor: AppColors.missedRed,
                                 foregroundColor: Colors.white,
                               ),
-                              child: const Text('End fast'),
+                              child: Text('End fast'),
                             ),
                           ],
                         ),
@@ -1678,13 +1678,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      constraints: const BoxConstraints(minHeight: 36),
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      constraints: BoxConstraints(minHeight: 36),
                       decoration: BoxDecoration(
                         color: AppColors.undoRed,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'End fast',
                           style: TextStyle(
@@ -1697,18 +1697,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 InkWell(
                   onTap: () => _showFastingGoalSheet(context),
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    padding: const EdgeInsets.all(12),
-                    constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                    padding: EdgeInsets.all(12),
+                    constraints: BoxConstraints(minWidth: 44, minHeight: 44),
                     decoration: BoxDecoration(
                       color: AppColors.chipNeutral,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.settings, size: 18, color: AppColors.muted),
+                    child: Icon(Icons.settings, size: 18, color: AppColors.muted),
                   ),
                 ),
               ],
@@ -1717,26 +1717,26 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 Expanded(child: _fastingPreset('14:10', 14)),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(child: _fastingPreset('16:8', 16)),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(child: _fastingPreset('18:6', 18)),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(child: _fastingPreset('20:4', 20)),
               ],
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Center(
               child: Text(
                 '${goalHours}h fast / ${24 - goalHours}h eating window',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   color: AppColors.muted,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             SizedBox(
               height: 48,
               width: double.infinity,
@@ -1752,7 +1752,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Start fasting',
                   style: TextStyle(
                     fontSize: 14,
@@ -1777,8 +1777,8 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        constraints: const BoxConstraints(minHeight: 44),
+        padding: EdgeInsets.symmetric(vertical: 10),
+        constraints: BoxConstraints(minHeight: 44),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.ink : AppColors.chipNeutral,
           borderRadius: BorderRadius.circular(10),
@@ -1805,14 +1805,14 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🔥', style: TextStyle(fontSize: 32)),
-              const SizedBox(height: 10),
+              Text('🔥', style: TextStyle(fontSize: 32)),
+              SizedBox(height: 10),
               Text(
                 streak > 0 ? '$streak day streak' : 'No active streak',
                 style: TextStyle(
@@ -1821,19 +1821,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: streak > 0 ? AppColors.ink : AppColors.muted,
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               Text(
                 streak > 0
                     ? 'Log a meal every day to keep it going.\nMiss a day and it resets to zero.'
                     : 'Log any meal today to start a streak.\nKeep logging daily to build it up.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: AppColors.muted,
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
@@ -1841,12 +1841,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.ink,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Got it', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text('Got it', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -1865,7 +1865,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Padding(
@@ -1875,7 +1875,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Fasting Goal',
               style: TextStyle(
                 fontSize: 20,
@@ -1883,39 +1883,39 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 4),
-            const Text(
+            SizedBox(height: 4),
+            Text(
               'Set your fasting duration in hours',
               style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
               autofocus: true,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
               decoration: InputDecoration(
                 suffixText: 'hours',
-                suffixStyle: const TextStyle(
+                suffixStyle: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                  borderSide: BorderSide(color: Color(0xFFE5E5EA)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppColors.ink, width: 2),
+                  borderSide: BorderSide(color: AppColors.ink, width: 2),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -1930,9 +1930,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.ink,
                   foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
+                  shape: StadiumBorder(),
                 ),
-                child: const Text(
+                child: Text(
                   'Save',
                   style: TextStyle(
                       fontSize: 17,
@@ -1957,7 +1957,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1975,7 +1975,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     for (int i = 0; i < 3; i++) ...[
-                      if (i > 0) const SizedBox(width: 10),
+                      if (i > 0) SizedBox(width: 10),
                       Expanded(
                         child: _logOption(
                           icon: actions[i].$1,
@@ -1996,7 +1996,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: actions[3].$3,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: _logOption(
                         icon: actions[4].$1,
@@ -2004,16 +2004,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: actions[4].$3,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    const Expanded(child: SizedBox()),
+                    SizedBox(width: 10),
+                    Expanded(child: SizedBox()),
                   ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           PaginationDots(count: 2, current: _logPageIndex),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           InkWell(
             onTap: () async {
               final result = await Navigator.of(context).push(
@@ -2026,12 +2026,12 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(12),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
                 color: AppColors.cardAlt,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.bookmark_outline, size: 18, color: AppColors.ink),
@@ -2063,7 +2063,7 @@ class _HomeScreenState extends State<HomeScreen> {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.cardAlt,
           borderRadius: BorderRadius.circular(16),
@@ -2072,15 +2072,15 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 24, color: AppColors.ink),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 label,
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppColors.ink,
@@ -2152,9 +2152,9 @@ class _HomeScreenState extends State<HomeScreen> {
         : weightEntries;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 150),
+      padding: EdgeInsets.fromLTRB(20, 24, 20, 150),
       children: [
-        const Text(
+        Text(
           'Profile',
           style: TextStyle(
             fontSize: 26,
@@ -2163,7 +2163,7 @@ class _HomeScreenState extends State<HomeScreen> {
             letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
 
         // Avatar + name + email
         Row(
@@ -2172,20 +2172,20 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 64,
               height: 64,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.chipBlue,
                 shape: BoxShape.circle,
               ),
               child: Text(
                 _initials,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2197,37 +2197,37 @@ class _HomeScreenState extends State<HomeScreen> {
                           profile.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 19,
                             fontWeight: FontWeight.w800,
                             color: AppColors.ink,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       InkWell(
                         onTap: () => _showNameEdit(profile),
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          padding: const EdgeInsets.all(10),
-                          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                          child: const Icon(Icons.edit, size: 14, color: AppColors.ink),
+                          padding: EdgeInsets.all(10),
+                          constraints: BoxConstraints(minWidth: 44, minHeight: 44),
+                          child: Icon(Icons.edit, size: 14, color: AppColors.ink),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Text(
                     '${profile.calorieGoal} kcal/day goal',
-                    style: const TextStyle(fontSize: 13, color: AppColors.muted),
+                    style: TextStyle(fontSize: 13, color: AppColors.muted),
                   ),
                   if (_signedInEmail != null) ...[
-                    const SizedBox(height: 3),
+                    SizedBox(height: 3),
                     Text(
                       _signedInEmail!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                      style: TextStyle(fontSize: 12, color: AppColors.muted),
                     ),
                   ],
                 ],
@@ -2235,11 +2235,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
 
         // Profile details card
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(20),
@@ -2248,22 +2248,22 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               _profileRow('Sex', profile.sex == 'male' ? 'Male' : profile.sex == 'female' ? 'Female' : 'Other'),
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
               _profileRow('Age', '${profile.age} years'),
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
               _profileRow('Height', '${profile.heightCm.round()} cm'),
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
               _profileRow('Weight', '${profile.weightKg.round()} kg'),
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
               _profileRow(
                   'Target', profile.targetWeightKg == null ? '—' : '${profile.targetWeightKg!.round()} kg'),
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
               _profileRow('Goal', profile.goal == 'lose'
                   ? 'Lose weight'
                   : profile.goal == 'gain'
                       ? 'Gain weight'
                       : 'Maintain'),
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
               _profileRow('Workouts', switch (profile.workoutFreq) {
                 '3to5' => '3–5 times / week',
                 '6plus' => '6+ times / week',
@@ -2271,35 +2271,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 'none' => 'No workouts',
                 _ => '0–2 times / week',
               }),
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: AppColors.divider),
               _profileRow('Daily calories', '${profile.calorieGoal} kcal'),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
 
         // Edit calorie goal button
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _showCalorieGoalEdit(profile),
-            icon: const Icon(Icons.edit, size: 16),
-            label: const Text('Edit calorie goal'),
+            icon: Icon(Icons.edit, size: 16),
+            label: Text('Edit calorie goal'),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.ink,
-              side: const BorderSide(color: AppColors.divider),
+              side: BorderSide(color: AppColors.divider),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: EdgeInsets.symmetric(vertical: 12),
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
 
         // BMI card
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(20),
@@ -2316,12 +2316,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: Icon(Icons.monitor_weight_outlined, size: 24, color: bmiColor),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'BMI',
                       style: TextStyle(
                         fontSize: 13,
@@ -2329,7 +2329,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: AppColors.muted,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Row(
                       children: [
                         Text(
@@ -2340,7 +2340,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: bmiColor,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Text(
                           bmiLabel,
                           style: TextStyle(
@@ -2357,11 +2357,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
 
         // Weight history
         if (recentWeights.isNotEmpty) ...[
-          const Text(
+          Text(
             'Weight history',
             style: TextStyle(
               fontSize: 17,
@@ -2370,9 +2370,9 @@ class _HomeScreenState extends State<HomeScreen> {
               letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
@@ -2385,30 +2385,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 60,
                   child: _MiniWeightChart(entries: recentWeights),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 // Latest entries
                 ...recentWeights.reversed.take(5).map((e) {
                   final idx = recentWeights.indexOf(e);
                   final prev = idx > 0 ? recentWeights[idx - 1] : null;
                   final diff = prev != null ? e.weightKg - prev.weightKg : 0.0;
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: [
                         Text(
                           '${e.date.day}/${e.date.month}',
-                          style: const TextStyle(fontSize: 13, color: AppColors.muted),
+                          style: TextStyle(fontSize: 13, color: AppColors.muted),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Text(
                           '${e.weightKg.round()} kg',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.ink,
                           ),
                         ),
-                        const Spacer(),
+                        Spacer(),
                         if (diff != 0)
                           Text(
                             '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(1)}',
@@ -2426,7 +2426,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
 
         // Settings — single entry into the dedicated Settings screen
         InkWell(
@@ -2451,7 +2451,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           borderRadius: BorderRadius.circular(20),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
@@ -2466,11 +2466,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: AppColors.ink.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.settings_outlined,
+                  child: Icon(Icons.settings_outlined,
                       size: 20, color: AppColors.ink),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
+                SizedBox(width: 12),
+                Expanded(
                   child: Text(
                     'Settings',
                     style: TextStyle(
@@ -2480,7 +2480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const Icon(Icons.chevron_right,
+                Icon(Icons.chevron_right,
                     size: 20, color: AppColors.muted),
               ],
             ),
@@ -2496,7 +2496,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
+        title: Text(
           'Edit calorie goal',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
@@ -2504,8 +2504,8 @@ class _HomeScreenState extends State<HomeScreen> {
           controller: controller,
           autofocus: true,
           keyboardType: TextInputType.number,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          decoration: const InputDecoration(
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          decoration: InputDecoration(
             suffixText: 'kcal/day',
             hintText: '1500',
             border: OutlineInputBorder(),
@@ -2518,14 +2518,14 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
               final val = int.tryParse(controller.text.trim());
               if (val != null && val > 0) Navigator.pop(ctx, val);
             },
-            child: const Text('Save'),
+            child: Text('Save'),
           ),
         ],
       ),
@@ -2539,14 +2539,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _profileRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14, color: AppColors.muted)),
+          Text(label, style: TextStyle(fontSize: 14, color: AppColors.muted)),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.ink,
@@ -2563,7 +2563,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
+        title: Text(
           'Edit name',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
@@ -2572,8 +2572,8 @@ class _HomeScreenState extends State<HomeScreen> {
           autofocus: true,
           maxLength: 40,
           textCapitalization: TextCapitalization.words,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          decoration: const InputDecoration(
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          decoration: InputDecoration(
             hintText: 'Your name',
             counterText: '',
             border: OutlineInputBorder(),
@@ -2583,11 +2583,11 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Save'),
+            child: Text('Save'),
           ),
         ],
       ),
@@ -2647,12 +2647,12 @@ class _RingPainter extends CustomPainter {
 
 class _MiniWeightChart extends StatelessWidget {
   final List<WeightEntry> entries;
-  const _MiniWeightChart({required this.entries});
+  _MiniWeightChart({required this.entries});
 
   @override
   Widget build(BuildContext context) {
     if (entries.length < 2) {
-      return const Center(
+      return Center(
         child: Text('Need 2+ entries for a trend', style: TextStyle(fontSize: 12, color: AppColors.muted)),
       );
     }
@@ -2663,7 +2663,7 @@ class _MiniWeightChart extends StatelessWidget {
     final range = maxW - minW;
 
     return CustomPaint(
-      size: const Size(double.infinity, 60),
+      size: Size(double.infinity, 60),
       painter: _MiniWeightChartPainter(
         weights: weights,
         minWeight: minW,
@@ -2752,7 +2752,7 @@ class _AshaTickerState extends State<_AshaTicker> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 8), (_) {
+    _timer = Timer.periodic(Duration(seconds: 8), (_) {
       setState(() {
         _tick++;
         _text = AshaPrompts.next(tick: _tick);
@@ -2769,12 +2769,12 @@ class _AshaTickerState extends State<_AshaTicker> {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
+      duration: Duration(milliseconds: 400),
       transitionBuilder: (child, anim) => FadeTransition(
         opacity: anim,
         child: SlideTransition(
           position: Tween<Offset>(
-            begin: const Offset(0, 0.35),
+            begin: Offset(0, 0.35),
             end: Offset.zero,
           ).animate(anim),
           child: child,
@@ -2799,7 +2799,7 @@ class _AshaTickerState extends State<_AshaTicker> {
 class _ExerciseSheet extends StatefulWidget {
   final ActivityService activity;
 
-  const _ExerciseSheet({required this.activity});
+  _ExerciseSheet({required this.activity});
 
   @override
   State<_ExerciseSheet> createState() => _ExerciseSheetState();
@@ -2826,12 +2826,12 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Log exercise',
                 style: TextStyle(
                   fontSize: 19,
@@ -2840,19 +2840,19 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                   letterSpacing: -0.4,
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               SizedBox(
                 height: 230,
                 child: ListView.separated(
                   itemCount: ActivityService.activities.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 6),
+                  separatorBuilder: (_, __) => SizedBox(height: 6),
                   itemBuilder: (context, i) {
                     final a = ActivityService.activities[i];
                     final active = a.name == _selected;
                     return GestureDetector(
                       onTap: () => setState(() => _selected = a.name),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                             horizontal: 14, vertical: 11),
                         decoration: BoxDecoration(
                           color: active ? AppColors.ink : AppColors.card,
@@ -2860,8 +2860,8 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                         ),
                         child: Row(
                           children: [
-                            Text(a.emoji, style: const TextStyle(fontSize: 18)),
-                            const SizedBox(width: 10),
+                            Text(a.emoji, style: TextStyle(fontSize: 18)),
+                            SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 a.name,
@@ -2873,7 +2873,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                               ),
                             ),
                             if (active)
-                              const Icon(Icons.check,
+                              Icon(Icons.check,
                                   size: 18, color: Colors.white),
                           ],
                         ),
@@ -2882,8 +2882,8 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                   },
                 ),
               ),
-              const SizedBox(height: 14),
-              const Text(
+              SizedBox(height: 14),
+              Text(
                 'Duration',
                 style: TextStyle(
                   fontSize: 13,
@@ -2891,16 +2891,16 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                   color: AppColors.muted,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Row(
                 children: [15, 30, 45, 60].map((m) {
                   final active = m == _minutes;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: EdgeInsets.only(right: 8),
                     child: GestureDetector(
                       onTap: () => setState(() => _minutes = m),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                             horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
                           color: active ? AppColors.ink : AppColors.card,
@@ -2919,13 +2919,13 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 18),
+              SizedBox(height: 18),
               Row(
                 children: [
                   Expanded(
                     child: Text(
                       '≈ $_kcal kcal burned',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
@@ -2944,7 +2944,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                           await widget.activity.logExercise(_selected, _minutes);
                       if (context.mounted) Navigator.pop(context, entry);
                     },
-                    child: const Text('Log'),
+                    child: Text('Log'),
                   ),
                 ],
               ),

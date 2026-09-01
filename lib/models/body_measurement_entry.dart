@@ -7,7 +7,7 @@ class BodyMeasurementEntry {
   final double? arm;
   final double? thigh;
 
-  const BodyMeasurementEntry({
+  BodyMeasurementEntry({
     required this.id,
     required this.date,
     this.waist,

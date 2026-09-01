@@ -5,7 +5,7 @@ class ExerciseEntry {
   final int minutes;
   final int calories;
 
-  const ExerciseEntry({
+  ExerciseEntry({
     required this.id,
     required this.dateTime,
     required this.name,

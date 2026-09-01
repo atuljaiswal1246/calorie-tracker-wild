@@ -7,7 +7,7 @@ import '../services/storage_service.dart';
 
 class MealPlanScreen extends StatefulWidget {
   final StorageService storage;
-  const MealPlanScreen({super.key, required this.storage});
+  MealPlanScreen({super.key, required this.storage});
 
   @override
   State<MealPlanScreen> createState() => _MealPlanScreenState();
@@ -44,7 +44,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
       appBar: AppBar(
         backgroundColor: _bg,
         surfaceTintColor: _ink,
-        title: const Text(
+        title: Text(
           'Meal Plans',
           style: TextStyle(
             fontSize: 22,
@@ -54,28 +54,28 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: _ink),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: _ink),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           TextButton.icon(
             onPressed: () => _showSaveFromTodaySheet(context),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text(
+            icon: Icon(Icons.add_rounded, size: 18),
+            label: Text(
               'Save today',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             style: TextButton.styleFrom(
               foregroundColor: _ink,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+        padding: EdgeInsets.fromLTRB(20, 10, 20, 100),
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.auto_awesome, size: 20, color: Color(0xFFFF9500)),
               SizedBox(width: 8),
@@ -90,19 +90,19 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          const Text(
+          SizedBox(height: 4),
+          Text(
             '7-day Indian menus for your goal',
             style: TextStyle(fontSize: 13, color: _muted),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           ...prebuiltPlans.map((p) => _prebuiltCard(p)),
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
           Row(
             children: [
-              const Icon(Icons.bookmark, size: 20, color: Color(0xFF1C1C1E)),
-              const SizedBox(width: 8),
-              const Expanded(
+              Icon(Icons.bookmark, size: 20, color: Color(0xFF1C1C1E)),
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'My templates',
                   style: TextStyle(
@@ -115,7 +115,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               ),
               GestureDetector(
                 onTap: () => _showSaveFromTodaySheet(context),
-                child: const Text(
+                child: Text(
                   'Save today',
                   style: TextStyle(
                     fontSize: 14,
@@ -126,7 +126,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           if (_plans.isEmpty)
             _buildEmpty()
           else
@@ -147,8 +147,8 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -164,36 +164,36 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(plan.emoji, style: const TextStyle(fontSize: 26)),
+              child: Text(plan.emoji, style: TextStyle(fontSize: 26)),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     plan.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF1C1C1E),
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     plan.tagline,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: _muted,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: color.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
@@ -207,10 +207,10 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       Text(
                         '7 days · 4 meals',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                           color: _muted,
@@ -221,7 +221,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: _muted),
+            Icon(Icons.chevron_right, color: _muted),
           ],
         ),
       ),
@@ -234,8 +234,8 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.bookmark_border, size: 56, color: _muted.withOpacity(0.4)),
-          const SizedBox(height: 14),
-          const Text(
+          SizedBox(height: 14),
+          Text(
             'No meal plans yet',
             style: TextStyle(
               fontSize: 18,
@@ -243,8 +243,8 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               color: _ink,
             ),
           ),
-          const SizedBox(height: 6),
-          const Text(
+          SizedBox(height: 6),
+          Text(
             'Save a day\'s meals as a plan to quickly\nlog the same meals again.',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -260,8 +260,8 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
 
   Widget _planCard(MealPlan plan) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -275,7 +275,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               Expanded(
                 child: Text(
                   plan.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     color: _ink,
@@ -284,28 +284,28 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               ),
               GestureDetector(
                 onTap: () => _showDeleteSheet(context, plan),
-                child: const Icon(Icons.more_horiz, size: 20, color: _muted),
+                child: Icon(Icons.more_horiz, size: 20, color: _muted),
               ),            ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           // Items list
           ...plan.items.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
+                padding: EdgeInsets.only(bottom: 4),
                 child: Row(
                   children: [
                     Text(
                       '${item.quantity.toInt()}x',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: _muted,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         item.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           color: _ink,
                         ),
@@ -315,7 +315,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                     ),
                     Text(
                       '${item.calories} kcal',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: _ink,
@@ -324,27 +324,27 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   ],
                 ),
               )),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           // Totals + log button
           Row(
             children: [
               _macroPill('${plan.totalCalories} kcal', _ink),
-              const SizedBox(width: 6),
-              _macroPill('${plan.totalProtein.round()}g P', const Color(0xFFE53935)),
-              const SizedBox(width: 6),
-              _macroPill('${plan.totalCarbs.round()}g C', const Color(0xFFFF9500)),
-              const SizedBox(width: 6),
-              _macroPill('${plan.totalFat.round()}g F', const Color(0xFF007AFF)),
-              const Spacer(),
+              SizedBox(width: 6),
+              _macroPill('${plan.totalProtein.round()}g P', Color(0xFFE53935)),
+              SizedBox(width: 6),
+              _macroPill('${plan.totalCarbs.round()}g C', Color(0xFFFF9500)),
+              SizedBox(width: 6),
+              _macroPill('${plan.totalFat.round()}g F', Color(0xFF007AFF)),
+              Spacer(),
               GestureDetector(
                 onTap: () => _logPlan(context, plan),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     color: _ink,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Log',
                     style: TextStyle(
                       fontSize: 13,
@@ -363,7 +363,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
 
   Widget _macroPill(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(6),
@@ -397,28 +397,28 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               plan.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: _ink,
               ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text(
               '${plan.items.length} items',
-              style: const TextStyle(fontSize: 13, color: _muted),
+              style: TextStyle(fontSize: 13, color: _muted),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -426,10 +426,10 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 onPressed: () => _showRenameSheet(context, plan),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _ink,
-                  side: const BorderSide(color: Color(0xFFE5E5EA), width: 1.5),
-                  shape: const StadiumBorder(),
+                  side: BorderSide(color: Color(0xFFE5E5EA), width: 1.5),
+                  shape: StadiumBorder(),
                 ),
-                child: const Text(
+                child: Text(
                   'Rename plan',
                   style: TextStyle(
                       fontSize: 17,
@@ -438,7 +438,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -449,11 +449,11 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   if (ctx.mounted) Navigator.pop(ctx);
                 },
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFFF3B30),
-                  side: const BorderSide(color: Color(0xFFFF3B30), width: 1.5),
-                  shape: const StadiumBorder(),
+                  foregroundColor: Color(0xFFFF3B30),
+                  side: BorderSide(color: Color(0xFFFF3B30), width: 1.5),
+                  shape: StadiumBorder(),
                 ),
-                child: const Text(
+                child: Text(
                   'Delete plan',
                   style: TextStyle(
                       fontSize: 17,
@@ -474,7 +474,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Padding(
@@ -484,7 +484,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Rename plan',
               style: TextStyle(
                 fontSize: 20,
@@ -492,12 +492,12 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 color: _ink,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             TextField(
               controller: nameController,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
                 color: _ink,
@@ -505,15 +505,15 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               decoration: InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                  borderSide: BorderSide(color: Color(0xFFE5E5EA)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: _ink, width: 2),
+                  borderSide: BorderSide(color: _ink, width: 2),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -534,9 +534,9 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 style: FilledButton.styleFrom(
                   backgroundColor: _ink,
                   foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
+                  shape: StadiumBorder(),
                 ),
-                child: const Text(
+                child: Text(
                   'Save',
                   style: TextStyle(
                       fontSize: 17,
@@ -555,7 +555,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     final todayEntries = widget.storage.entries.where((e) => e.isOn(DateTime.now())).toList();
     if (todayEntries.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('No meals logged today to save.'),
           behavior: SnackBarBehavior.floating,
         ),
@@ -570,7 +570,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => StatefulBuilder(
@@ -581,7 +581,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Save today\'s meals',
                 style: TextStyle(
                   fontSize: 20,
@@ -589,12 +589,12 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   color: _ink,
                 ),
               ),
-              const SizedBox(height: 4),
-              const Text(
+              SizedBox(height: 4),
+              Text(
                 'Choose which meals to include',
                 style: TextStyle(fontSize: 13, color: _muted),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(ctx).size.height * 0.3,
@@ -608,7 +608,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                       onTap: () =>
                           setSheet(() => selected[i] = !selected[i]),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        padding: EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           children: [
                             Icon(
@@ -618,13 +618,13 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                               size: 20,
                               color: selected[i] ? _ink : _muted,
                             ),
-                            const SizedBox(width: 10),
+                            SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 '${e.items.isEmpty ? 'Meal' : e.items.first.name}'
                                     '${e.items.length > 1 ? ' +${e.items.length - 1}' : ''}'
                                     ' · ${e.totalCalories} kcal',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                   color: _ink,
@@ -640,29 +640,29 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   }).toList(),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               TextField(
                 controller: nameController,
                 textCapitalization: TextCapitalization.words,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
                   color: _ink,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Plan name (e.g. "My usual lunch")',
-                  hintStyle: const TextStyle(color: _muted),
+                  hintStyle: TextStyle(color: _muted),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: _ink, width: 2),
+                    borderSide: BorderSide(color: _ink, width: 2),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -687,9 +687,9 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: _ink,
                     foregroundColor: Colors.white,
-                    shape: const StadiumBorder(),
+                    shape: StadiumBorder(),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Save plan',
                     style: TextStyle(
                         fontSize: 17,
@@ -710,7 +710,7 @@ class PrebuiltPlanDetailScreen extends StatefulWidget {
   final PrebuiltPlan plan;
   final StorageService storage;
 
-  const PrebuiltPlanDetailScreen({
+  PrebuiltPlanDetailScreen({
     super.key,
     required this.plan,
     required this.storage,
@@ -752,7 +752,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
         surfaceTintColor: _accent,
         title: Text(
           plan.title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
             color: _ink,
@@ -760,24 +760,24 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: _ink),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: _ink),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+        padding: EdgeInsets.fromLTRB(20, 10, 20, 100),
         children: [
           // Plan summary
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _accent.withOpacity(0.08),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
-                Text(plan.emoji, style: const TextStyle(fontSize: 30)),
-                const SizedBox(width: 12),
+                Text(plan.emoji, style: TextStyle(fontSize: 30)),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -790,10 +790,10 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                           color: _ink,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         'Log any meal or the full day',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: _muted,
                         ),
@@ -804,7 +804,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           // Day selector
           SizedBox(
             height: 40,
@@ -813,7 +813,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               children: plan.days.map((d) {
                 final selected = d.day == _selectedDay;
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: EdgeInsets.only(right: 8),
                   child: GestureDetector(
                     onTap: () => setState(() => _selectedDay = d.day),
                     child: Container(
@@ -850,10 +850,10 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               }).toList(),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // Meals for selected day
           ...day.meals.map((meal) => _mealBlock(meal, day)),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             height: 54,
@@ -871,9 +871,9 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               },
               style: FilledButton.styleFrom(
                 backgroundColor: _ink,
-                shape: const StadiumBorder(),
+                shape: StadiumBorder(),
               ),
-              child: const Text(
+              child: Text(
                 'Log full day',
                 style: TextStyle(
                     fontSize: 17,
@@ -902,8 +902,8 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
     };
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -923,11 +923,11 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                 ),
                 child: Icon(icon, size: 18, color: _accent),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: _ink,
@@ -936,7 +936,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               ),
               Text(
                 '${meal.totalCalories} kcal',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF8E8E93),
@@ -944,9 +944,9 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           ...meal.items.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: EdgeInsets.only(bottom: 6),
                 child: Row(
                   children: [
                     Expanded(
@@ -955,7 +955,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                         children: [
                           Text(
                             item.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: _ink,
@@ -963,7 +963,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                           ),
                           Text(
                             item.serving,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: _muted,
                             ),
@@ -973,7 +973,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                     ),
                     Text(
                       '${item.calories} kcal · ${item.protein.toStringAsFixed(0)}P',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: Color(0xFF8E8E93),
                       ),
@@ -981,24 +981,24 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                   ],
                 ),
               )),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Row(
             children: [
-              _miniPill('P ${meal.totalProtein.toStringAsFixed(0)}g', const Color(0xFFE53935)),
-              const SizedBox(width: 6),
-              _miniPill('C ${meal.totalCarbs.toStringAsFixed(0)}g', const Color(0xFFFF9500)),
-              const SizedBox(width: 6),
-              _miniPill('F ${meal.totalFat.toStringAsFixed(0)}g', const Color(0xFF007AFF)),
-              const Spacer(),
+              _miniPill('P ${meal.totalProtein.toStringAsFixed(0)}g', Color(0xFFE53935)),
+              SizedBox(width: 6),
+              _miniPill('C ${meal.totalCarbs.toStringAsFixed(0)}g', Color(0xFFFF9500)),
+              SizedBox(width: 6),
+              _miniPill('F ${meal.totalFat.toStringAsFixed(0)}g', Color(0xFF007AFF)),
+              Spacer(),
               GestureDetector(
                 onTap: () => _logMeal(meal),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     color: _ink,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Log',
                     style: TextStyle(
                       fontSize: 13,
@@ -1017,7 +1017,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
 
   Widget _miniPill(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(6),
@@ -1052,7 +1052,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
     ));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logged!'), behavior: SnackBarBehavior.floating),
+      SnackBar(content: Text('Logged!'), behavior: SnackBarBehavior.floating),
     );
   }
 

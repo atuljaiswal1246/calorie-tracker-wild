@@ -80,13 +80,13 @@ class OpenAIService {
         final result = await _callImageApi(imagePath);
         if (result.items.isNotEmpty) return result;
         if (attempt < _maxRetries - 1) {
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(Duration(seconds: 2));
           continue;
         }
         return result;
       } catch (e) {
         if (attempt < _maxRetries - 1) {
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(Duration(seconds: 2));
           continue;
         }
         rethrow;
@@ -161,13 +161,13 @@ Rules:
         final result = await _callTextApi(foodName);
         if (result.items.isNotEmpty) return result;
         if (attempt < _maxRetries - 1) {
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(Duration(seconds: 2));
           continue;
         }
         return result;
       } catch (e) {
         if (attempt < _maxRetries - 1) {
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(Duration(seconds: 2));
           continue;
         }
         rethrow;

@@ -15,7 +15,7 @@ class Profile {
   final int? carbsOverride;
   final int? fatOverride;
 
-  const Profile({
+  Profile({
     required this.name,
     required this.age,
     required this.sex,

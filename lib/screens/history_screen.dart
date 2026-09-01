@@ -10,7 +10,7 @@ import 'meal_detail_screen.dart';
 class HistoryScreen extends StatefulWidget {
   final StorageService storage;
 
-  const HistoryScreen({super.key, required this.storage});
+  HistoryScreen({super.key, required this.storage});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -47,15 +47,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back_ios_new, color: AppColors.ink, size: 20),
+                    child: Icon(Icons.arrow_back_ios_new, color: AppColors.ink, size: 20),
                   ),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  SizedBox(width: 12),
+                  Expanded(
                     child: Text(
                       'History',
                       style: TextStyle(
@@ -67,7 +67,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                   Text(
                     '${_entries.length} meals',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       color: AppColors.muted,
                       fontWeight: FontWeight.w500,
@@ -76,10 +76,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Expanded(
               child: _entries.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -100,15 +100,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       color: AppColors.ink,
                       onRefresh: _refresh,
                       child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 100),
                       keyboardDismissBehavior:
                           ScrollViewKeyboardDismissBehavior.onDrag,
-                      physics: const AlwaysScrollableScrollPhysics(),
+                      physics: AlwaysScrollableScrollPhysics(),
                       itemCount: sorted.length,
                       itemBuilder: (context, index) {
                         final entry = sorted[index];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: EdgeInsets.only(bottom: 10),
                           child: MealCard(
                             entry: entry,
                             onTap: () {
@@ -141,16 +141,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete entry?'),
-        content: const Text('This cannot be undone.'),
+        title: Text('Delete entry?'),
+        content: Text('This cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.missedRed)),
+            child: Text('Delete', style: TextStyle(color: AppColors.missedRed)),
           ),
         ],
       ),

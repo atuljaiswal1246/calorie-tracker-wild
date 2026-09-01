@@ -9,11 +9,13 @@ import 'screens/welcome_screen.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 import 'services/storage_service.dart';
+import 'theme/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final storage = await StorageService.init();
+  AppColors.darkNotifier.value = storage.darkMode;
   NotificationService.init();
   runApp(CalorieApp(storage: storage, auth: AuthService()));
 }
@@ -22,7 +24,7 @@ class CalorieApp extends StatefulWidget {
   final StorageService storage;
   final AuthService auth;
 
-  const CalorieApp({super.key, required this.storage, required this.auth});
+  CalorieApp({super.key, required this.storage, required this.auth});
 
   @override
   State<CalorieApp> createState() => _CalorieAppState();
@@ -120,10 +122,13 @@ class _CalorieAppState extends State<CalorieApp> {
       debugShowCheckedModeBanner: false,
       // Standard UX: tapping anywhere outside a text field dismisses the
       // keyboard, on every screen of the app.
-      builder: (context, child) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: child,
+      builder: (context, child) => ValueListenableBuilder<bool>(
+        valueListenable: AppColors.darkNotifier,
+        builder: (_, __, snapshot) => GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: snapshot,
+        ),
       ),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
@@ -131,10 +136,10 @@ class _CalorieAppState extends State<CalorieApp> {
         fontFamily: 'Inter',
         pageTransitionsTheme: PageTransitionsTheme(
           builders: {
-            TargetPlatform.android: const FadeForwardsPageTransitionsBuilder(),
+            TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
           },
         ),
-        textTheme: const TextTheme(
+        textTheme: TextTheme(
           bodyLarge: TextStyle(fontFamily: 'Inter'),
           bodyMedium: TextStyle(fontFamily: 'Inter'),
           bodySmall: TextStyle(fontFamily: 'Inter'),
@@ -154,7 +159,7 @@ class _CalorieAppState extends State<CalorieApp> {
       ),
       home: switch (_screen) {
         _AppScreen.loading =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+          Scaffold(body: Center(child: CircularProgressIndicator())),
         _AppScreen.welcome => WelcomeScreen(
             // Get started goes straight to the questionnaire (no sign-up
             // screen first). Account creation happens after the plan.

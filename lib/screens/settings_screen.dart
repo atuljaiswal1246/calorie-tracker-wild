@@ -17,7 +17,7 @@ class SettingsScreen extends StatefulWidget {
   final VoidCallback onResetGoals;
   final VoidCallback onSignOut;
 
-  const SettingsScreen({
+  SettingsScreen({
     super.key,
     required this.storage,
     required this.onResetGoals,
@@ -31,12 +31,21 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _water = true;
   bool _meal = false;
+  bool _dark = false;
 
   @override
   void initState() {
     super.initState();
     _water = widget.storage.remindersEnabled;
     _meal = widget.storage.mealRemindersEnabled;
+    _dark = AppColors.dark;
+  }
+
+  Future<void> _toggleDark(bool enabled) async {
+    HapticFeedback.selectionClick();
+    setState(() => _dark = enabled);
+    AppColors.darkNotifier.value = enabled;
+    await widget.storage.saveDarkMode(enabled);
   }
 
   Future<void> _toggleWater(bool enabled) async {
@@ -92,8 +101,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Reset goals?'),
-        content: const Text(
+        title: Text('Reset goals?'),
+        content: Text(
           'This clears your profile and takes you back to the '
           'questionnaire to set new goals.\n\n'
           'Your meal logs, water, weight and fasting history are kept. '
@@ -102,11 +111,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Reset', style: TextStyle(color: AppColors.missedRed)),
+            child: Text('Reset', style: TextStyle(color: AppColors.missedRed)),
           ),
         ],
       ),
@@ -121,16 +130,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Sign out?'),
-        content: const Text('Your data stays on this device and in your account.'),
+        title: Text('Sign out?'),
+        content: Text('Your data stays on this device and in your account.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sign out', style: TextStyle(color: AppColors.missedRed)),
+            child: Text('Sign out', style: TextStyle(color: AppColors.missedRed)),
           ),
         ],
       ),
@@ -149,15 +158,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+              padding: EdgeInsets.fromLTRB(8, 6, 8, 6),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+                    icon: Icon(Icons.arrow_back, color: AppColors.ink),
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
-                  const SizedBox(width: 4),
-                  const Text(
+                  SizedBox(width: 4),
+                  Text(
                     'Settings',
                     style: TextStyle(
                       fontSize: 22,
@@ -171,12 +180,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+                padding: EdgeInsets.fromLTRB(20, 12, 20, 40),
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [
                   // ------- Reminders -------
-                  const _SectionLabel('Reminders'),
+                  _SectionLabel('Reminders'),
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.card,
@@ -195,7 +204,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           value: _water,
                           onChanged: _toggleWater,
                         ),
-                        const Divider(height: 1, color: AppColors.divider),
+                        Divider(height: 1, color: AppColors.divider),
                         _SwitchRow(
                           icon: Icons.restaurant_outlined,
                           iconColor: AppColors.protein,
@@ -209,10 +218,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
+
+                  // ------- Appearance -------
+                  _SectionLabel('Appearance'),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: AppColors.cardShadow,
+                    ),
+                    child: _SwitchRow(
+                      icon: Icons.dark_mode_outlined,
+                      iconColor: AppColors.muted,
+                      label: 'Dark mode',
+                      subtitle: _dark
+                          ? 'Easy on the eyes at night'
+                          : 'Off',
+                      value: _dark,
+                      onChanged: _toggleDark,
+                    ),
+                  ),
+                  SizedBox(height: 20),
 
                   // ------- Data -------
-                  const _SectionLabel('Data'),
+                  _SectionLabel('Data'),
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.card,
@@ -227,10 +257,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: _exportData,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
 
                   // ------- Account -------
-                  const _SectionLabel('Account'),
+                  _SectionLabel('Account'),
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.card,
@@ -246,7 +276,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           subtitle: 'Re-answer the questionnaire',
                           onTap: _confirmResetGoals,
                         ),
-                        const Divider(height: 1, color: AppColors.divider),
+                        Divider(height: 1, color: AppColors.divider),
                         _TapRow(
                           icon: Icons.logout,
                           iconColor: AppColors.missedRed,
@@ -258,7 +288,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   Center(
                     child: Text(
                       'Calorie Tracker v0.9.0',
@@ -280,15 +310,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 class _SectionLabel extends StatelessWidget {
   final String text;
-  const _SectionLabel(this.text);
+  _SectionLabel(this.text);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10),
+      padding: EdgeInsets.only(left: 4, bottom: 10),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.muted,
@@ -307,7 +337,7 @@ class _SwitchRow extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _SwitchRow({
+  _SwitchRow({
     required this.icon,
     required this.iconColor,
     required this.label,
@@ -319,29 +349,29 @@ class _SwitchRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           _RowIcon(icon: icon, color: iconColor),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(top: 14, bottom: 14),
+              padding: EdgeInsets.only(top: 14, bottom: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: AppColors.ink,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12.5,
                       color: AppColors.muted,
                     ),
@@ -370,7 +400,7 @@ class _TapRow extends StatelessWidget {
   final Color? labelColor;
   final VoidCallback onTap;
 
-  const _TapRow({
+  _TapRow({
     required this.icon,
     required this.iconColor,
     required this.label,
@@ -384,14 +414,14 @@ class _TapRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
             _RowIcon(icon: icon, color: iconColor),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 14, bottom: 14),
+                padding: EdgeInsets.only(top: 14, bottom: 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -403,10 +433,10 @@ class _TapRow extends StatelessWidget {
                         color: labelColor ?? AppColors.ink,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         color: AppColors.muted,
                       ),
@@ -427,7 +457,7 @@ class _TapRow extends StatelessWidget {
 class _RowIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
-  const _RowIcon({required this.icon, required this.color});
+  _RowIcon({required this.icon, required this.color});
 
   @override
   Widget build(BuildContext context) {

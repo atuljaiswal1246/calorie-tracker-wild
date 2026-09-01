@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
 class HighProteinMealsScreen extends StatelessWidget {
-  const HighProteinMealsScreen({super.key});
+  HighProteinMealsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -11,24 +11,24 @@ class HighProteinMealsScreen extends StatelessWidget {
       backgroundColor: AppColors.bg,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
             Row(
               children: [
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: AppColors.card,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: AppColors.cardShadowLight,
                     ),
-                    child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                    child: Icon(Icons.arrow_back_ios_new, size: 18),
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Text(
+                SizedBox(width: 12),
+                Text(
                   'High Protein Meals',
                   style: TextStyle(
                     fontSize: 26,
@@ -39,25 +39,25 @@ class HighProteinMealsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8),
+            Text(
               'Indian meals ranked by protein content',
               style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             _sectionTitle('Non-veg'),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             ..._nonVegMeals.map((m) => _mealCard(m)),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             _sectionTitle('Vegetarian'),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             ..._vegMeals.map((m) => _mealCard(m)),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             _sectionTitle('Quick snacks'),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             ..._snacks.map((m) => _mealCard(m)),
           ],
         ),
@@ -68,7 +68,7 @@ class HighProteinMealsScreen extends StatelessWidget {
   static Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         color: AppColors.ink,
@@ -79,8 +79,8 @@ class HighProteinMealsScreen extends StatelessWidget {
 
   static Widget _mealCard(_Meal meal) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
@@ -91,12 +91,12 @@ class HighProteinMealsScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(meal.emoji, style: const TextStyle(fontSize: 24)),
-              const SizedBox(width: 10),
+              Text(meal.emoji, style: TextStyle(fontSize: 24)),
+              SizedBox(width: 10),
               Expanded(
                 child: Text(
                   meal.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
@@ -104,14 +104,14 @@ class HighProteinMealsScreen extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.protein.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '${meal.protein}g',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.protein,
@@ -120,18 +120,18 @@ class HighProteinMealsScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             meal.description,
-            style: const TextStyle(fontSize: 12, color: AppColors.muted, height: 1.4),
+            style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.4),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Row(
             children: [
               _macroPill('${meal.calories} kcal', AppColors.ink),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               _macroPill('C ${meal.carbs}g', AppColors.carbs),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               _macroPill('F ${meal.fat}g', AppColors.fat),
             ],
           ),
@@ -142,7 +142,7 @@ class HighProteinMealsScreen extends StatelessWidget {
 
   static Widget _macroPill(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(4),
@@ -164,7 +164,7 @@ class _Meal {
   final int carbs;
   final int fat;
 
-  const _Meal({
+  _Meal({
     required this.emoji,
     required this.name,
     required this.description,
@@ -175,7 +175,7 @@ class _Meal {
   });
 }
 
-const _nonVegMeals = [
+final _nonVegMeals = [
   _Meal(
     emoji: '🍗',
     name: 'Chicken Curry + 2 Roti',
@@ -208,7 +208,7 @@ const _nonVegMeals = [
   ),
 ];
 
-const _vegMeals = [
+final _vegMeals = [
   _Meal(
     emoji: '🫘',
     name: 'Rajma + Rice',
@@ -241,7 +241,7 @@ const _vegMeals = [
   ),
 ];
 
-const _snacks = [
+final _snacks = [
   _Meal(
     emoji: '🥜',
     name: 'Bhuna Chana',

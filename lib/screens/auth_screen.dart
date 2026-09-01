@@ -12,7 +12,7 @@ class AuthScreen extends StatefulWidget {
   final VoidCallback onBack;
   final bool isSignUp;
 
-  const AuthScreen({
+  AuthScreen({
     super.key,
     required this.auth,
     required this.onAuthenticated,
@@ -69,7 +69,7 @@ class _AuthScreenState extends State<AuthScreen> {
         _error = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password reset link sent to your email')),
+        SnackBar(content: Text('Password reset link sent to your email')),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -174,7 +174,7 @@ class _AuthScreenState extends State<AuthScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: widget.onBack,
           tooltip: 'Back',
         ),
@@ -182,7 +182,7 @@ class _AuthScreenState extends State<AuthScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
             child: Form(
               key: _formKey,
               child: Column(
@@ -192,23 +192,23 @@ class _AuthScreenState extends State<AuthScreen> {
                   Text(
                     isSignUp ? 'Sign up' : 'Sign in',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 38,
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     isSignUp
                         ? 'Track your meals and reach your goals.'
                         : 'Welcome back, sign in to continue.',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 15, color: Colors.black54),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   if (!_showEmailForm) ...[
                     // Primary: Google (black fill, white logo + text)
                     SizedBox(
@@ -227,12 +227,12 @@ class _AuthScreenState extends State<AuthScreen> {
                           isSignUp
                               ? 'Sign up with Google'
                               : 'Sign in with Google',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     // Secondary: Continue with email (white fill)
                     SizedBox(
                       height: 54,
@@ -240,7 +240,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.black,
                           backgroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.black26),
+                          side: BorderSide(color: Colors.black26),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -248,9 +248,9 @@ class _AuthScreenState extends State<AuthScreen> {
                         onPressed: _loading
                             ? null
                             : () => setState(() => _showEmailForm = true),
-                        icon: const Icon(Icons.email_outlined,
+                        icon: Icon(Icons.email_outlined,
                             size: 22, color: Colors.black87),
-                        label: const Text(
+                        label: Text(
                           'Continue with email',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600),
@@ -269,7 +269,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       onFieldSubmitted: (_) {
                         FocusScope.of(context).requestFocus(_passwordFocus);
                       },
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Email',
                         prefixIcon:
                             Icon(Icons.email_outlined, color: Colors.black54),
@@ -283,7 +283,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
                       focusNode: _passwordFocus,
@@ -296,9 +296,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       },
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outline,
+                        prefixIcon: Icon(Icons.lock_outline,
                             color: Colors.black54),
-                        border: const OutlineInputBorder(),
+                        border: OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(_obscure
                               ? Icons.visibility_off
@@ -317,9 +317,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       },
                     ),
                     if (_error != null) ...[
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.red.shade50,
                           borderRadius: BorderRadius.circular(8),
@@ -330,7 +330,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     SizedBox(
                       height: 54,
                       child: FilledButton(
@@ -343,7 +343,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         onPressed: _loading ? null : _submit,
                         child: _loading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 22,
                                 height: 22,
                                 child: CircularProgressIndicator(
@@ -351,31 +351,31 @@ class _AuthScreenState extends State<AuthScreen> {
                               )
                             : Text(
                                 isSignUp ? 'Create account' : 'Sign in',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 17, fontWeight: FontWeight.w600),
                               ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     if (!isSignUp)
                       Center(
                         child: TextButton(
                           onPressed: _loading ? null : _forgotPassword,
-                          child: const Text('Forgot password?'),
+                          child: Text('Forgot password?'),
                         ),
                       ),
-                    if (!isSignUp) const SizedBox(height: 4),
+                    if (!isSignUp) SizedBox(height: 4),
                     Center(
                       child: TextButton(
                         onPressed: _loading
                             ? null
                             : () => setState(() => _showEmailForm = false),
-                        child: const Text('Go back',
+                        child: Text('Go back',
                             style: TextStyle(color: Colors.black54)),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -384,13 +384,13 @@ class _AuthScreenState extends State<AuthScreen> {
                             ? 'Already have an account? '
                             : 'New here? ',
                         style:
-                            const TextStyle(color: Colors.black54),
+                            TextStyle(color: Colors.black54),
                       ),
                       GestureDetector(
                         onTap: _loading ? null : _toggleMode,
                         child: Text(
                           isSignUp ? 'Sign in' : 'Create account',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w700,
                             decoration: TextDecoration.underline,
@@ -412,6 +412,6 @@ class _AuthScreenState extends State<AuthScreen> {
 class _GoogleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const FaIcon(FontAwesomeIcons.google, size: 20, color: Colors.white);
+    return FaIcon(FontAwesomeIcons.google, size: 20, color: Colors.white);
   }
 }

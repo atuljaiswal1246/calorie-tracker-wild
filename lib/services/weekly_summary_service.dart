@@ -16,7 +16,6 @@ class WeeklySummaryService {
   String? cached() => storage.getWeeklySummary(_weekKey);
 
   Future<void> clearCache() => storage.saveWeeklySummary(_weekKey, '');
-
   Future<String> generate() async {
     final summary = await OpenAIService().chat(_systemPrompt, [
       {'role': 'user', 'content': _buildWeekContext()},
@@ -77,7 +76,7 @@ class WeeklySummaryService {
 
     final weekExercises = storage.exercises.where((e) {
       final d = e.dateTime;
-      return d.isAfter(days.first.subtract(const Duration(days: 1))) && d.isBefore(now.add(const Duration(days: 1)));
+      return d.isAfter(days.first.subtract(Duration(days: 1))) && d.isBefore(now.add(const Duration(days: 1)));
     }).toList();
     final exMinutes = weekExercises.fold(0, (s, e) => s + e.minutes);
     final exKcal = weekExercises.fold(0, (s, e) => s + e.calories);

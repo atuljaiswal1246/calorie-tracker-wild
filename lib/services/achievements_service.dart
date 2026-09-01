@@ -9,7 +9,7 @@ class Achievement {
   final DateTime? unlockedAt;
   final double progress;
 
-  const Achievement({
+  Achievement({
     required this.id,
     required this.title,
     required this.description,
@@ -217,7 +217,7 @@ class AchievementsService {
 
       if (!hasEntry) break;
       streak++;
-      checkDay = checkDay.subtract(const Duration(days: 1));
+      checkDay = checkDay.subtract(Duration(days: 1));
     }
 
     return streak;

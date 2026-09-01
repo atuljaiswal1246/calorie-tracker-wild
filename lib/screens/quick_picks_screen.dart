@@ -13,7 +13,7 @@ import '../theme/app_colors.dart';
 class QuickPicksScreen extends StatefulWidget {
   final StorageService storage;
 
-  const QuickPicksScreen({super.key, required this.storage});
+  QuickPicksScreen({super.key, required this.storage});
 
   @override
   State<QuickPicksScreen> createState() => _QuickPicksScreenState();
@@ -58,7 +58,7 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
     if (!mounted) return;
     if (food == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This dish is unavailable right now.')),
+        SnackBar(content: Text('This dish is unavailable right now.')),
       );
       return;
     }
@@ -66,7 +66,7 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
     final logged = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       isScrollControlled: true,
@@ -130,15 +130,15 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 20, 6),
+              padding: EdgeInsets.fromLTRB(8, 6, 20, 6),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+                    icon: Icon(Icons.arrow_back, color: AppColors.ink),
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
-                  const SizedBox(width: 4),
-                  const Expanded(
+                  SizedBox(width: 4),
+                  Expanded(
                     child: Text(
                       'Popular Indian dishes',
                       style: TextStyle(
@@ -153,16 +153,16 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
               child: TextField(
                 onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
                 decoration: InputDecoration(
                   hintText: 'Search dishes (poha, idli, dal…)',
-                  prefixIcon: const Icon(Icons.search,
+                  prefixIcon: Icon(Icons.search,
                       size: 20, color: AppColors.muted),
                   filled: true,
                   fillColor: AppColors.card,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
@@ -172,28 +172,28 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
             ),
             Expanded(
               child: _loading
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
                           color: AppColors.ink, strokeWidth: 2))
                   : _filtered.isEmpty
                       ? Center(
                           child: Text(
                             'No dishes match "$_query"',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 14, color: AppColors.muted),
                           ),
                         )
                       : ListView(
-                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
+                          padding: EdgeInsets.fromLTRB(20, 4, 20, 40),
                           keyboardDismissBehavior:
                               ScrollViewKeyboardDismissBehavior.onDrag,
                           children: [
-                            const Text(
+                            Text(
                               'Tap a dish, pick your portion, log it — no AI needed.',
                               style: TextStyle(
                                   fontSize: 12, color: AppColors.muted, height: 1.4),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             ..._filtered.map((p) => _PickTile(
                                   pick: p,
                                   onTap: () => _logPick(p),
@@ -212,7 +212,7 @@ class _PickTile extends StatelessWidget {
   final QuickPick pick;
   final VoidCallback onTap;
 
-  const _PickTile({required this.pick, required this.onTap});
+  _PickTile({required this.pick, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -223,8 +223,8 @@ class _PickTile extends StatelessWidget {
       },
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-        margin: const EdgeInsets.only(bottom: 6),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        margin: EdgeInsets.only(bottom: 6),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
@@ -238,20 +238,20 @@ class _PickTile extends StatelessWidget {
                 color: AppColors.chipBlue,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.restaurant,
+              child: Icon(Icons.restaurant,
                   size: 17, color: AppColors.ink),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: Text(
                 pick.label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: AppColors.ink),
               ),
             ),
-            const Icon(Icons.add_circle_outline,
+            Icon(Icons.add_circle_outline,
                 size: 20, color: AppColors.protein),
           ],
         ),
@@ -266,7 +266,7 @@ class _PickConfirmSheet extends StatefulWidget {
   final ValueChanged<String> onMealTypeChanged;
   final VoidCallback onLog;
 
-  const _PickConfirmSheet({
+  _PickConfirmSheet({
     required this.food,
     required this.mealType,
     required this.onMealTypeChanged,
@@ -296,24 +296,24 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+        padding: EdgeInsets.fromLTRB(20, 18, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               food.name,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               'Per 100 g: ${food.calories} kcal · ${food.protein.toStringAsFixed(1)}g P · ${food.carbs.toStringAsFixed(1)}g C · ${food.fat.toStringAsFixed(1)}g F',
-              style: const TextStyle(fontSize: 12, color: AppColors.muted),
+              style: TextStyle(fontSize: 12, color: AppColors.muted),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Portion presets
             Row(
               children: [
@@ -322,8 +322,8 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                     child: GestureDetector(
                       onTap: () => setState(() => _grams = g),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        margin: const EdgeInsets.only(right: 6),
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        margin: EdgeInsets.only(right: 6),
                         decoration: BoxDecoration(
                           color: _grams == g
                               ? AppColors.ink
@@ -346,7 +346,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                                     : AppColors.ink,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Text(
                               '${g.toStringAsFixed(0)} g',
                               style: TextStyle(
@@ -365,7 +365,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                 Expanded(
                   child: TextField(
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'g',
                       contentPadding:
                           EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -380,20 +380,20 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             // Meal type pills
             Row(
               children: [
                 _mealPill('Breakfast', 'breakfast'),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 _mealPill('Lunch', 'lunch'),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 _mealPill('Dinner', 'dinner'),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 _mealPill('Snack', 'snack'),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             SizedBox(
               height: 52,
               child: FilledButton(
@@ -408,7 +408,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                 },
                 child: Text(
                   'Log — $_calories kcal',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.w700, fontSize: 16),
                 ),
               ),
@@ -425,7 +425,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
       child: GestureDetector(
         onTap: () => widget.onMealTypeChanged(value),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 9),
+          padding: EdgeInsets.symmetric(vertical: 9),
           decoration: BoxDecoration(
             color: selected ? AppColors.ink : Colors.white,
             borderRadius: BorderRadius.circular(10),

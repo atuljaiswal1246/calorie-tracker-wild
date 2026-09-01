@@ -6,13 +6,13 @@ import '../theme/app_colors.dart';
 class EmptyCard extends StatelessWidget {
   final VoidCallback? onScanTap;
 
-  const EmptyCard({super.key, this.onScanTap});
+  EmptyCard({super.key, this.onScanTap});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: EdgeInsets.symmetric(vertical: 32),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -20,9 +20,9 @@ class EmptyCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('🍽️', style: TextStyle(fontSize: 34)),
-          const SizedBox(height: 10),
-          const Text(
+          Text('🍽️', style: TextStyle(fontSize: 34)),
+          SizedBox(height: 10),
+          Text(
             'No meals logged yet',
             style: TextStyle(
               fontSize: 15,
@@ -30,13 +30,13 @@ class EmptyCard extends StatelessWidget {
               color: AppColors.ink,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
+          SizedBox(height: 4),
+          Text(
             'Scan your first meal to get started',
             style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           if (onScanTap != null) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Semantics(
               label: 'Scan a meal',
               button: true,
@@ -45,12 +45,12 @@ class EmptyCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     color: AppColors.ink,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.camera_alt, size: 16, color: Colors.white),

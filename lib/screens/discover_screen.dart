@@ -13,7 +13,7 @@ import 'nutrition_tips_screen.dart';
 
 class DiscoverScreen extends StatefulWidget {
   final StorageService storage;
-  const DiscoverScreen({super.key, required this.storage});
+  DiscoverScreen({super.key, required this.storage});
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
@@ -37,12 +37,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     // Streak
     var day = today;
     if (!entries.any((e) => e.isOn(day))) {
-      day = day.subtract(const Duration(days: 1));
+      day = day.subtract(Duration(days: 1));
     }
     int streak = 0;
     while (entries.any((e) => e.isOn(day))) {
       streak++;
-      day = day.subtract(const Duration(days: 1));
+      day = day.subtract(Duration(days: 1));
     }
 
     // Achievements
@@ -60,9 +60,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     final unlocked = _achievements.where((a) => a.unlocked).length;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 150),
       children: [
-        const Text(
+        Text(
           'Discover',
           style: TextStyle(
             fontSize: 26,
@@ -71,12 +71,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 6),
-        const Text(
+        SizedBox(height: 6),
+        Text(
           'Explore tips, challenges, and meal ideas',
           style: TextStyle(fontSize: 13, color: AppColors.muted),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
 
         // Asha — AI nutrition assistant (hero card)
         InkWell(
@@ -87,9 +87,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           ),
           borderRadius: BorderRadius.circular(20),
           child: Container(
-            padding: const EdgeInsets.all(18),
+            padding: EdgeInsets.all(18),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: [Color(0xFFE53935), Color(0xFFFF7043)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -105,11 +105,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.auto_awesome,
+                  child: Icon(Icons.auto_awesome,
                       size: 26, color: Colors.white),
                 ),
-                const SizedBox(width: 14),
-                const Expanded(
+                SizedBox(width: 14),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -135,12 +135,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.white70),
+                Icon(Icons.chevron_right, color: Colors.white70),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
 
         // Streak + Achievements summary
         Row(
@@ -151,7 +151,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               label: _streak == 1 ? 'day streak' : 'day streak',
               color: AppColors.accentOrange,
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             _summaryPill(
               emoji: '🏆',
               value: unlocked,
@@ -160,7 +160,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
 
         _navCard(
           context,
@@ -192,7 +192,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           color: AppColors.accentOrange,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const NutritionTipsScreen()),
+            MaterialPageRoute(builder: (_) => NutritionTipsScreen()),
           ),
         ),
         _navCard(
@@ -203,7 +203,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           color: AppColors.protein,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const HighProteinMealsScreen()),
+            MaterialPageRoute(builder: (_) => HighProteinMealsScreen()),
           ),
         ),
         _navCard(
@@ -229,7 +229,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
@@ -237,8 +237,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 8),
+            Text(emoji, style: TextStyle(fontSize: 20)),
+            SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -252,7 +252,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 ),
                 Text(
                   label,
-                  style: const TextStyle(fontSize: 11, color: AppColors.muted),
+                  style: TextStyle(fontSize: 11, color: AppColors.muted),
                 ),
               ],
             ),
@@ -271,7 +271,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     required VoidCallback onTap,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: () {
           HapticFeedback.lightImpact();
@@ -279,7 +279,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(16),
@@ -295,26 +295,26 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                  child: Text(emoji, style: TextStyle(fontSize: 24)),
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                      style: TextStyle(fontSize: 12, color: AppColors.muted),
                     ),
                   ],
                 ),

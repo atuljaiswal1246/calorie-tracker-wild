@@ -13,7 +13,7 @@ import 'achievements_screen.dart';
 class InsightsScreen extends StatefulWidget {
   final StorageService storage;
 
-  const InsightsScreen({super.key, required this.storage});
+  InsightsScreen({super.key, required this.storage});
 
   @override
   State<InsightsScreen> createState() => _InsightsScreenState();
@@ -137,11 +137,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
     var day = DateTime(today.year, today.month, today.day);
     // If today has no entries, start counting from yesterday
     if (_caloriesForDay(day) == 0) {
-      day = day.subtract(const Duration(days: 1));
+      day = day.subtract(Duration(days: 1));
     }
     while (_caloriesForDay(day) > 0) {
       streak++;
-      day = day.subtract(const Duration(days: 1));
+      day = day.subtract(Duration(days: 1));
     }
     return streak;
   }
@@ -184,7 +184,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Widget build(BuildContext context) {
     final profile = _profile;
     if (profile == null) {
-      return const Center(child: Text('No profile'));
+      return Center(child: Text('No profile'));
     }
 
     return Scaffold(
@@ -194,23 +194,23 @@ class _InsightsScreenState extends State<InsightsScreen> {
           color: AppColors.ink,
           onRefresh: () async => _load(),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 100),
             children: [
               _header(),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               if (!_hasAnyData) ...[
                 _emptyState(),
               ] else ...[
                 _summaryCard(profile),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 _aiSummaryCard(),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 _calorieTrendCard(profile),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 _macroDistributionCard(),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 _streaksCard(),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 _bestWorstCard(profile),
               ],
             ],
@@ -229,17 +229,17 @@ class _InsightsScreenState extends State<InsightsScreen> {
         GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(12),
               boxShadow: AppColors.cardShadowLight,
             ),
-            child: const Icon(Icons.arrow_back_ios_new, size: 18),
+            child: Icon(Icons.arrow_back_ios_new, size: 18),
           ),
         ),
-        const SizedBox(width: 12),
-        const Text(
+        SizedBox(width: 12),
+        Text(
           'Insights',
           style: TextStyle(
             fontSize: 26,
@@ -248,7 +248,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             letterSpacing: -0.5,
           ),
         ),
-        const Spacer(),
+        Spacer(),
         Semantics(
           label: '$_currentStreak day streak. Tap for details.',
           button: true,
@@ -259,7 +259,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             },
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(20),
@@ -267,11 +267,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
               ),
               child: Row(
                 children: [
-                  const Text('🔥', style: TextStyle(fontSize: 13)),
-                  const SizedBox(width: 4),
+                  Text('🔥', style: TextStyle(fontSize: 13)),
+                  SizedBox(width: 4),
                   Text(
                     '$_currentStreak',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
@@ -282,7 +282,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Semantics(
           label: '$unlocked of ${all.length} achievements unlocked. Tap to view.',
           button: true,
@@ -298,7 +298,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             },
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(20),
@@ -306,11 +306,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
               ),
               child: Row(
                 children: [
-                  const Text('🏆', style: TextStyle(fontSize: 13)),
-                  const SizedBox(width: 4),
+                  Text('🏆', style: TextStyle(fontSize: 13)),
+                  SizedBox(width: 4),
                   Text(
                     '$unlocked/${all.length}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
@@ -332,29 +332,29 @@ class _InsightsScreenState extends State<InsightsScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🔥', style: TextStyle(fontSize: 32)),
-              const SizedBox(height: 12),
+              Text('🔥', style: TextStyle(fontSize: 32)),
+              SizedBox(height: 12),
               Text(
                 streak == 1 ? '1 day streak' : '$streak day streak',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Log at least one meal every day to keep your streak alive.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: AppColors.muted),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -366,7 +366,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Got it'),
+                  child: Text('Got it'),
                 ),
               ),
             ],
@@ -380,12 +380,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
   Widget _emptyState() {
     return Padding(
-      padding: const EdgeInsets.only(top: 60),
+      padding: EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          const Text('📊', style: TextStyle(fontSize: 48)),
-          const SizedBox(height: 16),
-          const Text(
+          Text('📊', style: TextStyle(fontSize: 48)),
+          SizedBox(height: 16),
+          Text(
             'No data yet',
             style: TextStyle(
               fontSize: 18,
@@ -393,8 +393,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
               color: AppColors.ink,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'Start logging meals to see your insights here.',
             style: TextStyle(
               fontSize: 14,
@@ -413,7 +413,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Semantics(
       label: 'Weekly summary',
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(24),
@@ -422,7 +422,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'This Week',
               style: TextStyle(
                 fontSize: 16,
@@ -430,7 +430,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 _summaryStat(
@@ -462,14 +462,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
   /// AI-written weekly review (Asha) — cached per week, regenerable.
   Widget _aiSummaryCard() {
     final range = DateFormat('MMM d').format(DateTime.now()
-            .subtract(const Duration(days: 6))) +
+            .subtract(Duration(days: 6))) +
         ' – ' +
         DateFormat('MMM d').format(DateTime.now());
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [Color(0xFFFF4B4B), Color(0xFFFF7A45)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -477,9 +477,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF4B4B).withValues(alpha: 0.25),
+            color: Color(0xFFFF4B4B).withValues(alpha: 0.25),
             blurRadius: 14,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -488,12 +488,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
         children: [
           Row(
             children: [
-              const Text('✨', style: TextStyle(fontSize: 15)),
-              const SizedBox(width: 7),
+              Text('✨', style: TextStyle(fontSize: 15)),
+              SizedBox(width: 7),
               Expanded(
                 child: Text(
                   'Your week in Asha\'s words',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
@@ -511,11 +511,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           if (_summaryLoading) ...[
             Row(
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
@@ -523,7 +523,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Text(
                   'Asha is reading your week…',
                   style: TextStyle(
@@ -537,7 +537,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ] else if (_summaryText != null)
             Text(
               _summaryText!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13.5,
                 height: 1.5,
                 color: Colors.white,
@@ -554,22 +554,22 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 color: Colors.white.withValues(alpha: 0.92),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Align(
               alignment: Alignment.centerLeft,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFFFF4B4B),
+                  foregroundColor: Color(0xFFFF4B4B),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                       horizontal: 14, vertical: 8),
                 ),
                 onPressed: _generateSummary,
-                icon: const Icon(Icons.auto_awesome, size: 16),
-                label: const Text(
+                icon: Icon(Icons.auto_awesome, size: 16),
+                label: Text(
                   'Generate my week',
                   style: TextStyle(
                     fontSize: 13,
@@ -580,7 +580,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
           ],
           if (_summaryError != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               _summaryError!,
               style: TextStyle(
@@ -590,7 +590,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
           ],
           if (_summaryText != null) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Row(
               children: [
                 Text(
@@ -601,12 +601,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     color: Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 InkWell(
                   onTap: _generateSummary,
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.all(2),
+                    padding: EdgeInsets.all(2),
                     child: Icon(
                       Icons.refresh,
                       size: 15,
@@ -632,22 +632,22 @@ class _InsightsScreenState extends State<InsightsScreen> {
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: color,
-              fontFeatures: const [FontFeature.tabularFigures()],
+              fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             unit,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: AppColors.muted,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: AppColors.ink,
@@ -669,7 +669,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Semantics(
       label: '7-day calorie trend',
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(24),
@@ -681,7 +681,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   '7-Day Trend',
                   style: TextStyle(
                     fontSize: 16,
@@ -690,14 +690,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.ink,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     'Goal: $goal',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -706,7 +706,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             SizedBox(
               height: 120,
               child: _trendChart(days, cals, goal, maxCal),
@@ -745,32 +745,32 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: 4),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 if (cal > 0)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
+                    padding: EdgeInsets.only(bottom: 6),
                     child: Text(
                       '$cal',
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                         color: barColor,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                        fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: Duration(milliseconds: 300),
                   height: (ratio * 90).clamp(4.0, 90.0),
                   decoration: BoxDecoration(
                     color: barColor,
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text(
                   shortLabel,
                   style: TextStyle(
@@ -806,7 +806,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Semantics(
       label: 'Macro distribution',
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(24),
@@ -815,7 +815,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Macro Split (7-day avg)',
               style: TextStyle(
                 fontSize: 16,
@@ -823,7 +823,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Stacked bar
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
@@ -852,7 +852,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     : Container(color: AppColors.track),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 _macroStat('Protein', '${avgP.round()}g', '${(proteinPct * 100).round()}%', AppColors.protein),
@@ -875,20 +875,20 @@ class _InsightsScreenState extends State<InsightsScreen> {
             height: 10,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             value,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: color,
-              fontFeatures: const [FontFeature.tabularFigures()],
+              fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             '$label · $pct',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: AppColors.muted,
@@ -905,7 +905,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Semantics(
       label: 'Logging stats',
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(24),
@@ -914,7 +914,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Logging Stats',
               style: TextStyle(
                 fontSize: 16,
@@ -922,7 +922,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -933,7 +933,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     _currentStreak > 0 ? AppColors.ink : AppColors.muted,
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: _streakBox(
                     Icons.bolt,
@@ -942,7 +942,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     _longestStreak > 0 ? AppColors.green : AppColors.muted,
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: _streakBox(
                     Icons.edit_note,
@@ -961,7 +961,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
   Widget _streakBox(IconData icon, String value, String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
@@ -969,7 +969,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       child: Column(
         children: [
           Icon(icon, size: 22, color: color),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             value,
             maxLines: 1,
@@ -980,12 +980,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
               color: color,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: AppColors.muted,
@@ -1002,7 +1002,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Widget _bestWorstCard(Profile profile) {
     final bestDay = _bestDay7d;
     final worstDay = _worstDay7d;
-    if (bestDay == null || worstDay == null) return const SizedBox.shrink();
+    if (bestDay == null || worstDay == null) return SizedBox.shrink();
 
     final bestCal = _caloriesForDay(bestDay);
     final worstCal = _caloriesForDay(worstDay);
@@ -1011,7 +1011,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Semantics(
       label: 'Best and lowest days',
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(24),
@@ -1020,7 +1020,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Highlights',
               style: TextStyle(
                 fontSize: 16,
@@ -1028,7 +1028,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -1040,7 +1040,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     Icons.check_circle,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: _dayCard(
                     'Least food',
@@ -1060,7 +1060,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
   Widget _dayCard(String label, String date, String value, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
@@ -1069,29 +1069,29 @@ class _InsightsScreenState extends State<InsightsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 22),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
               color: color,
-              fontFeatures: const [FontFeature.tabularFigures()],
+              fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             date,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: AppColors.muted,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: AppColors.ink,

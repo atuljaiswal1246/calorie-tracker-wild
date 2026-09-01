@@ -9,7 +9,7 @@ import 'barcode_result_screen.dart';
 class BarcodeScannerScreen extends StatefulWidget {
   final StorageService storage;
 
-  const BarcodeScannerScreen({super.key, required this.storage});
+  BarcodeScannerScreen({super.key, required this.storage});
 
   @override
   State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
@@ -51,13 +51,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Enter barcode'),
+        title: Text('Enter barcode'),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: TextInputType.number,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          decoration: const InputDecoration(
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          decoration: InputDecoration(
             hintText: 'e.g. 8901058100219',
             border: OutlineInputBorder(),
           ),
@@ -65,11 +65,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Look up'),
+            child: Text('Look up'),
           ),
         ],
       ),
@@ -85,7 +85,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
+      builder: (_) => Center(
         child: Card(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -157,19 +157,19 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             right: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.5),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.close,
                           color: Colors.white,
                           size: 24,
@@ -182,7 +182,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         setState(() => _flashOn = !_flashOn);
                       },
                       child: Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.5),
                           shape: BoxShape.circle,
@@ -207,17 +207,17 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             right: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Point camera at barcode',
                         style: TextStyle(
                           color: Colors.white,
@@ -226,19 +226,19 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     GestureDetector(
                       onTap: () {
                         _scanned = false;
                         _controller?.start();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Scan again',
                           style: TextStyle(
                             color: Colors.white70,
@@ -248,16 +248,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     GestureDetector(
                       onTap: _enterManually,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Enter code manually',
                           style: TextStyle(
                             color: Colors.white70,

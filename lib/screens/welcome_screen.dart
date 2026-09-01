@@ -6,7 +6,7 @@ class WelcomeScreen extends StatefulWidget {
   final VoidCallback onGetStarted;
   final VoidCallback onSignIn;
 
-  const WelcomeScreen({
+  WelcomeScreen({
     super.key,
     required this.onGetStarted,
     required this.onSignIn,
@@ -24,12 +24,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
-    _autoplay = Timer.periodic(const Duration(seconds: 4), (_) {
+    _autoplay = Timer.periodic(Duration(seconds: 4), (_) {
       if (!_controller.hasClients) return;
       final next = (_current + 1) % _slides.length;
       _controller.animateToPage(
         next,
-        duration: const Duration(milliseconds: 500),
+        duration: Duration(milliseconds: 500),
         curve: Curves.easeOut,
       );
     });
@@ -53,12 +53,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               constraints:
                   BoxConstraints(minHeight: constraints.maxHeight),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 4),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 4),
+                    SizedBox(height: 12),
                     // ---- Carousel (~60% of screen) ----
                     SizedBox(
                       height: constraints.maxHeight * 0.58,
@@ -74,14 +74,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   _slides[index],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20),
                           _Dots(count: _slides.length, current: _current),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     // ---- Heading (value proposition) ----
-                    const Text(
+                    Text(
                       'Know your calories\nfrom a single photo.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -92,7 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     // ---- CTA button ----
                     SizedBox(
                       height: 56,
@@ -105,22 +105,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                         ),
                         onPressed: widget.onGetStarted,
-                        child: const Text(
+                        child: Text(
                           'Get started',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Already have an account? ',
+                        Text('Already have an account? ',
                             style: TextStyle(color: Colors.black54)),
                         GestureDetector(
                           onTap: widget.onSignIn,
-                          child: const Text('Sign in',
+                          child: Text('Sign in',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w700,
@@ -129,7 +129,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -141,17 +141,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   final _slides = <Widget>[
-    const _Slide(
+    _Slide(
       label: 'Snap a photo',
       caption: 'Take a picture of your meal',
       child: _CameraMock(),
     ),
-    const _Slide(
+    _Slide(
       label: 'AI breaks it down',
       caption: 'Instant calories & macros',
       child: _AnalysisMock(),
     ),
-    const _Slide(
+    _Slide(
       label: 'Track your day',
       caption: 'See your progress at a glance',
       child: _DashboardMock(),
@@ -164,7 +164,7 @@ class _Slide extends StatelessWidget {
   final String caption;
   final Widget child;
 
-  const _Slide({
+  _Slide({
     required this.label,
     required this.caption,
     required this.child,
@@ -184,15 +184,15 @@ class _Slide extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Colors.black)),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(caption,
-            style: const TextStyle(fontSize: 14, color: Colors.black54)),
+            style: TextStyle(fontSize: 14, color: Colors.black54)),
       ],
     );
   }
@@ -202,7 +202,7 @@ class _Dots extends StatelessWidget {
   final int count;
   final int current;
 
-  const _Dots({required this.count, required this.current});
+  _Dots({required this.count, required this.current});
 
   @override
   Widget build(BuildContext context) {
@@ -211,8 +211,8 @@ class _Dots extends StatelessWidget {
       children: List.generate(count, (i) {
         final active = i == current;
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+          duration: Duration(milliseconds: 200),
+          margin: EdgeInsets.symmetric(horizontal: 4),
           width: active ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
@@ -229,7 +229,7 @@ class _Dots extends StatelessWidget {
 class _Phone extends StatelessWidget {
   final Widget child;
 
-  const _Phone({required this.child});
+  _Phone({required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +240,7 @@ class _Phone extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
         border: Border.all(color: Colors.black12, width: 3),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 20,
@@ -266,7 +266,7 @@ class _StatusBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 30,
-      color: const Color(0xFFF6F6F6),
+      color: Color(0xFFF6F6F6),
       alignment: Alignment.center,
       child: Container(
         width: 70,
@@ -282,7 +282,7 @@ class _StatusBar extends StatelessWidget {
 
 // ---- Slide 1: Camera ----
 class _CameraMock extends StatelessWidget {
-  const _CameraMock();
+  _CameraMock();
 
   @override
   Widget build(BuildContext context) {
@@ -331,7 +331,7 @@ class _CameraMock extends StatelessWidget {
 
 // ---- Slide 2: AI analysis ----
 class _AnalysisMock extends StatelessWidget {
-  const _AnalysisMock();
+  _AnalysisMock();
 
   @override
   Widget build(BuildContext context) {
@@ -382,14 +382,14 @@ class _Row extends StatelessWidget {
   final String name;
   final int cal;
 
-  const _Row({required this.name, required this.cal});
+  _Row({required this.name, required this.cal});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F6F6),
+        color: Color(0xFFF6F6F6),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -399,12 +399,12 @@ class _Row extends StatelessWidget {
             child: Text(name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w600)),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Text('$cal',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 14, fontWeight: FontWeight.w800)),
         ],
       ),
@@ -414,7 +414,7 @@ class _Row extends StatelessWidget {
 
 // ---- Slide 3: Dashboard ----
 class _DashboardMock extends StatelessWidget {
-  const _DashboardMock();
+  _DashboardMock();
 
   @override
   Widget build(BuildContext context) {
@@ -482,24 +482,24 @@ class _Macro extends StatelessWidget {
   final String label;
   final String value;
 
-  const _Macro({required this.label, required this.value});
+  _Macro({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F6F6),
+        color: Color(0xFFF6F6F6),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Text(value,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 14, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(label,
-              style: const TextStyle(fontSize: 11, color: Colors.black54)),
+              style: TextStyle(fontSize: 11, color: Colors.black54)),
         ],
       ),
     );

@@ -12,14 +12,14 @@ class AppCard extends StatelessWidget {
   final Color? color;
   final VoidCallback? onTap;
 
-  const AppCard({
+  AppCard({
     super.key,
     required this.child,
     this.padding,
     this.margin,
     this.borderRadius = 20,
-    this.shadow = AppColors.cardShadow,
-    this.color = AppColors.card,
+    this.shadow,
+    this.color,
     this.onTap,
   });
 
@@ -27,11 +27,11 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = Container(
       margin: margin,
-      padding: padding ?? const EdgeInsets.all(16),
+      padding: padding ?? EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color,
+        color: color ?? AppColors.card,
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: shadow,
+        boxShadow: shadow ?? AppColors.cardShadow,
       ),
       child: child,
     );

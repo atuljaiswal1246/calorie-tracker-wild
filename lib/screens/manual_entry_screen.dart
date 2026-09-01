@@ -10,7 +10,7 @@ import '../theme/app_colors.dart';
 class ManualEntryScreen extends StatefulWidget {
   final StorageService storage;
 
-  const ManualEntryScreen({super.key, required this.storage});
+  ManualEntryScreen({super.key, required this.storage});
 
   @override
   State<ManualEntryScreen> createState() => _ManualEntryScreenState();
@@ -52,16 +52,16 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('✅', style: TextStyle(fontSize: 32)),
-              const SizedBox(height: 10),
-              const Text('Logged!', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
-              const SizedBox(height: 20),
+              Text('✅', style: TextStyle(fontSize: 32)),
+              SizedBox(height: 10),
+              Text('Logged!', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
@@ -69,18 +69,18 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.ink,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Log another', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text('Log another', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Done', style: TextStyle(color: AppColors.muted)),
+                  child: Text('Done', style: TextStyle(color: AppColors.muted)),
                 ),
               ),
             ],
@@ -138,7 +138,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => _FoodConfirmSheet(
@@ -350,14 +350,14 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+              padding: EdgeInsets.fromLTRB(8, 6, 8, 0),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+                    icon: Icon(Icons.arrow_back, color: AppColors.ink),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Add food manually',
                       textAlign: TextAlign.center,
@@ -368,19 +368,19 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 48),
+                  SizedBox(width: 48),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
               child: TextField(
                 controller: _controller,
                 focusNode: _focusNode,
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: 'Search food...',
-                  prefixIcon: const Icon(Icons.search, color: AppColors.muted),
+                  prefixIcon: Icon(Icons.search, color: AppColors.muted),
                   filled: true,
                   fillColor: AppColors.card,
                   border: OutlineInputBorder(
@@ -389,7 +389,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   ),
                   suffixIcon: _controller.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, size: 18),
+                          icon: Icon(Icons.clear, size: 18),
                           onPressed: () {
                             _controller.clear();
                             setState(() {
@@ -410,9 +410,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(14),
@@ -420,12 +420,12 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                 child: DropdownButton<String>(
                   value: _mealType,
                   isExpanded: true,
-                  underline: const SizedBox(),
+                  underline: SizedBox(),
                   dropdownColor: AppColors.card,
                   borderRadius: BorderRadius.circular(14),
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
-                  items: const [
+                  items: [
                     DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
                     DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
                     DropdownMenuItem(value: 'dinner', child: Text('Dinner')),
@@ -447,7 +447,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       return _buildSearchResults();
     }
     if (_searching) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.only(top: 40),
           child: CircularProgressIndicator(color: AppColors.ink, strokeWidth: 2),
@@ -458,7 +458,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       return _buildAIResults();
     }
     if (_analyzing) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.only(top: 40),
           child: CircularProgressIndicator(color: AppColors.ink, strokeWidth: 2),
@@ -473,7 +473,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
 
   Widget _buildSearchResults() {
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 24),
       itemCount: _searchResults.length,
       itemBuilder: (ctx, i) {
         final food = _searchResults[i];
@@ -501,18 +501,18 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     final favs = _favoriteFoods;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (favs.isNotEmpty) ...[
-            const Text('Favorites',
+            Text('Favorites',
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                     letterSpacing: 0.5)),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             ...favs.map((f) => _QuickFoodTile(
                   food: f,
                   isFavorite: true,
@@ -522,16 +522,16 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                     setState(() {});
                   },
                 )),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
           ],
           if (recent.isNotEmpty) ...[
-            const Text('Recently logged',
+            Text('Recently logged',
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                     letterSpacing: 0.5)),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             ...recent.map((f) => _QuickFoodTile(
                   food: f,
                   isFavorite: widget.storage.isFavorite(f['name'] as String? ?? ''),
@@ -543,31 +543,31 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                 )),
           ],
           if (recent.isEmpty && favs.isEmpty) ...[
-            const SizedBox(height: 60),
+            SizedBox(height: 60),
             Center(
               child: Column(
                 children: [
                   Icon(Icons.search, size: 48, color: AppColors.muted.withValues(alpha: 0.3)),
-                  const SizedBox(height: 12),
-                  const Text(
+                  SizedBox(height: 12),
+                  Text(
                     'Search for a food to get started',
                     style: TextStyle(fontSize: 15, color: AppColors.muted),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'Type a food name above',
                     style: TextStyle(fontSize: 13, color: AppColors.muted),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   GestureDetector(
                     onTap: _showCustomFoodEntry,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
                         color: AppColors.card,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.add, size: 16, color: AppColors.ink),
@@ -600,7 +600,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     final result = await showModalBottomSheet<double>(
       context: context,
       backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => _QuickLogSheet(
@@ -656,7 +656,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       isScrollControlled: true,
@@ -685,7 +685,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
           });
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Logged! Added to your day.')),
+            SnackBar(content: Text('Logged! Added to your day.')),
           );
           Navigator.of(context).pop(true);
         },
@@ -696,11 +696,11 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
   Widget _buildAIResults() {
     final items = _aiItems!;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 24),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
@@ -708,14 +708,14 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Detected foods',
+                Text('Detected foods',
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink)),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 ...items.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.only(bottom: 12),
                       child: Row(
                         children: [
                           Expanded(
@@ -723,19 +723,19 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(item.name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.ink)),
-                                const SizedBox(height: 3),
+                                SizedBox(height: 3),
                                 Row(
                                   children: [
                                     _macroDot(AppColors.protein,
                                         '${item.protein.toStringAsFixed(0)}g P'),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     _macroDot(AppColors.carbs,
                                         '${item.carbs.toStringAsFixed(0)}g C'),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     _macroDot(AppColors.fat,
                                         '${item.fat.toStringAsFixed(0)}g F'),
                                   ],
@@ -744,7 +744,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                             ),
                           ),
                           Text('${item.calories} kcal',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.ink)),
@@ -752,22 +752,22 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                       ),
                     )),
                 Container(
-                  padding: const EdgeInsets.only(top: 12),
-                  decoration: const BoxDecoration(
+                  padding: EdgeInsets.only(top: 12),
+                  decoration: BoxDecoration(
                     border: Border(
                         top: BorderSide(color: AppColors.track)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total',
+                      Text('Total',
                           style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                               color: AppColors.ink)),
                       Text(
                         '${items.fold<int>(0, (s, i) => s + i.calories)} kcal',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
                             color: AppColors.ink),
@@ -778,7 +778,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           SizedBox(
             height: 54,
             width: double.infinity,
@@ -790,7 +790,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text('Log this meal',
+              child: Text('Log this meal',
                   style:
                       TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             ),
@@ -803,9 +803,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
   Widget _buildAIError() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
+        padding: EdgeInsets.fromLTRB(20, 40, 20, 0),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.errorBg,
             borderRadius: BorderRadius.circular(14),
@@ -814,9 +814,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(_error!,
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.errorRed, fontSize: 14)),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -827,7 +827,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Retry'),
+                  child: Text('Retry'),
                 ),
               ),
             ],
@@ -846,9 +846,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
           height: 6,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4),
         Text(text,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted)),
       ],
     );
@@ -863,7 +863,7 @@ class _FoodResultTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onFavorite;
 
-  const _FoodResultTile({
+  _FoodResultTile({
     required this.food,
     required this.isFavorite,
     required this.onTap,
@@ -876,8 +876,8 @@ class _FoodResultTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        margin: const EdgeInsets.only(bottom: 6),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        margin: EdgeInsets.only(bottom: 6),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
@@ -889,19 +889,19 @@ class _FoodResultTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(food.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: AppColors.ink)),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Row(
                     children: [
                       _macroPill(AppColors.protein,
                           '${food.protein.toStringAsFixed(0)}g P'),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       _macroPill(AppColors.carbs,
                           '${food.carbs.toStringAsFixed(0)}g C'),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       _macroPill(AppColors.fat,
                           '${food.fat.toStringAsFixed(0)}g F'),
                     ],
@@ -910,11 +910,11 @@ class _FoodResultTile extends StatelessWidget {
               ),
             ),
             Text('${food.calories} kcal',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink)),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             GestureDetector(
               onTap: onFavorite,
               child: Icon(
@@ -933,7 +933,7 @@ class _FoodResultTile extends StatelessWidget {
 
   Widget _macroPill(Color color, String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
@@ -953,7 +953,7 @@ class _QuickFoodTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onFavorite;
 
-  const _QuickFoodTile({
+  _QuickFoodTile({
     required this.food,
     required this.isFavorite,
     required this.onTap,
@@ -972,8 +972,8 @@ class _QuickFoodTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        margin: const EdgeInsets.only(bottom: 6),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        margin: EdgeInsets.only(bottom: 6),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
@@ -985,19 +985,19 @@ class _QuickFoodTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: AppColors.ink)),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Row(
                     children: [
                       _macroPill(AppColors.protein,
                           '${protein.toStringAsFixed(0)}g P'),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       _macroPill(AppColors.carbs,
                           '${carbs.toStringAsFixed(0)}g C'),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       _macroPill(AppColors.fat,
                           '${fat.toStringAsFixed(0)}g F'),
                     ],
@@ -1006,11 +1006,11 @@ class _QuickFoodTile extends StatelessWidget {
               ),
             ),
             Text('$calories kcal',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink)),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             GestureDetector(
               onTap: onFavorite,
               child: Icon(
@@ -1029,7 +1029,7 @@ class _QuickFoodTile extends StatelessWidget {
 
   Widget _macroPill(Color color, String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
@@ -1050,7 +1050,7 @@ class _FoodConfirmSheet extends StatefulWidget {
   final ValueChanged<double> onQuantityChanged;
   final VoidCallback onLog;
 
-  const _FoodConfirmSheet({
+  _FoodConfirmSheet({
     required this.food,
     required this.mealType,
     required this.onMealTypeChanged,
@@ -1081,7 +1081,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
     final ft = food.fat * _quantity / 100;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1096,59 +1096,59 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(food.name,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink)),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Quantity presets
           Row(
             children: [
-              const Text('Amount',
+              Text('Amount',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
-              const Spacer(),
+              Spacer(),
               Text('$_quantity g',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink)),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Row(
             children: [
               _qtyPreset('50g', 50),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _qtyPreset('100g', 100),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _qtyPreset('150g', 150),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _qtyPreset('200g', 200),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Calculated macros
           Row(
             children: [
               _macroCard(AppColors.protein, 'Protein', '${prot.toStringAsFixed(1)}g'),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _macroCard(AppColors.carbs, 'Carbs', '${carb.toStringAsFixed(1)}g'),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _macroCard(AppColors.fat, 'Fat', '${ft.toStringAsFixed(1)}g'),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Center(
             child: Text('$cal kcal',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink)),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Meal type
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppColors.bg,
               borderRadius: BorderRadius.circular(14),
@@ -1156,14 +1156,14 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
             child: DropdownButton<String>(
               value: _mealType,
               isExpanded: true,
-              underline: const SizedBox(),
+              underline: SizedBox(),
               dropdownColor: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: AppColors.ink),
-              items: const [
+              items: [
                 DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
                 DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
                 DropdownMenuItem(value: 'dinner', child: Text('Dinner')),
@@ -1175,7 +1175,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
               },
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           SizedBox(
             height: 50,
             width: double.infinity,
@@ -1191,7 +1191,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text('Log this food',
+              child: Text('Log this food',
                   style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w700)),
             ),
@@ -1206,7 +1206,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
     return GestureDetector(
       onTap: () => setState(() => _quantity = grams),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? AppColors.ink : AppColors.bg,
           borderRadius: BorderRadius.circular(10),
@@ -1226,7 +1226,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
   Widget _macroCard(Color color, String label, String value) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
@@ -1236,7 +1236,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
             Text(value,
                 style: TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w700, color: color)),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(label,
                 style: TextStyle(
                     fontSize: 12,
@@ -1259,7 +1259,7 @@ class _QuickLogSheet extends StatefulWidget {
   final double fat;
   final String mealType;
 
-  const _QuickLogSheet({
+  _QuickLogSheet({
     required this.name,
     required this.calories,
     required this.protein,
@@ -1283,7 +1283,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
     final ft = widget.fat * _quantity / 100;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1297,51 +1297,51 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(widget.name,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.ink)),
-          const SizedBox(height: 16),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          SizedBox(height: 16),
 
           // Quantity presets
           Row(
             children: [
-              const Text('Amount',
+              Text('Amount',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
-              const Spacer(),
+              Spacer(),
               Text('$_quantity g',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink)),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Row(
             children: [
               _preset('50g', 50),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _preset('100g', 100),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _preset('150g', 150),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _preset('200g', 200),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Macros
           Row(
             children: [
               _macro(AppColors.protein, 'Protein', '${prot.toStringAsFixed(1)}g'),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _macro(AppColors.carbs, 'Carbs', '${carb.toStringAsFixed(1)}g'),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _macro(AppColors.fat, 'Fat', '${ft.toStringAsFixed(1)}g'),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Center(
             child: Text('$cal kcal',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink)),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           SizedBox(
             height: 50,
             width: double.infinity,
@@ -1351,7 +1351,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
                 backgroundColor: AppColors.ink,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text('Log this food',
+              child: Text('Log this food',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             ),
           ),
@@ -1365,7 +1365,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
     return GestureDetector(
       onTap: () => setState(() => _quantity = grams),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? AppColors.ink : AppColors.bg,
           borderRadius: BorderRadius.circular(10),
@@ -1381,7 +1381,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
   Widget _macro(Color color, String label, String value) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
@@ -1389,7 +1389,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
         child: Column(
           children: [
             Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: color)),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: color.withValues(alpha: 0.7))),
           ],
         ),
@@ -1405,7 +1405,7 @@ class _CustomFoodSheet extends StatefulWidget {
   final ValueChanged<String> onMealTypeChanged;
   final Future<void> Function(String name, int cal, double p, double c, double f) onLog;
 
-  const _CustomFoodSheet({
+  _CustomFoodSheet({
     required this.mealType,
     required this.onMealTypeChanged,
     required this.onLog,
@@ -1457,29 +1457,29 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text('Enter food manually',
+            SizedBox(height: 16),
+            Text('Enter food manually',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.ink)),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             _field('Food name', _nameCtrl, hint: 'e.g. Dal rice'),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             _field('Calories (kcal)', _calCtrl, hint: 'e.g. 250', keyboardType: TextInputType.number),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             Row(
               children: [
                 Expanded(child: _field('Protein (g)', _protCtrl, keyboardType: TextInputType.number)),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(child: _field('Carbs (g)', _carbCtrl, keyboardType: TextInputType.number)),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(child: _field('Fat (g)', _fatCtrl, keyboardType: TextInputType.number)),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: AppColors.bg,
                 borderRadius: BorderRadius.circular(14),
@@ -1487,11 +1487,11 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
               child: DropdownButton<String>(
                 value: _mealType,
                 isExpanded: true,
-                underline: const SizedBox(),
+                underline: SizedBox(),
                 dropdownColor: Colors.white,
                 borderRadius: BorderRadius.circular(14),
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
-                items: const [
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
+                items: [
                   DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
                   DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
                   DropdownMenuItem(value: 'dinner', child: Text('Dinner')),
@@ -1503,7 +1503,7 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             SizedBox(
               height: 50,
@@ -1526,7 +1526,7 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
                   backgroundColor: AppColors.ink,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('Log this food',
+                child: Text('Log this food',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               ),
             ),
@@ -1541,12 +1541,12 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted)),
-        const SizedBox(height: 6),
+        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted)),
+        SizedBox(height: 6),
         TextField(
           controller: ctrl,
           keyboardType: keyboardType,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
           decoration: InputDecoration(
             hintText: hint,
             filled: true,

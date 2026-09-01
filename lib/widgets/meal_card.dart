@@ -11,7 +11,7 @@ class MealCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
-  const MealCard({
+  MealCard({
     super.key,
     required this.entry,
     this.onTap,
@@ -37,7 +37,7 @@ class MealCard extends StatelessWidget {
         onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(20),
@@ -46,7 +46,7 @@ class MealCard extends StatelessWidget {
           child: Row(
             children: [
               ThumbnailWidget(imagePath: entry.imagePath),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,40 +55,40 @@ class MealCard extends StatelessWidget {
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                         letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     Row(
                       children: [
                         Text(
                           '🔥 ${entry.totalCalories}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: AppColors.ink,
                             fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         if (hasProtein)
                           MacroPill(
                             icon: Icons.egg_alt,
                             color: AppColors.protein,
                             text: '${entry.totalProtein.toStringAsFixed(0)}g',
                           ),
-                        if (hasProtein && hasCarbs) const SizedBox(width: 6),
+                        if (hasProtein && hasCarbs) SizedBox(width: 6),
                         if (hasCarbs)
                           MacroPill(
                             icon: Icons.grain,
                             color: AppColors.carbs,
                             text: '${entry.totalCarbs.toStringAsFixed(0)}g',
                           ),
-                        if (hasCarbs && hasFat) const SizedBox(width: 6),
+                        if (hasCarbs && hasFat) SizedBox(width: 6),
                         if (hasFat)
                           MacroPill(
                             icon: Icons.water_drop,
@@ -100,10 +100,10 @@ class MealCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 3),
+              SizedBox(width: 3),
               Text(
                 _formatTime(entry.dateTime),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   color: AppColors.muted,
                   fontWeight: FontWeight.w500,

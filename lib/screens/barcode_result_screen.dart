@@ -10,7 +10,7 @@ class BarcodeResultScreen extends StatefulWidget {
   final BarcodeResult result;
   final StorageService storage;
 
-  const BarcodeResultScreen({
+  BarcodeResultScreen({
     super.key,
     required this.result,
     required this.storage,
@@ -82,24 +82,24 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('✅', style: TextStyle(fontSize: 32)),
-              const SizedBox(height: 10),
-              const Text(
+              Text('✅', style: TextStyle(fontSize: 32)),
+              SizedBox(height: 10),
+              Text(
                 'Logged!',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Added to your day.',
                 style: TextStyle(fontSize: 13, color: AppColors.muted),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
@@ -107,18 +107,18 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.ink,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Scan another', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text('Scan another', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Done', style: TextStyle(color: AppColors.muted)),
+                  child: Text('Done', style: TextStyle(color: AppColors.muted)),
                 ),
               ),
             ],
@@ -146,7 +146,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
       backgroundColor: AppColors.bg,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 120),
           children: [
             // Header
             Row(
@@ -154,7 +154,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -165,11 +165,11 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                    child: Icon(Icons.arrow_back_ios_new, size: 18),
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
+                SizedBox(width: 12),
+                Expanded(
                   child: Text(
                     'Product Found',
                     style: TextStyle(
@@ -181,11 +181,11 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Product card
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
@@ -193,7 +193,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                   BoxShadow(
                     color: Colors.black.withOpacity(0.04),
                     blurRadius: 15,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
@@ -208,51 +208,51 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                         height: 140,
                         width: double.infinity,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        errorBuilder: (_, __, ___) => SizedBox.shrink(),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                   ],
                   Text(
                     _r.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
                   ),
                   if (_r.brand.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       _r.brand,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         color: AppColors.muted,
                       ),
                     ),
                   ],
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F0EC),
+                      color: Color(0xFFF1F0EC),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       _r.barcode,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontFamily: 'monospace',
                         color: AppColors.muted,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
 
                   // Quantity presets
                   Row(
                     children: [
-                      const Text(
+                      Text(
                         'Amount',
                         style: TextStyle(
                           fontSize: 14,
@@ -260,10 +260,10 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                           color: AppColors.ink,
                         ),
                       ),
-                      const Spacer(),
+                      Spacer(),
                       Text(
                         '${_quantity.round()}g',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: AppColors.ink,
@@ -271,21 +271,21 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Row(
                     children: [
                       _qtyPreset('50g', 50),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _qtyPreset('100g', 100),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _qtyPreset('150g', 150),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _qtyPreset('200g', 200),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _qtyPreset('Custom', _quantity),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   // Calories
                   Row(
@@ -293,14 +293,14 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                     children: [
                       Text(
                         '$_calories',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
                           color: AppColors.ink,
                           letterSpacing: -1,
                         ),
                       ),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(bottom: 6, left: 4),
                         child: Text(
                           'kcal',
@@ -313,24 +313,24 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   // Macros
                   Row(
                     children: [
-                      _macroPill('P', '${_protein.round()}g', const Color(0xFFE53935)),
-                      const SizedBox(width: 8),
-                      _macroPill('C', '${_carbs.round()}g', const Color(0xFFFF9500)),
-                      const SizedBox(width: 8),
-                      _macroPill('F', '${_fat.round()}g', const Color(0xFF007AFF)),
-                      const SizedBox(width: 8),
+                      _macroPill('P', '${_protein.round()}g', Color(0xFFE53935)),
+                      SizedBox(width: 8),
+                      _macroPill('C', '${_carbs.round()}g', Color(0xFFFF9500)),
+                      SizedBox(width: 8),
+                      _macroPill('F', '${_fat.round()}g', Color(0xFF007AFF)),
+                      SizedBox(width: 8),
                       _macroPill('Fi', '${_fiber.round()}g', AppColors.green),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
             // Meal type
             Row(
@@ -340,12 +340,12 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                   child: GestureDetector(
                     onTap: () => setState(() => _mealType = type),
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      margin: EdgeInsets.symmetric(horizontal: 3),
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         color: selected ? AppColors.ink : Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: selected ? null : Border.all(color: const Color(0xFFE5E5EA)),
+                        border: selected ? null : Border.all(color: Color(0xFFE5E5EA)),
                       ),
                       child: Center(
                         child: Text(
@@ -374,7 +374,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
             children: [
               Container(height: 2, color: Colors.black12),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                padding: EdgeInsets.fromLTRB(16, 14, 16, 16),
                 child: SizedBox(
                   height: 54,
                   width: double.infinity,
@@ -383,9 +383,9 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.ink,
                       foregroundColor: Colors.white,
-                      shape: const StadiumBorder(),
+                      shape: StadiumBorder(),
                     ),
-                    child: const Text('Log this meal',
+                    child: Text('Log this meal',
                         style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
@@ -403,7 +403,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
   Widget _macroPill(String label, String value, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
@@ -418,7 +418,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 color: color,
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
@@ -443,25 +443,25 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
             context: context,
             builder: (ctx) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text('Enter amount (g)'),
+              title: Text('Enter amount (g)'),
               content: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
                 autofocus: true,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                decoration: const InputDecoration(
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                decoration: InputDecoration(
                   suffixText: 'g',
                   border: OutlineInputBorder(),
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel')),
                 TextButton(
                   onPressed: () {
                     final v = double.tryParse(controller.text);
                     if (v != null && v > 0) Navigator.pop(ctx, v);
                   },
-                  child: const Text('OK'),
+                  child: Text('OK'),
                 ),
               ],
             ),
@@ -472,9 +472,9 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.ink : const Color(0xFFF1F0EC),
+          color: selected ? AppColors.ink : Color(0xFFF1F0EC),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(

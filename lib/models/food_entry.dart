@@ -127,7 +127,7 @@ class FoodEntry {
   final List<FoodItem> items;
   final String imagePath;
 
-  const FoodEntry({
+  FoodEntry({
     required this.id,
     required this.dateTime,
     required this.mealType,

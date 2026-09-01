@@ -7,7 +7,7 @@ import '../theme/app_colors.dart';
 class AchievementsScreen extends StatefulWidget {
   final StorageService storage;
 
-  const AchievementsScreen({super.key, required this.storage});
+  AchievementsScreen({super.key, required this.storage});
 
   @override
   State<AchievementsScreen> createState() => _AchievementsScreenState();
@@ -34,24 +34,24 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       backgroundColor: AppColors.bg,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
             Row(
               children: [
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: AppColors.card,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: AppColors.cardShadowLight,
                     ),
-                    child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                    child: Icon(Icons.arrow_back_ios_new, size: 18),
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Text(
+                SizedBox(width: 12),
+                Text(
                   'Achievements',
                   style: TextStyle(
                     fontSize: 26,
@@ -62,9 +62,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(24),
@@ -74,19 +74,19 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 children: [
                   Text(
                     '$unlocked / $total',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.w800,
                       color: AppColors.ink,
                       letterSpacing: -1,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'badges unlocked',
                     style: TextStyle(fontSize: 14, color: AppColors.muted),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6),
                     child: SizedBox(
@@ -103,11 +103,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             GridView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
@@ -128,7 +128,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final unlocked = achievement.unlocked;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: unlocked ? AppColors.card : AppColors.card.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(20),
@@ -140,7 +140,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 BoxShadow(
                   color: AppColors.gold.withValues(alpha: 0.1),
                   blurRadius: 10,
-                  offset: const Offset(0, 2),
+                  offset: Offset(0, 2),
                 ),
               ]
             : null,
@@ -155,7 +155,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               color: unlocked ? null : Colors.grey.withValues(alpha: 0.4),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             achievement.title,
             textAlign: TextAlign.center,
@@ -167,7 +167,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             achievement.description,
             textAlign: TextAlign.center,
@@ -179,7 +179,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             overflow: TextOverflow.ellipsis,
           ),
           if (!unlocked && achievement.progress > 0) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: SizedBox(

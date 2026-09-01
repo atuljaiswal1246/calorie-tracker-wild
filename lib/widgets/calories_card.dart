@@ -9,7 +9,7 @@ class CaloriesCard extends StatelessWidget {
   final int goal;
   final VoidCallback? onTap;
 
-  const CaloriesCard({
+  CaloriesCard({
     super.key,
     required this.logged,
     required this.goal,
@@ -37,7 +37,7 @@ class CaloriesCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+          padding: EdgeInsets.symmetric(horizontal: 22, vertical: 20),
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(28),
@@ -60,13 +60,13 @@ class CaloriesCard extends StatelessWidget {
                             fontWeight: FontWeight.w800,
                             color: accentColor,
                             letterSpacing: -1.5,
-                            fontFeatures: const [FontFeature.tabularFigures()],
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Text(
                           '/$goal',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: AppColors.muted,
@@ -75,7 +75,7 @@ class CaloriesCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       over ? 'Calories over target' : 'Calories eaten',
                       style: TextStyle(

@@ -9,7 +9,7 @@ class FloatingNav extends StatelessWidget {
   final VoidCallback onCenterTap;
   final String avatarInitials;
 
-  const FloatingNav({
+  FloatingNav({
     super.key,
     required this.currentIndex,
     required this.onTap,
@@ -21,8 +21,8 @@ class FloatingNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 64,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      margin: EdgeInsets.symmetric(horizontal: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(32),
@@ -58,11 +58,11 @@ class FloatingNav extends StatelessWidget {
                   child: Container(
                     width: 52,
                     height: 52,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.ink,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.center_focus_strong,
                       color: Colors.white,
                       size: 24,
@@ -102,7 +102,7 @@ class _NavItem extends StatelessWidget {
   final bool active;
   final VoidCallback onTap;
 
-  const _NavItem({
+  _NavItem({
     required this.index,
     required this.icon,
     required this.label,
@@ -122,7 +122,7 @@ class _NavItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
                 color: active ? AppColors.cardHover : Colors.transparent,
                 borderRadius: BorderRadius.circular(14),
@@ -133,7 +133,7 @@ class _NavItem extends StatelessWidget {
                 color: active ? AppColors.ink : AppColors.faint,
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
@@ -155,7 +155,7 @@ class _NavAvatar extends StatelessWidget {
   final String initials;
   final VoidCallback onTap;
 
-  const _NavAvatar({
+  _NavAvatar({
     required this.index,
     required this.active,
     required this.initials,
@@ -185,14 +185,14 @@ class _NavAvatar extends StatelessWidget {
               ),
               child: Text(
                 initials,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               'Profile',
               style: TextStyle(

@@ -14,7 +14,7 @@ import 'achievements_screen.dart';
 class ProgressScreen extends StatefulWidget {
   final StorageService storage;
 
-  const ProgressScreen({super.key, required this.storage});
+  ProgressScreen({super.key, required this.storage});
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
@@ -72,11 +72,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
     var streak = 0;
     var day = DateTime.now();
     if (_caloriesForDay(day) == 0) {
-      day = day.subtract(const Duration(days: 1));
+      day = day.subtract(Duration(days: 1));
     }
     while (_caloriesForDay(day) > 0) {
       streak++;
-      day = day.subtract(const Duration(days: 1));
+      day = day.subtract(Duration(days: 1));
     }
     return streak;
   }
@@ -149,7 +149,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Widget build(BuildContext context) {
     final profile = _profile;
     if (profile == null) {
-      return const Center(child: Text('No profile'));
+      return Center(child: Text('No profile'));
     }
 
     final periodLabel = _periodIndex == 2
@@ -162,52 +162,52 @@ class _ProgressScreenState extends State<ProgressScreen> {
       color: AppColors.ink,
       onRefresh: () async => _load(),
       child: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 150),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 150),
       children: [
         _header(),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         _weightCard(profile),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         _bodyCard(),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         _periodToggle(),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         if (_periodIndex == 0) ...[
           _weekNavigator(),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
         ] else if (_periodIndex == 1) ...[
           _monthNavigator(),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
         ] else ...[
           _customRangeNavigator(context),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
         ],
         _caloriesChart(profile),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         _statsRow(profile),
-        const SizedBox(height: 6),
-        const Center(
+        SizedBox(height: 6),
+        Center(
           child: Text(
             'On target = at least 80% of daily goal',
             style: TextStyle(fontSize: 11, color: AppColors.muted),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         _sectionTitle('Macros $periodLabel'),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         _macroOverview(),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         _sectionTitle('Daily breakdown'),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         if (_displayDays.isEmpty)
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
               boxShadow: AppColors.cardShadow,
             ),
-            child: const Center(
+            child: Center(
               child: Text(
                 'No data for this period',
                 style: TextStyle(fontSize: 14, color: AppColors.muted),
@@ -227,7 +227,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
     return Row(
       children: [
-        const Text(
+        Text(
           'Progress',
           style: TextStyle(
             fontSize: 26,
@@ -236,7 +236,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             letterSpacing: -0.5,
           ),
         ),
-        const Spacer(),
+        Spacer(),
         Semantics(
           label: '$_streak day streak. Tap for details.',
           button: true,
@@ -247,7 +247,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             },
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(20),
@@ -255,11 +255,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
               child: Row(
                 children: [
-                  const Text('🔥', style: TextStyle(fontSize: 13)),
-                  const SizedBox(width: 4),
+                  Text('🔥', style: TextStyle(fontSize: 13)),
+                  SizedBox(width: 4),
                   Text(
                     '$_streak',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
@@ -270,7 +270,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Semantics(
           label: '$unlocked of ${all.length} achievements unlocked. Tap to view.',
           button: true,
@@ -286,7 +286,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             },
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(20),
@@ -294,11 +294,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
               child: Row(
                 children: [
-                  const Text('🏆', style: TextStyle(fontSize: 13)),
-                  const SizedBox(width: 4),
+                  Text('🏆', style: TextStyle(fontSize: 13)),
+                  SizedBox(width: 4),
                   Text(
                     '$unlocked/${all.length}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
@@ -320,14 +320,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🔥', style: TextStyle(fontSize: 32)),
-              const SizedBox(height: 10),
+              Text('🔥', style: TextStyle(fontSize: 32)),
+              SizedBox(height: 10),
               Text(
                 streak > 0 ? '$streak day streak' : 'No active streak',
                 style: TextStyle(
@@ -336,19 +336,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   color: streak > 0 ? AppColors.ink : AppColors.muted,
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               Text(
                 streak > 0
                     ? 'Log a meal every day to keep it going.\nMiss a day and it resets to zero.'
                     : 'Log any meal today to start a streak.\nKeep logging daily to build it up.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: AppColors.muted,
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
@@ -356,12 +356,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.ink,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Got it', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text('Got it', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -376,7 +376,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final latest = entries.isNotEmpty ? entries.first : null; // sorted desc
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -388,7 +388,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Body measurements',
                 style: TextStyle(
                   fontSize: 16,
@@ -401,13 +401,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  constraints: const BoxConstraints(minHeight: 44),
+                      EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  constraints: BoxConstraints(minHeight: 44),
                   decoration: BoxDecoration(
                     color: AppColors.ink,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.add, color: Colors.white, size: 16),
@@ -426,9 +426,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           if (latest == null)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 'Track waist, hips, arms — the scale can lie, numbers don\'t.',
@@ -442,7 +442,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 final first = entries.last
                     .toJson()[key]; // oldest entry in desc-sorted list
                 final val = latest.toJson()[key];
-                if (val == null) return const SizedBox.shrink();
+                if (val == null) return SizedBox.shrink();
                 final firstVal = first as double?;
                 final valD = (val as num).toDouble();
                 return Expanded(
@@ -455,19 +455,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             if (entries.length >= 2)
               SizedBox(
                 height: 70,
                 child: _bodyChart(entries),
               ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 '${DateFormat('d MMM').format(latest.date)} · '
                 '${entries.length} log${entries.length == 1 ? '' : 's'}',
-                style: const TextStyle(fontSize: 11.5, color: AppColors.muted),
+                style: TextStyle(fontSize: 11.5, color: AppColors.muted),
               ),
             ),
           ],
@@ -485,11 +485,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final down = delta != null && delta < 0;
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 15)),
-        const SizedBox(height: 3),
+        Text(emoji, style: TextStyle(fontSize: 15)),
+        SizedBox(height: 3),
         Text(
           value.toStringAsFixed(1),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w800,
             color: AppColors.ink,
@@ -498,7 +498,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         ),
         Text(
           label,
-          style: const TextStyle(fontSize: 10.5, color: AppColors.muted),
+          style: TextStyle(fontSize: 10.5, color: AppColors.muted),
         ),
         if (delta != null)
           Text(
@@ -518,7 +518,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final points = [...entries.reversed]; // oldest first
     final waist = points.map((e) => e.waist).whereType<double>().toList();
     final hips = points.map((e) => e.hips).whereType<double>().toList();
-    if (waist.length < 2 && hips.length < 2) return const SizedBox.shrink();
+    if (waist.length < 2 && hips.length < 2) return SizedBox.shrink();
 
     return CustomPaint(
       size: Size.infinite,
@@ -530,7 +530,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
       isScrollControlled: true,
@@ -552,7 +552,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: 'Weight: ${latest.toStringAsFixed(1)} kg',
       child: Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(24),
@@ -564,7 +564,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Weight',
                 style: TextStyle(
                   fontSize: 16,
@@ -579,13 +579,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 onTap: () => _showLogWeightSheet(context),
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  constraints: const BoxConstraints(minHeight: 44),
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  constraints: BoxConstraints(minHeight: 44),
                   decoration: BoxDecoration(
                     color: AppColors.ink,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.add, color: Colors.white, size: 16),
@@ -605,7 +605,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -619,7 +619,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   fontFeatures: [ui.FontFeature.tabularFigures()],
                 ),
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 6, left: 4),
                 child: Text(
                   'kg',
@@ -630,11 +630,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               if (change != 0)
                 Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  margin: EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _weightChangeColor(change, goal).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
@@ -647,7 +647,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         size: 14,
                         color: _weightChangeColor(change, goal),
                       ),
-                      const SizedBox(width: 2),
+                      SizedBox(width: 2),
                       Text(
                         '${change.abs().toStringAsFixed(1)} kg',
                         style: TextStyle(
@@ -663,21 +663,21 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ],
           ),
           if (target != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               children: [
                 Icon(Icons.flag, size: 14, color: AppColors.muted),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Text(
                   'Target: ${target.toStringAsFixed(1)} kg',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: AppColors.muted,
                     fontFeatures: [ui.FontFeature.tabularFigures()],
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Text(
                   '${(latest - target).abs().toStringAsFixed(1)} kg to go',
                   style: TextStyle(
@@ -691,7 +691,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ),
           ],
           if (_weightEntries.length >= 2) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Semantics(
               label: 'Weight trend chart',
               child: SizedBox(
@@ -708,7 +708,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   Widget _weightChart(double? targetWeight) {
     final entries = _weightEntries;
-    if (entries.length < 2) return const SizedBox.shrink();
+    if (entries.length < 2) return SizedBox.shrink();
 
     final weights = entries.map((e) => e.weightKg).toList();
     final minW = weights.reduce((a, b) => a < b ? a : b);
@@ -754,7 +754,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Padding(
@@ -764,7 +764,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Log Weight',
               style: TextStyle(
                 fontSize: 20,
@@ -772,46 +772,46 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               DateFormat('EEEE, MMM d').format(DateTime.now()),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 color: AppColors.muted,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,1}')),
               ],
               autofocus: true,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
               decoration: InputDecoration(
                 suffixText: 'kg',
-                suffixStyle: const TextStyle(
+                suffixStyle: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppColors.divider),
+                  borderSide: BorderSide(color: AppColors.divider),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
+                  borderSide: BorderSide(
                       color: AppColors.ink, width: 2),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -830,7 +830,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Save',
                   style: TextStyle(
                       fontSize: 17,
@@ -840,7 +840,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
             ),
             if (hasTodayEntry) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -852,12 +852,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.errorRed,
-                    side: const BorderSide(color: AppColors.errorRed),
+                    side: BorderSide(color: AppColors.errorRed),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     "Delete today's entry",
                     style: TextStyle(
                         fontSize: 15,
@@ -883,7 +883,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Padding(
@@ -893,7 +893,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Edit Calorie Goal',
               style: TextStyle(
                 fontSize: 20,
@@ -901,17 +901,17 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 color: AppColors.ink,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               profile.calorieGoalOverride != null
                   ? 'Custom goal set'
                   : 'Auto-calculated: $currentGoal kcal',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 color: AppColors.muted,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
@@ -919,30 +919,30 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 FilteringTextInputFormatter.digitsOnly,
               ],
               autofocus: true,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
               decoration: InputDecoration(
                 suffixText: 'kcal',
-                suffixStyle: const TextStyle(
+                suffixStyle: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppColors.divider),
+                  borderSide: BorderSide(color: AppColors.divider),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
+                  borderSide: BorderSide(
                       color: AppColors.ink, width: 2),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             if (profile.calorieGoalOverride != null)
               InkWell(
                 onTap: () async {
@@ -964,7 +964,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   _load();
                 },
                 borderRadius: BorderRadius.circular(8),
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     'Reset to auto-calculated',
@@ -976,7 +976,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
               ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -1008,7 +1008,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Save',
                   style: TextStyle(
                       fontSize: 17,
@@ -1037,7 +1037,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: 'Select time period',
       child: Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.cardAlt,
         borderRadius: BorderRadius.circular(14),
@@ -1052,7 +1052,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               }),
               borderRadius: BorderRadius.circular(11),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: active ? AppColors.ink : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
@@ -1077,14 +1077,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   Widget _weekNavigator() {
-    final end = _selectedWeekStart.add(const Duration(days: 6));
+    final end = _selectedWeekStart.add(Duration(days: 6));
     final label = '${DateFormat('MMM d').format(_selectedWeekStart)} – ${DateFormat('MMM d').format(end)}';
     final isCurrentWeek = _isSameDay(_selectedWeekStart, _currentWeekStart);
 
     return Semantics(
       label: 'Navigate weeks',
       child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1095,12 +1095,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
         children: [
           InkWell(
             onTap: _canGoBackWeek ? () => setState(() {
-              _selectedWeekStart = _selectedWeekStart.subtract(const Duration(days: 7));
+              _selectedWeekStart = _selectedWeekStart.subtract(Duration(days: 7));
             }) : null,
             borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(10),
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              padding: EdgeInsets.all(10),
+              constraints: BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
                 color: _canGoBackWeek ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
@@ -1112,14 +1112,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
               ),
               if (isCurrentWeek)
-                const Text(
+                Text(
                   'This week',
                   style: TextStyle(
                     fontSize: 11,
@@ -1131,12 +1131,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
           InkWell(
             onTap: isCurrentWeek ? null : () => setState(() {
-              _selectedWeekStart = _selectedWeekStart.add(const Duration(days: 7));
+              _selectedWeekStart = _selectedWeekStart.add(Duration(days: 7));
             }),
             borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(10),
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              padding: EdgeInsets.all(10),
+              constraints: BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
                 color: isCurrentWeek ? AppColors.cardSelected.withValues(alpha:0.5) : AppColors.cardSelected,
                 borderRadius: BorderRadius.circular(10),
@@ -1165,8 +1165,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
   bool get _canGoBackWeek {
     final earliest = _earliestDate;
     if (earliest == null) return true;
-    final prevWeekStart = _selectedWeekStart.subtract(const Duration(days: 7));
-    final weekEnd = prevWeekStart.add(const Duration(days: 6));
+    final prevWeekStart = _selectedWeekStart.subtract(Duration(days: 7));
+    final weekEnd = prevWeekStart.add(Duration(days: 6));
     return !weekEnd.isBefore(DateTime(earliest.year, earliest.month, earliest.day));
   }
 
@@ -1186,7 +1186,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: 'Navigate months',
       child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1201,8 +1201,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
             }) : null,
             borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(10),
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              padding: EdgeInsets.all(10),
+              constraints: BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
                 color: _canGoBackMonth ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
@@ -1214,14 +1214,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
               ),
               if (isCurrentMonth)
-                const Text(
+                Text(
                   'This month',
                   style: TextStyle(
                     fontSize: 11,
@@ -1237,8 +1237,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
             }),
             borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.all(10),
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              padding: EdgeInsets.all(10),
+              constraints: BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
                 color: isCurrentMonth ? AppColors.cardSelected.withValues(alpha:0.5) : AppColors.cardSelected,
                 borderRadius: BorderRadius.circular(10),
@@ -1271,7 +1271,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           initialDateRange: _customStart != null && _customEnd != null
               ? DateTimeRange(start: _customStart!, end: _customEnd!)
               : DateTimeRange(
-                  start: now.subtract(const Duration(days: 6)),
+                  start: now.subtract(Duration(days: 6)),
                   end: now,
                 ),
           builder: (context, child) {
@@ -1297,7 +1297,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
@@ -1311,7 +1311,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               color: hasRange ? AppColors.ink : AppColors.muted,
               size: 20,
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Text(
               label,
               style: TextStyle(
@@ -1320,7 +1320,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 color: hasRange ? AppColors.ink : AppColors.muted,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Icon(
               Icons.edit_calendar_outlined,
               color: hasRange ? AppColors.ink : AppColors.muted,
@@ -1342,7 +1342,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: 'Calories chart',
       child: Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(24),
@@ -1354,7 +1354,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Calories',
                 style: TextStyle(
                   fontSize: 16,
@@ -1369,7 +1369,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 onTap: () => _showEditCalorieGoalSheet(context),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.ink,
                     borderRadius: BorderRadius.circular(8),
@@ -1379,14 +1379,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     children: [
                       Text(
                         'Goal: $goal kcal',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.edit, size: 10, color: Colors.white),
+                      SizedBox(width: 4),
+                      Icon(Icons.edit, size: 10, color: Colors.white),
                     ],
                   ),
                 ),
@@ -1394,14 +1394,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           SizedBox(
             height: 160,
             child: useCompact
                 ? _compactChart(days, goal, maxCal)
                 : _weeklyChart(days, goal, maxCal),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
         ],
       ),
     ),
@@ -1431,13 +1431,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: 4),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 if (cal > 0 && !isFuture)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
+                    padding: EdgeInsets.only(bottom: 6),
                     child: Text(
                       '$cal',
                       style: TextStyle(
@@ -1449,14 +1449,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                   ),
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: Duration(milliseconds: 300),
                   height: (ratio * 120).clamp(4.0, 120.0),
                   decoration: BoxDecoration(
                     color: barColor,
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text(
                   DateFormat('E').format(day)[0],
                   style: TextStyle(
@@ -1498,19 +1498,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 1),
+            padding: EdgeInsets.symmetric(horizontal: 1),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: Duration(milliseconds: 300),
                   height: (ratio * 120).clamp(4.0, 120.0),
                   decoration: BoxDecoration(
                     color: barColor,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   showLabel ? '${day.day}' : '',
                   style: TextStyle(
@@ -1540,7 +1540,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           AppColors.ink,
           Icons.local_fire_department,
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10),
         _statCard(
           'On target',
           '$_daysOnTarget',
@@ -1548,7 +1548,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           AppColors.green,
           Icons.check_circle_outline,
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10),
         _statCard(
           'Remaining',
           '${(passedGoal - _totalCalories).clamp(0, 999999)}',
@@ -1565,7 +1565,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       child: Semantics(
       label: '$label: $value $unit',
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
@@ -1575,7 +1575,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: color, size: 22),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Text(
               value,
               style: TextStyle(
@@ -1586,19 +1586,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 fontFeatures: [ui.FontFeature.tabularFigures()],
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               unit,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.muted,
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppColors.ink,
@@ -1614,7 +1614,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         color: AppColors.ink,
@@ -1632,7 +1632,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: 'Macro overview',
       child: Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(24),
@@ -1668,7 +1668,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   : Container(color: AppColors.track),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -1691,7 +1691,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           height: 10,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         Text(
           '${value.round()}$unit',
           style: TextStyle(
@@ -1701,10 +1701,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
             fontFeatures: [ui.FontFeature.tabularFigures()],
           ),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           '$label · $pct',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w500,
             color: AppColors.muted,
@@ -1740,8 +1740,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: '$dayLabel: $cal calories',
       child: Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
@@ -1779,7 +1779,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
 
           // Info
           Expanded(
@@ -1797,15 +1797,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         fontFeatures: [ui.FontFeature.tabularFigures()],
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     if (isToday)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.ink.withValues(alpha:0.08),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Today',
                           style: TextStyle(
                             fontSize: 9,
@@ -1816,24 +1816,24 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 if (!isFuture && mealNames.isNotEmpty)
                   Text(
                     mealNames,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       color: AppColors.muted,
                     ),
                   )
                 else if (!isFuture && entries.isEmpty)
-                  const Text(
+                  Text(
                     'No meals logged',
                     style: TextStyle(fontSize: 11, color: AppColors.muted),
                   )
                 else if (isFuture)
-                  const Text(
+                  Text(
                     'Upcoming',
                     style: TextStyle(fontSize: 11, color: AppColors.muted),
                   ),
@@ -1965,7 +1965,7 @@ class _WeightChartPainter extends CustomPainter {
         final targetLabel = TextPainter(
           text: TextSpan(
             text: '${tw.toStringAsFixed(1)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w600,
               color: AppColors.green,
@@ -1988,7 +1988,7 @@ class _WeightChartPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: '${entries.last.weightKg.toStringAsFixed(1)}',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           color: AppColors.ink,
@@ -2013,7 +2013,7 @@ class _WeightChartPainter extends CustomPainter {
 class _BodyLogSheet extends StatefulWidget {
   final ValueChanged<BodyMeasurementEntry> onSave;
 
-  const _BodyLogSheet({required this.onSave});
+  _BodyLogSheet({required this.onSave});
 
   @override
   State<_BodyLogSheet> createState() => _BodyLogSheetState();
@@ -2063,17 +2063,17 @@ class _BodyLogSheetState extends State<_BodyLogSheet> {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     Widget field(String label, TextEditingController c) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: EdgeInsets.only(bottom: 10),
           child: TextField(
             controller: c,
             keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+                TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: '$label (cm)',
               filled: true,
               fillColor: AppColors.bg,
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -2087,12 +2087,12 @@ class _BodyLogSheetState extends State<_BodyLogSheet> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Log measurements',
                 style: TextStyle(
                   fontSize: 19,
@@ -2101,18 +2101,18 @@ class _BodyLogSheetState extends State<_BodyLogSheet> {
                   letterSpacing: -0.4,
                 ),
               ),
-              const SizedBox(height: 6),
-              const Text(
+              SizedBox(height: 6),
+              Text(
                 'Fill whatever you measure — leave the rest blank.',
                 style: TextStyle(fontSize: 12.5, color: AppColors.muted),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               field('Waist', _waist),
               field('Chest', _chest),
               field('Hips', _hips),
               field('Arm', _arm),
               field('Thigh', _thigh),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -2124,7 +2124,7 @@ class _BodyLogSheetState extends State<_BodyLogSheet> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: _save,
-                  child: const Text(
+                  child: Text(
                     'Save',
                     style:
                         TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
