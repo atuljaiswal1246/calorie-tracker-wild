@@ -124,10 +124,11 @@ class _CalorieAppState extends State<CalorieApp> {
       // keyboard, on every screen of the app.
       builder: (context, child) => ValueListenableBuilder<bool>(
         valueListenable: AppColors.darkNotifier,
-        builder: (_, __, snapshot) => GestureDetector(
+        child: child,
+        builder: (context, value, child) => GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: snapshot,
+          child: child,
         ),
       ),
       theme: ThemeData(
