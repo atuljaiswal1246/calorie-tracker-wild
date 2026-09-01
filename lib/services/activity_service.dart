@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:health/health.dart';
 import 'package:pedometer/pedometer.dart';
@@ -36,18 +37,22 @@ class ActivityService {
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
-    try {
-      await _health.configure();
-      final ok = await _health.requestAuthorization([HealthDataType.STEPS]);
-      if (ok) {
-        _healthReady = true;
-        _source = StepsSource.healthConnect;
-        await _refreshFromHealth();
-        return;
+    // Health Connect / HealthKit: Android only. On iOS the Health plugin
+    // uses HealthKit, which hard-crashes (SIGABRT) without the HealthKit
+    // entitlement — and an ObjC NSException can't be caught in Dart.
+    if (Platform.isAndroid) {
+      try {
+        await _health.configure();
+        final ok = await _health.requestAuthorization([HealthDataType.STEPS]);
+        if (ok) {
+          _healthReady = true;
+          _source = StepsSource.healthConnect;
+          await _refreshFromHealth();
+          return;
+        }
+      } catch (_) {
+        // Health Connect not installed / declined — fall back to sensor.
       }
-    } catch (_) {
-      // Not available (iOS without HealthKit entitlement, or Health Connect
-      // not installed / user declined) — fall back to the sensor.
     }
     _startSensor();
   }
