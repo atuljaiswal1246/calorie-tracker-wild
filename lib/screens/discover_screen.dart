@@ -5,6 +5,7 @@ import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
 import 'achievements_screen.dart';
+import 'asha_screen.dart';
 import 'challenges_screen.dart';
 import 'high_protein_meals_screen.dart';
 import 'meal_plan_screen.dart';
@@ -74,6 +75,70 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         const Text(
           'Explore tips, challenges, and meal ideas',
           style: TextStyle(fontSize: 13, color: AppColors.muted),
+        ),
+        const SizedBox(height: 20),
+
+        // Asha — AI nutrition assistant (hero card)
+        InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AshaScreen(storage: widget.storage),
+            ),
+          ),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE53935), Color(0xFFFF7043)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.auto_awesome,
+                      size: 26, color: Colors.white),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ask Asha',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        'Your AI nutrition assistant. Knows your goal, '
+                        'reads today\'s log, answers in seconds.',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: Colors.white70,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: Colors.white70),
+              ],
+            ),
+          ),
         ),
         const SizedBox(height: 20),
 

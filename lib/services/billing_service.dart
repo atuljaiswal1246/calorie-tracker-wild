@@ -105,15 +105,28 @@ class BillingService {
         await storage.setSubscriptionPlan(plan);
         await storage.savePaid(true);
         status = BillingStatus.subscribed;
-      } else if (purchase.status == PurchaseStatus.error) {
-        status = BillingStatus.failed;
-        error = 'Purchase error: ${purchase.error?.message}';
-      } else if (purchase.status == PurchaseStatus.canceled) {
-        // Cancelled — entitlement no longer renews, revoke paid access.
-        status = BillingStatus.failed;
-        error = 'Purchase cancelled';
-        await storage.savePaid(false);
-      } else {
+    } else if (purchase.status == PurchaseStatus.error) {
+      status = BillingStatus.failed;
+      error = 'Purchase error: ${purchase.error?.message}';
+    } else if (purchase.status == PurchaseStatus.canceled) {
+      // The purchase being cancelled:
+      //
+      //   * Trial/subscription expired or was cancelled -> Play will stop
+      //     renewing, but we must NOT blind-revoke: a device-side cache
+      //     could be stale while the user is still in grace/hold period, or
+      //     the account may genuinely still be active (cloud is source of
+      //     truth for paid work done on other devices).
+      //
+      //   * BUT if the user is on the no-internet edge or has no cloud doc,
+      //     the safer move is preserving the last known paid state rather
+      //     than locking them out of the app mid-test.
+      //
+      // So: do not flip savePaid(false) here. The app's `isPaid` gate will
+      // follow PaymentState from Play (cloud sync on next load) or the user
+      // can restore their purchase from the paywall via "Restore purchase".
+      status = BillingStatus.failed;
+      error = 'Subscription not active — restore your purchase from the paywall.';
+    } else {
         status = BillingStatus.pending;
       }
       onStatusChanged?.call();

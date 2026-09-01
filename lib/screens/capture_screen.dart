@@ -311,6 +311,27 @@ class _CaptureScreenState extends State<CaptureScreen> {
     }
   }
 
+  /// OpenAI often collapses any vegetable curry into a generic
+  /// "Vegetable Curry" / "Veg Sabzi" — same nutrition for bhindi, aloo
+  /// gobi and mixed veg equals wrong estimates. Flag those so the user
+  /// can switch to manual entry (typed name -> accurate macros).
+  static bool _isGenericVegCurry(String name) {
+    final n = name.toLowerCase();
+    if (!n.contains('veg') && !n.contains('sabzi') && !n.contains('curry')) {
+      return false;
+    }
+    return n.contains('vegetable') ||
+        n.startsWith('veg ') ||
+        n.startsWith('mixed veg') ||
+        n == 'sabzi' ||
+        n.contains('subzi') ||
+        n.startsWith('vegetable') ||
+        (n.contains('curry') && !RegExp(r'\b(chana|paneer|dal|chicken|egg|fish|tikka)\b').hasMatch(n));
+  }
+
+  bool get _hasGenericVegCurry =>
+      (_items ?? []).any((i) => _isGenericVegCurry(i.name));
+
   Future<void> _confirmDiscard() async {
     if (_items == null && _image == null) {
       Navigator.of(context).pop();
@@ -617,13 +638,21 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.lightbulb_outline, size: 16, color: AppColors.muted),
+                                Icon(Icons.lightbulb_outline,
+                                    size: 16, color: AppColors.muted),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Show the full plate for better accuracy',
-                                    style: TextStyle(fontSize: 12, color: AppColors.muted),
+                                    'Scan ONE food at a time for the best result. '
+                                    'A thali? Scan roti, then sabzi, then the next '
+                                    'item. Vegetable curries are most accurate '
+                                    'when typed instead (see below).',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.muted,
+                                        height: 1.35),
                                   ),
                                 ),
                               ],
@@ -646,6 +675,25 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                     onTap: () => _pickImage(ImageSource.gallery)),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ManualEntryScreen(
+                                      storage: widget.storage),
+                                ),
+                              ).then((v) {
+                                if (v == true) Navigator.pop(context, true);
+                              });
+                            },
+                            child: const Text(
+                              'Type it manually (best for vegetable curries)',
+                              style: TextStyle(
+                                  fontSize: 12.5, color: AppColors.muted),
+                            ),
                           ),
                         ],
                       ),
@@ -736,6 +784,81 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     // Results
                     if (_items != null && !_analyzing) ...[
                       const SizedBox(height: 16),
+
+                      // Generic-veg-curry suggestion: the model can't tell
+                      // bhindi from aloo gobi, so typing the exact name
+                      // gets far better macros.
+                      if (_hasGenericVegCurry) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF7E6),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: const Color(0xFFE6C567)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.info_outline,
+                                      size: 16,
+                                      color: Color(0xFF8A6D1F)),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'This looks like a generic vegetable curry. '
+                                      'Typing the exact name (e.g. "Aloo Gobi", '
+                                      '"Bhindi Fry") gives much closer calories '
+                                      'and macros. Tap to type it:',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF6B5414),
+                                          height: 1.35),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                height: 44,
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ManualEntryScreen(
+                                            storage: widget.storage),
+                                      ),
+                                    ).then((v) {
+                                      if (v == true &&
+                                          mounted) {
+                                        Navigator.pop(context, true);
+                                      }
+                                    });
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF8A6D1F),
+                                    side: const BorderSide(
+                                        color: Color(0xFFE6C567)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Type it manually',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // Meal type pills
                       Row(

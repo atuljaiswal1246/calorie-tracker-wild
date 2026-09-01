@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -6,12 +7,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
 import '../services/achievements_service.dart';
+import '../services/asha_prompts.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../services/notification_service.dart';
@@ -30,6 +30,9 @@ import 'meal_plan_screen.dart';
 import 'onboarding_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
+import 'asha_screen.dart';
+import 'quick_picks_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final StorageService storage;
@@ -269,101 +272,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (saved == true) _load();
   }
 
-  Future<void> _signOut() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text('Your meals are saved to your account.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sign out'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await widget.auth.signOut();
-      if (!mounted) return;
-      widget.onSignedOut();
-    }
-  }
-
-  Future<void> _toggleReminders() async {
-    final enabled = widget.storage.remindersEnabled;
-    if (!enabled) {
-      await NotificationService.requestPermissions();
-    }
-    await widget.storage.saveRemindersEnabled(!enabled);
-    if (enabled) {
-      await NotificationService.cancelAll();
-    } else {
-      // Water nudges always; meal prompts only if user opted in.
-      await NotificationService.scheduleAll(
-        water: true,
-        meal: widget.storage.mealRemindersEnabled,
-      );
-    }
-    _load();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(!enabled
-            ? 'Water reminders on (6 nudges/day). Meal prompts via Settings.'
-            : 'Water reminders off'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  Future<void> _exportData() async {
-    final data = widget.storage.exportJson();
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/cal_matters_export_${DateTime.now().millisecondsSinceEpoch}.json');
-    await file.writeAsString(data);
-    if (file.existsSync()) {
-      await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path)]),
-      );
-    }
-  }
-
-  Future<void> _confirmResetGoals() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Reset goals?'),
-        content: const Text(
-          'This clears your profile and takes you back to the '
-          'questionnaire to set new goals.\n\n'
-          'Your meal logs, water, weight and fasting history are kept. '
-          'Payment and trial status are NOT affected.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Reset', style: TextStyle(color: AppColors.missedRed)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await widget.storage.resetProfile();
-      if (!mounted) return;
-      widget.onResetGoals();
-    }
-  }
-
   Future<void> _deleteEntry(FoodEntry entry) async {
     HapticFeedback.mediumImpact();
     final confirmed = await showDialog<bool>(
@@ -485,7 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: const StadiumBorder(),
               ),
               child: const Text(
-                'Unlock — ₹100/mo or ₹1,100/yr',
+                'Unlock — ₹100/mo or ₹1,000/yr',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
@@ -499,14 +407,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => _billing?.restore(),
             child: const Text(
               'Restore purchase',
-              style: TextStyle(fontSize: 14, color: AppColors.muted),
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              'Maybe later',
               style: TextStyle(fontSize: 14, color: AppColors.muted),
             ),
           ),
@@ -561,6 +461,65 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
           const SizedBox(height: 22),
+          // Asha — always visible, chat-style prompt on Home
+          InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AshaScreen(storage: widget.storage),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE53935), Color(0xFFFF7043)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.auto_awesome,
+                        size: 21, color: Colors.white),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Ask Asha',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        _AshaTicker(),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right,
+                      color: Colors.white70, size: 20),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           _weekSelector(calorieGoal: goal),
           const SizedBox(height: 20),
           CaloriesCard(
@@ -1681,6 +1640,7 @@ class _HomeScreenState extends State<HomeScreen> {
       (Icons.photo_library_outlined, 'Upload photo', _openGallery),
       (Icons.edit_note, 'Add manually', _openManualEntry),
       (Icons.qr_code_2, 'Barcode', _openBarcodeScanner),
+      (Icons.restaurant_menu, 'Popular dishes', _openQuickPicks),
     ];
 
     return Container(
@@ -1713,7 +1673,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ],
                 ),
-                // Page 2: 4th action — SAME 1/3 width as page-1 tiles
+                // Page 2: Barcode + Popular dishes — SAME 1/3 width as page-1 tiles
                 Row(
                   children: [
                     Expanded(
@@ -1724,7 +1684,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    const Expanded(child: SizedBox()),
+                    Expanded(
+                      child: _logOption(
+                        icon: actions[4].$1,
+                        label: actions[4].$2,
+                        onTap: actions[4].$3,
+                      ),
+                    ),
                     const SizedBox(width: 10),
                     const Expanded(child: SizedBox()),
                   ],
@@ -1832,6 +1798,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     _load();
+  }
+
+  Future<void> _openQuickPicks() async {
+    if (!mounted) return;
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => QuickPicksScreen(storage: widget.storage),
+      ),
+    );
+    if (saved == true) _load();
   }
 
   // ================= Placeholder tabs =================
@@ -2139,69 +2115,63 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         const SizedBox(height: 24),
 
-        // Settings
-        const Text(
-          'Settings',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: AppColors.ink,
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: AppColors.cardShadow,
-          ),
-          child: Column(
-            children: [
-              _settingsRow(
-                icon: Icons.notifications_active_outlined,
-                label: 'Reminders',
-                subtitle: widget.storage.remindersEnabled
-                    ? 'Water & meal reminders on'
-                    : 'Off',
-                onTap: () async => _toggleReminders(),
+        // Settings — single entry into the dedicated Settings screen
+        InkWell(
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => SettingsScreen(
+                  storage: widget.storage,
+                  onResetGoals: () {
+                    Navigator.of(context).pop();
+                    widget.onResetGoals();
+                  },
+                  onSignOut: () async {
+                    await widget.auth.signOut();
+                    if (!mounted) return;
+                    widget.onSignedOut();
+                  },
+                ),
               ),
-              const Divider(height: 1, color: AppColors.divider),
-              _settingsRow(
-                icon: Icons.share_outlined,
-                label: 'Export data',
-                subtitle: 'Download your logs as JSON',
-                onTap: _exportData,
-              ),
-              const Divider(height: 1, color: AppColors.divider),
-              _settingsRow(
-                icon: Icons.restart_alt,
-                label: 'Reset goals',
-                subtitle: 'Start the questionnaire over',
-                onTap: _confirmResetGoals,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: Text(
-            'Calorie Tracker v0.9.0',
-            style: TextStyle(fontSize: 12, color: AppColors.muted.withValues(alpha: 0.6)),
-          ),
-        ),
-        const SizedBox(height: 20),
-        OutlinedButton(
-          onPressed: _signOut,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.missedRed,
-            side: BorderSide(color: AppColors.missedRed.withValues(alpha: 0.4)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+            );
+            _load();
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: AppColors.cardShadow,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: AppColors.ink.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.settings_outlined,
+                      size: 20, color: AppColors.ink),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Settings',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right,
+                    size: 20, color: AppColors.muted),
+              ],
             ),
           ),
-          child: const Text('Sign out'),
         ),
       ],
     );
@@ -2270,55 +2240,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _settingsRow({
-    required IconData icon,
-    required String label,
-    String? subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.ink.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, size: 18, color: AppColors.ink),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle,
-                      style: const TextStyle(fontSize: 12, color: AppColors.muted),
-                    ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, size: 20, color: AppColors.muted),
-          ],
-        ),
       ),
     );
   }
@@ -2500,4 +2421,63 @@ class _MiniWeightChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(_MiniWeightChartPainter old) =>
       old.weights != weights || old.minWeight != minWeight || old.range != range;
+}
+
+/// Rotating Asha prompt on the Home card — a new wild question every
+/// few seconds so it always feels alive. Changes call attention to her
+/// ("wait, what?") — screenshot/Reel bait.
+class _AshaTicker extends StatefulWidget {
+  @override
+  State<_AshaTicker> createState() => _AshaTickerState();
+}
+
+class _AshaTickerState extends State<_AshaTicker> {
+  String _text = AshaPrompts.next();
+  int _tick = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 8), (_) {
+      setState(() {
+        _tick++;
+        _text = AshaPrompts.next(tick: _tick);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      transitionBuilder: (child, anim) => FadeTransition(
+        opacity: anim,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.35),
+            end: Offset.zero,
+          ).animate(anim),
+          child: child,
+        ),
+      ),
+      child: Text(
+        _text,
+        key: ValueKey(_text),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 12.5,
+          color: Colors.white.withValues(alpha: 0.9),
+          height: 1.3,
+        ),
+      ),
+    );
+  }
 }

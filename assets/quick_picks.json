@@ -1,0 +1,146 @@
+[
+ {
+  "label": "Poha",
+  "dbName": "Poha"
+ },
+ {
+  "label": "Upma",
+  "dbName": "Semolina upma (Suji/Rava upma)"
+ },
+ {
+  "label": "Idli",
+  "dbName": "Idli"
+ },
+ {
+  "label": "Masala Dosa",
+  "dbName": "Masala dosa"
+ },
+ {
+  "label": "Chicken Biryani",
+  "dbName": "Mutton biryani/biriyani"
+ },
+ {
+  "label": "Vegetable Biryani",
+  "dbName": "Vegetable biryani/biriyani"
+ },
+ {
+  "label": "Chapati / Roti",
+  "dbName": "Chapati/Roti"
+ },
+ {
+  "label": "Plain Paratha",
+  "dbName": "Plain parantha/paratha"
+ },
+ {
+  "label": "Rajma",
+  "dbName": "Rajmah, red"
+ },
+ {
+  "label": "Chole",
+  "dbName": "Chickpeas curry (Safed channa curry)"
+ },
+ {
+  "label": "Dal (any)",
+  "dbName": "Bengal gram, dal"
+ },
+ {
+  "label": "Dal Makhani",
+  "dbName": "Dal makhani"
+ },
+ {
+  "label": "Palak Paneer",
+  "dbName": "Spinach paneer (Palak paneer)"
+ },
+ {
+  "label": "Paneer Tikka",
+  "dbName": "Paneer shaslik/tikka"
+ },
+ {
+  "label": "Bhindi Fry",
+  "dbName": "Okra/Lady's fingers fry (Bhindi sabzi/sabji/subji)"
+ },
+ {
+  "label": "Aloo (boiled)",
+  "dbName": "Potato, brown skin, big"
+ },
+ {
+  "label": "Samosa",
+  "dbName": "Potato samosa (Aloo ka samosa)"
+ },
+ {
+  "label": "Medu Vada",
+  "dbName": "Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada)"
+ },
+ {
+  "label": "Pav Bhaji",
+  "dbName": "Pav bhaji"
+ },
+ {
+  "label": "Egg Omelette",
+  "dbName": "Plain omelette/omlet"
+ },
+ {
+  "label": "Chicken Curry",
+  "dbName": "Chicken curry"
+ },
+ {
+  "label": "Tandoori Chicken",
+  "dbName": "Tandoori chicken"
+ },
+ {
+  "label": "Dhokla / Khaman",
+  "dbName": "Khaman (dhokla)"
+ },
+ {
+  "label": "Pulao",
+  "dbName": "Plain pulao"
+ },
+ {
+  "label": "Kadhi Pakoda",
+  "dbName": "Besan kadhi with pakodies"
+ },
+ {
+  "label": "Rice Kheer",
+  "dbName": "Rice kheer (Chawal ki kheer)"
+ },
+ {
+  "label": "Gulab Jamun",
+  "dbName": "Gulab Jamun with khoya"
+ },
+ {
+  "label": "Rasgulla",
+  "dbName": "Rasgulla"
+ },
+ {
+  "label": "Sweet Lassi",
+  "dbName": "Sweet Lassi (Meethi lassi)"
+ },
+ {
+  "label": "Milk Tea (Chai)",
+  "dbName": "Hot tea (Garam Chai)"
+ },
+ {
+  "label": "Naan",
+  "dbName": "Naan"
+ },
+ {
+  "label": "Glass of Milk",
+  "dbName": "Milk, whole, Cow"
+ },
+ {
+  "label": "Fish Curry",
+  "dbName": "Fish curry (Machli curry)"
+ },
+ {
+  "label": "Curd / Dahi",
+  "dbName": "Curd (Dahi)"
+ },
+ {
+  "label": "Banana",
+  "dbName": "Banana, ripe, montham"
+ },
+ {
+  "label": "Apple",
+  "dbName": "Apple, big"
+ }
+]

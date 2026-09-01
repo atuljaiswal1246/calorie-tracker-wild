@@ -38,6 +38,7 @@ class _CalorieAppState extends State<CalorieApp> {
   // wrong screens (e.g. pricing before the questionnaire).
   bool _onboardingAtSignup = false;
   bool _onboardingAtPricing = false;
+  int? _onboardingAtStep;
 
   @override
   void initState() {
@@ -49,6 +50,7 @@ class _CalorieAppState extends State<CalorieApp> {
     final profileExists = widget.storage.profile != null;
     _onboardingAtSignup = false;
     _onboardingAtPricing = false;
+    _onboardingAtStep = null;
     // If already signed in (app relaunch), restore session.
     if (widget.auth.isSignedIn) {
       await _onAuthenticated();
@@ -61,6 +63,12 @@ class _CalorieAppState extends State<CalorieApp> {
       } else {
         _goTo(_AppScreen.home);
       }
+    } else if (widget.storage.onboardingDraft != null) {
+      // Mid-journey guest: resume at the saved step (goal page, sign-up
+      // or payment) instead of restarting the whole questionnaire.
+      final step = (widget.storage.onboardingDraft!['step'] as num?) ?? 0;
+      _onboardingAtStep = step.toInt();
+      _goTo(_AppScreen.onboarding);
     } else {
       _goTo(_AppScreen.welcome);
     }
@@ -83,8 +91,13 @@ class _CalorieAppState extends State<CalorieApp> {
     if (!mounted) return;
     if (profile == null) {
       // Signed in but never completed the questionnaire — must fill it.
+      // Resume at the saved step if they were mid-journey (draft).
       _onboardingAtSignup = false;
       _onboardingAtPricing = false;
+      final draft = widget.storage.onboardingDraft;
+      _onboardingAtStep = draft != null
+          ? ((draft['step'] as num?) ?? 0).toInt().clamp(0, 6)
+          : null;
       _goTo(_AppScreen.onboarding);
     } else if (widget.storage.isPaidOrSandbox(
         authEmail: widget.auth.currentUser?.email)) {
@@ -154,10 +167,12 @@ class _CalorieAppState extends State<CalorieApp> {
             onBack: () {
               _onboardingAtSignup = false;
               _onboardingAtPricing = false;
+              _onboardingAtStep = null;
               _goTo(_AppScreen.welcome);
             },
             startAtPricing: _onboardingAtPricing,
             startAtSignup: _onboardingAtSignup,
+            startAtStep: _onboardingAtStep,
           ),
         _AppScreen.home => HomeScreen(
             storage: widget.storage,
@@ -170,6 +185,8 @@ class _CalorieAppState extends State<CalorieApp> {
               // Reset goals = re-answer the questionnaire from scratch.
               _onboardingAtSignup = false;
               _onboardingAtPricing = false;
+              _onboardingAtStep = null;
+              widget.storage.clearOnboardingDraft();
               _goTo(_AppScreen.onboarding);
             },
           ),

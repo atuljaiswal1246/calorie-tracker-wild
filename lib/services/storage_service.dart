@@ -50,6 +50,7 @@ class WeightEntry {
 class StorageService {
   static const _profileKey = 'user_profile';
   static const _entriesKey = 'food_entries';
+  static const _onboardingDraftKey = 'onboarding_draft';
 
   /// Version key for the payment state. Bumped when the payment model
   /// changes so stale flags (e.g. old test-stub "paid=true") are wiped.
@@ -133,6 +134,26 @@ class StorageService {
         // Cloud not reachable — local clear is enough for the reset flow.
       }
     }
+  }
+
+  // ---- Onboarding draft (journey save at goal / sign-up / payment) ----
+
+  /// Answers + step saved as the user moves through the questionnaire so
+  /// a relaunch resumes exactly where they left off (goal page, sign-up
+  /// screen or payment page) instead of restarting the journey.
+  Map<String, dynamic>? get onboardingDraft {
+    final raw = _prefs.getString(_onboardingDraftKey);
+    if (raw == null) return null;
+    return jsonDecode(raw) as Map<String, dynamic>;
+  }
+
+  Future<void> saveOnboardingDraft(Map<String, dynamic> draft) async {
+    await _prefs.setString(_onboardingDraftKey, jsonEncode(draft));
+  }
+
+  /// Removes the saved journey (called on completion / full reset).
+  Future<void> clearOnboardingDraft() async {
+    await _prefs.remove(_onboardingDraftKey);
   }
 
   // ---- Entries ----

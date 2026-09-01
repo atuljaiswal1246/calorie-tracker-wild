@@ -1,17 +1,20 @@
 /**
  * Cal Matters — AI proxy (Cloudflare Worker).
  *
- * The AICredits key lives in the Worker secret `AICREDITS_KEY` (never in code
- * or the app). The app POSTs here; we attach the key and forward to
- * AICredits (OpenAI-compatible endpoint).
+ * The AI key lives in the Worker secret `OPENCODE_KEY` (never in code or the
+ * app). The app POSTs here; we attach the key and forward to OpenCode Go
+ * (OpenAI-compatible endpoint) — much cheaper than AICredits.
  *
  * The app sends an OpenAI-format chat-completions body (with optional
- * image_url parts for food photos). We forward it verbatim with the key.
+ * image_url parts for food photos, model deepseek-v4-flash-vision-exp).
+ * We forward it verbatim with the key.
  *
  * Optional per-device daily quota via KV binding `QUOTA` — if the binding
  * is absent the worker simply skips quota checks (still safe: Cloudflare
  * free tier caps requests/day per worker).
  */
+
+const UPSTREAM = "https://opencode.ai/zen/go/v1/chat/completions";
 
 export default {
   async fetch(request, env) {
@@ -19,9 +22,9 @@ export default {
       return json(405, { error: "Method not allowed" });
     }
 
-    const apiKey = env.AICREDITS_KEY || "";
+    const apiKey = env.OPENCODE_KEY || "";
     if (!apiKey) {
-      return json(500, { error: "Server not configured (missing AICREDITS_KEY)" });
+      return json(500, { error: "Server not configured (missing OPENCODE_KEY)" });
     }
 
     let body;
@@ -51,9 +54,9 @@ export default {
       }
     }
 
-    // Forward to AICredits (OpenAI-compatible)
+    // Forward to OpenCode Go (OpenAI-compatible)
     try {
-      const upstream = await fetch("https://aicredits.in/v1/chat/completions", {
+      const upstream = await fetch(UPSTREAM, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,7 +70,7 @@ export default {
         headers: { "Content-Type": "application/json" },
       });
     } catch (e) {
-      return json(502, { error: "AICredits upstream failed", detail: e.message });
+      return json(502, { error: "OpenCode Go upstream failed", detail: e.message });
     }
   },
 };

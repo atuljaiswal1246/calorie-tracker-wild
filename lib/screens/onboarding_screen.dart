@@ -23,6 +23,11 @@ class OnboardingScreen extends StatefulWidget {
   /// user dropped off before creating an account).
   final bool startAtSignup;
 
+  /// Start at a saved position in the questionnaire (a relaunch mid-journey:
+  /// the user had reached the goal page, sign-up or payment and reopens the
+  /// app — resume where they left off, never restart).
+  final int? startAtStep;
+
   const OnboardingScreen({
     super.key,
     required this.storage,
@@ -31,6 +36,7 @@ class OnboardingScreen extends StatefulWidget {
     required this.onBack,
     this.startAtPricing = false,
     this.startAtSignup = false,
+    this.startAtStep,
   });
 
   @override
@@ -100,6 +106,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else if (widget.startAtSignup) {
       _restoreFromSavedProfile();
       _step = _signupStep;
+    } else if (widget.startAtStep != null && widget.startAtStep! > 0) {
+      // Resume mid-journey from the saved draft (0 < step < plan summary).
+      _restoreFromDraft(widget.storage.onboardingDraft);
+      _step = widget.startAtStep!.clamp(0, _totalSteps - 1);
     }
   }
 
@@ -119,6 +129,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _height = p.heightCm;
     _workoutFreq = p.workoutFreq;
     _pace = p.pace;
+  }
+
+  /// Restore answers from the saved draft (mid-questionnaire relaunch).
+  void _restoreFromDraft(Map<String, dynamic>? d) {
+    if (d == null) return;
+    final name = d['name'] as String?;
+    _nameController.text = name ?? '';
+    final dob = d['dob'] as String?;
+    _dob = dob != null ? DateTime.tryParse(dob) : null;
+    _sex = d['sex'] as String?;
+    _goal = (d['goal'] as String?) ?? _goals.first.value;
+    _weight = (d['weightKg'] as num?)?.toDouble() ?? 70;
+    _targetWeight = (d['targetWeightKg'] as num?)?.toDouble() ?? _weight;
+    _noTarget = (d['noTarget'] as bool?) ?? false;
+    _height = (d['heightCm'] as num?)?.toDouble() ?? 165;
+    _workoutFreq =
+        (d['workoutFreq'] as String?) ?? _workoutFreqs.first.value;
+    _pace = (d['pace'] as String?) ?? 'fast';
+  }
+
+  /// Persist the journey: current step + answers, so killing the app at the
+  /// goal page, sign-up screen or payment screen resumes in place.
+  void _saveDraft() {
+    final dobIso = _dob == null
+        ? null
+        : '${_dob!.year.toString().padLeft(4, '0')}-'
+            '${_dob!.month.toString().padLeft(2, '0')}-'
+            '${_dob!.day.toString().padLeft(2, '0')}';
+    widget.storage.saveOnboardingDraft({
+      'step': _step,
+      'name': _nameController.text.trim(),
+      'dob': dobIso,
+      'sex': _sex,
+      'goal': _goal,
+      'weightKg': _weight,
+      'targetWeightKg': _targetWeightValue(),
+      'noTarget': _noTarget,
+      'heightCm': _height,
+      'workoutFreq': _workoutFreq,
+      'pace': _pace,
+      'calorieOverride': _calorieOverride,
+      'proteinOverride': _proteinOverride,
+      'carbsOverride': _carbsOverride,
+      'fatOverride': _fatOverride,
+    });
   }
 
   @override
@@ -181,6 +236,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (_skipTargetQuestions && _step == 3) _step += 1;
       if (_skipTargetQuestions && _step == 6) _step += 1;
     });
+    _saveDraft();
   }
 
   void _toPlan() {
@@ -189,6 +245,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // If the user abandons here, next launch resumes at sign-up with their
     // answers intact instead of restarting the questionnaire.
     widget.storage.saveProfile(_buildProfile());
+    _saveDraft();
   }
 
   Future<void> _goToPricing() async {
@@ -205,6 +262,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       setState(() => _step = _signupStep);
     }
+    _saveDraft();
   }
 
   Future<void> _onPaid() async {
@@ -224,6 +282,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (_skipTargetQuestions && _step == 6) _step--;
       if (_skipTargetQuestions && _step == 3) _step--;
     });
+    _saveDraft();
   }
 
   /// True when target-weight & pace questions shouldn't be shown:
@@ -265,6 +324,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _finish() async {
     final profile = _buildProfile();
     await widget.storage.saveProfile(profile);
+    // Journey complete — never resume mid-questionnaire again.
+    await widget.storage.clearOnboardingDraft();
     widget.onComplete();
   }
 
@@ -282,6 +343,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             _goToPricing();
           } else {
             setState(() => _step = _signupStep);
+            _saveDraft();
           }
         },
         onBack: () => setState(() {
@@ -346,48 +408,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           );
           if (v != null) setState(() => _calorieOverride = v.round());
         },
-        onEditProtein: () async {
-          final base =
-              _proteinOverride ?? _buildProfile().proteinGrams;
-          final v = await _showNumberEdit(
-            context,
-            title: 'Edit protein target',
-            initialValue: base.toDouble(),
-            min: 20,
-            max: 400,
-            suffix: 'g',
-            allowDecimal: false,
-          );
-          if (v != null) setState(() => _proteinOverride = v.round());
-        },
-        onEditCarbs: () async {
-          final base =
-              _carbsOverride ?? _buildProfile().carbsGrams;
-          final v = await _showNumberEdit(
-            context,
-            title: 'Edit carbs target',
-            initialValue: base.toDouble(),
-            min: 20,
-            max: 600,
-            suffix: 'g',
-            allowDecimal: false,
-          );
-          if (v != null) setState(() => _carbsOverride = v.round());
-        },
-        onEditFat: () async {
-          final base =
-              _fatOverride ?? _buildProfile().fatGrams;
-          final v = await _showNumberEdit(
-            context,
-            title: 'Edit fat target',
-            initialValue: base.toDouble(),
-            min: 10,
-            max: 300,
-            suffix: 'g',
-            allowDecimal: false,
-          );
-          if (v != null) setState(() => _fatOverride = v.round());
-        },
       );
     }
     if (_step == _signupStep) {
@@ -404,6 +424,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             return;
           }
           setState(() => _step = _pricingStep);
+          _saveDraft();
         },
         onBack: () => setState(() => _step = _planStep),
       );
@@ -412,7 +433,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       return PricingScreen(
         storage: widget.storage,
         onPaid: _onPaid,
-        onBack: _back,
       );
     }
 
@@ -2077,9 +2097,6 @@ class _PlanSummaryScreen extends StatefulWidget {
   final Future<void> Function() onEditWeight;
   final Future<void> Function() onEditTarget;
   final Future<void> Function() onEditCalories;
-  final Future<void> Function() onEditProtein;
-  final Future<void> Function() onEditCarbs;
-  final Future<void> Function() onEditFat;
 
   const _PlanSummaryScreen({
     required this.profile,
@@ -2090,9 +2107,6 @@ class _PlanSummaryScreen extends StatefulWidget {
     required this.onEditWeight,
     required this.onEditTarget,
     required this.onEditCalories,
-    required this.onEditProtein,
-    required this.onEditCarbs,
-    required this.onEditFat,
   });
 
   @override
@@ -2212,7 +2226,7 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Macros
+                    // Macros (not editable — part of the locked plan)
                     const Text('Your daily macros',
                         style: TextStyle(
                             fontSize: 15,
@@ -2226,30 +2240,28 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                           child: _MacroChip(
                               label: 'Protein',
                               grams: profile.proteinGrams,
-                              color: const Color(0xFFE53935),
-                              onEdit: widget.onEditProtein),
+                              color: const Color(0xFFE53935)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _MacroChip(
                               label: 'Carbs',
                               grams: profile.carbsGrams,
-                              color: const Color(0xFF43A047),
-                              onEdit: widget.onEditCarbs),
+                              color: const Color(0xFF43A047)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _MacroChip(
                               label: 'Fat',
                               grams: profile.fatGrams,
-                              color: const Color(0xFFFB8C00),
-                              onEdit: widget.onEditFat),
+                              color: const Color(0xFFFB8C00)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
 
-                    // Body Mass Index
+                    // Body Mass Index — category label is the hero, number
+                    // is secondary.
                     const Text('Your BMI',
                         style: TextStyle(
                             fontSize: 15,
@@ -2258,75 +2270,6 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
                             letterSpacing: -0.3)),
                     const SizedBox(height: 10),
                     _BmiCard(profile: profile),
-                    const SizedBox(height: 24),
-
-                    // What you selected (editable)
-                    const Text('Your details',
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                            letterSpacing: -0.3)),
-                    const SizedBox(height: 10),
-                    _DetailRow(
-                      icon: Icons.monitor_weight,
-                      label: 'Current weight',
-                      value: '${profile.weightKg.round()} kg',
-                      onEdit: widget.onEditWeight,
-                    ),
-                    _DetailRow(
-                      icon: Icons.height,
-                      label: 'Height',
-                      value: _heightLabel(profile.heightCm),
-                      onEdit: widget.onEditHeight,
-                    ),
-                    _DetailRow(
-                      icon: Icons.cake,
-                      label: 'Age',
-                      value: '${profile.age} years',
-                      onEdit: widget.onEditAge,
-                    ),
-                    _DetailRow(
-                      icon: Icons.flag,
-                      label: 'Target weight',
-                      value: profile.targetWeightKg == null
-                          ? 'No target'
-                          : '${profile.targetWeightKg!.round()} kg',
-                      onEdit: profile.targetWeightKg == null
-                          ? null
-                          : widget.onEditTarget,
-                    ),
-                    _DetailRow(
-                      icon: Icons.person_outline,
-                      label: 'Goal',
-                      value: _goalLabel(),
-                      onEdit: null,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // How to reach your goal
-                    const Text('How to reach your goal',
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                            letterSpacing: -0.3)),
-                    const SizedBox(height: 10),
-                    const _HowCard(
-                      icon: Icons.restaurant,
-                      title: 'Track your calories',
-                      subtitle: 'Log your meals with a photo every day.',
-                    ),
-                    const _HowCard(
-                      icon: Icons.donut_large,
-                      title: 'Hit your daily macros',
-                      subtitle: 'Balance protein, carbs and fat.',
-                    ),
-                    const _HowCard(
-                      icon: Icons.monitor_weight_outlined,
-                      title: 'Track your weight',
-                      subtitle: 'Weigh in weekly to stay on course.',
-                    ),
                     const SizedBox(height: 24),
 
                     // Why Cal Matters
@@ -2415,12 +2358,6 @@ class _PlanSummaryScreenState extends State<_PlanSummaryScreen> {
         ),
       ),
     );
-  }
-
-  String _heightLabel(double cm) {
-    final feet = (cm / 30.48).floor();
-    final inches = ((cm / 2.54) - feet * 12).round();
-    return "$feet' $inches\"";
   }
 }
 
@@ -2728,72 +2665,64 @@ class _BmiCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: categoryColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black12),
+        border: Border.all(color: categoryColor.withValues(alpha: 0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // THE label — biggest thing on the card, tells the story
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                bmi.toStringAsFixed(1),
-                style: const TextStyle(
-                    fontSize: 44,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                    letterSpacing: -1),
-              ),
-              const SizedBox(width: 8),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 6),
-                child: Text('BMI',
-                    style: TextStyle(fontSize: 16, color: Colors.black54)),
-              ),
-              const Spacer(),
-              // Category pill
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
+                  color: categoryColor,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      switch (category) {
-                        'under' => Icons.trending_down,
-                        'over' || 'obese' => Icons.trending_up,
-                        _ => Icons.check_circle,
-                      },
-                      size: 14,
-                      color: categoryColor,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: categoryColor,
-                      ),
-                    ),
-                  ],
+                child: Icon(
+                  switch (category) {
+                    'under' => Icons.trending_down,
+                    'over' || 'obese' => Icons.trending_up,
+                    _ => Icons.check_circle,
+                  },
+                  size: 22,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: categoryColor,
+                    letterSpacing: -0.5,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
+          // Number secondary — small, quiet under the headline
+          Text(
+            'BMI $bmi • ${_categoryRange(category)}',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 6),
           Text(
             message,
             style: const TextStyle(
-                fontSize: 14, color: Colors.black54, height: 1.4),
+                fontSize: 13.5, color: Colors.black54, height: 1.4),
           ),
           const SizedBox(height: 12),
           // Category scale (4 segments)
@@ -2816,6 +2745,13 @@ class _BmiCard extends StatelessWidget {
       ),
     );
   }
+
+  static String _categoryRange(String category) => switch (category) {
+        'under' => 'below 18.5',
+        'over' => '25 – 29.9',
+        'obese' => '30 or higher',
+        _ => '18.5 – 24.9',
+      };
 
   Widget _segment(String label, Color color, bool active) {
     return Expanded(
@@ -2935,12 +2871,10 @@ class _HowCard extends StatelessWidget {
 class PricingScreen extends StatefulWidget {
   final StorageService storage;
   final VoidCallback onPaid;
-  final VoidCallback? onBack;
 
   const PricingScreen({
     required this.storage,
     required this.onPaid,
-    this.onBack,
   });
 
   @override
@@ -2973,11 +2907,23 @@ class PricingScreenState extends State<PricingScreen> {
   void initState() {
     super.initState();
     _billing = BillingService(widget.storage);
-    _billing.onStatusChanged = () {
-      if (!mounted) return;
-      setState(() {});
-    };
+    _billing.onStatusChanged = _handleStatus;
     _loadProducts();
+  }
+
+  /// The purchase stream flips billing.status asynchronously (after the
+  /// Play flow closes), so react to it here — otherwise a completed payment
+  /// would leave the user stuck on the payment wall until relaunch.
+  void _handleStatus() {
+    if (!mounted) return;
+    setState(() {});
+    if (_billing.status == BillingStatus.subscribed && !_approved) {
+      setState(() => _approved = true);
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+        widget.onPaid();
+      });
+    }
   }
 
   Future<void> _loadProducts() async {
@@ -3018,10 +2964,7 @@ class PricingScreenState extends State<PricingScreen> {
     // Purchase flow returns; stream handles final status.
     // If status became subscribed (immediate), finish.
     if (_billing.status == BillingStatus.subscribed) {
-      setState(() => _approved = true);
-      await Future.delayed(const Duration(milliseconds: 1200));
-      if (!mounted) return;
-      widget.onPaid();
+      _handleStatus();
     }
     setState(() {});
   }
@@ -3052,19 +2995,9 @@ class PricingScreenState extends State<PricingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top bar with back button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed:
-                      widget.onBack ?? () => Navigator.of(context).maybePop(),
-                  tooltip: 'Back',
-                ),
-              ),
-            ),
+            // No back button: once at the payment page the only way is
+            // forward (pay or restore an existing purchase).
+            const SizedBox(height: 6),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.zero,
@@ -3133,7 +3066,7 @@ class PricingScreenState extends State<PricingScreen> {
                           // Yearly (default selected)
                           _PlanOptionCard(
                             selected: _yearly,
-                            badge: '30 days free',
+                            badge: '3 days free',
                             left: 'Start for free & save $_savingsPercent%',
                             right: '${_inr(_yearlyPrice)}/year',
                             sub: 'About ${_inr(_monthlyPrice)}/month · ${_inr(_yearlyPrice)} billed annually',
@@ -3143,10 +3076,10 @@ class PricingScreenState extends State<PricingScreen> {
                           // Monthly
                           _PlanOptionCard(
                             selected: !_yearly,
-                            badge: '15 days free',
+                            badge: '3 days free',
                             left: 'Monthly',
                             right: '${_inr(_monthlyPrice)}/month',
-                            sub: '15 days free, then ${_inr(_monthlyPrice)}/month',
+                            sub: '3 days free, then ${_inr(_monthlyPrice)}/month',
                             onTap: () => setState(() => _yearly = false),
                           ),
                         ],
@@ -3199,8 +3132,8 @@ class PricingScreenState extends State<PricingScreen> {
                         children: [
                           Text(
                             _yearly
-                                ? '30 days free, then ${_inr(_yearlyPrice)} per year. '
-                                : '15 days free, then ${_inr(_monthlyPrice)} per month. ',
+                                ? '3 days free, then ${_inr(_yearlyPrice)} per year. '
+                                : '3 days free, then ${_inr(_monthlyPrice)} per month. ',
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.black38),
                           ),
@@ -3501,53 +3434,46 @@ class _MacroChip extends StatelessWidget {
   final String label;
   final int grams;
   final Color color;
-  final Future<void> Function() onEdit;
 
   const _MacroChip({
     required this.label,
     required this.grams,
     required this.color,
-    required this.onEdit,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onEdit,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.black12),
-        ),
-        child: Column(
-          children: [
-            Text('$grams g',
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.4)),
-            const SizedBox(height: 2),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration:
-                      BoxDecoration(color: color, shape: BoxShape.circle),
-                ),
-                const SizedBox(width: 6),
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 12, color: Colors.black54)),
-              ],
-            ),
-            const SizedBox(height: 4),
-            const Icon(Icons.edit_outlined, size: 14, color: Colors.black26),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Column(
+        children: [
+          Text('$grams g',
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4)),
+          const SizedBox(height: 2),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration:
+                    BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Text(label,
+                  style: const TextStyle(
+                      fontSize: 12, color: Colors.black54)),
+            ],
+          ),
+        ],
       ),
     );
   }

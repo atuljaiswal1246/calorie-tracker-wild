@@ -80,6 +80,16 @@ class FoodSearchService {
     return _allFoods!;
   }
 
+  /// Exact full-name lookup (used by quick picks to log with exact macros).
+  static Future<FoodDBItem?> byFullName(String name) async {
+    final foods = await _loadFoods();
+    final lower = name.toLowerCase();
+    for (final f in foods) {
+      if (f.name.toLowerCase() == lower) return f;
+    }
+    return null;
+  }
+
   static Future<List<FoodDBItem>> search(String query, {int limit = 20}) async {
     final foods = await _loadFoods();
     if (query.trim().isEmpty) return [];

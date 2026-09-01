@@ -6,12 +6,12 @@ import 'package:http/http.dart' as http;
 
 import '../models/food_entry.dart';
 
-/// Calls AICredits (OpenAI-compatible) through the Cloudflare worker proxy.
+/// Calls OpenCode Go (OpenAI-compatible) through the Cloudflare worker proxy.
 /// No API key is needed or stored in the app — the worker owns the key.
 class OpenAIService {
   final String model;
 
-  OpenAIService({this.model = 'gpt-4o-mini'});
+  OpenAIService({this.model = 'deepseek-v4-flash-vision-exp'});
 
   /// Cloudflare proxy — key never ships to the client.
   static const _endpoint =
@@ -44,7 +44,7 @@ class OpenAIService {
           'x-device-id': _deviceId,
         },
         body: jsonEncode({
-          'model': 'gpt-4o-mini',
+          'model': 'deepseek-v4-flash-vision-exp',
           'messages': [
             {'role': 'user', 'content': 'Say "ok"'}
           ],
@@ -55,6 +55,23 @@ class OpenAIService {
     } catch (e) {
       return false;
     }
+  }
+
+  /// POST a body to the proxy; throws if the proxy is unreachable/errors.
+  Future<Map<String, dynamic>> _postToProxy(Map<String, dynamic> body) async {
+    final response = await http.post(
+      Uri.parse(_endpoint),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-device-id': _deviceId,
+      },
+      body: jsonEncode(body),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+          'AI request failed (${response.statusCode}): ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
   Future<({List<FoodItem> items, String? mealType})> analyzeImage(String imagePath) async {
@@ -107,9 +124,12 @@ Rules:
 - protein/carbs/fat/fiber/sugar = grams for the full serving
 - sodium = mg for the full serving
 - Indian household serving sizes. Only include visible foods.
+- If the photo shows ONE food (a single bowl of sabzi, one roti, etc.), return it as the ONLY item — do not add guesses about side dishes that are not clearly visible.
+- NAMES MUST BE SPECIFIC: identify the exact dish by its traditional name (e.g. "Aloo Gobi", "Bhindi Fry", "Mixed Vegetable Curry", "Chana Masala", "Baingan Bharta", "Palak Paneer"). NEVER return generic labels like "Vegetable Curry", "Veg Sabzi", "Curry", "Side Dish" or "Vegetables" unless the photo truly shows an unidentifiable mixed dish; prefer the most specific name you can.
+- If the food is a mixed dish of many items (a thali), still return each visible item separately, but each with a specific name.
 ''';
 
-    final body = jsonEncode({
+    final body = {
       'model': model,
       'messages': [
         {
@@ -125,23 +145,9 @@ Rules:
       ],
       'temperature': 0.2,
       'max_tokens': 1000,
-    });
+    };
 
-    final response = await http.post(
-      Uri.parse(_endpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-device-id': _deviceId,
-      },
-      body: body,
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception(
-          'AI request failed (${response.statusCode}): ${response.body}');
-    }
-
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final decoded = await _postToProxy(body);
     final content = (decoded['choices'] as List).first['message']['content']
         as String;
 
@@ -169,6 +175,29 @@ Rules:
     return (items: <FoodItem>[], mealType: null);
   }
 
+  /// Plain-text chat with the same proxy — used by Asha (AI nutrition
+  /// assistant). Returns the assistant message text or throws on failure.
+  Future<String> chat(String systemPrompt, List<Map<String, String>> messages,
+      {int? maxTokens}) async {
+    final body = {
+      'model': model,
+      'messages': [
+        {'role': 'system', 'content': systemPrompt},
+        ...messages.map((m) => {
+              'role': m['role'],
+              'content': m['content'],
+            }),
+      ],
+      'temperature': 0.6,
+      if (maxTokens != null) 'max_tokens': maxTokens,
+    };
+
+    final decoded = await _postToProxy(body);
+    final content = (decoded['choices'] as List).first['message']['content']
+        as String;
+    return content.trim();
+  }
+
   Future<({List<FoodItem> items, String? mealType})> _callTextApi(
     String foodName,
   ) async {
@@ -187,7 +216,7 @@ Rules:
 - Indian household serving sizes. Use quantity if specified, otherwise typical single serving.
 ''';
 
-    final body = jsonEncode({
+    final body = {
       'model': model,
       'messages': [
         {
@@ -197,23 +226,9 @@ Rules:
       ],
       'temperature': 0.2,
       'max_tokens': 1000,
-    });
+    };
 
-    final response = await http.post(
-      Uri.parse(_endpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-device-id': _deviceId,
-      },
-      body: body,
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception(
-          'AI request failed (${response.statusCode}): ${response.body}');
-    }
-
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final decoded = await _postToProxy(body);
     final content = (decoded['choices'] as List).first['message']['content']
         as String;
 
