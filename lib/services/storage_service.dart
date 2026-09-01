@@ -186,6 +186,16 @@ class StorageService {
     await _prefs.setInt(_stepsKey(day), getStepsFor(day) + steps);
   }
 
+  /// Persisted sensor baseline (last see cumulative step-counter value) so
+  /// steps taken while the app was closed are counted after re-launch.
+  static const _sensorBaselineKey = 'sensor_step_baseline';
+
+  int? get sensorBaseline => _prefs.getInt(_sensorBaselineKey);
+
+  Future<void> setSensorBaseline(int value) async {
+    await _prefs.setInt(_sensorBaselineKey, value);
+  }
+
   // ---- Exercise logs ----
 
   static const _exerciseKey = 'exercise_logs';

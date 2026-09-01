@@ -1141,9 +1141,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               TextButton.icon(
-                onPressed: _stepsSource == StepsSource.manual
-                    ? _manualStepsDialog
-                    : null,
+                onPressed: _stepsSource == StepsSource.healthConnect
+                    ? null
+                    : _manualStepsDialog,
                 icon: const Icon(Icons.edit, size: 15),
                 label: const Text('Add'),
                 style: TextButton.styleFrom(

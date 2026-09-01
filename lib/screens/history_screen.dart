@@ -28,7 +28,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _refresh() async {
     try {
       final cloud = await widget.storage.loadEntriesFromCloud();
-      if (mounted && cloud != null) {
+      if (mounted) {
         setState(() => _entries = cloud);
       }
     } catch (_) {

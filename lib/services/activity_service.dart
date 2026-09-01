@@ -83,30 +83,43 @@ class ActivityService {
       _sensorSub = Pedometer.stepCountStream.listen(
         (stepCount) {
           final v = stepCount.steps;
-          if (_sensorBaseline == null) {
-            // First reading after app start/app launch: baseline only.
+          final baseline = _sensorBaseline ?? storage.sensorBaseline;
+          if (baseline == null) {
+            // First reading ever: baseline only, nothing counts yet.
             _sensorBaseline = v;
+            storage.setSensorBaseline(v);
             return;
           }
-          final delta = v - _sensorBaseline!;
+          final delta = v - baseline;
           if (delta < 0) {
-            // Phone rebooted — counter reset. Re-baseline, count nothing.
+            // Phone rebooted — counter reset. New baseline, count nothing.
             _sensorBaseline = v;
+            storage.setSensorBaseline(v);
             return;
           }
           if (delta == 0) return;
           _sensorBaseline = v;
+          storage.setSensorBaseline(v);
           final now = DateTime.now();
           storage.addStepsFor(now, delta);
           final today = storage.getStepsFor(now);
           if (_changes.hasListener) _changes.add(today);
         },
-        onError: (_) => _source = StepsSource.manual,
+        onError: (_) => _degradeToManual(),
       );
       _source = StepsSource.sensor;
+      // Watchdog: some budget Androids have no step sensor at all and never
+      // emit (nor error). If we hear nothing in a few seconds, drop to the
+      // manual tier so the user is never stuck with 0 steps.
+      Timer(const Duration(seconds: 8),
+          () { if (_source == StepsSource.sensor && _sensorBaseline == null) _degradeToManual(); });
     } catch (_) {
-      _source = StepsSource.manual;
+      _degradeToManual();
     }
+  }
+
+  void _degradeToManual() {
+    _source = StepsSource.manual;
   }
 
   /// Manual entry: user-typed steps (last-resort source).
@@ -131,12 +144,6 @@ class ActivityService {
     final now = DateTime.now();
     return storage.exercises.where((e) => e.isOn(now)).toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-  }
-
-  int todayExerciseCalories() {
-    final weight = storage.profile?.weightKg ?? 70.0;
-    return todayExercises().fold(
-        0, (sum, e) => sum + e.calories);
   }
 
   Future<ExerciseEntry> logExercise(String name, int minutes) async {
