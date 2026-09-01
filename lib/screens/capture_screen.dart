@@ -107,16 +107,26 @@ class _CaptureScreenState extends State<CaptureScreen> {
         final dbResults = await FoodSearchService.search(item.name);
         final match = dbResults.isNotEmpty ? dbResults.first : null;
         if (match != null) {
+          final q = item.quantity > 0 ? item.quantity : 1;
+          // DB per-100g values scaled up to the AI-estimated serving size.
+          final scale = item.servingSizeGrams / 100;
+          // Backfill ONLY values the AI couldn't estimate (0 = "unknown").
+          double fill(double aiVal, double dbPer100g) =>
+              aiVal > 0 ? aiVal : dbPer100g * scale;
+
           enrichedItems.add(FoodItem(
             name: item.name,
             servingSizeGrams: item.servingSizeGrams,
-            calories: (item.calories / (item.quantity > 0 ? item.quantity : 1)).round(),
-            protein: item.protein / (item.quantity > 0 ? item.quantity : 1),
-            carbs: item.carbs / (item.quantity > 0 ? item.quantity : 1),
-            fat: item.fat / (item.quantity > 0 ? item.quantity : 1),
-            fiber: item.fiber / (item.quantity > 0 ? item.quantity : 1),
-            sugar: item.sugar / (item.quantity > 0 ? item.quantity : 1),
-            sodium: item.sodium / (item.quantity > 0 ? item.quantity : 1),
+            calories: (item.calories / q).round(),
+            protein: item.protein / q,
+            carbs: item.carbs / q,
+            fat: item.fat / q,
+            fiber: item.fiber / q,
+            sugar: item.sugar / q,
+            sodium: item.sodium / q,
+            calcium: fill(item.calcium / q, match.calcium),
+            iron: fill(item.iron / q, match.iron),
+            vitaminC: fill(item.vitaminC / q, match.vitaminC),
             quantity: item.quantity,
             dbMatchedName: match.name,
             dbSource: match.source,

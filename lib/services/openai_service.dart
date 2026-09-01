@@ -113,7 +113,7 @@ class OpenAIService {
 
     final prompt = '''
 Analyze this food photo. Return ONLY valid JSON:
-{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0}]}
+{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0,"calcium":140.0,"iron":2.5,"vitaminC":0.0}]}
 
 If no food visible: {"mealType":"snack","items":[]}
 
@@ -123,6 +123,7 @@ Rules:
 - calories = integer kcal for the full serving
 - protein/carbs/fat/fiber/sugar = grams for the full serving
 - sodium = mg for the full serving
+- calcium/iron/vitaminC = mg for the full serving — estimate from the typical nutrient content of the dish (e.g. dal and paneer are calcium-rich, leafy greens are iron-rich). If you cannot estimate a value, output 0.
 - Indian household serving sizes. Only include visible foods.
 - If the photo shows ONE food (a single bowl of sabzi, one roti, etc.), return it as the ONLY item — do not add guesses about side dishes that are not clearly visible.
 - NAMES MUST BE SPECIFIC: identify the exact dish by its traditional name (e.g. "Aloo Gobi", "Bhindi Fry", "Mixed Vegetable Curry", "Chana Masala", "Baingan Bharta", "Palak Paneer"). NEVER return generic labels like "Vegetable Curry", "Veg Sabzi", "Curry", "Side Dish" or "Vegetables" unless the photo truly shows an unidentifiable mixed dish; prefer the most specific name you can.
@@ -205,7 +206,7 @@ Rules:
 Estimate nutrition for this food: $foodName
 
 Return ONLY valid JSON:
-{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0}]}
+{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0,"calcium":140.0,"iron":2.5,"vitaminC":0.0}]}
 
 Rules:
 - mealType = breakfast/lunch/dinner/snack
@@ -213,6 +214,7 @@ Rules:
 - calories = integer kcal for the full serving
 - protein/carbs/fat/fiber/sugar = grams for the full serving
 - sodium = mg for the full serving
+- calcium/iron/vitaminC = mg for the full serving — estimate from the typical nutrient content of the dish. If you cannot estimate a value, output 0.
 - Indian household serving sizes. Use quantity if specified, otherwise typical single serving.
 ''';
 
