@@ -73,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   StepsSource _stepsSource = StepsSource.manual;
   StreamSubscription<int>? _activitySub;
   List<ExerciseEntry> _todayExercises = [];
+  bool _enablingSteps = false;
 
   String? get _signedInEmail {
     try {
@@ -94,8 +95,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _activitySub = _activity.changes.listen((steps) {
       if (mounted) setState(() => _stepsToday = steps);
     });
-    _activity.init().then((_) => _activity.refresh());
     _todayExercises = _activity.todayExercises();
+    // NO auto init: step-tracking permissions are opt-in (see card button).
     // Water reminders default ON: ensure they're scheduled any app start.
     if (widget.storage.remindersEnabled) {
       NotificationService.requestPermissions();
@@ -1087,7 +1088,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _activity.sourceLabel,
+                  _stepsEnabled ? _activity.sourceLabel : 'Tap to track',
                   style: const TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
@@ -1140,17 +1141,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              TextButton.icon(
-                onPressed: _stepsSource == StepsSource.healthConnect
-                    ? null
-                    : _manualStepsDialog,
-                icon: const Icon(Icons.edit, size: 15),
-                label: const Text('Add'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.ink,
-                  disabledForegroundColor: AppColors.muted,
+              if (_enablingSteps)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                )
+              else if (!_stepsEnabled)
+                TextButton.icon(
+                  onPressed: _enableSteps,
+                  icon: const Icon(Icons.auto_awesome, size: 15),
+                  label: const Text('Track'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.green,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                )
+              else
+                TextButton.icon(
+                  onPressed: _stepsSource == StepsSource.healthConnect
+                      ? null
+                      : _manualStepsDialog,
+                  icon: const Icon(Icons.edit, size: 15),
+                  label: const Text('Add'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.ink,
+                    disabledForegroundColor: AppColors.muted,
+                  ),
                 ),
-              ),
             ],
           ),
           const Divider(height: 22, color: AppColors.divider),
@@ -1240,6 +1264,34 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  /// True once the user opted into step tracking (or it degraded to manual).
+  bool get _stepsEnabled =>
+      _stepsSource != StepsSource.manual || _stepsToday > 0;
+
+  Future<void> _enableSteps() async {
+    if (_enablingSteps) return;
+    setState(() => _enablingSteps = true);
+    try {
+      final source = await _activity.enableTracking();
+      if (!mounted) return;
+      setState(() {
+        _stepsSource = source;
+        _stepsToday = widget.storage.getStepsFor(DateTime.now());
+      });
+      if (source == StepsSource.manual) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'No step sensor found — use "Add" to log steps manually.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _enablingSteps = false);
+    }
   }
 
   Future<void> _manualStepsDialog() async {

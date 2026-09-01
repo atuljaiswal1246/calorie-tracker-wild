@@ -37,9 +37,17 @@ class ActivityService {
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
-    // Health Connect / HealthKit: Android only. On iOS the Health plugin
-    // uses HealthKit, which hard-crashes (SIGABRT) without the HealthKit
-    // entitlement — and an ObjC NSException can't be caught in Dart.
+    // NOTHING here requests permissions. Step tracking (Health Connect on
+    // Android / motion sensor elsewhere) is opt-in via [enableTracking] so
+    // the OS permission dialog never fires on app open.
+  }
+
+  /// User taps "Track my steps": ask for the source permission NOW, in
+  /// context. Health Connect (Android) -> pedometer sensor -> manual.
+  Future<StepsSource> enableTracking() async {
+    if (_healthReady || (_source == StepsSource.sensor && _sensorSub != null)) {
+      return _source;
+    }
     if (Platform.isAndroid) {
       try {
         await _health.configure();
@@ -48,13 +56,14 @@ class ActivityService {
           _healthReady = true;
           _source = StepsSource.healthConnect;
           await _refreshFromHealth();
-          return;
+          return _source;
         }
       } catch (_) {
-        // Health Connect not installed / declined — fall back to sensor.
+        // Health Connect not installed / declined — try the sensor below.
       }
     }
     _startSensor();
+    return _source;
   }
 
   /// Pull the latest count into storage (called on Home open and on resume).
