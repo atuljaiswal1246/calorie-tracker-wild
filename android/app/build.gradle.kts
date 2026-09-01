@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "com.neharohilla.calorietracker"
-        minSdk = flutter.minSdkVersion
+        minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

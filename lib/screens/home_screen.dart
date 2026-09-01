@@ -11,6 +11,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/food_entry.dart';
 import '../models/profile.dart';
 import '../services/achievements_service.dart';
+import '../services/activity_service.dart';
 import '../services/asha_prompts.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
@@ -67,6 +68,11 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
   BillingService? _billing;
+  late ActivityService _activity;
+  int _stepsToday = 0;
+  StepsSource _stepsSource = StepsSource.manual;
+  StreamSubscription<int>? _activitySub;
+  List<ExerciseEntry> _todayExercises = [];
 
   String? get _signedInEmail {
     try {
@@ -84,6 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
       initialScrollOffset: 59 * 60.0,
     );
     _load();
+    _activity = ActivityService(widget.storage);
+    _activitySub = _activity.changes.listen((steps) {
+      if (mounted) setState(() => _stepsToday = steps);
+    });
+    _activity.init().then((_) => _activity.refresh());
+    _todayExercises = _activity.todayExercises();
     // Water reminders default ON: ensure they're scheduled any app start.
     if (widget.storage.remindersEnabled) {
       NotificationService.requestPermissions();
@@ -108,6 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _activitySub?.cancel();
+    _activity.dispose();
     _billing?.dispose();
     _macroPageController.dispose();
     _logPageController.dispose();
@@ -683,6 +697,8 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 14),
           PaginationDots(count: 2, current: _macroPageIndex),
           const SizedBox(height: 22),
+          _activityCard(),
+          const SizedBox(height: 14),
           _logMealSection(),
           const SizedBox(height: 22),
           _waterCard(),
@@ -1033,6 +1049,245 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _activityCard() {
+    const stepGoal = 8000;
+    final steps = _stepsToday;
+    final progress = (steps / stepGoal).clamp(0.0, 1.0);
+    final kcals = _todayExercises.fold(0, (s, e) => s + e.calories);
+    final minutes = _todayExercises.fold(0, (s, e) => s + e.minutes);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Activity',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.green.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _activity.sourceLabel,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF2E7D32),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              SizedBox(
+                width: 38,
+                height: 38,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 4,
+                      backgroundColor: AppColors.green.withValues(alpha: 0.15),
+                      valueColor:
+                          const AlwaysStoppedAnimation(AppColors.green),
+                    ),
+                    const Center(
+                      child: Icon(Icons.directions_walk,
+                          size: 17, color: AppColors.green),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${steps.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')} / $stepGoal',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const Text(
+                      'steps today',
+                      style: TextStyle(fontSize: 12, color: AppColors.muted),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton.icon(
+                onPressed: _stepsSource == StepsSource.manual
+                    ? _manualStepsDialog
+                    : null,
+                icon: const Icon(Icons.edit, size: 15),
+                label: const Text('Add'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.ink,
+                  disabledForegroundColor: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 22, color: AppColors.divider),
+          Row(
+            children: [
+              const Text('🔥', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  kcals > 0
+                      ? '$kcals kcal burned · $minutes min today'
+                      : 'No workouts logged today',
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: _addExerciseSheet,
+                icon: const Icon(Icons.add, size: 17),
+                label: const Text('Exercise'),
+                style: TextButton.styleFrom(foregroundColor: AppColors.ink),
+              ),
+            ],
+          ),
+          if (_todayExercises.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: _todayExercises
+                  .map(
+                    (e) => GestureDetector(
+                      onTap: () async {
+                        final ok = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                            title: Text(e.name),
+                            content: Text(
+                                '${e.minutes} min · ${e.calories} kcal\nRemove this workout?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Keep'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text('Remove',
+                                    style:
+                                        TextStyle(color: AppColors.missedRed)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (ok == true && mounted) {
+                          await _activity.deleteExercise(e.id);
+                          setState(() {
+                            _todayExercises = _activity.todayExercises();
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${e.name.split(' ').first} · ${e.minutes}m · ${e.calories}k',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.muted,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _manualStepsDialog() async {
+    final ctrl = TextEditingController();
+    final val = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Add steps'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(hintText: 'e.g. 2500'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, null),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(ctx, int.tryParse(ctrl.text.trim()) ?? 0),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+    if (val != null && val > 0 && mounted) {
+      await _activity.addManualSteps(val);
+    }
+  }
+
+  Future<void> _addExerciseSheet() async {
+    final result = await showModalBottomSheet<ExerciseEntry>(
+      context: context,
+      backgroundColor: AppColors.bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      isScrollControlled: true,
+      builder: (ctx) => _ExerciseSheet(activity: _activity),
+    );
+    if (result != null && mounted) {
+      setState(() {
+        _todayExercises = _activity.todayExercises();
+      });
+    }
   }
 
   Widget _waterCard() {
@@ -2476,6 +2731,167 @@ class _AshaTickerState extends State<_AshaTicker> {
           fontSize: 12.5,
           color: Colors.white.withValues(alpha: 0.9),
           height: 1.3,
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet: pick an activity, duration; logs with MET-based kcal.
+class _ExerciseSheet extends StatefulWidget {
+  final ActivityService activity;
+
+  const _ExerciseSheet({required this.activity});
+
+  @override
+  State<_ExerciseSheet> createState() => _ExerciseSheetState();
+}
+
+class _ExerciseSheetState extends State<_ExerciseSheet> {
+  String _selected = ActivityService.activities.first.name;
+  int _minutes = 30;
+
+  int get _kcal {
+    final weight = widget.activity.storage.profile?.weightKg ?? 70.0;
+    double met = 5.0;
+    for (final a in ActivityService.activities) {
+      if (a.name == _selected) met = a.met;
+    }
+    return (met * weight * (_minutes / 60)).round();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Log exercise',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 230,
+                child: ListView.separated(
+                  itemCount: ActivityService.activities.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 6),
+                  itemBuilder: (context, i) {
+                    final a = ActivityService.activities[i];
+                    final active = a.name == _selected;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selected = a.name),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 11),
+                        decoration: BoxDecoration(
+                          color: active ? AppColors.ink : AppColors.card,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(a.emoji, style: const TextStyle(fontSize: 18)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                a.name,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: active ? Colors.white : AppColors.ink,
+                                ),
+                              ),
+                            ),
+                            if (active)
+                              const Icon(Icons.check,
+                                  size: 18, color: Colors.white),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Duration',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.muted,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [15, 30, 45, 60].map((m) {
+                  final active = m == _minutes;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _minutes = m),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: active ? AppColors.ink : AppColors.card,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$m min',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: active ? Colors.white : AppColors.ink,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '≈ $_kcal kcal burned',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ),
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.ink,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () async {
+                      final entry =
+                          await widget.activity.logExercise(_selected, _minutes);
+                      if (context.mounted) Navigator.pop(context, entry);
+                    },
+                    child: const Text('Log'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

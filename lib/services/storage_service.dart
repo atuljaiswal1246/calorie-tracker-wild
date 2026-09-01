@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/food_entry.dart';
+import '../models/exercise_entry.dart';
 import '../models/profile.dart';
 
 /// EMail address that bypasses the paywall — SANDBOX ONLY (iOS dev builds).
@@ -166,6 +167,47 @@ class StorageService {
         .map((e) => FoodEntry.fromJson(e as Map<String, dynamic>))
         .toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+  }
+
+  // ---- Steps (per day) ----
+
+  String _stepsKey(DateTime day) =>
+      'steps_${day.year}-${day.month}-${day.day}';
+
+  int getStepsFor(DateTime day) {
+    return _prefs.getInt(_stepsKey(day)) ?? 0;
+  }
+
+  Future<void> setStepsFor(DateTime day, int steps) async {
+    await _prefs.setInt(_stepsKey(day), steps);
+  }
+
+  Future<void> addStepsFor(DateTime day, int steps) async {
+    await _prefs.setInt(_stepsKey(day), getStepsFor(day) + steps);
+  }
+
+  // ---- Exercise logs ----
+
+  static const _exerciseKey = 'exercise_logs';
+
+  List<ExerciseEntry> get exercises {
+    final raw = _prefs.getString(_exerciseKey);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List;
+    return list
+        .map((e) => ExerciseEntry.fromJson(e as Map<String, dynamic>))
+        .toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+  }
+
+  Future<void> addExercise(ExerciseEntry entry) async {
+    final all = [...exercises, entry];
+    await _prefs.setString(_exerciseKey, jsonEncode(all.map((e) => e.toJson()).toList()));
+  }
+
+  Future<void> deleteExercise(String id) async {
+    final all = exercises.where((e) => e.id != id).toList();
+    await _prefs.setString(_exerciseKey, jsonEncode(all.map((e) => e.toJson()).toList()));
   }
 
   int get entryCount => entries.length;
