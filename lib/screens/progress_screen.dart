@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../models/body_measurement_entry.dart';
 import '../models/food_entry.dart';
 import '../models/profile.dart';
 import '../services/achievements_service.dart';
@@ -23,6 +24,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Profile? _profile;
   List<FoodEntry> _entries = [];
   List<WeightEntry> _weightEntries = [];
+  List<BodyMeasurementEntry> _bodyEntries = [];
   DateTime _selectedWeekStart = DateTime.now();
   DateTime _selectedMonth = DateTime.now();
   int _periodIndex = 0; // 0=week, 1=month, 2=custom
@@ -44,6 +46,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     _profile = widget.storage.profile;
     _entries = widget.storage.entries;
     _weightEntries = widget.storage.weightEntries;
+    _bodyEntries = widget.storage.bodyMeasurements; ;
     _achievements = AchievementsService(widget.storage).getAll();
     _cachedDisplayDays = null;
     setState(() {});
@@ -164,6 +167,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
         _header(),
         const SizedBox(height: 16),
         _weightCard(profile),
+        const SizedBox(height: 16),
+        _bodyCard(),
         const SizedBox(height: 16),
         _periodToggle(),
         const SizedBox(height: 16),
@@ -363,6 +368,177 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _bodyCard() {
+    final entries = _bodyEntries;
+    final latest = entries.isNotEmpty ? entries.first : null; // sorted desc
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Body measurements',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              InkWell(
+                onTap: () => _showLogBodySheet(context),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  constraints: const BoxConstraints(minHeight: 44),
+                  decoration: BoxDecoration(
+                    color: AppColors.ink,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add, color: Colors.white, size: 16),
+                      SizedBox(width: 4),
+                      Text(
+                        'Log',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (latest == null)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Track waist, hips, arms — the scale can lie, numbers don\'t.',
+                style: TextStyle(fontSize: 13, color: AppColors.muted),
+              ),
+            )
+          else ...[
+            // First vs latest per part
+            Row(
+              children: BodyMeasurementEntry.labels.keys.map((key) {
+                final first = entries.last
+                    .toJson()[key]; // oldest entry in desc-sorted list
+                final val = latest.toJson()[key];
+                if (val == null) return const SizedBox.shrink();
+                final firstVal = first as double?;
+                final valD = (val as num).toDouble();
+                return Expanded(
+                  child: _bodyPartStat(
+                    emoji: BodyMeasurementEntry.icons[key]!,
+                    label: BodyMeasurementEntry.labels[key]!,
+                    value: valD,
+                    delta: firstVal == null ? null : valD - firstVal,
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 14),
+            if (entries.length >= 2)
+              SizedBox(
+                height: 70,
+                child: _bodyChart(entries),
+              ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${DateFormat('d MMM').format(latest.date)} · '
+                '${entries.length} log${entries.length == 1 ? '' : 's'}',
+                style: const TextStyle(fontSize: 11.5, color: AppColors.muted),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _bodyPartStat({
+    required String emoji,
+    required String label,
+    required double value,
+    double? delta,
+  }) {
+    final down = delta != null && delta < 0;
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 15)),
+        const SizedBox(height: 3),
+        Text(
+          value.toStringAsFixed(1),
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+            fontFeatures: [ui.FontFeature.tabularFigures()],
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10.5, color: AppColors.muted),
+        ),
+        if (delta != null)
+          Text(
+            '${down ? '−' : '+'}${delta.abs().toStringAsFixed(1)}',
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color: down ? AppColors.green : AppColors.muted,
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Minimal waist/hips sparkline: user wanted a chart, no new screens.
+  Widget _bodyChart(List<BodyMeasurementEntry> entries) {
+    final points = [...entries.reversed]; // oldest first
+    final waist = points.map((e) => e.waist).whereType<double>().toList();
+    final hips = points.map((e) => e.hips).whereType<double>().toList();
+    if (waist.length < 2 && hips.length < 2) return const SizedBox.shrink();
+
+    return CustomPaint(
+      size: Size.infinite,
+      painter: _BodyChartPainter(waist: waist, hips: hips),
+    );
+  }
+
+  void _showLogBodySheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      isScrollControlled: true,
+      builder: (ctx) => _BodyLogSheet(onSave: (e) async {
+        await widget.storage.addBodyMeasurement(e);
+        if (ctx.mounted) Navigator.pop(ctx);
+        _load();
+      }),
     );
   }
 
@@ -1831,4 +2007,186 @@ class _WeightChartPainter extends CustomPainter {
       yMin != oldDelegate.yMin ||
       yMax != oldDelegate.yMax ||
       targetWeight != oldDelegate.targetWeight;
+}
+
+/// Bottom sheet: quick body measurement log — cm fields, all optional.
+class _BodyLogSheet extends StatefulWidget {
+  final ValueChanged<BodyMeasurementEntry> onSave;
+
+  const _BodyLogSheet({required this.onSave});
+
+  @override
+  State<_BodyLogSheet> createState() => _BodyLogSheetState();
+}
+
+class _BodyLogSheetState extends State<_BodyLogSheet> {
+  final _waist = TextEditingController();
+  final _chest = TextEditingController();
+  final _hips = TextEditingController();
+  final _arm = TextEditingController();
+  final _thigh = TextEditingController();
+
+  @override
+  void dispose() {
+    _waist.dispose();
+    _chest.dispose();
+    _hips.dispose();
+    _arm.dispose();
+    _thigh.dispose();
+    super.dispose();
+  }
+
+  double? _parse(TextEditingController c) =>
+      double.tryParse(c.text.trim().replaceAll(',', '.'));
+
+  void _save() {
+    final entry = BodyMeasurementEntry(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      date: DateTime.now(),
+      waist: _parse(_waist),
+      chest: _parse(_chest),
+      hips: _parse(_hips),
+      arm: _parse(_arm),
+      thigh: _parse(_thigh),
+    );
+    if (entry.waist == null &&
+        entry.chest == null &&
+        entry.hips == null &&
+        entry.arm == null &&
+        entry.thigh == null) {
+      return; // nothing entered
+    }
+    widget.onSave(entry);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    Widget field(String label, TextEditingController c) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: TextField(
+            controller: c,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: '$label (cm)',
+              filled: true,
+              fillColor: AppColors.bg,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        );
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Log measurements',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Fill whatever you measure — leave the rest blank.',
+                style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+              ),
+              const SizedBox(height: 14),
+              field('Waist', _waist),
+              field('Chest', _chest),
+              field('Hips', _hips),
+              field('Arm', _arm),
+              field('Thigh', _thigh),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.ink,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: _save,
+                  child: const Text(
+                    'Save',
+                    style:
+                        TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sparkline for waist + hips across all measurement logs.
+class _BodyChartPainter extends CustomPainter {
+  final List<double> waist;
+  final List<double> hips;
+
+  _BodyChartPainter({required this.waist, required this.hips});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final vals = [...waist, ...hips];
+    if (vals.isEmpty) return;
+    var minV = vals.reduce((a, b) => a < b ? a : b);
+    var maxV = vals.reduce((a, b) => a > b ? a : b);
+    if (maxV - minV < 1) {
+      minV -= 0.5;
+      maxV += 0.5;
+    }
+    final range = maxV - minV;
+
+    void draw(List<double> data, Color color) {
+      if (data.length < 2) return;
+      final path = Path();
+      for (var i = 0; i < data.length; i++) {
+        final x = i / (data.length - 1) * size.width;
+        final y = size.height - ((data[i] - minV) / range) * size.height;
+        if (i == 0) {
+          path.moveTo(x, y);
+        } else {
+          path.lineTo(x, y);
+        }
+      }
+      final paint = Paint()
+        ..color = color
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(path, paint);
+      // last point dot
+      final lx = size.width;
+      final ly = size.height - ((data.last - minV) / range) * size.height;
+      canvas.drawCircle(Offset(lx, ly), 3.5, Paint()..color = color);
+    }
+
+    draw(waist, AppColors.protein);
+    draw(hips, AppColors.fat);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BodyChartPainter old) =>
+      old.waist != waist || old.hips != hips;
 }

@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/body_measurement_entry.dart';
 import '../models/food_entry.dart';
 import '../models/exercise_entry.dart';
 import '../models/profile.dart';
@@ -218,6 +219,32 @@ class StorageService {
   Future<void> deleteExercise(String id) async {
     final all = exercises.where((e) => e.id != id).toList();
     await _prefs.setString(_exerciseKey, jsonEncode(all.map((e) => e.toJson()).toList()));
+  }
+
+  // ---- Body measurements ----
+
+  static const _bodyKitsKey = 'body_measurements';
+
+  List<BodyMeasurementEntry> get bodyMeasurements {
+    final raw = _prefs.getString(_bodyKitsKey);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List;
+    return list
+        .map((e) => BodyMeasurementEntry.fromJson(e as Map<String, dynamic>))
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  Future<void> addBodyMeasurement(BodyMeasurementEntry entry) async {
+    final all = [...bodyMeasurements, entry];
+    await _prefs.setString(
+        _bodyKitsKey, jsonEncode(all.map((e) => e.toJson()).toList()));
+  }
+
+  Future<void> deleteBodyMeasurement(String id) async {
+    final all = bodyMeasurements.where((e) => e.id != id).toList();
+    await _prefs.setString(
+        _bodyKitsKey, jsonEncode(all.map((e) => e.toJson()).toList()));
   }
 
   // ---- Weekly AI summary (cached per ISO week) ----
