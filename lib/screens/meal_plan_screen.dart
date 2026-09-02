@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../data/prebuilt_plans.dart';
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
 
 class MealPlanScreen extends StatefulWidget {
   final StorageService storage;
@@ -396,7 +397,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
   void _showDeleteSheet(BuildContext context, MealPlan plan) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -473,7 +474,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -569,7 +570,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

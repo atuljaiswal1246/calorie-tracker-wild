@@ -80,7 +80,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
     final scanAnother = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
@@ -160,7 +160,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: AppColors.ink,
                           blurRadius: 10,
                         ),
                       ],
@@ -191,7 +191,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: AppColors.ink,
                     blurRadius: 15,
                     offset: Offset(0, 4),
                   ),

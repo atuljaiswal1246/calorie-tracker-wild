@@ -559,7 +559,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               alignment: Alignment.centerLeft,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.card,
                   foregroundColor: Color(0xFFFF4B4B),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

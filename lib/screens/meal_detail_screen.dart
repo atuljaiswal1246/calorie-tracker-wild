@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
+import '../theme/app_colors.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final FoodEntry entry;
@@ -100,13 +101,13 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.ink, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           mealLabel,
           style: TextStyle(
-            color: Colors.black,
+            color: AppColors.ink,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -171,7 +172,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 width: double.infinity,
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: AppColors.ink,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -233,7 +234,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: Offset(0, 2),
             ),
@@ -251,7 +252,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: AppColors.ink,
                     ),
                   ),
                 ),
@@ -260,7 +261,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: AppColors.ink,
                   ),
                 ),
               ],
@@ -294,7 +295,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             ],
             if (widget.storage != null) ...[
               SizedBox(height: 12),
-              Divider(color: Colors.grey[200], height: 1),
+              Divider(color: AppColors.muted, height: 1),
               SizedBox(height: 8),
               Row(
                 children: [

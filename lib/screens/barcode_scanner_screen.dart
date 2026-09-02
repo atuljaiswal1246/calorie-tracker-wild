@@ -5,6 +5,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../services/barcode_service.dart';
 import '../services/storage_service.dart';
 import 'barcode_result_screen.dart';
+import '../theme/app_colors.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
   final StorageService storage;
@@ -166,7 +167,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       child: Container(
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: AppColors.ink,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -184,7 +185,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       child: Container(
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: AppColors.ink,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -214,7 +215,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
+                        color: AppColors.ink,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
