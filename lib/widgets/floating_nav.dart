@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -8,6 +10,7 @@ class FloatingNav extends StatelessWidget {
   final ValueChanged<int> onTap;
   final VoidCallback onCenterTap;
   final String avatarInitials;
+  final String? avatarPhotoPath;
 
   FloatingNav({
     super.key,
@@ -15,6 +18,7 @@ class FloatingNav extends StatelessWidget {
     required this.onTap,
     required this.onCenterTap,
     required this.avatarInitials,
+    this.avatarPhotoPath,
   });
 
   @override
@@ -86,6 +90,7 @@ class FloatingNav extends StatelessWidget {
               index: 3,
               active: currentIndex == 3,
               initials: avatarInitials,
+              photoPath: avatarPhotoPath,
               onTap: () => onTap(3),
             ),
           ),
@@ -153,6 +158,7 @@ class _NavAvatar extends StatelessWidget {
   final int index;
   final bool active;
   final String initials;
+  final String? photoPath;
   final VoidCallback onTap;
 
   _NavAvatar({
@@ -160,6 +166,7 @@ class _NavAvatar extends StatelessWidget {
     required this.active,
     required this.initials,
     required this.onTap,
+    this.photoPath,
   });
 
   @override
@@ -177,20 +184,28 @@ class _NavAvatar extends StatelessWidget {
               width: 34,
               height: 34,
               alignment: Alignment.center,
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: AppColors.cardSelected,
                 shape: BoxShape.circle,
                 border:
                     active ? Border.all(color: AppColors.ink, width: 1.6) : null,
               ),
-              child: Text(
-                initials,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                ),
-              ),
+              child: photoPath != null && File(photoPath!).existsSync()
+                  ? Image.file(
+                      File(photoPath!),
+                      width: 34,
+                      height: 34,
+                      fit: BoxFit.cover,
+                    )
+                  : Text(
+                      initials,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
+                    ),
             ),
             SizedBox(height: 2),
             Text(

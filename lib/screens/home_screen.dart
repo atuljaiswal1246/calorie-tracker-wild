@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/food_entry.dart';
 import '../models/profile.dart';
@@ -70,6 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late final Stream<List<ConnectivityResult>> _connectivityStream;
   BillingService? _billing;
   late ActivityService _activity;
+  String? _profilePhotoPath;
+  final _picker = ImagePicker();
   int _stepsToday = 0;
   StepsSource _stepsSource = StepsSource.manual;
   StreamSubscription<int>? _activitySub;
@@ -136,8 +139,56 @@ class _HomeScreenState extends State<HomeScreen> {
     _entries = widget.storage.entries;
     _waterMl = widget.storage.waterMlForDay(DateTime.now());
     _waterGoalMl = widget.storage.waterGoalMl;
+    _profilePhotoPath = widget.storage.photoPath;
     setState(() {});
     WidgetService.push(widget.storage);
+  }
+
+  Future<void> _changeProfilePhoto() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.camera_alt, color: AppColors.ink),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library, color: AppColors.ink),
+              title: Text('Choose from gallery'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    final picked = await _picker.pickImage(
+      source: source,
+      maxWidth: 400,
+      maxHeight: 400,
+      imageQuality: 80,
+    );
+    if (picked == null || !mounted) return;
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName =
+          'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final dest = '${appDir.path}/$fileName';
+      final saved = await File(picked.path).copy(dest);
+      await widget.storage.savePhotoPath(saved.path);
+      if (mounted) setState(() => _profilePhotoPath = saved.path);
+    } catch (_) {
+      // Keep initials if the copy fails.
+    }
   }
 
   // ---- Data helpers (selected day) ----
@@ -358,6 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 onCenterTap: _openCapture,
                 avatarInitials: _initials,
+                avatarPhotoPath: _profilePhotoPath,
               ),
             ),
             if (!widget.storage.isPaidOrSandbox(
@@ -2170,21 +2222,33 @@ class _HomeScreenState extends State<HomeScreen> {
         // Avatar + name + email
         Row(
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.cardSelected,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                _initials,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
+            GestureDetector(
+              onTap: _changeProfilePhoto,
+              child: Container(
+                width: 64,
+                height: 64,
+                alignment: Alignment.center,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: AppColors.cardSelected,
+                  shape: BoxShape.circle,
                 ),
+                child: _profilePhotoPath != null &&
+                        File(_profilePhotoPath!).existsSync()
+                    ? Image.file(
+                        File(_profilePhotoPath!),
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                      )
+                    : Text(
+                        _initials,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                      ),
               ),
             ),
             SizedBox(width: 14),

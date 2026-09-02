@@ -291,6 +291,16 @@ class StorageService {
         _friendsKey, jsonEncode(all.map((f) => {'uid': f.uid, 'name': f.name}).toList()));
   }
 
+  // ---- Profile photo ----
+
+  static const _photoKey = 'profile_photo_path';
+
+  String? get photoPath => _prefs.getString(_photoKey);
+
+  Future<void> savePhotoPath(String path) async {
+    await _prefs.setString(_photoKey, path);
+  }
+
   // ---- Dark mode ----
 
   static const _darkModeKey = 'dark_mode';
