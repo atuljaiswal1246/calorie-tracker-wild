@@ -1054,7 +1054,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: active ? AppColors.ink : Colors.transparent,
+                  color: active ? AppColors.inkButton : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Center(
