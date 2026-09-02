@@ -1730,7 +1730,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     } else if (cal > 0) {
       dotColor = AppColors.warningOrange;
     } else {
-      dotColor = AppColors.weekRing;
+      dotColor = AppColors.muted;
     }
 
     final mealNames = entries.expand((e) => e.items.map((i) => i.name)).take(3).join(', ');
