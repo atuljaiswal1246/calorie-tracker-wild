@@ -59,7 +59,8 @@ class _CalorieAppState extends State<CalorieApp> {
     } else if (profileExists) {
       // Guest with a saved plan: not paid -> sign-up, paid -> home.
       if (!widget.storage.isPaidOrSandbox(
-          authEmail: widget.auth.currentUser?.email)) {
+        authEmail: widget.auth.currentUser?.email,
+      )) {
         _onboardingAtSignup = true;
         _goTo(_AppScreen.onboarding);
       } else {
@@ -102,7 +103,8 @@ class _CalorieAppState extends State<CalorieApp> {
           : null;
       _goTo(_AppScreen.onboarding);
     } else if (widget.storage.isPaidOrSandbox(
-        authEmail: widget.auth.currentUser?.email)) {
+      authEmail: widget.auth.currentUser?.email,
+    )) {
       // Subscribed (free trial or after) or sandbox dev — full access.
       _goTo(_AppScreen.home);
     } else {
@@ -115,65 +117,76 @@ class _CalorieAppState extends State<CalorieApp> {
 
   void _goTo(_AppScreen screen) => setState(() => _screen = screen);
 
+  ThemeData _theme(bool dark) {
+    final brightness = dark ? Brightness.dark : Brightness.light;
+    return ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.deepOrange,
+        brightness: brightness,
+      ),
+      useMaterial3: true,
+      fontFamily: 'Inter',
+      scaffoldBackgroundColor: dark
+          ? const Color(0xFF0E0F11)
+          : const Color(0xFFFAF9F7),
+      dialogBackgroundColor: dark ? const Color(0xFF1B1C1E) : Colors.white,
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+        },
+      ),
+      textTheme: TextTheme(
+        bodyLarge: TextStyle(fontFamily: 'Inter'),
+        bodyMedium: TextStyle(fontFamily: 'Inter'),
+        bodySmall: TextStyle(fontFamily: 'Inter'),
+        titleLarge: TextStyle(fontFamily: 'Inter'),
+        titleMedium: TextStyle(fontFamily: 'Inter'),
+        titleSmall: TextStyle(fontFamily: 'Inter'),
+        headlineLarge: TextStyle(fontFamily: 'Inter'),
+        headlineMedium: TextStyle(fontFamily: 'Inter'),
+        headlineSmall: TextStyle(fontFamily: 'Inter'),
+        displayLarge: TextStyle(fontFamily: 'Inter'),
+        displayMedium: TextStyle(fontFamily: 'Inter'),
+        displaySmall: TextStyle(fontFamily: 'Inter'),
+        labelLarge: TextStyle(fontFamily: 'Inter'),
+        labelMedium: TextStyle(fontFamily: 'Inter'),
+        labelSmall: TextStyle(fontFamily: 'Inter'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Cal Matters',
-      debugShowCheckedModeBanner: false,
-      // Standard UX: tapping anywhere outside a text field dismisses the
-      // keyboard, on every screen of the app.
-      builder: (context, child) => ValueListenableBuilder<bool>(
-        valueListenable: AppColors.darkNotifier,
-        child: child,
-        builder: (context, value, child) => GestureDetector(
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppColors.darkNotifier,
+      builder: (context, dark, _) => MaterialApp(
+        title: 'Cal Matters',
+        debugShowCheckedModeBanner: false,
+        // Standard UX: tapping anywhere outside a text field dismisses the
+        // keyboard, on every screen of the app.
+        builder: (context, child) => GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           child: child,
         ),
-      ),
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        useMaterial3: true,
-        fontFamily: 'Inter',
-        pageTransitionsTheme: PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
-          },
-        ),
-        textTheme: TextTheme(
-          bodyLarge: TextStyle(fontFamily: 'Inter'),
-          bodyMedium: TextStyle(fontFamily: 'Inter'),
-          bodySmall: TextStyle(fontFamily: 'Inter'),
-          titleLarge: TextStyle(fontFamily: 'Inter'),
-          titleMedium: TextStyle(fontFamily: 'Inter'),
-          titleSmall: TextStyle(fontFamily: 'Inter'),
-          headlineLarge: TextStyle(fontFamily: 'Inter'),
-          headlineMedium: TextStyle(fontFamily: 'Inter'),
-          headlineSmall: TextStyle(fontFamily: 'Inter'),
-          displayLarge: TextStyle(fontFamily: 'Inter'),
-          displayMedium: TextStyle(fontFamily: 'Inter'),
-          displaySmall: TextStyle(fontFamily: 'Inter'),
-          labelLarge: TextStyle(fontFamily: 'Inter'),
-          labelMedium: TextStyle(fontFamily: 'Inter'),
-          labelSmall: TextStyle(fontFamily: 'Inter'),
-        ),
-      ),
-      home: switch (_screen) {
-        _AppScreen.loading =>
-          Scaffold(body: Center(child: CircularProgressIndicator())),
-        _AppScreen.welcome => WelcomeScreen(
+        theme: _theme(dark),
+        home: switch (_screen) {
+          _AppScreen.loading => Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+          _AppScreen.welcome => WelcomeScreen(
             // Get started goes straight to the questionnaire (no sign-up
             // screen first). Account creation happens after the plan.
             onGetStarted: () => _goTo(_AppScreen.onboarding),
             onSignIn: () => _goTo(_AppScreen.signIn),
           ),
-        _AppScreen.signIn => AuthScreen(
+          _AppScreen.signIn => AuthScreen(
             auth: widget.auth,
             isSignUp: false,
             onAuthenticated: _onAuthenticated,
             onBack: () => _goTo(_AppScreen.welcome),
           ),
-        _AppScreen.onboarding => OnboardingScreen(
+          _AppScreen.onboarding => OnboardingScreen(
             storage: widget.storage,
             auth: widget.auth,
             onComplete: () => _goTo(_AppScreen.home),
@@ -187,7 +200,7 @@ class _CalorieAppState extends State<CalorieApp> {
             startAtSignup: _onboardingAtSignup,
             startAtStep: _onboardingAtStep,
           ),
-        _AppScreen.home => HomeScreen(
+          _AppScreen.home => HomeScreen(
             storage: widget.storage,
             auth: widget.auth,
             onSignedOut: () {
@@ -203,7 +216,8 @@ class _CalorieAppState extends State<CalorieApp> {
               _goTo(_AppScreen.onboarding);
             },
           ),
-      },
+        },
+      ),
     );
   }
 }
