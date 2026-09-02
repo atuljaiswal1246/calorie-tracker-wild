@@ -59,7 +59,7 @@ class FloatingNav extends StatelessWidget {
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: AppColors.ink,
+                      color: AppColors.inkButton,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -178,7 +178,7 @@ class _NavAvatar extends StatelessWidget {
               height: 34,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.chipBlue,
+                color: AppColors.cardSelected,
                 shape: BoxShape.circle,
                 border:
                     active ? Border.all(color: AppColors.ink, width: 1.6) : null,

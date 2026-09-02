@@ -1782,7 +1782,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.symmetric(vertical: 10),
         constraints: BoxConstraints(minHeight: 44),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.ink : AppColors.chipNeutral,
+          color: isSelected ? AppColors.inkButton : AppColors.chipNeutral,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
@@ -2857,7 +2857,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 14, vertical: 11),
                         decoration: BoxDecoration(
-                          color: active ? AppColors.ink : AppColors.card,
+                          color: active ? AppColors.inkButton : AppColors.card,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -2905,7 +2905,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: active ? AppColors.ink : AppColors.card,
+                          color: active ? AppColors.inkButton : AppColors.card,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(

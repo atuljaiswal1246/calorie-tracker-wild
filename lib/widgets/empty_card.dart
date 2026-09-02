@@ -27,7 +27,7 @@ class EmptyCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: AppColors.ink,
+              color: AppColors.inkButton,
             ),
           ),
           SizedBox(height: 4),
@@ -47,7 +47,7 @@ class EmptyCard extends StatelessWidget {
                   padding:
                       EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.ink,
+                    color: AppColors.inkButton,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(

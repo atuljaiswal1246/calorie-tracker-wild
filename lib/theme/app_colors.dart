@@ -35,6 +35,16 @@ class AppColors {
   static Color get inkButton =>
       dark ? const Color(0xFF3A3B40) : const Color(0xFF1C1C1E);
 
+  /// White pill/chip surface (light mode keeps crisp white; dark mode
+  /// softens to a muted gray so it doesn't glare).
+  static Color get whiteSurface =>
+      dark ? const Color(0xFF46474D) : Colors.white;
+
+  /// Chip/soft-blue fill (water buttons etc.); deep blue in dark mode.
+  static Color get chipBlue =>
+      dark ? const Color(0xFF1E2F4A) : const Color(0xFFEAF3FF);
+  static Color get accentSoft => chipBlue;
+
   // ── Macro colors (same in both themes) ────────────────────────────────
   static const protein = Color(0xFFE53935);
   static const carbs = Color(0xFFFF9500);
@@ -59,8 +69,6 @@ class AppColors {
       dark ? Color(0xFF2A2B2F) : const Color(0xFFECECE7);
   static Color get weekRing =>
       dark ? Color(0xFF333438) : const Color(0xFFE3E3DE);
-  static const chipBlue = Color(0xFFEAF3FF);
-  static const accentSoft = chipBlue;
   static Color get chipNeutral =>
       dark ? Color(0xFF26272B) : const Color(0xFFF1F0EC);
   static Color get undoRed =>
