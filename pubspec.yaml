@@ -58,6 +58,7 @@ dependencies:
   in_app_purchase_storekit: ^0.4.11+1
   health: ^13.3.2
   pedometer: ^4.2.0
+  home_widget: ^0.9.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

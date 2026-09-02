@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../services/achievements_service.dart';
+import '../services/social_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
 import 'achievements_screen.dart';
@@ -22,11 +23,21 @@ class DiscoverScreen extends StatefulWidget {
 class _DiscoverScreenState extends State<DiscoverScreen> {
   int _streak = 0;
   List<Achievement> _achievements = [];
+  final _friendCtrl = TextEditingController();
+  List<({String uid, String name, int kcal})> _leaderboard = [];
+  bool _boardLoading = false;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _refreshLeaderboard();
+  }
+
+  @override
+  void dispose() {
+    _friendCtrl.dispose();
+    super.dispose();
   }
 
   void _load() {
@@ -53,6 +64,220 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       _streak = streak;
       _achievements = all;
     });
+  }
+
+  // ---- Friends / leaderboard ----
+
+  Future<void> _refreshLeaderboard() async {
+    setState(() => _boardLoading = true);
+    try {
+      final board = await SocialService(widget.storage).weeklyLeaderboard();
+      if (mounted) setState(() => _leaderboard = board);
+    } catch (_) {
+      // Keep last known table.
+    } finally {
+      if (mounted) setState(() => _boardLoading = false);
+    }
+  }
+
+  Future<void> _addFriendByCode() async {
+    final code = _friendCtrl.text.trim();
+    if (code.isEmpty) return;
+    final svc = SocialService(widget.storage);
+    final found = await svc.lookupUser(code);
+    if (!mounted) return;
+    if (found == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No user found with that code.')),
+      );
+      return;
+    }
+    if (widget.storage.friends.any((f) => f.uid == found['uid'])) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Already friends with them.')),
+      );
+      return;
+    }
+    await widget.storage
+        .addFriend(found['uid'] as String, found['name'] as String);
+    _friendCtrl.clear();
+    setState(() {});
+    await _refreshLeaderboard();
+  }
+
+  Widget _friendsCard() {
+    final svc = SocialService(widget.storage);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🤝', style: TextStyle(fontSize: 15)),
+              const SizedBox(width: 7),
+              Text(
+                'Friends',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Your code: ${svc.myCode?.substring(0, 8) ?? '—'}',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () async {
+                  final code = svc.myCode ?? '';
+                  await Clipboard.setData(ClipboardData(text: code));
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Code copied — share it with a friend'),
+                          duration: Duration(seconds: 2)),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.copy, size: 14),
+                label: const Text('Copy'),
+                style: TextButton.styleFrom(foregroundColor: AppColors.ink),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _friendCtrl,
+                  style: const TextStyle(fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'Friend\'s code',
+                    hintStyle: TextStyle(
+                        fontSize: 13, color: AppColors.muted),
+                    filled: true,
+                    fillColor: AppColors.bg,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.ink,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _addFriendByCode,
+                child: const Text('Add',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+          if (_leaderboard.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'This week (kcal logged)',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.muted,
+              ),
+            ),
+            const SizedBox(height: 6),
+            ..._leaderboard.asMap().entries.map((entry) {
+              final i = entry.key;
+              final row = entry.value;
+              final medal =
+                  i == 0 ? '🥇' : i == 1 ? '🥈' : i == 2 ? '🥉' : '';
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    if (medal.isNotEmpty)
+                      Text(medal, style: const TextStyle(fontSize: 16))
+                    else
+                      const SizedBox(width: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        row.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${row.kcal} kcal',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: i == 0 ? AppColors.green : AppColors.muted,
+                      ),
+                    ),
+                    if (row.uid != svc.myCode)
+                      IconButton(
+                        icon: Icon(Icons.close,
+                            size: 15, color: AppColors.faint),
+                        onPressed: () async {
+                          await widget.storage.removeFriend(row.uid);
+                          setState(() {});
+                          await _refreshLeaderboard();
+                        },
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ] else if (!_boardLoading) ...[
+            const SizedBox(height: 10),
+            Text(
+              'No friends yet — add a code, or share yours!',
+              style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+            ),
+          ],
+          if (_boardLoading) ...[
+            const SizedBox(height: 10),
+            LinearProgressIndicator(
+              minHeight: 3,
+              backgroundColor: AppColors.track,
+              color: AppColors.ink,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -140,6 +365,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ),
           ),
         ),
+        SizedBox(height: 20),
+
+        // Friends + weekly leaderboard
+        _friendsCard(),
         SizedBox(height: 20),
 
         // Streak + Achievements summary

@@ -263,6 +263,34 @@ class StorageService {
     await _prefs.setString('weekly_summary_$key', text);
   }
 
+  // ---- Friends (social) ----
+
+  static const _friendsKey = 'friends';
+
+  List<({String uid, String name})> get friends {
+    final raw = _prefs.getString(_friendsKey);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List;
+    return list
+        .map((e) {
+          final m = e as Map<String, dynamic>;
+          return (uid: m['uid'] as String, name: m['name'] as String? ?? '');
+        })
+        .toList();
+  }
+
+  Future<void> addFriend(String uid, String name) async {
+    final all = [...friends, (uid: uid, name: name)];
+    await _prefs.setString(
+        _friendsKey, jsonEncode(all.map((f) => {'uid': f.uid, 'name': f.name}).toList()));
+  }
+
+  Future<void> removeFriend(String uid) async {
+    final all = friends.where((f) => f.uid != uid).toList();
+    await _prefs.setString(
+        _friendsKey, jsonEncode(all.map((f) => {'uid': f.uid, 'name': f.name}).toList()));
+  }
+
   // ---- Dark mode ----
 
   static const _darkModeKey = 'dark_mode';

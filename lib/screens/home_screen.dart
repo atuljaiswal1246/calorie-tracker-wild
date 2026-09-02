@@ -17,6 +17,7 @@ import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
+import '../services/widget_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/widgets.dart';
 import 'achievements_screen.dart';
@@ -136,6 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _waterMl = widget.storage.waterMlForDay(DateTime.now());
     _waterGoalMl = widget.storage.waterGoalMl;
     setState(() {});
+    WidgetService.push(widget.storage);
   }
 
   // ---- Data helpers (selected day) ----
