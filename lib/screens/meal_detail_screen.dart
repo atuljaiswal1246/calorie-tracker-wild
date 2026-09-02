@@ -172,7 +172,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 width: double.infinity,
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.ink,
+                  color: AppColors.inkButton,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(

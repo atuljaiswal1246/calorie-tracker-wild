@@ -411,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: FilledButton(
               onPressed: _openPricing,
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.ink,
+                backgroundColor: AppColors.inkButton,
                 foregroundColor: Colors.white,
                 shape: StadiumBorder(),
               ),
@@ -826,7 +826,7 @@ class _HomeScreenState extends State<HomeScreen> {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: AppColors.ink,
+            color: AppColors.inkButton,
             borderRadius: BorderRadius.circular(11),
           ),
           child: ClipRRect(
@@ -1748,7 +1748,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _load();
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.ink,
+                  backgroundColor: AppColors.inkButton,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1841,7 +1841,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx),
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -1930,7 +1930,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _load();
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.ink,
+                  backgroundColor: AppColors.inkButton,
                   foregroundColor: Colors.white,
                   shape: StadiumBorder(),
                 ),
@@ -2175,7 +2175,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 64,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.chipBlue,
+                color: AppColors.cardSelected,
                 shape: BoxShape.circle,
               ),
               child: Text(
@@ -2936,7 +2936,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                   ),
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.ink,
+                      backgroundColor: AppColors.inkButton,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),

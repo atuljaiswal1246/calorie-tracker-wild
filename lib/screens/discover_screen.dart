@@ -188,7 +188,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               const SizedBox(width: 8),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.ink,
+                  backgroundColor: AppColors.inkButton,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 12),

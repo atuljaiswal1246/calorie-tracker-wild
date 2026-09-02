@@ -396,7 +396,7 @@ SPEAK STYLE:
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: AppColors.ink,
+                          color: AppColors.inkButton,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(Icons.arrow_upward,

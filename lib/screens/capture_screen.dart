@@ -182,7 +182,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, true),
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -430,7 +430,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, true),
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -636,7 +636,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 height: 52,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -1111,7 +1111,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                           child: FilledButton(
                             onPressed: _log,
                             style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.ink,
+                              backgroundColor: AppColors.inkButton,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -1395,7 +1395,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               height: 52,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.ink,
+                  backgroundColor: AppColors.inkButton,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1640,7 +1640,7 @@ class _TotalCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.ink,
+        color: AppColors.inkButton,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

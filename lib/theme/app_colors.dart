@@ -30,6 +30,11 @@ class AppColors {
   static Color get faint =>
       dark ? Color(0xFF6D6D75) : const Color(0xFF8A8A85);
 
+  /// Filled surface for buttons/pills that carry white text. In light mode
+  /// it's ink-black; in dark mode a soft gray (pure-white buttons glare).
+  static Color get inkButton =>
+      dark ? const Color(0xFF3A3B40) : const Color(0xFF1C1C1E);
+
   // ── Macro colors (same in both themes) ────────────────────────────────
   static const protein = Color(0xFFE53935);
   static const carbs = Color(0xFFFF9500);

@@ -360,7 +360,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 child: FilledButton(
                   onPressed: () => Navigator.pop(ctx),
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -692,7 +692,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.ink,
+                    color: AppColors.inkButton,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(

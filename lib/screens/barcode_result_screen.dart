@@ -105,7 +105,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, true),
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -160,7 +160,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.ink,
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                         ),
                       ],
@@ -191,7 +191,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.ink,
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 15,
                     offset: Offset(0, 4),
                   ),
@@ -381,7 +381,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                   child: FilledButton(
                     onPressed: _log,
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.ink,
+                      backgroundColor: AppColors.inkButton,
                       foregroundColor: Colors.white,
                       shape: StadiumBorder(),
                     ),

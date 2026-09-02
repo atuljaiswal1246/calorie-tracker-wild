@@ -67,7 +67,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx, true),
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -785,7 +785,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
             child: FilledButton(
               onPressed: _logAIFood,
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.ink,
+                backgroundColor: AppColors.inkButton,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -1186,7 +1186,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
                 Navigator.of(context).pop();
               },
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.ink,
+                backgroundColor: AppColors.inkButton,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -1348,7 +1348,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
             child: FilledButton(
               onPressed: () => Navigator.pop(context, _quantity),
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.ink,
+                backgroundColor: AppColors.inkButton,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               child: Text('Log this food',
@@ -1523,7 +1523,7 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
                   Navigator.of(context).pop();
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.ink,
+                  backgroundColor: AppColors.inkButton,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 child: Text('Log this food',

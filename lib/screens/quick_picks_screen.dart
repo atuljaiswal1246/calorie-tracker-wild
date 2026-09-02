@@ -398,7 +398,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
               height: 52,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.ink,
+                  backgroundColor: AppColors.inkButton,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),

@@ -354,7 +354,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(ctx),
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -404,7 +404,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   constraints: BoxConstraints(minHeight: 44),
                   decoration: BoxDecoration(
-                    color: AppColors.ink,
+                    color: AppColors.inkButton,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -582,7 +582,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   constraints: BoxConstraints(minHeight: 44),
                   decoration: BoxDecoration(
-                    color: AppColors.ink,
+                    color: AppColors.inkButton,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -824,7 +824,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   _load();
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.ink,
+                  backgroundColor: AppColors.inkButton,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1002,7 +1002,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   _load();
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.ink,
+                  backgroundColor: AppColors.inkButton,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1371,7 +1371,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.ink,
+                    color: AppColors.inkButton,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -2118,7 +2118,7 @@ class _BodyLogSheetState extends State<_BodyLogSheet> {
                 height: 52,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.ink,
+                    backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
