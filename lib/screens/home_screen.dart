@@ -17,8 +17,10 @@ import '../services/asha_prompts.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../services/notification_service.dart';
+import '../services/social_service.dart';
 import '../services/storage_service.dart';
 import '../services/widget_service.dart';
+import '../services/weekly_summary_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/widgets.dart';
 import 'achievements_screen.dart';
@@ -62,10 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _waterGoalMl = 2500;
   DateTime _selected = DateTime.now();
   int _navIndex = 0; // 0 home, 1 progress, 2 groups, 3 profile
-  int _macroPageIndex = 0;
-  final PageController _macroPageController = PageController();
-  int _logPageIndex = 0;
-  final PageController _logPageController = PageController();
   late final ScrollController _weekScrollController;
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
@@ -128,8 +126,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _activitySub?.cancel();
     _activity.dispose();
     _billing?.dispose();
-    _macroPageController.dispose();
-    _logPageController.dispose();
     _weekScrollController.dispose();
     super.dispose();
   }
@@ -142,6 +138,30 @@ class _HomeScreenState extends State<HomeScreen> {
     _profilePhotoPath = widget.storage.photoPath;
     setState(() {});
     WidgetService.push(widget.storage);
+  }
+
+  /// True once the user opted into step tracking (or degraded to manual).
+  bool get _stepsEnabled =>
+      _stepsSource != StepsSource.manual || _stepsToday > 0;
+
+  void _showStreakInfo(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Your streak'),
+        content: Text(
+          '$_streak day streak — keep the fire alive.\n\n'
+          'Log at least one meal a day to keep it going.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Nice'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _changeProfilePhoto() async {
@@ -536,294 +556,58 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
           SizedBox(height: 22),
-          // Asha — always visible, chat-style prompt on Home
-          InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AshaScreen(storage: widget.storage),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(18),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFE53935), Color(0xFFFF7043)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.auto_awesome,
-                        size: 21, color: Colors.white),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Ask Asha',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        _AshaTicker(),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right,
-                      color: Colors.white70, size: 20),
-                ],
-              ),
-            ),
-          ),
+          // Asha — concierge (adaptive by time of day, tap = chat)
+          _ashaConcierge(),
           SizedBox(height: 16),
           _weekSelector(calorieGoal: goal),
           SizedBox(height: 20),
-          CaloriesCard(
-            goal: goal,
-            logged: logged,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => MacroBreakdownScreen(
-                  macroType: MacroType.calories,
-                  entries: _on(_selected),
-                  total: logged.toDouble(),
-                  target: goal.toDouble(),
-                  color: AppColors.ink,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 14),
-          SizedBox(
-            height: 140,
-            child: PageView(
-              controller: _macroPageController,
-              onPageChanged: (i) => setState(() => _macroPageIndex = i),
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: MacroCard(
-                        label: 'Protein eaten',
-                        value: _protein(_selected),
-                        target: proteinGoal.toDouble(),
-                        color: AppColors.protein,
-                        icon: Symbols.egg,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MacroBreakdownScreen(
-                              macroType: MacroType.protein,
-                              entries: _on(_selected),
-                              total: _protein(_selected),
-                              target: proteinGoal.toDouble(),
-                              color: AppColors.protein,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: MacroCard(
-                        label: 'Carbs eaten',
-                        value: _carbs(_selected),
-                        target: carbsGoal.toDouble(),
-                        color: AppColors.carbs,
-                        icon: Symbols.rice_bowl,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MacroBreakdownScreen(
-                              macroType: MacroType.carbs,
-                              entries: _on(_selected),
-                              total: _carbs(_selected),
-                              target: carbsGoal.toDouble(),
-                              color: AppColors.carbs,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: MacroCard(
-                        label: 'Fat eaten',
-                        value: _fat(_selected),
-                        target: fatGoal.toDouble(),
-                        color: AppColors.fat,
-                        icon: Symbols.avocado_bean,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MacroBreakdownScreen(
-                              macroType: MacroType.fat,
-                              entries: _on(_selected),
-                              total: _fat(_selected),
-                              target: fatGoal.toDouble(),
-                              color: AppColors.fat,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: MacroCard(
-                        label: 'Fiber eaten',
-                        value: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
-                        target: _fiberTarget.toDouble(),
-                        color: AppColors.fiber,
-                        icon: Symbols.eco,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MacroBreakdownScreen(
-                              macroType: MacroType.fiber,
-                              entries: _on(_selected),
-                              total: _on(_selected).fold(0.0, (s, e) => s + e.totalFiber),
-                              target: _fiberTarget.toDouble(),
-                              color: AppColors.fiber,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: MacroCard(
-                        label: 'Sugar eaten',
-                        value: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
-                        target: _sugarTarget.toDouble(),
-                        color: AppColors.sugar,
-                        icon: Symbols.cookie,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MacroBreakdownScreen(
-                              macroType: MacroType.sugar,
-                              entries: _on(_selected),
-                              total: _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
-                              target: _sugarTarget.toDouble(),
-                              color: AppColors.sugar,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: MacroCard(
-                        label: 'Sodium eaten',
-                        value: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
-                        target: _sodiumTarget.toDouble(),
-                        color: AppColors.sodium,
-                        icon: Symbols.emoji_food_beverage,
-                        unit: 'mg',
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MacroBreakdownScreen(
-                              macroType: MacroType.sodium,
-                              entries: _on(_selected),
-                              total: _on(_selected).fold(0.0, (s, e) => s + e.totalSodium),
-                              target: _sodiumTarget.toDouble(),
-                              color: AppColors.sodium,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 14),
-          PaginationDots(count: 2, current: _macroPageIndex),
-          SizedBox(height: 22),
-          _activityCard(),
-          SizedBox(height: 14),
-          _logMealSection(),
-          SizedBox(height: 22),
-          _waterCard(),
-          SizedBox(height: 16),
-          _fastingCard(),
-          SizedBox(height: 22),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Recently uploaded',
-                style: TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                  letterSpacing: -0.4,
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => AllEntriesScreen(storage: widget.storage),
+              Expanded(flex: 5, child: _dayHeroTile(profile)),
+              SizedBox(width: 10),
+              Expanded(
+                flex: 4,
+                child: Column(
+                  children: [
+                    _smallTile(
+                      icon: Symbols.egg,
+                      iconColor: AppColors.protein,
+                      label: 'Protein',
+                      value:
+                          '${_protein(_selected).round()} / ${proteinGoal.round()}g',
+                      sub: 'log more protein today',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MacroBreakdownScreen(
+                            macroType: MacroType.protein,
+                            entries: _on(_selected),
+                            total: _protein(_selected),
+                            target: proteinGoal.toDouble(),
+                            color: AppColors.protein,
+                          ),
+                        ),
+                      ),
                     ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Text(
-                    'View all',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.muted,
-                    ),
-                  ),
+                    SizedBox(height: 10),
+                    _stepsTile(),
+                    SizedBox(height: 10),
+                    _waterTile(),
+                  ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12),
-          if (recent.isEmpty)
-            EmptyCard(onScanTap: _openCapture)
-          else
-            ...recent.map((e) => Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: MealCard(
-                    entry: e,
-                    onTap: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MealDetailScreen(
-                            entry: e,
-                            storage: widget.storage,
-                            onDeleted: () => _deleteEntry(e),
-                          ),
-                        ),
-                      );
-                      _load();
-                    },
-                    onLongPress: () => _deleteEntry(e),
-                  ),
-                )),
+          SizedBox(height: 22),
+          _whatsCooking(),
+          SizedBox(height: 22),
+          _friendsStrip(),
+          SizedBox(height: 14),
+          _bodyStrip(),
+          SizedBox(height: 14),
+          _weeklyTeaser(),
+          SizedBox(height: 22),
+          _recentSection(),
         ],
       ),
     );
@@ -1112,13 +896,558 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _activityCard() {
-    const stepGoal = 8000;
-    final steps = _stepsToday;
-    final progress = (steps / stepGoal).clamp(0.0, 1.0);
-    final kcals = _todayExercises.fold(0, (s, e) => s + e.calories);
-    final minutes = _todayExercises.fold(0, (s, e) => s + e.minutes);
+  /// Asha concierge card — time-aware openers, tap straight into chat.
+  Widget _ashaConcierge() {
+    final h = DateTime.now().hour;
+    final opener = h < 11
+        ? 'Subah-subah! What\'s on the plate today?'
+        : h < 16
+            ? 'Lunch o\'clock — kab kha rahe ho?'
+            : h < 21
+                ? 'Dinner call, or a midnight snack? 😏'
+                : 'Night mode: chai? 2 roti? Tell me.';
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AshaScreen(storage: widget.storage),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE53935), Color(0xFFFF7043)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.auto_awesome, size: 21, color: Colors.white),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Asha',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        opener,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 2),
+                  _AshaTicker(),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
 
+  /// Big hero: day ring, streak, carbs/fat, macro pills (fiber/sugar/sodium).
+  Widget _dayHeroTile(Profile profile) {
+    final logged = _calories(_selected);
+    final goal = profile.calorieGoal;
+    final progress = goal > 0 ? (logged / goal).clamp(0.0, 1.0) : 0.0;
+
+    return InkWell(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MacroBreakdownScreen(
+            macroType: MacroType.calories,
+            entries: _on(_selected),
+            total: logged.toDouble(),
+            target: goal.toDouble(),
+            color: AppColors.ink,
+          ),
+        ),
+      ),
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Today',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.muted,
+              ),
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                SizedBox(
+                  width: 92,
+                  height: 92,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 9,
+                        backgroundColor: AppColors.track,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.ink),
+                      ),
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('🔥', style: TextStyle(fontSize: 17)),
+                            SizedBox(height: 2),
+                            Text(
+                              '$_streak',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$logged',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                          letterSpacing: -1,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      Text(
+                        '/ $goal kcal',
+                        style: TextStyle(fontSize: 13, color: AppColors.muted),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        '$_streak-day streak',
+                        style: TextStyle(fontSize: 11.5, color: AppColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Carbs ${_carbs(_selected).round()}g · '
+              'Fat ${_fat(_selected).round()}g · '
+              'Fiber ${_on(_selected).fold(0.0, (s, e) => s + e.totalFiber).round()}g',
+              style: TextStyle(fontSize: 11.5, color: AppColors.muted),
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                _macroPill(
+                  'Sugar',
+                  '${_on(_selected).fold(0.0, (s, e) => s + e.totalSugar).round()}g',
+                  AppColors.sugar,
+                  () => _openMacro(MacroType.sugar,
+                      _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
+                      _sugarTarget.toDouble(), AppColors.sugar),
+                ),
+                SizedBox(width: 6),
+                _macroPill(
+                  'Sodium',
+                  '${_sodiumKcal().round()}mg',
+                  AppColors.sodium,
+                  () => _openMacro(MacroType.sodium, _sodiumKcal(),
+                      _sodiumTarget.toDouble(), AppColors.sodium),
+                ),
+                SizedBox(width: 6),
+                _macroPill(
+                  'Water',
+                  '${_waterMl ~/ 1000}.${_waterMl % 1000 ~/ 250} L',
+                  AppColors.water,
+                  () => _openWaterSheet(),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double _sodiumKcal() =>
+      _on(_selected).fold(0.0, (s, e) => s + e.totalSodium);
+
+  void _openMacro(MacroType type, double total, double target, Color color) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MacroBreakdownScreen(
+          macroType: type,
+          entries: _on(_selected),
+          total: total,
+          target: target,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _macroPill(String label, String value, Color color, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 7),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _smallTile({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required String sub,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 15, color: iconColor),
+                SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              sub,
+              style: TextStyle(fontSize: 10.5, color: AppColors.muted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _stepsTile() {
+    return InkWell(
+      onTap: _stepsEnabled ? null : _enableSteps,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.directions_walk, size: 15, color: AppColors.green),
+                SizedBox(width: 6),
+                Text(
+                  'Steps',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.muted,
+                  ),
+                ),
+                Spacer(),
+                if (!_stepsEnabled)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.green.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'Track',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.green,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              '${_stepsToday} / 8000',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              'steps today',
+              style: TextStyle(fontSize: 10.5, color: AppColors.muted),
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                if (_stepsEnabled && _stepsSource != StepsSource.healthConnect)
+                  InkWell(
+                    onTap: _manualStepsDialog,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.bg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '+ Add',
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ),
+                  ),
+                SizedBox(width: 6),
+                InkWell(
+                  onTap: () => _addExerciseSheet(),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.bg,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '🏃 + Exercise',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _waterTile() {
+    return InkWell(
+      onTap: _openWaterSheet,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.water_drop, size: 15, color: AppColors.water),
+                SizedBox(width: 6),
+                Text(
+                  'Water',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              '${(_waterMl / 1000).toStringAsFixed(1)} / ${(_waterGoalMl / 1000).toStringAsFixed(1)} L',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              'tap to add glass',
+              style: TextStyle(fontSize: 10.5, color: AppColors.muted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openWaterSheet() async {
+    final ml = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Add water',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  _sheetWaterBtn(250),
+                  SizedBox(width: 8),
+                  _sheetWaterBtn(500),
+                  SizedBox(width: 8),
+                  _sheetWaterBtn(750),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (ml != null && ml > 0) {
+      await widget.storage.addWater(ml);
+      HapticFeedback.lightImpact();
+      _load();
+    }
+  }
+
+  Widget _sheetWaterBtn(int ml) {
+    return Expanded(
+      child: InkWell(
+        onTap: () => Navigator.pop(context, ml),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 13),
+          decoration: BoxDecoration(
+            color: AppColors.chipBlue,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            '+${ml}ml',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.water,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// What's Cooking — the frictionless log zone.
+  Widget _whatsCooking() {
+    final recent = widget.storage.recentFoods.take(4).toList();
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1130,30 +1459,16 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Text('🍳', style: TextStyle(fontSize: 14)),
+              SizedBox(width: 7),
               Text(
-                'Activity',
+                'What\'s cooking?',
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.ink,
-                ),
-              ),
-              Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.green.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _stepsEnabled ? _activity.sourceLabel : 'Tap to track',
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF2E7D32),
-                  ),
+                  letterSpacing: -0.3,
                 ),
               ),
             ],
@@ -1161,164 +1476,60 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 12),
           Row(
             children: [
-              SizedBox(
-                width: 38,
-                height: 38,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 4,
-                      backgroundColor: AppColors.green.withValues(alpha: 0.15),
-                      valueColor:
-                          AlwaysStoppedAnimation(AppColors.green),
-                    ),
-                    Center(
-                      child: Icon(Icons.directions_walk,
-                          size: 17, color: AppColors.green),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${steps.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')} / $stepGoal',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink,
-                      ),
-                    ),
-                    Text(
-                      'steps today',
-                      style: TextStyle(fontSize: 12, color: AppColors.muted),
-                    ),
-                  ],
+                child: _logCta(
+                  icon: Icons.center_focus_strong,
+                  label: 'Scan food',
+                  primary: true,
+                  onTap: _openCapture,
                 ),
               ),
-              if (_enablingSteps)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                )
-              else if (!_stepsEnabled)
-                TextButton.icon(
-                  onPressed: _enableSteps,
-                  icon: Icon(Icons.auto_awesome, size: 15),
-                  label: Text('Track'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.green,
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                )
-              else
-                TextButton.icon(
-                  onPressed: _stepsSource == StepsSource.healthConnect
-                      ? null
-                      : _manualStepsDialog,
-                  icon: Icon(Icons.edit, size: 15),
-                  label: Text('Add'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.ink,
-                    disabledForegroundColor: AppColors.muted,
-                  ),
-                ),
-            ],
-          ),
-          Divider(height: 22, color: AppColors.divider),
-          Row(
-            children: [
-              Text('🔥', style: TextStyle(fontSize: 18)),
               SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  kcals > 0
-                      ? '$kcals kcal burned · $minutes min today'
-                      : 'No workouts logged today',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.ink,
-                  ),
-                ),
+              _logCta(
+                icon: Icons.photo_library_outlined,
+                label: 'Gallery',
+                onTap: _openGallery,
               ),
-              TextButton.icon(
-                onPressed: _addExerciseSheet,
-                icon: Icon(Icons.add, size: 17),
-                label: Text('Exercise'),
-                style: TextButton.styleFrom(foregroundColor: AppColors.ink),
+              SizedBox(width: 8),
+              _logCta(
+                icon: Icons.restaurant_menu,
+                label: 'Quick picks',
+                onTap: _openQuickPicks,
               ),
             ],
           ),
-          if (_todayExercises.isNotEmpty) ...[
+          if (recent.isNotEmpty) ...[
+            SizedBox(height: 12),
+            Text(
+              'One-tap from your usuals:',
+              style: TextStyle(fontSize: 11, color: AppColors.muted),
+            ),
             SizedBox(height: 8),
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: _todayExercises
-                  .map(
-                    (e) => GestureDetector(
-                      onTap: () async {
-                        final ok = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20)),
-                            title: Text(e.name),
-                            content: Text(
-                                '${e.minutes} min · ${e.calories} kcal\nRemove this workout?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx, false),
-                                child: Text('Keep'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx, true),
-                                child: Text('Remove',
-                                    style:
-                                        TextStyle(color: AppColors.missedRed)),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (ok == true && mounted) {
-                          await _activity.deleteExercise(e.id);
-                          setState(() {
-                            _todayExercises = _activity.todayExercises();
-                          });
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColors.bg,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${e.name.split(' ').first} · ${e.minutes}m · ${e.calories}k',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.muted,
-                          ),
-                        ),
+              children: recent.map((f) {
+                return InkWell(
+                  onTap: () => _quickLog(f),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.bg,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${f['name']} · ${f['calories']}',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
                       ),
                     ),
-                  )
-                  .toList(),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ],
@@ -1326,9 +1537,358 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// True once the user opted into step tracking (or it degraded to manual).
-  bool get _stepsEnabled =>
-      _stepsSource != StepsSource.manual || _stepsToday > 0;
+  Widget _logCta({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool primary = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: primary ? AppColors.inkButton : AppColors.bg,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 20, color: primary ? Colors.white : AppColors.ink),
+            SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: primary ? Colors.white : AppColors.ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _quickLog(Map<String, dynamic> f) async {
+    final item = FoodItem(
+      name: f['name'] as String? ?? 'Food',
+      calories: (f['calories'] as num?)?.toInt() ?? 100,
+      protein: (f['protein'] as num?)?.toDouble() ?? 0,
+      carbs: (f['carbs'] as num?)?.toDouble() ?? 0,
+      fat: (f['fat'] as num?)?.toDouble() ?? 0,
+      quantity: 1,
+    );
+    final entry = FoodEntry(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      dateTime: DateTime.now(),
+      mealType: _autoMeal(),
+      items: [item],
+      imagePath: '',
+    );
+    await widget.storage.addEntry(entry);
+    HapticFeedback.lightImpact();
+    _load();
+  }
+
+  String _autoMeal() {
+    final h = DateTime.now().hour;
+    if (h < 11) return 'breakfast';
+    if (h < 16) return 'lunch';
+    if (h < 21) return 'dinner';
+    return 'snack';
+  }
+
+  /// Friends strip — who's leading this week, one tap to Discover.
+  Widget _friendsStrip() {
+    return FutureBuilder<List<({String uid, String name, int kcal})>>(
+      future: SocialService(widget.storage).weeklyLeaderboard(),
+      builder: (context, snapshot) {
+        final board =
+            snapshot.data ?? <({String uid, String name, int kcal})>[(uid: '', name: 'You', kcal: _calories(_selected))];
+        final top = board.take(3).toList();
+        final lead = top.isEmpty ? '' : top.first.name;
+        final leadKcal = top.isEmpty ? 0 : top.first.kcal;
+        return InkWell(
+          onTap: () => setState(() => _navIndex = 2),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppColors.cardShadow,
+            ),
+            child: Row(
+              children: [
+                Text('🫶', style: TextStyle(fontSize: 15)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _navIndex == 0
+                        ? '$lead leads with $leadKcal kcal — want in?'
+                        : 'Friends → Discover',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ),
+                if (snapshot.connectionState == ConnectionState.waiting)
+                  SizedBox(
+                    width: 13,
+                    height: 13,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.8,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Body story — weight/waist trendline nudge.
+  Widget _bodyStrip() {
+    final weights = widget.storage.weightEntries;
+    final latestW = weights.isNotEmpty ? weights.last.weightKg : null;
+    final firstW = weights.isNotEmpty ? weights.first.weightKg : null;
+    final deltaW =
+        (latestW != null && firstW != null) ? latestW - firstW : null;
+    final bodies = widget.storage.bodyMeasurements;
+    final latestWaist = bodies.isNotEmpty ? bodies.first.waist : null;
+
+    return InkWell(
+      onTap: () => setState(() => _navIndex = 1),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Row(
+          children: [
+            Text('📏', style: TextStyle(fontSize: 15)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                deltaW != null
+                    ? '${deltaW <= 0 ? '▼' : '▲'} ${deltaW.abs().toStringAsFixed(1)}kg'
+                        '${latestWaist != null ? ' · waist ${latestWaist.toStringAsFixed(1)}cm' : ''} — your story'
+                    : 'Start tracking your body story',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.ink,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Weekly AI review teaser — 1 line, tap into Insights.
+  Widget _weeklyTeaser() {
+    final cached =
+        WeeklySummaryService(widget.storage).cached()?.replaceAll('\n', ' ');
+    final line = cached != null && cached.isNotEmpty
+        ? (cached.length > 110 ? cached.substring(0, 110) : cached)
+        : null;
+    return InkWell(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => InsightsScreen(storage: widget.storage),
+        ),
+      ),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFFF4B4B).withValues(alpha: 0.14),
+              Color(0xFFFF7A45).withValues(alpha: 0.14),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColors.protein.withValues(alpha: 0.25),
+          ),
+        ),
+        child: Row(
+          children: [
+            Text('💬', style: TextStyle(fontSize: 15)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                line != null ? '"$line…"' : 'Your week in Asha\'s words — read it',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.ink,
+                  height: 1.35,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Recently uploaded — 2-col photo grid.
+  Widget _recentSection() {
+    final recent = _on(_selected).take(4).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recently uploaded',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+                letterSpacing: -0.3,
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        AllEntriesScreen(storage: widget.storage),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  'View all',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        if (recent.isEmpty)
+          EmptyCard(onScanTap: _openCapture)
+        else
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 1.5,
+            children: recent.map((e) => _recentGridCard(e)).toList(),
+          ),
+      ],
+    );
+  }
+
+  Widget _recentGridCard(FoodEntry entry) {
+    final kcal = entry.totalCalories;
+    final names =
+        entry.items.map((i) => i.name).take(2).join(', ');
+    return InkWell(
+      onTap: () async {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => MealDetailScreen(
+              entry: entry,
+              storage: widget.storage,
+              onDeleted: () => _deleteEntry(entry),
+            ),
+          ),
+        );
+        _load();
+      },
+      onLongPress: () => _deleteEntry(entry),
+      borderRadius: BorderRadius.circular(16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (entry.imagePath.isNotEmpty &&
+                File(entry.imagePath).existsSync())
+              Image.file(
+                File(entry.imagePath),
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                color: AppColors.cardAlt,
+                child: Center(
+                  child: Text('🍽️', style: TextStyle(fontSize: 26)),
+                ),
+              ),
+            Positioned(
+              left: 8,
+              bottom: 8,
+              right: 8,
+              child: Container(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      names,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '$kcal kcal',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Future<void> _enableSteps() async {
     if (_enablingSteps) return;
@@ -1400,751 +1960,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _todayExercises = _activity.todayExercises();
       });
     }
-  }
-
-  Widget _waterCard() {
-    final progress = _waterGoalMl > 0 ? (_waterMl / _waterGoalMl).clamp(0.0, 1.0) : 0.0;
-
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text('💧', style: TextStyle(fontSize: 16)),
-                  SizedBox(width: 6),
-                  Text(
-                    'Water',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Text(
-                    '${(_waterMl / 1000).toStringAsFixed(1)} / ${(_waterGoalMl / 1000).toStringAsFixed(1)} L',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.muted,
-                    ),
-                  ),
-                  if (_waterMl > 0) ...[
-                    SizedBox(width: 6),
-                    GestureDetector(
-                      onTap: () async {
-                        await widget.storage.undoLastWater();
-                        _load();
-                      },
-                      child: Icon(Icons.undo, size: 14, color: AppColors.missedRed),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: SizedBox(
-              height: 8,
-              child: LinearProgressIndicator(
-                value: progress,
-                backgroundColor: AppColors.track,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.fat),
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              _waterButton(250, Icons.water_drop),
-              SizedBox(width: 8),
-              _waterButton(500, Icons.water_drop),
-              SizedBox(width: 8),
-              _waterButtonCustom(),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _waterButton(int ml, IconData icon) {
-    return Expanded(
-      child: InkWell(
-        onTap: () async {
-          await widget.storage.addWater(ml);
-          HapticFeedback.lightImpact();
-          _load();
-        },
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          constraints: BoxConstraints(minHeight: 44),
-          decoration: BoxDecoration(
-            color: AppColors.chipBlue,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 14, color: AppColors.fat),
-              SizedBox(width: 4),
-              Text(
-                '+${ml}ml',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.fat,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _waterButtonCustom() {
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          final controller = TextEditingController(text: '250');
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text('Add water'),
-              content: TextField(
-                controller: controller,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration: InputDecoration(
-                  suffixText: 'ml',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: () async {
-                    final ml = int.tryParse(controller.text);
-                    if (ml != null && ml > 0 && ml <= 2000) {
-                      await widget.storage.addWater(ml);
-                      _load();
-                      if (ctx.mounted) Navigator.pop(ctx);
-                    } else {
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(
-                          content: Text('Enter a value between 1–2000 ml'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text('Add'),
-                ),
-              ],
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          constraints: BoxConstraints(minHeight: 44),
-          decoration: BoxDecoration(
-            color: AppColors.chipNeutral,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.add, size: 14, color: AppColors.ink),
-              SizedBox(width: 4),
-              Text(
-                'Custom',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _fastingCard() {
-    final isFasting = widget.storage.isFasting;
-    final start = widget.storage.fastingStart;
-    final goalHours = widget.storage.fastingGoalHours;
-    final elapsedH = widget.storage.fastingElapsedHours;
-    final elapsedM = widget.storage.fastingElapsedMinutes;
-    final progress = isFasting ? (elapsedH / goalHours).clamp(0.0, 1.0) : 0.0;
-    final completed = isFasting && elapsedH >= goalHours;
-
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text('⏰', style: TextStyle(fontSize: 18)),
-                  SizedBox(width: 8),
-                  Text(
-                    'Fasting',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ],
-              ),
-              if (isFasting)
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: completed
-                        ? AppColors.green.withValues(alpha: 0.12)
-                        : AppColors.accentOrange.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    completed ? 'Complete' : '$goalHours:00 goal',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: completed ? AppColors.green : AppColors.accentOrange,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          SizedBox(height: 12),
-          if (isFasting) ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${elapsedH.toString().padLeft(2, '0')}:${elapsedM.toString().padLeft(2, '0')}',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
-                    letterSpacing: -1,
-                    fontFamily: 'monospace',
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 4, left: 6),
-                  child: Text(
-                    'elapsed',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.muted,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: SizedBox(
-                height: 8,
-                child: LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: AppColors.track,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    completed ? AppColors.green : AppColors.accentOrange,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'Started at ${start != null ? TimeOfDay.fromDateTime(start).format(context) : ''}',
-              style: TextStyle(fontSize: 11, color: AppColors.muted),
-            ),
-            SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text('End fast?'),
-                          content: Text('This will stop your current fast early.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: Text('Cancel'),
-                            ),
-                            FilledButton(
-                              onPressed: () async {
-                                Navigator.pop(ctx);
-                                await widget.storage.stopFasting();
-                                _load();
-                              },
-                              style: FilledButton.styleFrom(
-                                backgroundColor: AppColors.missedRed,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: Text('End fast'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      constraints: BoxConstraints(minHeight: 36),
-                      decoration: BoxDecoration(
-                        color: AppColors.undoRed,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'End fast',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.missedRed,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 10),
-                InkWell(
-                  onTap: () => _showFastingGoalSheet(context),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: EdgeInsets.all(12),
-                    constraints: BoxConstraints(minWidth: 44, minHeight: 44),
-                    decoration: BoxDecoration(
-                      color: AppColors.chipNeutral,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.settings, size: 18, color: AppColors.muted),
-                  ),
-                ),
-              ],
-            ),
-          ] else ...[
-            Row(
-              children: [
-                Expanded(child: _fastingPreset('14:10', 14)),
-                SizedBox(width: 8),
-                Expanded(child: _fastingPreset('16:8', 16)),
-                SizedBox(width: 8),
-                Expanded(child: _fastingPreset('18:6', 18)),
-                SizedBox(width: 8),
-                Expanded(child: _fastingPreset('20:4', 20)),
-              ],
-            ),
-            SizedBox(height: 4),
-            Center(
-              child: Text(
-                '${goalHours}h fast / ${24 - goalHours}h eating window',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.muted,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            SizedBox(height: 12),
-            SizedBox(
-              height: 48,
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () async {
-                  await widget.storage.startFasting();
-                  _load();
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.inkButton,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'Start fasting',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _fastingPreset(String label, int hours) {
-    final isSelected = widget.storage.fastingGoalHours == hours;
-    return InkWell(
-      onTap: () async {
-        await widget.storage.saveFastingGoalHours(hours);
-        HapticFeedback.lightImpact();
-        setState(() {});
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 10),
-        constraints: BoxConstraints(minHeight: 44),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.inkButton : AppColors.chipNeutral,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : AppColors.ink,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showStreakInfo(BuildContext context) {
-    final streak = _streak;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: EdgeInsets.symmetric(horizontal: 40),
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('🔥', style: TextStyle(fontSize: 32)),
-              SizedBox(height: 10),
-              Text(
-                streak > 0 ? '$streak day streak' : 'No active streak',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: streak > 0 ? AppColors.ink : AppColors.muted,
-                ),
-              ),
-              SizedBox(height: 14),
-              Text(
-                streak > 0
-                    ? 'Log a meal every day to keep it going.\nMiss a day and it resets to zero.'
-                    : 'Log any meal today to start a streak.\nKeep logging daily to build it up.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.muted,
-                  height: 1.4,
-                ),
-              ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  style: TextButton.styleFrom(
-                    backgroundColor: AppColors.inkButton,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text('Got it', style: TextStyle(fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showFastingGoalSheet(BuildContext context) {
-    final controller = TextEditingController(
-      text: widget.storage.fastingGoalHours.toString(),
-    );
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.card,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Fasting Goal',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'Set your fasting duration in hours',
-              style: TextStyle(fontSize: 13, color: AppColors.muted),
-            ),
-            SizedBox(height: 20),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              autofocus: true,
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
-              ),
-              decoration: InputDecoration(
-                suffixText: 'hours',
-                suffixStyle: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.muted,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Color(0xFFE5E5EA)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: AppColors.ink, width: 2),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: FilledButton(
-                onPressed: () async {
-                  final val = int.tryParse(controller.text);
-                  if (val == null || val < 8 || val > 24) return;
-                  await widget.storage.saveFastingGoalHours(val);
-                  if (ctx.mounted) Navigator.pop(ctx);
-                  _load();
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.inkButton,
-                  foregroundColor: Colors.white,
-                  shape: StadiumBorder(),
-                ),
-                child: Text(
-                  'Save',
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.5),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _logMealSection() {
-    final actions = [
-      (Icons.center_focus_strong, 'Scan food', _openCapture),
-      (Icons.photo_library_outlined, 'Upload photo', _openGallery),
-      (Icons.edit_note, 'Add manually', _openManualEntry),
-      (Icons.qr_code_2, 'Barcode', _openBarcodeScanner),
-      (Icons.restaurant_menu, 'Popular dishes', _openQuickPicks),
-    ];
-
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 100,
-            child: PageView(
-              controller: _logPageController,
-              onPageChanged: (i) => setState(() => _logPageIndex = i),
-              children: [
-                // Page 1: first 3 actions
-                Row(
-                  children: [
-                    for (int i = 0; i < 3; i++) ...[
-                      if (i > 0) SizedBox(width: 10),
-                      Expanded(
-                        child: _logOption(
-                          icon: actions[i].$1,
-                          label: actions[i].$2,
-                          onTap: actions[i].$3,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                // Page 2: Barcode + Popular dishes — SAME 1/3 width as page-1 tiles
-                Row(
-                  children: [
-                    Expanded(
-                      child: _logOption(
-                        icon: actions[3].$1,
-                        label: actions[3].$2,
-                        onTap: actions[3].$3,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: _logOption(
-                        icon: actions[4].$1,
-                        label: actions[4].$2,
-                        onTap: actions[4].$3,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(child: SizedBox()),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 10),
-          PaginationDots(count: 2, current: _logPageIndex),
-          SizedBox(height: 12),
-          InkWell(
-            onTap: () async {
-              final result = await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => MealPlanScreen(storage: widget.storage),
-                ),
-              );
-              if (result == true) _load();
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.cardAlt,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.bookmark_outline, size: 18, color: AppColors.ink),
-                  SizedBox(width: 8),
-                  Text(
-                    'Meal plans',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _logOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.cardAlt,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 24, color: AppColors.ink),
-            SizedBox(height: 6),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _openManualEntry() async {
