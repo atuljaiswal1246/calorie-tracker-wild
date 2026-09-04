@@ -31,7 +31,6 @@ import 'discover_screen.dart';
 import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
-import 'meal_plan_screen.dart';
 import 'onboarding_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
@@ -74,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _stepsToday = 0;
   StepsSource _stepsSource = StepsSource.manual;
   StreamSubscription<int>? _activitySub;
-  List<ExerciseEntry> _todayExercises = [];
+  late Future<List<({String uid, String name, int kcal})>> _boardFuture;
   bool _enablingSteps = false;
 
   String? get _signedInEmail {
@@ -97,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _activitySub = _activity.changes.listen((steps) {
       if (mounted) setState(() => _stepsToday = steps);
     });
-    _todayExercises = _activity.todayExercises();
     // NO auto init: step-tracking permissions are opt-in (see card button).
     // Water reminders default ON: ensure they're scheduled any app start.
     if (widget.storage.remindersEnabled) {
@@ -136,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _waterMl = widget.storage.waterMlForDay(DateTime.now());
     _waterGoalMl = widget.storage.waterGoalMl;
     _profilePhotoPath = widget.storage.photoPath;
+    _boardFuture = SocialService(widget.storage).weeklyLeaderboard();
     setState(() {});
     WidgetService.push(widget.storage);
   }
@@ -243,7 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return streak;
   }
 
-  int get _fiberTarget => 30;
   int get _sugarTarget => (_profile?.calorieGoal ?? 2000) ~/ 200;
   int get _sodiumTarget => 2300;
 
@@ -514,11 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _homePage(Profile profile) {
     final goal = profile.calorieGoal;
-    final logged = _calories(_selected);
     final proteinGoal = profile.proteinGrams;
-    final carbsGoal = profile.carbsGrams;
-    final fatGoal = profile.fatGrams;
-    final recent = _on(_selected).take(4).toList();
 
     return RefreshIndicator(
       color: AppColors.ink,
@@ -942,26 +936,23 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Asha',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        opener,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.85),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'Asha',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  Text(
+                    opener,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
                   ),
                   SizedBox(height: 2),
                   _AshaTicker(),
@@ -1104,10 +1095,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(width: 6),
                 _macroPill(
-                  'Water',
-                  '${_waterMl ~/ 1000}.${_waterMl % 1000 ~/ 250} L',
-                  AppColors.water,
-                  () => _openWaterSheet(),
+                  'Burn',
+                  '${_activity.todayExercises().fold(0, (s, e) => s + e.calories)} kcal',
+                  AppColors.accentOrange,
+                  () {},
                 ),
               ],
             ),
@@ -1498,6 +1489,36 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+          SizedBox(height: 10),
+          Row(
+            children: [
+              InkWell(
+                onTap: _openManualEntry,
+                borderRadius: BorderRadius.circular(8),
+                child: Text(
+                  'Add manually',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ),
+              SizedBox(width: 16),
+              InkWell(
+                onTap: _openBarcodeScanner,
+                borderRadius: BorderRadius.circular(8),
+                child: Text(
+                  'Barcode scan',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ),
+            ],
+          ),
           if (recent.isNotEmpty) ...[
             SizedBox(height: 12),
             Text(
@@ -1520,7 +1541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${f['name']} · ${f['calories']}',
+                      '${f['name']} · ${f['calories']} kcal',
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
@@ -1603,7 +1624,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Friends strip — who's leading this week, one tap to Discover.
   Widget _friendsStrip() {
     return FutureBuilder<List<({String uid, String name, int kcal})>>(
-      future: SocialService(widget.storage).weeklyLeaderboard(),
+      future: _boardFuture,
       builder: (context, snapshot) {
         final board =
             snapshot.data ?? <({String uid, String name, int kcal})>[(uid: '', name: 'You', kcal: _calories(_selected))];
@@ -1628,7 +1649,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: Text(
                     _navIndex == 0
-                        ? '$lead leads with $leadKcal kcal — want in?'
+                        ? '$lead ${lead == 'You' ? 'lead' : 'leads'} with $leadKcal kcal — want in?'
                         : 'Friends → Discover',
                     style: TextStyle(
                       fontSize: 12.5,
@@ -1956,9 +1977,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) => _ExerciseSheet(activity: _activity),
     );
     if (result != null && mounted) {
-      setState(() {
-        _todayExercises = _activity.todayExercises();
-      });
+      _load();
     }
   }
 

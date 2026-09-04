@@ -11,7 +11,7 @@ import '../models/food_entry.dart';
 class OpenAIService {
   final String model;
 
-  OpenAIService({this.model = 'deepseek-v4-flash-vision-exp'});
+  OpenAIService({this.model = 'mimo-v2.5'});
 
   /// Cloudflare proxy — key never ships to the client.
   static const _endpoint =
@@ -44,7 +44,7 @@ class OpenAIService {
           'x-device-id': _deviceId,
         },
         body: jsonEncode({
-          'model': 'deepseek-v4-flash-vision-exp',
+          'model': 'mimo-v2.5',
           'messages': [
             {'role': 'user', 'content': 'Say "ok"'}
           ],

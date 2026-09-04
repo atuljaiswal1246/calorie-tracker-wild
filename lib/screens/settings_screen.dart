@@ -291,7 +291,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SizedBox(height: 24),
                   Center(
                     child: Text(
-                      'Calorie Tracker v0.9.0',
+                      'Calorie Tracker v0.9.5',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.muted.withValues(alpha: 0.6),

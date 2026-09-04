@@ -129,7 +129,9 @@ class _CalorieAppState extends State<CalorieApp> {
       scaffoldBackgroundColor: dark
           ? const Color(0xFF0E0F11)
           : const Color(0xFFFAF9F7),
-      dialogBackgroundColor: dark ? const Color(0xFF1B1C1E) : Colors.white,
+      dialogTheme: DialogThemeData(
+        backgroundColor: dark ? const Color(0xFF1B1C1E) : Colors.white,
+      ),
       pageTransitionsTheme: PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),

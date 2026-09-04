@@ -4,3 +4,7 @@ compatibility_date = "2024-11-01"
 
 # Free tier
 workers_dev = true
+
+[[kv_namespaces]]
+binding = "QUOTA"
+id = "f5bd386a90c746fbba8a2aa19e0401d3"

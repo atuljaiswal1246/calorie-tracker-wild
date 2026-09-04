@@ -170,6 +170,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
         SizedBox(height: 16),
         _bodyCard(),
         SizedBox(height: 16),
+        _fastingCard(),
+        SizedBox(height: 16),
         _periodToggle(),
         SizedBox(height: 16),
         if (_periodIndex == 0) ...[
@@ -539,6 +541,354 @@ class _ProgressScreenState extends State<ProgressScreen> {
         if (ctx.mounted) Navigator.pop(ctx);
         _load();
       }),
+    );
+  }
+
+  Widget _fastingCard() {
+    final isFasting = widget.storage.isFasting;
+    final start = widget.storage.fastingStart;
+    final goalHours = widget.storage.fastingGoalHours;
+    final elapsedH = widget.storage.fastingElapsedHours;
+    final elapsedM = widget.storage.fastingElapsedMinutes;
+    final progress = isFasting ? (elapsedH / goalHours).clamp(0.0, 1.0) : 0.0;
+    final completed = isFasting && elapsedH >= goalHours;
+
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text('⏰', style: TextStyle(fontSize: 18)),
+                  SizedBox(width: 8),
+                  Text(
+                    'Fasting',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+              if (isFasting)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: completed
+                        ? AppColors.green.withValues(alpha: 0.12)
+                        : AppColors.accentOrange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    completed ? 'Complete' : '$goalHours:00 goal',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: completed ? AppColors.green : AppColors.accentOrange,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 12),
+          if (isFasting) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${elapsedH.toString().padLeft(2, '0')}:${elapsedM.toString().padLeft(2, '0')}',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -1,
+                    fontFamily: 'monospace',
+                    fontFeatures: [ui.FontFeature.tabularFigures()],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 4, left: 6),
+                  child: Text(
+                    'elapsed',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                height: 8,
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: AppColors.track,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    completed ? AppColors.green : AppColors.accentOrange,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Started at ${start != null ? TimeOfDay.fromDateTime(start).format(context) : ''}',
+              style: TextStyle(fontSize: 11, color: AppColors.muted),
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text('End fast?'),
+                          content: Text('This will stop your current fast early.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () async {
+                                Navigator.pop(ctx);
+                                await widget.storage.stopFasting();
+                                _load();
+                              },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.missedRed,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: Text('End fast'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      constraints: BoxConstraints(minHeight: 36),
+                      decoration: BoxDecoration(
+                        color: AppColors.undoRed,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'End fast',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.missedRed,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10),
+                InkWell(
+                  onTap: () => _showFastingGoalSheet(context),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: EdgeInsets.all(12),
+                    constraints: BoxConstraints(minWidth: 44, minHeight: 44),
+                    decoration: BoxDecoration(
+                      color: AppColors.chipNeutral,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.settings, size: 18, color: AppColors.muted),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            Row(
+              children: [
+                Expanded(child: _fastingPreset('14:10', 14)),
+                SizedBox(width: 8),
+                Expanded(child: _fastingPreset('16:8', 16)),
+                SizedBox(width: 8),
+                Expanded(child: _fastingPreset('18:6', 18)),
+                SizedBox(width: 8),
+                Expanded(child: _fastingPreset('20:4', 20)),
+              ],
+            ),
+            SizedBox(height: 4),
+            Center(
+              child: Text(
+                '${goalHours}h fast / ${24 - goalHours}h eating window',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.muted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            SizedBox(height: 12),
+            SizedBox(
+              height: 48,
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () async {
+                  await widget.storage.startFasting();
+                  _load();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.inkButton,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Start fasting',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _fastingPreset(String label, int hours) {
+    final isSelected = widget.storage.fastingGoalHours == hours;
+    return InkWell(
+      onTap: () async {
+        await widget.storage.saveFastingGoalHours(hours);
+        HapticFeedback.lightImpact();
+        setState(() {});
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        constraints: BoxConstraints(minHeight: 44),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.inkButton : AppColors.chipNeutral,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? Colors.white : AppColors.ink,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFastingGoalSheet(BuildContext context) {
+    final controller = TextEditingController(
+      text: widget.storage.fastingGoalHours.toString(),
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Fasting Goal',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Set your fasting duration in hours',
+              style: TextStyle(fontSize: 13, color: AppColors.muted),
+            ),
+            SizedBox(height: 20),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+              decoration: InputDecoration(
+                suffixText: 'hours',
+                suffixStyle: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.muted,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: AppColors.ink, width: 2),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: FilledButton(
+                onPressed: () async {
+                  final val = int.tryParse(controller.text);
+                  if (val == null || val < 8 || val > 24) return;
+                  await widget.storage.saveFastingGoalHours(val);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  _load();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.inkButton,
+                  foregroundColor: Colors.white,
+                  shape: StadiumBorder(),
+                ),
+                child: Text(
+                  'Save',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
