@@ -1,12 +1,10 @@
 /**
  * Cal Matters — AI proxy (Cloudflare Worker).
  *
- * Four upstreams, tried in order (first success wins):
- *   1. OpenCode Go (paid)   — secret `OPENCODE_KEY`     — model `mimo-v2.5`
- *   2. AICredits            — secret `AICREDITS_KEY`    — model `gpt-4o-mini`
+ * Three upstreams, tried in order (first success wins):
+ *   1. AICredits            — secret `AICREDITS_KEY`    — model `gpt-4o-mini`
+ *   2. OpenCode Zen (free)  — secret `ZEN_KEY`          — model `mimo-v2.5-free`
  *   3. OpenRouter           — secret `OPENROUTER_KEY`   — model `gpt-4o-mini`
- *   4. OpenCode Zen (free)  — secret `ZEN_KEY`          — model `mimo-v2.5-free`
- *      (last resort; free tier is rate-limited/unstable by nature)
  *
  * Circuit breaker:
  *   Each provider has a consecutive-failure counter in KV. After
@@ -15,29 +13,26 @@
  *   A single success resets the counter.
  *
  *   KV keys: `cb_<provider>` -> JSON { "fails": n, "until": epochMs }
- *   Providers: go, aicredits, openrouter, zen.
+ *   Providers: aicredits, zen, openrouter.
  *
  * Optional Telegram alerting: if secrets `TELEGRAM_BOT_TOKEN` and
  * `TELEGRAM_CHAT_ID` are present, a provider being suspended sends a message
  * (throttled to 1/hour). Without them this is a no-op.
  *
  * Any secret may be absent:
- *   - missing OPENCODE_KEY     -> tier 1 skipped
- *   - missing AICREDITS_KEY    -> tier 2 skipped
+ *   - missing AICREDITS_KEY    -> tier 1 skipped
+ *   - missing ZEN_KEY          -> tier 2 skipped
  *   - missing OPENROUTER_KEY   -> tier 3 skipped
- *   - missing ZEN_KEY          -> tier 4 skipped
  *   - all missing              -> 500
  *
  * Per-device daily quota via KV binding `QUOTA` (optional binding — if
  * absent, quota checks are skipped).
  */
 
-const GO_UPSTREAM = "https://opencode.ai/zen/go/v1/chat/completions";
 const AICREDITS_UPSTREAM = "https://aicredits.in/v1/chat/completions";
-const OPENROUTER_UPSTREAM = "https://openrouter.ai/api/v1/chat/completions";
 const ZEN_UPSTREAM = "https://opencode.ai/zen/v1/chat/completions";
+const OPENROUTER_UPSTREAM = "https://openrouter.ai/api/v1/chat/completions";
 
-const GO_MODEL = "mimo-v2.5";
 const FALLBACK_MODEL = "gpt-4o-mini";
 const FREE_MODEL = "mimo-v2.5-free";
 
@@ -52,7 +47,7 @@ export default {
     }
 
     const hasAny =
-      env.OPENCODE_KEY || env.AICREDITS_KEY || env.OPENROUTER_KEY || env.ZEN_KEY;
+      env.AICREDITS_KEY || env.ZEN_KEY || env.OPENROUTER_KEY;
     if (!hasAny) {
       return json(500, { error: "Server not configured (no API keys)" });
     }
@@ -86,14 +81,13 @@ export default {
     // Ordered rotation. A provider is skipped if its circuit breaker is open
     // (currently suspended). Each entry is [provider, upstream, key, model].
     const rotation = [
-      ["go", GO_UPSTREAM, env.OPENCODE_KEY, GO_MODEL],
       ["aicredits", AICREDITS_UPSTREAM, env.AICREDITS_KEY, FALLBACK_MODEL],
-      ["openrouter", OPENROUTER_UPSTREAM, env.OPENROUTER_KEY, FALLBACK_MODEL],
       ["zen", ZEN_UPSTREAM, env.ZEN_KEY, FREE_MODEL],
+      ["openrouter", OPENROUTER_UPSTREAM, env.OPENROUTER_KEY, FALLBACK_MODEL],
     ];
 
     for (const [provider, url, key, model] of rotation) {
-      if (!key) continue; // no secret — skip this provider
+      if (!key) continue;
       if (await isSuspended(env, provider)) continue;
 
       const res = await tryUpstream(url, key, model, body);
@@ -101,7 +95,6 @@ export default {
         await resetBreaker(env, provider);
         return res;
       }
-      // Failure — count it; suspend at threshold.
       await countFailure(env, provider);
     }
 
@@ -134,7 +127,7 @@ async function countFailure(env, provider) {
       await env.QUOTA.put(`cb_${provider}`, JSON.stringify({ fails: 0, until }), {
         expirationTtl: 86400 * 2,
       });
-      await notify(env, `⛔ AI provider "${provider}" failed ${FAIL_THRESHOLD}× — suspended for ${COOLDOWN_MS / 60000} min.`);
+      await notify(env, `AI provider "${provider}" failed ${FAIL_THRESHOLD}x — suspended for ${COOLDOWN_MS / 60000} min.`);
     } else {
       await env.QUOTA.put(`cb_${provider}`, JSON.stringify({ fails, until: 0 }), {
         expirationTtl: 86400 * 2,
@@ -194,7 +187,7 @@ async function notify(env, message) {
   try {
     const last = parseInt((await env.QUOTA?.get("last_alert_ts")) || "0", 10) || 0;
     const now = Date.now();
-    if (now - last < 3600000) return; // throttle: max 1/hour
+    if (now - last < 3600000) return;
     await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
