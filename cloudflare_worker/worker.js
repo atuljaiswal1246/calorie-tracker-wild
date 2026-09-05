@@ -2,8 +2,8 @@
  * Cal Matters — AI proxy (Cloudflare Worker).
  *
  * Three upstreams, tried in order (first success wins):
- *   1. AICredits            — secret `AICREDITS_KEY`    — model `gpt-4o-mini`
- *   2. OpenCode Go (paid)   — secret `OPENCODE_KEY`     — model `mimo-v2.5`
+ *   1. OpenCode Go (paid)   — secret `OPENCODE_KEY`     — model `mimo-v2.5`
+ *   2. AICredits            — secret `AICREDITS_KEY`    — model `gpt-4o-mini`
  *   3. OpenRouter           — secret `OPENROUTER_KEY`   — model `gpt-4o-mini`
  *
  * Circuit breaker:
@@ -13,15 +13,15 @@
  *   A single success resets the counter.
  *
  *   KV keys: `cb_<provider>` -> JSON { "fails": n, "until": epochMs }
- *   Providers: aicredits, go, openrouter.
+ *   Providers: go, aicredits, openrouter.
  *
  * Optional Telegram alerting: if secrets `TELEGRAM_BOT_TOKEN` and
  * `TELEGRAM_CHAT_ID` are present, a provider being suspended sends a message
  * (throttled to 1/hour). Without them this is a no-op.
  *
  * Any secret may be absent:
- *   - missing AICREDITS_KEY    -> tier 1 skipped
- *   - missing OPENCODE_KEY     -> tier 2 skipped
+ *   - missing OPENCODE_KEY     -> tier 1 skipped
+ *   - missing AICREDITS_KEY    -> tier 2 skipped
  *   - missing OPENROUTER_KEY   -> tier 3 skipped
  *   - all missing              -> 500
  *
@@ -81,8 +81,8 @@ export default {
     // Ordered rotation. A provider is skipped if its circuit breaker is open
     // (currently suspended). Each entry is [provider, upstream, key, model].
     const rotation = [
-      ["aicredits", AICREDITS_UPSTREAM, env.AICREDITS_KEY, FALLBACK_MODEL],
       ["go", GO_UPSTREAM, env.OPENCODE_KEY, BEST_MODEL],
+      ["aicredits", AICREDITS_UPSTREAM, env.AICREDITS_KEY, FALLBACK_MODEL],
       ["openrouter", OPENROUTER_UPSTREAM, env.OPENROUTER_KEY, FALLBACK_MODEL],
     ];
 
