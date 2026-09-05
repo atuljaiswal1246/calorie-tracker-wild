@@ -3,7 +3,7 @@
  *
  * Three upstreams, tried in order (first success wins):
  *   1. AICredits            — secret `AICREDITS_KEY`    — model `gpt-4o-mini`
- *   2. OpenCode Zen (free)  — secret `ZEN_KEY`          — model `mimo-v2.5-free`
+ *   2. OpenCode Go (paid)   — secret `OPENCODE_KEY`     — model `mimo-v2.5`
  *   3. OpenRouter           — secret `OPENROUTER_KEY`   — model `gpt-4o-mini`
  *
  * Circuit breaker:
@@ -13,7 +13,7 @@
  *   A single success resets the counter.
  *
  *   KV keys: `cb_<provider>` -> JSON { "fails": n, "until": epochMs }
- *   Providers: aicredits, zen, openrouter.
+ *   Providers: aicredits, go, openrouter.
  *
  * Optional Telegram alerting: if secrets `TELEGRAM_BOT_TOKEN` and
  * `TELEGRAM_CHAT_ID` are present, a provider being suspended sends a message
@@ -21,7 +21,7 @@
  *
  * Any secret may be absent:
  *   - missing AICREDITS_KEY    -> tier 1 skipped
- *   - missing ZEN_KEY          -> tier 2 skipped
+ *   - missing OPENCODE_KEY     -> tier 2 skipped
  *   - missing OPENROUTER_KEY   -> tier 3 skipped
  *   - all missing              -> 500
  *
@@ -30,11 +30,11 @@
  */
 
 const AICREDITS_UPSTREAM = "https://aicredits.in/v1/chat/completions";
-const ZEN_UPSTREAM = "https://opencode.ai/zen/v1/chat/completions";
+const GO_UPSTREAM = "https://opencode.ai/zen/go/v1/chat/completions";
 const OPENROUTER_UPSTREAM = "https://openrouter.ai/api/v1/chat/completions";
 
+const BEST_MODEL = "mimo-v2.5";
 const FALLBACK_MODEL = "gpt-4o-mini";
-const FREE_MODEL = "mimo-v2.5-free";
 
 const FAIL_THRESHOLD = 5;
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
@@ -47,7 +47,7 @@ export default {
     }
 
     const hasAny =
-      env.AICREDITS_KEY || env.ZEN_KEY || env.OPENROUTER_KEY;
+      env.AICREDITS_KEY || env.OPENCODE_KEY || env.OPENROUTER_KEY;
     if (!hasAny) {
       return json(500, { error: "Server not configured (no API keys)" });
     }
@@ -82,7 +82,7 @@ export default {
     // (currently suspended). Each entry is [provider, upstream, key, model].
     const rotation = [
       ["aicredits", AICREDITS_UPSTREAM, env.AICREDITS_KEY, FALLBACK_MODEL],
-      ["zen", ZEN_UPSTREAM, env.ZEN_KEY, FREE_MODEL],
+      ["go", GO_UPSTREAM, env.OPENCODE_KEY, BEST_MODEL],
       ["openrouter", OPENROUTER_UPSTREAM, env.OPENROUTER_KEY, FALLBACK_MODEL],
     ];
 
