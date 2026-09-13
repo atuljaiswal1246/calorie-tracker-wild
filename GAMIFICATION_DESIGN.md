@@ -269,14 +269,20 @@ Each phase: `flutter analyze` + `flutter test` green, then **you** QA on device.
 
 ---
 
-## 9. Open questions for you
+## 9. Decisions (locked 2026-09-13)
 
-1. Currency naming — keep **Coins/Gems**, or Indian-flavored names?
-2. Leagues **opt-in** (solo default) vs on by default?
-3. Should notifications be voiced by **Asha** (our assistant) as the persona?
-4. XP values/goal-day bonus — happy with the table, or tune for Cal Matters?
-5. Any monetization intent for Gems now, or keep them earned-only?
-6. Hindi/regional copy at launch, or English first?
+1. **Currency = `Coins` (soft) + `Gems` (hard).** Chosen for universal
+   international recognition (India → US/UK); `Coins`/`Gems` are the standard
+   game-currency words and need no localization.
+2. **Leagues are OPT-IN, solo by default.** No competition is forced on a health
+   app; a prominent "Join a League" entry point. May flip to opt-out later with
+   data. Private profiles stay solo.
+3. **Notifications are voiced by Asha** — same persona as the in-app concierge.
+4. **XP uses the §2.1 table as-is**, with the daily caps and a 30 XP goal-day
+   bonus. All values live in one tunable config constant.
+5. **Gems are earned-only at launch** — no monetization. Play Billing stays
+   scaffolded but unwired (matches the app's validate-before-spend rule).
+6. **English first**, built i18n-ready (all strings externalized); regional
+   Indian languages follow after launch.
 
-Once you answer (or say "use your judgment"), I'll have Asha implement **G0**
-first and we go down the list.
+With these locked, implementation starts at **G0 (data layer)**.
