@@ -18,7 +18,9 @@ import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../models/quest.dart';
 import '../models/shop.dart';
+import '../services/analytics_service.dart';
 import '../services/celebration_service.dart';
+import '../services/experiment_service.dart';
 import '../services/gamification_controller.dart';
 import '../services/notification_coordinator.dart';
 import '../services/notification_service.dart';
@@ -101,6 +103,11 @@ class _HomeScreenState extends State<HomeScreen> {
   /// controller is live, otherwise the legacy meal-only count.
   int get _displayStreak => _gami?.streak ?? _streak;
 
+  /// A/B variant for how the streak pill is labelled.
+  String get _streakLabel => ExperimentService.verboseStreak
+      ? '$_displayStreak days'
+      : '$_displayStreak';
+
   String? get _signedInEmail {
     try {
       return widget.auth.currentUser?.email;
@@ -145,6 +152,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
     GamificationController.instance?.revision.addListener(_onGamificationChanged);
+    AnalyticsService.log('experiment_exposure', {
+      'experiment': ExperimentService.streakDisplay,
+      'variant': ExperimentService.streakDisplayVariant(),
+    });
   }
 
   void _onGamificationChanged() {
@@ -805,7 +816,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text('🔥', style: TextStyle(fontSize: 13)),
                   SizedBox(width: 4),
                   Text(
-                    '$_displayStreak',
+                    _streakLabel,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
