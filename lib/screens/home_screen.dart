@@ -17,6 +17,7 @@ import '../services/asha_prompts.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../models/quest.dart';
+import '../services/celebration_service.dart';
 import '../services/gamification_controller.dart';
 import '../services/notification_coordinator.dart';
 import '../services/notification_service.dart';
@@ -138,24 +139,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _drainCelebrations();
   }
 
-  /// Surface queued reward moments as floating toasts (plan §4.8).
+  /// Surface queued reward moments: full-screen for level-ups and streak
+  /// milestones, floating toasts for everything else (plan §4.8).
   void _drainCelebrations() {
     final gami = _gami;
     if (gami == null) return;
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
     CelebrationEvent? event;
     while ((event = gami.takeCelebration()) != null) {
-      final e = event!;
-      messenger.showSnackBar(SnackBar(
-        content: Text(
-          e.kind == 'milestone' ? '🎉 ${e.message}' : e.message,
-          style: TextStyle(color: AppColors.bg, fontWeight: FontWeight.w600),
-        ),
-        duration: const Duration(milliseconds: 1600),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.ink,
-      ));
+      CelebrationService.celebrate(context, event!);
     }
   }
 
