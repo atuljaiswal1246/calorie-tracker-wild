@@ -10,6 +10,7 @@ import 'storage_service.dart';
 class ExperimentService {
   static StorageService? _storage;
   static const String streakDisplay = 'streak_display';
+  static const String notifTone = 'notif_tone';
 
   static void init(StorageService storage) => _storage = storage;
 
@@ -29,4 +30,8 @@ class ExperimentService {
       variant(streakDisplay, const ['compact', 'verbose']);
 
   static bool get verboseStreak => streakDisplayVariant() == 'verbose';
+
+  /// Which notification tone pool to draw from (plan §9 Phase 4 A/B).
+  static String notifToneVariant() =>
+      variant(notifTone, const ['playful', 'supportive', 'gentle']);
 }

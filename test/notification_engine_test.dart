@@ -114,6 +114,24 @@ void main() {
       expect(msg, isNull);
     });
 
+    test('draws from the requested tone pool, falling back when empty', () {
+      engine.state.state = UserState.active;
+      final when = DateTime(2026, 9, 7, 18);
+      final playful =
+          engine.select(name: 'A', streak: 5, tone: 'playful', at: when);
+      expect(playful, isNotNull);
+      expect(
+          [
+            'active_points_today',
+            'active_league_saturday',
+            'active_water',
+          ],
+          contains(playful!.id));
+      // An unknown tone has no eligible templates, so it falls back.
+      expect(engine.select(name: 'A', streak: 5, tone: 'zzz', at: when),
+          isNotNull);
+    });
+
     test('stops re-engaging a dormant user after two nudges', () {
       engine.state.state = UserState.dormant;
       final when = DateTime(2026, 9, 7, 12);

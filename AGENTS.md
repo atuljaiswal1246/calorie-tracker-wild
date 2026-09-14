@@ -317,9 +317,13 @@ profile avatar (bronze/silver/gold/seasonal); a stable per-user A/B variant uses
 Midnight/Forest themes now re-tint the app accent + primary buttons
 (`AppColors.themeNotifier`, set in main and on shop equip).
 
-**Still open:** accessibility + performance pass on the new gamification screens;
-notification-tone A/B not built; leagues simulate peers locally (no Cloud
-Function); no Firebase Cloud Function for daily state evaluation.
+**Also done (Phase 4 finish):** screen-reader semantics on quests/league rows/
+celebrations; notification-tone A/B (templates tagged playful/supportive/gentle,
+chosen per user via `experiment_service.dart` with exposure logged).
+
+**Still open:** performance profiling; leagues simulate peers locally (no Cloud
+Function); no Firebase Cloud Function for daily state evaluation; the foundation
+audit fixes above are still pending.
 
 ## Foundation audit (2026-09-14) — schedule before scale/launch
 Feature work can continue on top (the service seams are sound), but these three

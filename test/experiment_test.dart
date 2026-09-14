@@ -26,6 +26,11 @@ void main() {
         contains(ExperimentService.streakDisplayVariant()));
   });
 
+  test('notification tone variant is one of the three tones', () {
+    expect(['playful', 'supportive', 'gentle'],
+        contains(ExperimentService.notifToneVariant()));
+  });
+
   test('unknown user falls back to a stable anon bucket', () {
     storage.setUserId(null);
     expect(ExperimentService.variant('exp', const ['x']), 'x');

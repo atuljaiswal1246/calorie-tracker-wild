@@ -7,6 +7,8 @@
 library;
 
 import '../models/notification_state.dart';
+import 'analytics_service.dart';
+import 'experiment_service.dart';
 import 'notification_engine.dart';
 import 'notification_service.dart';
 import 'storage_service.dart';
@@ -38,7 +40,13 @@ class NotificationCoordinator {
 
     final name = storage.profile?.name.split(' ').first ?? 'there';
     final streak = storage.gamification.streak.current;
-    final message = engine.select(name: name, streak: streak, at: when);
+    final tone = ExperimentService.notifToneVariant();
+    AnalyticsService.log('experiment_exposure', {
+      'experiment': ExperimentService.notifTone,
+      'variant': tone,
+    });
+    final message =
+        engine.select(name: name, streak: streak, tone: tone, at: when);
 
     if (message != null) {
       await NotificationService.scheduleEngineNudge(

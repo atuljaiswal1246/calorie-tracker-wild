@@ -35,12 +35,14 @@ class _Template {
   final int endHour; // exclusive; a window may wrap midnight
   final String Function(Map<String, String> v) title;
   final String Function(Map<String, String> v) body;
+  final String tone;
 
   const _Template({
     required this.id,
     required this.state,
     required this.title,
     required this.body,
+    this.tone = 'supportive',
     this.startHour = 7,
     this.endHour = 22,
   });
@@ -116,6 +118,7 @@ class NotificationEngine {
     required String name,
     required int streak,
     int? leaguePosition,
+    String? tone,
     DateTime? at,
   }) {
     final when = at ?? _now();
@@ -132,11 +135,15 @@ class NotificationEngine {
       'position': '${leaguePosition ?? 0}',
     };
 
-    final candidates = _templates
+    final base = _templates
         .where((t) => t.state == state.state)
         .where((t) => _inWindow(t, when.hour))
         .where((t) => !_sentWithin(t.id, when, const Duration(hours: 48)))
         .toList();
+    final toned = tone == null
+        ? base
+        : base.where((t) => t.tone == tone).toList();
+    final candidates = toned.isNotEmpty ? toned : base;
     if (candidates.isEmpty) return null;
 
     final t = candidates[_rng.nextInt(candidates.length)];
@@ -239,6 +246,7 @@ class NotificationEngine {
     // Active
     _Template(
       id: 'active_streak_keep',
+      tone: 'supportive',
       state: UserState.active,
       startHour: 17,
       endHour: 20,
@@ -248,6 +256,7 @@ class NotificationEngine {
     ),
     _Template(
       id: 'active_points_today',
+      tone: 'playful',
       state: UserState.active,
       startHour: 8,
       endHour: 21,
@@ -256,6 +265,7 @@ class NotificationEngine {
     ),
     _Template(
       id: 'active_league_saturday',
+      tone: 'playful',
       state: UserState.active,
       startHour: 18,
       endHour: 21,
@@ -265,6 +275,7 @@ class NotificationEngine {
     ),
     _Template(
       id: 'active_quest_waiting',
+      tone: 'supportive',
       state: UserState.active,
       startHour: 19,
       endHour: 21,
@@ -273,6 +284,7 @@ class NotificationEngine {
     ),
     _Template(
       id: 'active_water',
+      tone: 'playful',
       state: UserState.active,
       startHour: 15,
       endHour: 20,
@@ -283,6 +295,7 @@ class NotificationEngine {
     // Wobbling
     _Template(
       id: 'wobble_morning',
+      tone: 'supportive',
       state: UserState.wobbling,
       startHour: 8,
       endHour: 11,
@@ -292,6 +305,7 @@ class NotificationEngine {
     ),
     _Template(
       id: 'wobble_afternoon',
+      tone: 'gentle',
       state: UserState.wobbling,
       startHour: 15,
       endHour: 17,
@@ -301,6 +315,7 @@ class NotificationEngine {
     ),
     _Template(
       id: 'wobble_evening',
+      tone: 'supportive',
       state: UserState.wobbling,
       startHour: 19,
       endHour: 21,
@@ -312,6 +327,7 @@ class NotificationEngine {
     // At risk
     _Template(
       id: 'atrisk_morning',
+      tone: 'gentle',
       state: UserState.atRisk,
       startHour: 9,
       endHour: 12,
@@ -321,6 +337,7 @@ class NotificationEngine {
     ),
     _Template(
       id: 'atrisk_midday',
+      tone: 'gentle',
       state: UserState.atRisk,
       startHour: 10,
       endHour: 13,
@@ -331,6 +348,7 @@ class NotificationEngine {
     // Dormant
     _Template(
       id: 'dormant_weekly',
+      tone: 'gentle',
       state: UserState.dormant,
       startHour: 9,
       endHour: 20,
@@ -340,6 +358,7 @@ class NotificationEngine {
     ),
     _Template(
       id: 'dormant_summary',
+      tone: 'gentle',
       state: UserState.dormant,
       startHour: 9,
       endHour: 20,
