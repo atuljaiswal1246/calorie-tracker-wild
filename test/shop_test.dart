@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,6 +7,7 @@ import 'package:calorie_tracker/models/shop.dart';
 import 'package:calorie_tracker/services/gamification_controller.dart';
 import 'package:calorie_tracker/services/shop_service.dart';
 import 'package:calorie_tracker/services/storage_service.dart';
+import 'package:calorie_tracker/theme/app_colors.dart';
 
 void main() {
   late StorageService storage;
@@ -94,5 +96,11 @@ void main() {
 
   test('cannot equip something not owned', () async {
     expect(await shop.equip(item('theme_midnight')), isFalse);
+  });
+
+  test('buying a theme applies it globally', () async {
+    await shop.purchase(item('theme_forest'));
+    expect(AppColors.themeNotifier.value, 'theme_forest');
+    expect(AppColors.accent.toARGB32(), const Color(0xFF2E7D32).toARGB32());
   });
 }

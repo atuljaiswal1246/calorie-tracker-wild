@@ -313,13 +313,13 @@ shop_purchase, league_result — swap the `log()` body for Firebase Analytics la
 
 **Also done (Phase 4 cont.):** equipped shop frames render as a ring on the home
 profile avatar (bronze/silver/gold/seasonal); a stable per-user A/B variant uses
-`experiment_service.dart` to label the streak pill and logs exposure.
+`experiment_service.dart` to label the streak pill and logs exposure; the
+Midnight/Forest themes now re-tint the app accent + primary buttons
+(`AppColors.themeNotifier`, set in main and on shop equip).
 
-**Still open:** equipped *themes*/*voices* — voice is applied to the Asha prompt,
-but the Midnight/Forest themes are not applied to the UI yet; accessibility +
-performance pass on the new screens outstanding; notification-tone A/B not built;
-leagues simulate peers locally (no Cloud Function); no Firebase Cloud Function for
-daily state evaluation.
+**Still open:** accessibility + performance pass on the new gamification screens;
+notification-tone A/B not built; leagues simulate peers locally (no Cloud
+Function); no Firebase Cloud Function for daily state evaluation.
 
 ## Foundation audit (2026-09-14) — schedule before scale/launch
 Feature work can continue on top (the service seams are sound), but these three

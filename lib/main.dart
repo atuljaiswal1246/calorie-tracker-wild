@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'models/profile.dart';
+import 'models/shop.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -23,6 +24,9 @@ void main() async {
   final gamification = GamificationController(storage);
   await gamification.init();
   AppColors.darkNotifier.value = storage.darkMode;
+  AppColors.themeNotifier.value =
+      ShopInventory.fromJson(storage.shopInventoryRaw ?? const {}).theme ??
+          'default';
   NotificationService.init();
   runApp(CalorieApp(storage: storage, auth: AuthService()));
 }
@@ -166,9 +170,12 @@ class _CalorieAppState extends State<CalorieApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: AppColors.darkNotifier,
-      builder: (context, dark, _) => MaterialApp(
+    return ListenableBuilder(
+      listenable: Listenable.merge(
+          [AppColors.darkNotifier, AppColors.themeNotifier]),
+      builder: (context, _) {
+        final dark = AppColors.dark;
+        return MaterialApp(
         title: 'Cal Matters',
         debugShowCheckedModeBanner: false,
         // Standard UX: tapping anywhere outside a text field dismisses the
@@ -226,7 +233,8 @@ class _CalorieAppState extends State<CalorieApp> {
             },
           ),
         },
-      ),
+        );
+      },
     );
   }
 }

@@ -11,6 +11,12 @@ class AppColors {
   /// Flipped by main() / Settings. Screens read these at build time.
   static final ValueNotifier<bool> darkNotifier = ValueNotifier(false);
 
+  /// The equipped shop theme ('default' | 'theme_midnight' | 'theme_forest').
+  /// Set at startup and when the user equips a theme in the shop.
+  static final ValueNotifier<String> themeNotifier = ValueNotifier('default');
+
+  static String get themeId => themeNotifier.value;
+
   static bool get dark => darkNotifier.value;
 
   // ── Background & surface ──────────────────────────────────────────────
@@ -32,8 +38,13 @@ class AppColors {
 
   /// Filled surface for buttons/pills that carry white text. In light mode
   /// it's ink-black; in dark mode a soft gray (pure-white buttons glare).
-  static Color get inkButton =>
-      dark ? const Color(0xFF3A3B40) : const Color(0xFF1C1C1E);
+  static Color get inkButton => switch (themeId) {
+        'theme_forest' =>
+          dark ? const Color(0xFF255A29) : const Color(0xFF2E7D32),
+        'theme_midnight' =>
+          dark ? const Color(0xFF3B3470) : const Color(0xFF4B3FBF),
+        _ => dark ? const Color(0xFF3A3B40) : const Color(0xFF1C1C1E),
+      };
 
   /// White pill/chip surface (light mode keeps crisp white; dark mode
   /// softens to a muted gray so it doesn't glare).
@@ -49,7 +60,12 @@ class AppColors {
   static const protein = Color(0xFFE53935);
   static const carbs = Color(0xFFFF9500);
   static const fat = Color(0xFF007AFF);
-  static const accent = Color(0xFF007AFF);
+  /// Themed accent — blue by default, green (Forest) or indigo (Midnight).
+  static Color get accent => switch (themeId) {
+        'theme_forest' => const Color(0xFF2E7D32),
+        'theme_midnight' => const Color(0xFF6C5CE7),
+        _ => const Color(0xFF007AFF),
+      };
   static const water = Color(0xFF007AFF);
   static const fiber = Color(0xFF8D6E63);
   static const sugar = Color(0xFFE91E63);

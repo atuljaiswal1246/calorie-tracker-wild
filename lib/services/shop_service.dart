@@ -10,6 +10,7 @@ import '../models/shop.dart';
 import 'analytics_service.dart';
 import 'gamification_controller.dart';
 import 'storage_service.dart';
+import '../theme/app_colors.dart';
 
 class PurchaseResult {
   final bool success;
@@ -157,6 +158,7 @@ class ShopService {
       return false;
     }
     await storage.saveShopInventory(inv.toJson());
+    if (inv.theme != null) AppColors.themeNotifier.value = inv.theme!;
     controller.refresh();
     return true;
   }
@@ -210,6 +212,7 @@ class ShopService {
     }
 
     await storage.saveShopInventory(inv.toJson());
+    if (inv.theme != null) AppColors.themeNotifier.value = inv.theme!;
     AnalyticsService.log('shop_purchase', {'item': item.id, 'cost': item.cost});
     controller.refresh();
     return PurchaseResult(true, 'Purchased ${item.name}.');
