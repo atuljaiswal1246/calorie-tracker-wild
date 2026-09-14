@@ -82,6 +82,83 @@ class NotificationService {
     }
   }
 
+  /// Schedule a single one-off nudge for the notification engine, timed around
+  /// the user's learned session hour and clamped out of silent hours.
+  static Future<void> scheduleEngineNudge({
+    required int preferredHour,
+    required String title,
+    required String body,
+    int id = 9000,
+  }) async {
+    var hour = preferredHour >= 0 ? preferredHour - 1 : 9;
+    if (hour < 8) hour = 8;
+    if (hour >= 21) hour = 20;
+    await _scheduleOnce(
+      id: id,
+      hour: hour,
+      minute: 0,
+      title: title,
+      body: body,
+    );
+  }
+
+  /// Show a notification immediately.
+  static Future<void> showNow({
+    required String title,
+    required String body,
+    int id = 9001,
+  }) async {
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'reminders',
+        'Reminders',
+        channelDescription: 'App reminders',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+    await _plugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: details,
+    );
+  }
+
+  static Future<void> _scheduleOnce({
+    required int id,
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+  }) async {
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'reminders',
+        'Reminders',
+        channelDescription: 'App reminders',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(
+        tz.local, now.year, now.month, now.day, hour, minute);
+    if (!scheduled.isAfter(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: scheduled,
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
   static Future<void> cancelAll() => _plugin.cancelAll();
 
   /// Re-schedule with the current water+meal settings (after a change).

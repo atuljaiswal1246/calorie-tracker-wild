@@ -606,6 +606,20 @@ class StorageService {
     await _prefs.setString(_leagueKey, jsonEncode(state));
   }
 
+  // ---- Notification engine state ----
+
+  static const _notifKey = 'notification_state';
+
+  Map<String, dynamic>? get notificationStateRaw {
+    final raw = _prefs.getString(_notifKey);
+    if (raw == null) return null;
+    return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+  }
+
+  Future<void> saveNotificationState(Map<String, dynamic> state) async {
+    await _prefs.setString(_notifKey, jsonEncode(state));
+  }
+
   // ---- Fasting ----
 
   static const _fastingStartKey = 'fasting_start';

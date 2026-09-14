@@ -18,6 +18,7 @@ import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../models/quest.dart';
 import '../services/gamification_controller.dart';
+import '../services/notification_coordinator.dart';
 import '../services/notification_service.dart';
 import '../services/social_service.dart';
 import '../services/storage_service.dart';
@@ -113,6 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
         water: true,
         meal: widget.storage.mealRemindersEnabled,
       );
+      // State-based nudge from the notification engine (plan §5).
+      NotificationCoordinator.refresh(widget.storage);
     }
     _billing = BillingService(widget.storage);
     _billing!.onStatusChanged = () {
