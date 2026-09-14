@@ -110,13 +110,13 @@ class GamificationController {
       case StorageActivity.mealLogged:
         apply(GamificationAction.mealManual,
             metrics: {QuestMetric.mealsLogged: 1}, now: now);
-        if (storage.entryCount == 1) Funnel.firstLog(method: 'manual');
+        if (_isFirstMealToday(now)) Funnel.firstLog(method: 'manual');
         break;
       case StorageActivity.mealScanned:
         apply(GamificationAction.mealScan,
             metrics: {QuestMetric.mealScan: 1, QuestMetric.mealsLogged: 1},
             now: now);
-        if (storage.entryCount == 1) Funnel.firstLog(method: 'scan');
+        if (_isFirstMealToday(now)) Funnel.firstLog(method: 'scan');
         break;
       case StorageActivity.waterLogged:
         apply(GamificationAction.waterGoal,
@@ -132,6 +132,10 @@ class GamificationController {
         break;
     }
   }
+
+  /// True when [at]'s meal just became the first one logged that day.
+  bool _isFirstMealToday(DateTime at) =>
+      storage.entries.where((e) => e.isOn(at)).length == 1;
 
   /// Called by the Asha chat screen after a conversation turn.
   void recordAshaChat() => apply(GamificationAction.ashaChat,
