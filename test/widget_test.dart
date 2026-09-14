@@ -119,16 +119,17 @@ void main() {
     expect(slow.carbsGrams, 117);
     expect(slow.proteinGrams * 4 + slow.carbsGrams * 4 + slow.fatGrams * 9,
         slow.calorieGoal);
-    // Moderate: 1200 kcal, 0.5 kg/week, 10 kg in 20 weeks (5 months)
+    // Moderate & Fast: both hit the 1200 floor, so the plan is identical.
+    // The projection is now derived from the actual goal (~0.38 kg/wk, 27 wks)
+    // rather than the nominal pace it cannot deliver.
     final mod = makeP('recommended');
     expect(mod.calorieGoal, 1200);
-    expect(mod.weeklyRateKg, 0.5);
-    expect(mod.weeksToGoal, 20);
-    // Fast: 1200 kcal, 0.9 kg/week, 10 kg in 12 weeks (3 months)
+    expect(mod.weeklyRateKg, 0.5); // nominal pace constant (unchanged)
+    expect(mod.weeksToGoal, 27);
     final fast = makeP('fast');
     expect(fast.calorieGoal, 1200);
     expect(fast.weeklyRateKg, 0.9);
-    expect(fast.weeksToGoal, 12);
+    expect(fast.weeksToGoal, 27);
     // Macros at basis weight: 87P / 52F / 96C
     expect(mod.proteinGrams, 87);
     expect(mod.fatGrams, 52);
@@ -150,11 +151,11 @@ void main() {
           pace: pace,
           targetWeightKg: 67,
         );
-    // Slow: 2442 kcal, 0.1 kg/week, 5 kg in 50 weeks (11 months)
+    // Slow: 2442 kcal, ~0.1 kg/week (derived), 5 kg in 51 weeks
     final slow = makeP('slow');
     expect(slow.calorieGoal, 2442);
     expect(slow.weeklyRateKg, 0.1);
-    expect(slow.weeksToGoal, 50);
+    expect(slow.weeksToGoal, 51);
     expect(slow.proteinGrams, 177);
     expect(slow.fatGrams, 106);
     expect(slow.carbsGrams, 195);

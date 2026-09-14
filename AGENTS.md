@@ -379,3 +379,16 @@ sign-up→pricing→Home→first log (dev bypasses payment via the sandbox email
 atuljaiswal1246@gmail.com on iOS), then read the `[analytics]` lines.
 Decisions: paywall stays before Home; questionnaire may merge/defer/reorder
 (locked BMR/macro math + option sets unchanged).
+
+
+## Pace projection fix (2026-09-14)
+Found during the E2E baseline: Fast and Moderate could both hit the 1500/1200
+safety floor (same calorie goal) yet still *display* different kg/week and
+timelines, because `weeklyChangeKg`/`weeksToGoal` used the nominal pace constants
+instead of the actual goal. Fixed in `models/profile.dart`:
+`weeklyChangeKg = (currentBurn − calorieGoal) × 7 ÷ 7700`, timeline divides by
+that. When the floor binds, the faster paces now honestly show the same slower
+rate, and the pace screen explains why ("… is your safe minimum, so a faster pace
+isn't safe"). The locked calorie-goal formula and `weeklyRateKg` constants are
+unchanged; `widget_test.dart` expectations updated (mod/fast lose → 27 wks,
+slow gain → 51 wks).

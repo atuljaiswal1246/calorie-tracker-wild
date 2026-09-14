@@ -335,6 +335,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'kcal': '${p.calorieGoal}',
       'weekly': weekly,
       'totalKg': (_weight - _targetWeight).abs().toStringAsFixed(0),
+      'floor': p.floorHit ? '1' : '0',
     };
   }
 
@@ -1399,18 +1400,39 @@ class _PaceStep extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.black12),
           ),
-          child: Text(
-            'At this pace, you\'ll $action about '
-            '${currentDetail['totalKg']} kg in ${currentDetail['time']}, '
-            'eating ${currentDetail['kcal']} kcal/day '
-            '(~${currentDetail['weekly']} kg ${action == 'lose' ? 'lost' : 'gained'} '
-            'per week).',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.black54,
-                height: 1.4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'At this pace, you\'ll $action about '
+                '${currentDetail['totalKg']} kg in ${currentDetail['time']}, '
+                'eating ${currentDetail['kcal']} kcal/day '
+                '(~${currentDetail['weekly']} kg ${action == 'lose' ? 'lost' : 'gained'} '
+                'per week).',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black54,
+                    height: 1.4),
+              ),
+              // Honest floor: a faster pace isn't safe, so faster options are
+              // the same plan. Matches how mainstream apps clamp + explain.
+              if (currentDetail['floor'] == '1') ...[
+                SizedBox(height: 6),
+                Text(
+                  '${currentDetail['kcal']} kcal/day is your safe minimum, '
+                  'so a faster pace isn\'t safe — the faster options give the '
+                  'same plan.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black45,
+                      height: 1.4),
+                ),
+              ],
+            ],
           ),
         ),
       ],

@@ -103,6 +103,10 @@ class Profile {
 
   double get tdee => bmr * activityMultiplier;
 
+  /// Calories burned per day at the CURRENT weight. This is the basis for the
+  /// calorie goal's deficit and for the projected weekly weight change.
+  double get currentBurn => currentBmr * activityMultiplier;
+
   // ---- Safety floor ----
   // Minimum calorie intake during weight loss (industry standard:
   // 1200 kcal/day women, 1500 kcal/day men).
@@ -129,7 +133,7 @@ class Profile {
   // 1500, 1784/2225/2666. The -0.25 offset reproduces their rounding.
   int get calorieGoal {
     if (calorieGoalOverride != null) return calorieGoalOverride!;
-    final burn = currentBmr * activityMultiplier;
+    final burn = currentBurn;
     final adjustment = weeklyRateKg * 1102.5;
     final target = switch (goal) {
       'lose' => (burn - adjustment - 0.25).floor(),
@@ -143,12 +147,15 @@ class Profile {
   /// True if the computed target hit the safety floor.
   bool get floorHit => goal == 'lose' && calorieGoal <= _calorieFloor;
 
-  // ---- Weekly rate & timeline (consistent with the calorie goal) ----
+  // ---- Weekly rate & timeline (derived from the ACTUAL calorie goal) ----
+  // Energy balance: what the plan can really deliver (~7700 kcal per kg).
+  // When the safety floor clamps the goal, this is slower than the nominal
+  // pace — it never overstates loss. Sign: negative = losing, positive = gaining.
 
-  /// Weekly change implied by the chosen pace (~7700 kcal per kg).
   double get weeklyChangeKg {
     if (goal == 'maintain' || goal == 'exploring') return 0;
-    return goal == 'gain' ? weeklyRateKg : -weeklyRateKg;
+    final deficit = currentBurn - calorieGoal; // + losing, - gaining
+    return -(deficit * 7) / 7700.0;
   }
 
   int? get weeksToGoal {
@@ -156,7 +163,7 @@ class Profile {
     if (target == null || goal == 'maintain' || goal == 'exploring') {
       return null;
     }
-    final rate = weeklyRateKg;
+    final rate = weeklyChangeKg.abs();
     if (rate <= 0) return null;
     return ((weightKg - target).abs() / rate).ceil();
   }
