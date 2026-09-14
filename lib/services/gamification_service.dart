@@ -46,6 +46,7 @@ enum GamificationAction {
 /// awarded (the "+10 Cal Points" toast); bonuses are reported separately.
 class RewardResult {
   final int calPoints;
+  final int bonusCalPoints;
   final int nutriCoins;
   final int streakBonus;
   final int? milestone;
@@ -57,6 +58,7 @@ class RewardResult {
 
   const RewardResult({
     this.calPoints = 0,
+    this.bonusCalPoints = 0,
     this.nutriCoins = 0,
     this.streakBonus = 0,
     this.milestone,
@@ -67,10 +69,12 @@ class RewardResult {
     this.reason,
   });
 
-  bool get awarded => calPoints > 0 || streakBonus > 0 || nutriCoins > 0;
+  bool get awarded =>
+      calPoints > 0 || bonusCalPoints > 0 || streakBonus > 0 || nutriCoins > 0;
 
   @override
-  String toString() => 'RewardResult(points=$calPoints, streakBonus=$streakBonus, '
+  String toString() => 'RewardResult(points=$calPoints, bonus=$bonusCalPoints, '
+      'streakBonus=$streakBonus, '
       'coins=$nutriCoins, milestone=$milestone, streak=$streak, '
       'leveledUp=$leveledUp, level=$level, reason=$reason)';
 }
@@ -199,14 +203,44 @@ class GamificationService {
   /// 200/day Cal Point cap. Streak-qualifying actions advance the streak
   /// (awarding the daily streak bonus and any milestone) even if points are
   /// capped, so logging behaviour is never silently ignored.
-  RewardResult recordAction(GamificationAction action, {DateTime? at}) {
+  RewardResult recordAction(GamificationAction action, {DateTime? at}) =>
+      _record(
+        key: action.key,
+        points: action.points,
+        coins: action.coins,
+        dailyLimit: action.dailyLimit,
+        countsForStreak: action.countsForStreak,
+        isQuest: action == GamificationAction.questComplete,
+        at: at,
+      );
+
+  /// Award a completed daily quest. Quests carry their own point value per
+  /// template (plan §4.5) rather than the flat "complete a quest" figure.
+  RewardResult awardQuest(int points, {DateTime? at}) => _record(
+        key: GamificationAction.questComplete.key,
+        points: points,
+        coins: GamificationAction.questComplete.coins,
+        dailyLimit: GamificationAction.questComplete.dailyLimit,
+        countsForStreak: false,
+        isQuest: true,
+        at: at,
+      );
+
+  RewardResult _record({
+    required String key,
+    required int points,
+    required int coins,
+    required int dailyLimit,
+    required bool countsForStreak,
+    bool isQuest = false,
+    DateTime? at,
+  }) {
     final when = at ?? _now();
     _rollDay(when);
     final today = dayKey(when);
 
-    final countToday =
-        state.todayActions.where((k) => k == action.key).length;
-    if (countToday >= action.dailyLimit) {
+    final countToday = state.todayActions.where((k) => k == key).length;
+    if (countToday >= dailyLimit) {
       return RewardResult(
         streak: state.streak.current,
         level: level,
@@ -214,9 +248,12 @@ class GamificationService {
       );
     }
 
-    final lastIso = state.lastActionAt[action.key];
+    final lastIso = state.lastActionAt[key];
     final last = lastIso == null ? null : DateTime.tryParse(lastIso);
-    if (last != null && when.difference(last).abs() < repeatCooldown) {
+    // Quests are distinct events, so the rapid-repeat guard applies only to
+    // physical logging actions (double-tap protection).
+    if (!isQuest && last != null &&
+        when.difference(last).abs() < repeatCooldown) {
       return RewardResult(
         streak: state.streak.current,
         level: level,
@@ -228,18 +265,18 @@ class GamificationService {
 
     // Action points, clamped by the remaining daily budget.
     final budget = (dailyCalPointCap - state.todayPoints).clamp(0, dailyCalPointCap);
-    final awarded = action.points <= budget ? action.points : budget;
+    final awarded = points <= budget ? points : budget;
     state.todayPoints += awarded;
     state.calPoints += awarded;
     state.pointsByDay[today] = (state.pointsByDay[today] ?? 0) + awarded;
 
-    var coins = action.coins;
-    if (action == GamificationAction.questComplete) {
+    var coinsOut = coins;
+    var bonusCalPoints = 0;
+    if (isQuest) {
       state.todayQuests += 1;
       // Completing all three daily quests grants the completionist bonus.
-      if (state.todayQuests == 3 && state.todayActions
-              .where((k) => GamificationAction.questBonus.key == k)
-              .isEmpty) {
+      if (state.todayQuests == 3 &&
+          !state.todayActions.contains(GamificationAction.questBonus.key)) {
         final bonus = GamificationAction.questBonus;
         final bonusBudget =
             (dailyCalPointCap - state.todayPoints).clamp(0, dailyCalPointCap);
@@ -248,19 +285,20 @@ class GamificationService {
         state.calPoints += bonusPts;
         state.pointsByDay[today] =
             (state.pointsByDay[today] ?? 0) + bonusPts;
-        coins += bonus.coins;
+        coinsOut += bonus.coins;
+        bonusCalPoints = bonusPts;
         state.todayActions.add(bonus.key);
       }
     }
-    state.nutriCoins += coins;
+    state.nutriCoins += coinsOut;
 
-    state.todayActions.add(action.key);
-    state.lastActionAt[action.key] = when.toIso8601String();
+    state.todayActions.add(key);
+    state.lastActionAt[key] = when.toIso8601String();
 
     var streakAdvanced = false;
     var streakBonus = 0;
     int? milestone;
-    if (action.countsForStreak) {
+    if (countsForStreak) {
       streakAdvanced = _touchStreak(when);
       if (streakAdvanced) {
         final budget2 =
@@ -283,7 +321,7 @@ class GamificationService {
           state.calPoints += mPts;
           state.pointsByDay[today] = (state.pointsByDay[today] ?? 0) + mPts;
           state.nutriCoins += reward[1];
-          coins += reward[1];
+          coinsOut += reward[1];
           streakBonus += mPts;
           state.streak.freezeCount =
               (state.streak.freezeCount + 1).clamp(0, StreakState.maxFreezeBank);
@@ -293,7 +331,8 @@ class GamificationService {
 
     return RewardResult(
       calPoints: awarded,
-      nutriCoins: coins,
+      bonusCalPoints: bonusCalPoints,
+      nutriCoins: coinsOut,
       streakBonus: streakBonus,
       milestone: milestone,
       streakAdvanced: streakAdvanced,

@@ -541,6 +541,21 @@ class StorageService {
     }
   }
 
+  // ---- Daily quests (cached board for today) ----
+
+  static const _questBoardKey = 'daily_quests';
+
+  /// Raw {"day", "quests": [...]} board, or null if never generated.
+  Map<String, dynamic>? getQuestBoardRaw() {
+    final raw = _prefs.getString(_questBoardKey);
+    if (raw == null) return null;
+    return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+  }
+
+  Future<void> saveQuestBoard(Map<String, dynamic> board) async {
+    await _prefs.setString(_questBoardKey, jsonEncode(board));
+  }
+
   // ---- Fasting ----
 
   static const _fastingStartKey = 'fasting_start';
