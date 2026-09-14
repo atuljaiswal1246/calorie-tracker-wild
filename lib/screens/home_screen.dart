@@ -917,7 +917,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _questRow(ActiveQuest q) {
-    return Padding(
+    return Semantics(
+      label: '${q.template.title}, ${q.current} of ${q.target}'
+          '${q.completed ? ', completed' : ''}, worth ${q.calPoints} Cal Points',
+      child: Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
@@ -974,6 +977,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

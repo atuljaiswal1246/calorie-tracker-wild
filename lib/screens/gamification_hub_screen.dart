@@ -51,16 +51,14 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
           IconButton(
             tooltip: 'League',
             icon: const Text('🏆', style: TextStyle(fontSize: 18)),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const LeagueScreen()),
-            ),
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const LeagueScreen())),
           ),
           IconButton(
             tooltip: 'Shop',
             icon: const Text('🛍️', style: TextStyle(fontSize: 18)),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ShopScreen()),
-            ),
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const ShopScreen())),
           ),
         ],
       ),
@@ -194,71 +192,76 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
   }
 
   Widget _questTile(ActiveQuest q) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: q.completed ? AppColors.green : AppColors.cardAlt,
+    return Semantics(
+      label:
+          '${q.template.title}, ${q.current} of ${q.target}'
+          '${q.completed ? ', completed' : ''}, worth ${q.calPoints} Cal Points',
+      child: Container(
+        margin: EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: q.completed ? AppColors.green : AppColors.cardAlt,
+              ),
+              child: Icon(
+                q.completed ? Icons.check_rounded : Icons.circle_outlined,
+                size: 16,
+                color: q.completed ? Colors.white : AppColors.faint,
+              ),
             ),
-            child: Icon(
-              q.completed ? Icons.check_rounded : Icons.circle_outlined,
-              size: 16,
-              color: q.completed ? Colors.white : AppColors.faint,
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  q.template.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: q.completed ? AppColors.muted : AppColors.ink,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  '${q.template.category} · ${q.current}/${q.target}',
-                  style: TextStyle(fontSize: 11, color: AppColors.muted),
-                ),
-                if (!q.completed) ...[
-                  SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: q.progress,
-                      minHeight: 5,
-                      backgroundColor: AppColors.cardAlt,
-                      valueColor: AlwaysStoppedAnimation(AppColors.ink),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    q.template.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: q.completed ? AppColors.muted : AppColors.ink,
                     ),
                   ),
+                  SizedBox(height: 2),
+                  Text(
+                    '${q.template.category} · ${q.current}/${q.target}',
+                    style: TextStyle(fontSize: 11, color: AppColors.muted),
+                  ),
+                  if (!q.completed) ...[
+                    SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: q.progress,
+                        minHeight: 5,
+                        backgroundColor: AppColors.cardAlt,
+                        valueColor: AlwaysStoppedAnimation(AppColors.ink),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          SizedBox(width: 10),
-          Text(
-            '+${q.calPoints}',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: q.completed ? AppColors.green : AppColors.muted,
+            SizedBox(width: 10),
+            Text(
+              '+${q.calPoints}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: q.completed ? AppColors.green : AppColors.muted,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

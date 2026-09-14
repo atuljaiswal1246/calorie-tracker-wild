@@ -35,11 +35,8 @@ class CelebrationOverlay extends StatefulWidget {
         barrierDismissible: true,
         barrierColor: Colors.black.withValues(alpha: 0.55),
         transitionDuration: const Duration(milliseconds: 220),
-        pageBuilder: (_, __, ___) => CelebrationOverlay(
-          emoji: emoji,
-          title: title,
-          subtitle: subtitle,
-        ),
+        pageBuilder: (_, __, ___) =>
+            CelebrationOverlay(emoji: emoji, title: title, subtitle: subtitle),
         transitionsBuilder: (context, animation, __, child) {
           if (MediaQuery.maybeOf(context)?.disableAnimations ?? false) {
             return child;
@@ -101,8 +98,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            if (!reduce)
-              ..._confetti.map((c) => _confettiWidget(c)),
+            if (!reduce) ..._confetti.map((c) => _confettiWidget(c)),
             _card(reduce),
           ],
         ),
@@ -127,35 +123,39 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
   }
 
   Widget _card(bool reduce) {
-    final content = Container(
-      margin: const EdgeInsets.symmetric(horizontal: 34),
-      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 30),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(widget.emoji, style: const TextStyle(fontSize: 60)),
-          const SizedBox(height: 12),
-          Text(
-            widget.title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-              letterSpacing: -0.5,
+    final content = Semantics(
+      liveRegion: true,
+      label: '${widget.title}. ${widget.subtitle}',
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 34),
+        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 30),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(26),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(widget.emoji, style: const TextStyle(fontSize: 60)),
+            const SizedBox(height: 12),
+            Text(
+              widget.title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            widget.subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: AppColors.muted),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              widget.subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: AppColors.muted),
+            ),
+          ],
+        ),
       ),
     );
 
