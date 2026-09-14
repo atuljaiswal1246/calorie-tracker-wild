@@ -17,6 +17,7 @@ import '../services/asha_prompts.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../models/quest.dart';
+import '../models/shop.dart';
 import '../services/celebration_service.dart';
 import '../services/gamification_controller.dart';
 import '../services/notification_coordinator.dart';
@@ -82,6 +83,19 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _enablingSteps = false;
 
   GamificationController? get _gami => GamificationController.instance;
+
+  /// The shop frame the user has equipped (null = none).
+  String? get _profileFrame => ShopInventory.fromJson(
+        widget.storage.shopInventoryRaw ?? const {},
+      ).profileFrame;
+
+  Color? get _frameColor => switch (_profileFrame) {
+        'frame_bronze' => const Color(0xFFCD7F32),
+        'frame_silver' => const Color(0xFFB0B0B0),
+        'frame_gold' => const Color(0xFFFFC107),
+        'frame_seasonal' => AppColors.green,
+        _ => null,
+      };
 
   /// Streak shown in the UI: the multi-action gamification streak when the
   /// controller is live, otherwise the legacy meal-only count.
@@ -2242,13 +2256,17 @@ class _HomeScreenState extends State<HomeScreen> {
             GestureDetector(
               onTap: _changeProfilePhoto,
               child: Container(
-                width: 64,
-                height: 64,
+                width: 68,
+                height: 68,
                 alignment: Alignment.center,
                 clipBehavior: Clip.antiAlias,
+                padding: EdgeInsets.all(_frameColor != null ? 3 : 0),
                 decoration: BoxDecoration(
                   color: AppColors.cardSelected,
                   shape: BoxShape.circle,
+                  border: _frameColor != null
+                      ? Border.all(color: _frameColor!, width: 3)
+                      : null,
                 ),
                 child: _profilePhotoPath != null &&
                         File(_profilePhotoPath!).existsSync()
