@@ -7,6 +7,7 @@ library;
 
 import '../models/gamification_state.dart';
 import '../models/shop.dart';
+import 'analytics_service.dart';
 import 'gamification_controller.dart';
 import 'storage_service.dart';
 
@@ -181,6 +182,7 @@ class ShopService {
     }
 
     await storage.saveShopInventory(inv.toJson());
+    AnalyticsService.log('shop_purchase', {'item': item.id, 'cost': item.cost});
     controller.refresh();
     return PurchaseResult(true, 'Purchased ${item.name}.');
   }

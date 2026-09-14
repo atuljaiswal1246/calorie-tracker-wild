@@ -305,10 +305,16 @@ silent hours 22-07, ignore-cooldown, dormant re-engagement cap, session-hour
 learning), `services/notification_coordinator.dart` (runs on app open, schedules
 one nudge via `NotificationService.scheduleEngineNudge`).
 
-**Not yet built (Phase 4):** full-screen celebration animations, seasonal content,
-analytics; shop effects beyond freezes (frames/themes/voices) recorded but not
-applied in UI; leagues simulate peers locally (no Cloud Function yet); Firebase
-Cloud Function for daily state evaluation.
+**Also done (Phase 4):** full-screen celebrations with reduce-motion support
+(`celebration_service.dart` + `widgets/celebration_overlay.dart`), a rotating
+monthly seasonal achievement and Seasonal Frame, and a local analytics seam
+(`analytics_service.dart`, bounded ring buffer; logs gameplay_action, level_up,
+shop_purchase, league_result — swap the `log()` body for Firebase Analytics later).
+
+**Still open:** shop frames/themes are recorded but not yet applied in the profile
+UI; A/B variant assignment (streak display / notification tone) not built;
+accessibility + performance pass on the new screens outstanding; leagues simulate
+peers locally (no Cloud Function); no Firebase Cloud Function for daily state eval.
 
 ## Foundation audit (2026-09-14) — schedule before scale/launch
 Feature work can continue on top (the service seams are sound), but these three

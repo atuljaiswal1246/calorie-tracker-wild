@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/gamification_state.dart';
 import '../models/quest.dart';
+import 'analytics_service.dart';
 import 'gamification_service.dart';
 import 'quest_service.dart';
 import 'storage_service.dart';
@@ -157,7 +158,13 @@ class GamificationController {
       celebrations.add(CelebrationEvent(
           'level', 'Level ${result.level} · ${service.levelTitle}',
           amount: result.level));
+      AnalyticsService.log('level_up', {'level': result.level});
     }
+    AnalyticsService.log('gameplay_action', {
+      'action': action.key,
+      'points': result.calPoints,
+      'streak': result.streak,
+    });
 
     metrics.forEach((metric, amount) {
       for (final q in quests.report(metric, amount: amount)) {

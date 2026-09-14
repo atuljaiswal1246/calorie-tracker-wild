@@ -6,6 +6,7 @@ import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/welcome_screen.dart';
+import 'services/analytics_service.dart';
 import 'services/auth_service.dart';
 import 'services/gamification_controller.dart';
 import 'services/notification_service.dart';
@@ -16,6 +17,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final storage = await StorageService.init();
+  AnalyticsService.init(storage);
   final gamification = GamificationController(storage);
   await gamification.init();
   AppColors.darkNotifier.value = storage.darkMode;

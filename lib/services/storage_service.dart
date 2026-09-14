@@ -620,6 +620,22 @@ class StorageService {
     await _prefs.setString(_notifKey, jsonEncode(state));
   }
 
+  // ---- Analytics (bounded local event log) ----
+
+  static const _analyticsKey = 'analytics_events';
+
+  List<Map<String, dynamic>> get analyticsEventsRaw {
+    final raw = _prefs.getString(_analyticsKey);
+    if (raw == null) return <Map<String, dynamic>>[];
+    return (jsonDecode(raw) as List)
+        .map((e) => (e as Map).cast<String, dynamic>())
+        .toList();
+  }
+
+  Future<void> saveAnalyticsEvents(List<Map<String, dynamic>> events) async {
+    await _prefs.setString(_analyticsKey, jsonEncode(events));
+  }
+
   // ---- Fasting ----
 
   static const _fastingStartKey = 'fasting_start';

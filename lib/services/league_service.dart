@@ -9,6 +9,7 @@ library;
 import 'dart:math';
 
 import '../models/league.dart';
+import 'analytics_service.dart';
 import 'gamification_controller.dart';
 import 'gamification_service.dart';
 import 'storage_service.dart';
@@ -96,6 +97,11 @@ class LeagueService {
     s.lastPosition = position;
     s.lastResult = result;
     s.weeksPlayed += 1;
+    AnalyticsService.log('league_result', {
+      'result': result,
+      'position': position,
+      'tier': s.tier,
+    });
 
     // Rewards (plan §4.6 league rewards table).
     var coins = 0;
