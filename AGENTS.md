@@ -364,3 +364,18 @@ are never generated, and the shop's Asha voices are hidden. The chat screen,
 prompts, gamification action and personality code are all retained dormant — flip
 `Features.asha` to `true` to reconnect. The food analysis (`OpenAIService.
 analyzeImage/analyzeText`) and the weekly summary are **not** affected.
+
+
+## Onboarding funnel instrumentation (2026-09-14)
+Baseline for "time-to-first-log" (the current focus). All events go through
+`lib/services/funnel.dart` → `AnalyticsService` (local ring buffer) and carry
+`since_open_ms`.
+Events: `app_open` (main), `onboarding_start`, `onboarding_step` {step,name,ms},
+`onboarding_questions_complete`, `signup` {method}, `paywall_view`,
+`purchase_complete`, `home_reached`, `first_log` {method}. In a debug
+`flutter run` they print as `[analytics] …` to the console.
+Baseline procedure: fresh install (delete app) → walk Welcome→questions→plan→
+sign-up→pricing→Home→first log (dev bypasses payment via the sandbox email
+atuljaiswal1246@gmail.com on iOS), then read the `[analytics]` lines.
+Decisions: paywall stays before Home; questionnaire may merge/defer/reorder
+(locked BMR/macro math + option sets unchanged).

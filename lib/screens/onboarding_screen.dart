@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../models/profile.dart';
+import '../services/funnel.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../services/storage_service.dart';
@@ -111,6 +112,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _restoreFromDraft(widget.storage.onboardingDraft);
       _step = widget.startAtStep!.clamp(0, _totalSteps - 1);
     }
+    _stepStartedAt = DateTime.now();
+    Funnel.onboardingStart(_step);
+    if (_step == _pricingStep) Funnel.paywallView();
+  }
+
+  DateTime _stepStartedAt = DateTime.now();
+
+  String _stepName(int s) => switch (s) {
+        0 => 'name_sex',
+        1 => 'goal',
+        2 => 'weight',
+        3 => 'target_weight',
+        4 => 'height',
+        5 => 'workouts',
+        6 => 'pace',
+        7 => 'building',
+        8 => 'plan',
+        9 => 'signup',
+        10 => 'pricing',
+        _ => 'unknown',
+      };
+
+  void _logStep(int step) {
+    Funnel.stepComplete(step, _stepName(step),
+        DateTime.now().difference(_stepStartedAt).inMilliseconds);
+    _stepStartedAt = DateTime.now();
   }
 
   /// Restore all question answers from the saved profile (drop-off recovery:
@@ -229,6 +256,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _next() {
+    _logStep(_step);
     setState(() {
       _step++;
       // Skip target-weight & pace when there's no target OR the goal
@@ -240,6 +268,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _toPlan() {
+    _logStep(_step);
+    Funnel.questionsComplete();
     setState(() => _step = _planStep);
     // Drop-off recovery: save the profile NOW, before the sign-up wall.
     // If the user abandons here, next launch resumes at sign-up with their
@@ -257,8 +287,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     // Unpaid: go to the pricing step so the user can start the Play
     // subscription (its free-trial offer IS the trial — no app timer).
+    _logStep(_step);
     if (widget.auth.isSignedIn) {
       setState(() => _step = _pricingStep);
+      Funnel.paywallView();
     } else {
       setState(() => _step = _signupStep);
     }
@@ -266,6 +298,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _onPaid() async {
+    Funnel.purchaseComplete();
     await widget.storage.savePaid(true);
     if (!mounted) return;
     _finish();
@@ -276,6 +309,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       widget.onBack();
       return;
     }
+    _logStep(_step);
     setState(() {
       _step--;
       // Skip target & pace when going back past them.

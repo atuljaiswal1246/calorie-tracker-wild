@@ -18,6 +18,19 @@ class AnalyticsService {
 
   static void init(StorageService storage) => _storage = storage;
 
+  static DateTime? _sessionStart;
+
+  /// Mark the start of this app session and log `app_open`.
+  static void markSessionStart() {
+    _sessionStart = DateTime.now();
+    log('app_open');
+  }
+
+  /// Milliseconds since [markSessionStart] (-1 if not marked).
+  static int get sinceStartMs => _sessionStart == null
+      ? -1
+      : DateTime.now().difference(_sessionStart!).inMilliseconds;
+
   /// Record an event. Safe to call before [init] (no-op) and from anywhere.
   static void log(String event, [Map<String, Object?> params = const {}]) {
     final storage = _storage;

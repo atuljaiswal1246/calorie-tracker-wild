@@ -22,6 +22,7 @@ import '../models/shop.dart';
 import '../services/analytics_service.dart';
 import '../services/celebration_service.dart';
 import '../services/experiment_service.dart';
+import '../services/funnel.dart';
 import '../services/gamification_controller.dart';
 import '../services/notification_coordinator.dart';
 import '../services/notification_service.dart';
@@ -120,6 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    Funnel.homeReached();
     _profile = widget.storage.profile;
     _weekScrollController = ScrollController(
       initialScrollOffset: 59 * 60.0,

@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import '../models/gamification_state.dart';
 import '../models/quest.dart';
 import 'analytics_service.dart';
+import 'funnel.dart';
 import 'gamification_service.dart';
 import 'quest_service.dart';
 import 'storage_service.dart';
@@ -109,11 +110,13 @@ class GamificationController {
       case StorageActivity.mealLogged:
         apply(GamificationAction.mealManual,
             metrics: {QuestMetric.mealsLogged: 1}, now: now);
+        if (storage.entryCount == 1) Funnel.firstLog(method: 'manual');
         break;
       case StorageActivity.mealScanned:
         apply(GamificationAction.mealScan,
             metrics: {QuestMetric.mealScan: 1, QuestMetric.mealsLogged: 1},
             now: now);
+        if (storage.entryCount == 1) Funnel.firstLog(method: 'scan');
         break;
       case StorageActivity.waterLogged:
         apply(GamificationAction.waterGoal,

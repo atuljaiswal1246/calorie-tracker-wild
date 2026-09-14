@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../services/auth_service.dart';
+import '../services/funnel.dart';
 
 enum _AuthMode { signIn, signUp }
 
@@ -100,6 +101,8 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
       if (!mounted) return;
+      Funnel.signup(
+          _mode == _AuthMode.signUp ? 'email_signup' : 'email_signin');
       widget.onAuthenticated();
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -124,6 +127,7 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       await widget.auth.signInWithGoogle();
       if (!mounted) return;
+      Funnel.signup('google');
       widget.onAuthenticated();
     } catch (e) {
       if (!mounted) return;
