@@ -301,3 +301,34 @@ deterministic simulated peers, promotion/demotion, podium rewards via
 **Not yet built (Phase 3+):** notification engine, full-screen celebrations;
 shop effects beyond freezes (frames/themes/voices) are recorded but not yet
 applied in UI; leagues simulate peers locally (no Cloud Function yet).
+
+## Foundation audit (2026-09-14) — schedule before scale/launch
+Feature work can continue on top (the service seams are sound), but these three
+base-layer gaps are the only ones worth scheduling. Ranked, with evidence.
+
+1. **No Firestore security rules.** No `firestore.rules` anywhere in the repo —
+   cloud data (calories, weight, photos metadata) is protected only by whatever
+   console default is set. FIX: add rules (a user may read/write only their own
+   `users/{uid}/**`) and `firebase deploy --only firestore:rules`.
+2. **Cloud writes unguarded + offline persistence off.** `storage_service.dart`
+   awaits Firestore with no try/catch in `addEntry` (:338), `deleteEntry` (:351),
+   `updateEntry` (:361), `loadEntriesFromCloud` (:368) and `saveGamification`
+   (:560) — only `resetProfile` (:150) guards. There are ~10
+   `await storage.addEntry(...)` call sites (e.g. `capture_screen.dart:134`,
+   `manual_entry_screen.dart:180`), so one offline error can throw into the
+   logging path even though the local save succeeded. Firestore offline
+   persistence is never enabled. FIX: make the cloud mirror best-effort
+   (try/catch; local stays source of truth) and enable offline persistence.
+3. **Whole-list SharedPreferences blobs.** Every meal/water/weight/exercise
+   mutation re-encodes the *entire* list and every read re-parses it
+   (`_saveEntries`, `addWater`, `addWeightEntry`, `addExercise`). O(n) per write,
+   O(n) startup. FIX when volume grows: sqflite/drift or per-day keys.
+
+Minor / not blocking:
+- Cloud restore covers only profile/entries/paid; water/weight/exercise/league
+  state are never read back on a new device (gamification writes cloud but the
+  load path isn't wired).
+- Very large screens (home 3046, onboarding 3481, progress 2542 lines) with no
+  state-management layer; services are constructed per screen;
+  `GamificationController.instance` is a process-global.
+- No Firestore-rules tests and no CI.
