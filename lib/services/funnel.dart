@@ -25,6 +25,8 @@ class Funnel {
   static void questionsComplete() =>
       AnalyticsService.log('onboarding_questions_complete', _p({}));
 
+  static void planView() => AnalyticsService.log('plan_view', _p({}));
+
   static void signup(String method) =>
       AnalyticsService.log('signup', _p({'method': method}));
 

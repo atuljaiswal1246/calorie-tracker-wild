@@ -267,6 +267,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _logStep(_step);
     Funnel.questionsComplete();
     setState(() => _step = _planStep);
+    Funnel.planView();
     // Drop-off recovery: save the profile NOW, before the sign-up wall.
     // If the user abandons here, next launch resumes at sign-up with their
     // answers intact instead of restarting the questionnaire.
