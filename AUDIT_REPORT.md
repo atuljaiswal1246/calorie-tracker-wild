@@ -524,9 +524,9 @@ Process: see `AUDIT_PLAN.md` → "E2E VERIFICATION PLAN".
 ## Findings
 | ID | Severity | Area | Title | Repro | Expected | Actual | Evidence | Status |
 |----|----------|------|-------|-------|----------|--------|----------|--------|
-| E2E-001 | Major | G Security / D Data | Unguarded Firestore write throws `permission-denied` | Fresh run → log a meal (signed in) | Write succeeds or fails silently; no crash | `Unhandled Exception: [cloud_firestore/permission-denied]` in console; local save still succeeds | live log | Open |
-| E2E-002 | Minor | A Onboarding | Step 0 (name/DOB/sex) is the slowest question | Walk onboarding | Fast | 18.7 s dwell | funnel event | Open |
-| E2E-003 | Minor | A Onboarding | Home does not funnel into the first log | Reach Home | One-tap to log | 29.2 s to first log (via AI scan) | funnel event | Open |
+| E2E-001 | Major | G Security / D Data | Unguarded Firestore write throws `permission-denied` | Fresh run → log a meal (signed in) | Write succeeds or fails silently; no crash | `Unhandled Exception: [cloud_firestore/permission-denied]` in console; local save still succeeds | live log | Fixed (code guarded; `firestore.rules` added — **deploy pending**) |
+| E2E-002 | Minor | A Onboarding | Step 0 (name/DOB/sex) is the slowest question | Walk onboarding | Fast | 18.7 s dwell | funnel event | Fixed — year-first date picker (pending re-measure) |
+| E2E-003 | Minor | A Onboarding | Home does not funnel into the first log | Reach Home | One-tap to log | 29.2 s to first log (via AI scan) | funnel event | Fixed — first-log CTA (pending re-measure) |
 
 ## Also fixed during this pass
 | ID | Area | Title | Fix |
