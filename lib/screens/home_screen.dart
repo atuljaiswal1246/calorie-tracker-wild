@@ -586,6 +586,10 @@ class _HomeScreenState extends State<HomeScreen> {
           _greeting(profile),
           SizedBox(height: 14),
           _header(),
+          if (_entries.isEmpty) ...[
+            SizedBox(height: 16),
+            _firstLogCard(),
+          ],
           if (!_isOnline) ...[
             SizedBox(height: 12),
             Container(
@@ -1103,6 +1107,60 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }).toList(),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _firstLogCard() {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _openCapture();
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: AppColors.cardAlt,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(Icons.camera_alt_rounded,
+                  size: 22, color: AppColors.ink),
+            ),
+            SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Log your first meal',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    'Snap a photo — we estimate the calories and macros.',
+                    style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: AppColors.muted),
+          ],
         ),
       ),
     );
