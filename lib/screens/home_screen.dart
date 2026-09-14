@@ -129,7 +129,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onGamificationChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    _drainCelebrations();
+  }
+
+  /// Surface queued reward moments as floating toasts (plan §4.8).
+  void _drainCelebrations() {
+    final gami = _gami;
+    if (gami == null) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+    CelebrationEvent? event;
+    while ((event = gami.takeCelebration()) != null) {
+      final e = event!;
+      messenger.showSnackBar(SnackBar(
+        content: Text(
+          e.kind == 'milestone' ? '🎉 ${e.message}' : e.message,
+          style: TextStyle(color: AppColors.bg, fontWeight: FontWeight.w600),
+        ),
+        duration: const Duration(milliseconds: 1600),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.ink,
+      ));
+    }
   }
 
   @override

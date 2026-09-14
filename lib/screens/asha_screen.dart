@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../services/asha_prompts.dart';
+import '../services/gamification_controller.dart';
 import '../services/openai_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
@@ -122,6 +123,8 @@ SPEAK STYLE:
         _messages.add((role: 'assistant', text: reply));
         _sending = false;
       });
+      // Talking to Asha is a rewarded habit (plan §4.1).
+      GamificationController.instance?.recordAshaChat();
     } catch (e) {
       if (!mounted) return;
       setState(() {
