@@ -45,7 +45,7 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
 ```
 
 ### iOS device commands (worked this session):
-- Build: `flutter build ios --debug` (uses automatic signing, team US3QA872WA)
+- Build: `flutter build ios --profile` (uses automatic signing, team US3QA872WA; ALWAYS profile, NOT debug — debug builds can't launch from home screen)
 - Install: `xcrun devicectl device install app --device <UDID> build/ios/iphoneos/Runner.app`
 - Launch: `xcrun devicectl device process launch --device <UDID> com.neharohilla.calorietracker`
 - List device: `xcrun devicectl list devices` (UDID may change; check each time)
@@ -253,3 +253,35 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
 - AI scan verdict "No food detected" can occur spuriously (bad model response) — consider
   auto-retry before showing the verdict (NOT yet implemented).
 - Verify changes with `flutter analyze` after edits.
+## Gamification — Phase 1 (implemented 2026-09-14)
+Implements `GAMIFICATION_PLAN_ASHA.md` (the committed design spec) one module at a
+time. Health guardrail enforced: points reward *logging behaviour* only — nothing
+reads calories, and there are no weight-loss/deficit rewards.
+
+**Done (engine → quests → wiring → Home UI), all tested:**
+- `lib/models/gamification_state.dart` — `GamificationState` + `StreakState` (JSON,
+  mirrors the plan §7.1 schema).
+- `lib/models/quest.dart` — `QuestTemplate`, `ActiveQuest`, `QuestMetric`.
+- `lib/services/gamification_service.dart` — Cal Points table + per-action daily
+  limits, 200/day point cap, 60s rapid-repeat cooldown (logging actions only),
+  level thresholds/titles (§4.2), multi-action streak with automatic freeze
+  forgiveness + milestones (§4.3), NutriCoins, daily-login + quest bonuses.
+- `lib/services/quest_service.dart` — 12-template pool, daily generation honouring
+  the four selection rules (exclude yesterday, ≥1 easy, ≤1 nutrition-quality,
+  weighted to weak areas), progress reporting, `claim`/`claimAll`.
+- `lib/services/gamification_controller.dart` — app singleton
+  (`GamificationController.instance`), initialised in `main.dart`. Registers
+  `StorageService.activityListener`; `apply()` runs the engine, advances quests,
+  auto-claims, queues celebrations and bumps a `ValueNotifier`.
+- `lib/services/storage_service.dart` — emits `StorageActivity` for meal/scan/
+  water-goal/weight/exercise (so every logging path earns without screen edits);
+  persists gamification state + quest board (prefs + `users/{uid}/gamification/state`).
+- `lib/screens/home_screen.dart` — Today's-quests card, live streak pill (multi-
+  action), level sheet, floating reward toasts. `asha_screen.dart` — Asha-chat reward.
+
+**Tests:** `test/gamification_test.dart` (22), `test/quest_test.dart` (13),
+`test/gamification_controller_test.dart` (9). `flutter analyze` clean, `flutter test`
+84 pass, `flutter build apk --debug` succeeds.
+
+**Not yet built (Phase 2+):** NutriCoins shop UI, leagues, notification engine,
+dynamic-achievement migration, full-screen celebrations, gamification hub screen.
