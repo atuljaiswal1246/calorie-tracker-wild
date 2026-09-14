@@ -283,5 +283,10 @@ reads calories, and there are no weight-loss/deficit rewards.
 `test/gamification_controller_test.dart` (9). `flutter analyze` clean, `flutter test`
 84 pass, `flutter build apk --debug` succeeds.
 
+**Also done:** dynamic achievements (plan §4.7) — `achievements_service.dart`
+rewritten to ~40 achievements across 10 categories with live progress, secret
+badges and category-grouped UI; the existing `getAll()/unlockedCount/
+checkAndUpdate()` API is unchanged so all callers keep working.
+
 **Not yet built (Phase 2+):** NutriCoins shop UI, leagues, notification engine,
-dynamic-achievement migration, full-screen celebrations, gamification hub screen.
+full-screen celebrations.

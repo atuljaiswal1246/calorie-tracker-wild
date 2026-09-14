@@ -104,24 +104,62 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               ),
             ),
             SizedBox(height: 24),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: _achievements.length,
-              itemBuilder: (context, index) {
-                return _achievementBadge(_achievements[index]);
-              },
-            ),
+            ..._categorySections(),
           ],
         ),
       ),
     );
+  }
+
+  /// Achievements grouped by category (definition order), each with its own
+  /// header and 3-column grid.
+  List<Widget> _categorySections() {
+    final groups = <String, List<Achievement>>{};
+    for (final a in _achievements) {
+      groups.putIfAbsent(a.category, () => []).add(a);
+    }
+    final widgets = <Widget>[];
+    groups.forEach((category, items) {
+      final done = items.where((a) => a.unlocked).length;
+      widgets.add(Padding(
+        padding: EdgeInsets.only(bottom: 10),
+        child: Row(
+          children: [
+            Text(
+              category,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+            Spacer(),
+            Text(
+              '$done/${items.length}',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.muted,
+              ),
+            ),
+          ],
+        ),
+      ));
+      widgets.add(GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.85,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) => _achievementBadge(items[index]),
+      ));
+      widgets.add(SizedBox(height: 24));
+    });
+    return widgets;
   }
 
   Widget _achievementBadge(Achievement achievement) {
