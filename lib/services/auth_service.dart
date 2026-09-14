@@ -50,7 +50,11 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    // Google sign-out is best-effort: a plugin failure must never prevent the
+    // Firebase session from clearing.
+    try {
+      await _googleSignIn.signOut();
+    } catch (_) {}
     await _auth.signOut();
   }
 

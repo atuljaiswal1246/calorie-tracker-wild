@@ -2564,12 +2564,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   onSignOut: () async {
                     await widget.auth.signOut();
                     if (!mounted) return;
+                    // Pop the pushed Settings route so the sign-out is visible
+                    // (switching the root screen alone leaves it on top).
+                    Navigator.of(context, rootNavigator: true)
+                        .popUntil((r) => r.isFirst);
                     widget.onSignedOut();
                   },
                 ),
               ),
             );
-            _load();
+            if (mounted) _load();
           },
           borderRadius: BorderRadius.circular(20),
           child: Container(
