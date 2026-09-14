@@ -240,17 +240,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _pickDob() async {
-    var temp = _dob ?? DateTime(2000, 1, 1);
-    final picked = await showModalBottomSheet<DateTime>(
+    // Material date picker opens on year grid — fastest path for DOB.
+    final picked = await showDatePicker(
       context: context,
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _DobSheet(
-        initialDate: temp,
-        onChanged: (d) => temp = d,
-      ),
+      initialDate: _dob ?? DateTime(1995, 1, 1),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      initialDatePickerMode: DatePickerMode.year,
     );
     if (picked != null) setState(() => _dob = picked);
   }
