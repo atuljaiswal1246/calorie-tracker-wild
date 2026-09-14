@@ -80,4 +80,19 @@ void main() {
     expect(reloaded.inventory.owns('theme_forest'), isTrue);
     expect(reloaded.inventory.theme, 'theme_forest');
   });
+
+  test('owned cosmetics can be re-equipped', () async {
+    await shop.purchase(item('frame_bronze'));
+    await shop.purchase(item('frame_silver'));
+    // The most recent purchase is equipped by default.
+    expect(shop.isEquipped(item('frame_silver')), isTrue);
+    final ok = await shop.equip(item('frame_bronze'));
+    expect(ok, isTrue);
+    expect(shop.isEquipped(item('frame_bronze')), isTrue);
+    expect(shop.isEquipped(item('frame_silver')), isFalse);
+  });
+
+  test('cannot equip something not owned', () async {
+    expect(await shop.equip(item('theme_midnight')), isFalse);
+  });
 }

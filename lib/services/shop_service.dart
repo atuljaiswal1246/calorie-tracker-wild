@@ -142,6 +142,34 @@ class ShopService {
   ShopInventory get inventory =>
       ShopInventory.fromJson(storage.shopInventoryRaw ?? const {});
 
+  /// Equip an already-owned cosmetic/personality. Returns false if not owned
+  /// or not equippable.
+  Future<bool> equip(ShopItem item) async {
+    final inv = inventory;
+    if (!inv.owns(item.id)) return false;
+    if (item.id.startsWith('frame_')) {
+      inv.profileFrame = item.id;
+    } else if (item.id.startsWith('theme_')) {
+      inv.theme = item.id;
+    } else if (item.id.startsWith('asha_')) {
+      inv.ashaPersonality = item.id;
+    } else {
+      return false;
+    }
+    await storage.saveShopInventory(inv.toJson());
+    controller.refresh();
+    return true;
+  }
+
+  /// Whether [item] is the currently equipped choice.
+  bool isEquipped(ShopItem item) {
+    final inv = inventory;
+    if (item.id.startsWith('frame_')) return inv.profileFrame == item.id;
+    if (item.id.startsWith('theme_')) return inv.theme == item.id;
+    if (item.id.startsWith('asha_')) return inv.ashaPersonality == item.id;
+    return false;
+  }
+
   /// Buy [item]. Returns a success flag plus a message for the UI.
   Future<PurchaseResult> purchase(ShopItem item) async {
     final inv = inventory;

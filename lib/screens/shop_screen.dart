@@ -37,6 +37,18 @@ class _ShopScreenState extends State<ShopScreen> {
     super.dispose();
   }
 
+  Future<void> _equip(ShopItem item) async {
+    final shop = _shop;
+    if (shop == null) return;
+    final ok = await shop.equip(item);
+    if (!mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+      content: Text(ok ? 'Equipped ${item.name}.' : 'Nothing to equip.'),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: ok ? AppColors.green : AppColors.ink,
+    ));
+  }
+
   Future<void> _buy(ShopItem item) async {
     final shop = _shop;
     final gami = _gami;
@@ -177,11 +189,25 @@ class _ShopScreenState extends State<ShopScreen> {
           ),
           SizedBox(width: 10),
           if (owned && !item.repeatable)
-            Text('Owned',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.green))
+            (_shop?.isEquipped(item) ?? false)
+                ? Text('Equipped',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.green))
+                : TextButton(
+                    onPressed: () => _equip(item),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.ink,
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text('Use',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w700)),
+                  )
           else
             TextButton(
               onPressed: affordable ? () => _buy(item) : null,

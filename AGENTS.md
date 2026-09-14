@@ -311,8 +311,8 @@ monthly seasonal achievement and Seasonal Frame, and a local analytics seam
 (`analytics_service.dart`, bounded ring buffer; logs gameplay_action, level_up,
 shop_purchase, league_result — swap the `log()` body for Firebase Analytics later).
 
-**Still open:** shop frames/themes are recorded but not yet applied in the profile
-UI; A/B variant assignment (streak display / notification tone) not built;
+**Still open:** equipped frames/themes are selected in the shop (equip/Use) but not
+yet drawn in the profile UI; A/B variant assignment (streak display / notification tone) not built;
 accessibility + performance pass on the new screens outstanding; leagues simulate
 peers locally (no Cloud Function); no Firebase Cloud Function for daily state eval.
 
