@@ -46,6 +46,7 @@ class AchievementStats {
   final bool nightOwl;
   final bool balancedDay;
   final bool weightChanged;
+  final int monthDaysLogged;
 
   const AchievementStats({
     required this.totalMeals,
@@ -64,6 +65,7 @@ class AchievementStats {
     required this.nightOwl,
     required this.balancedDay,
     required this.weightChanged,
+    required this.monthDaysLogged,
   });
 }
 
@@ -202,6 +204,13 @@ class AchievementsService {
     final weightChanged = weights.length >= 2 &&
         weights.first.weightKg != weights.last.weightKg;
 
+    final now = DateTime.now();
+    final monthDaysLogged = entries
+        .where((e) => e.dateTime.year == now.year && e.dateTime.month == now.month)
+        .map((e) => e.dateTime.day)
+        .toSet()
+        .length;
+
     final exercises = _storage.exercises;
     final level = GamificationService.levelForPoints(gami.calPoints);
 
@@ -223,6 +232,7 @@ class AchievementsService {
       nightOwl: nightOwl,
       balancedDay: balancedDay,
       weightChanged: weightChanged,
+      monthDaysLogged: monthDaysLogged,
     );
   }
 
@@ -247,10 +257,39 @@ class AchievementsService {
     return best;
   }
 
+  /// A rotating monthly achievement ("Monsoon Warrior" in July, etc.).
+  Achievement _seasonal(AchievementStats stats, Map<String, String> unlocked) {
+    final now = DateTime.now();
+    final id = 'seasonal_${now.year}_${now.month}';
+    const names = [
+      '', 'January', 'February', 'March', 'April', 'May', 'June', 'July',
+      'August', 'September', 'October', 'November', 'December',
+    ];
+    final iso = unlocked[id];
+    return Achievement(
+      id: id,
+      category: 'Seasonal',
+      title: '${names[now.month]} Warrior',
+      description: 'Log 10 days this month',
+      emoji: _seasonEmoji(now.month),
+      unlocked: stats.monthDaysLogged >= 10,
+      unlockedAt: iso != null ? DateTime.tryParse(iso) : null,
+      progress: (stats.monthDaysLogged / 10).clamp(0.0, 1.0).toDouble(),
+    );
+  }
+
+  static String _seasonEmoji(int month) {
+    if (month >= 6 && month <= 9) return '🌧️'; // monsoon
+    if (month >= 10 && month <= 11) return '🍂';
+    if (month == 12 || month <= 2) return '❄️';
+    return '☀️';
+  }
+
   List<Achievement> getAll() {
     final unlocked = _unlocked;
     final stats = _stats();
     return [
+      _seasonal(stats, unlocked),
       for (final def in _defs)
         () {
           final value = def.value(stats);

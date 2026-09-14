@@ -105,4 +105,12 @@ void main() {
     expect(first.map((a) => a.id), contains('meals_1'));
     expect(service.checkAndUpdate(), isEmpty);
   });
+
+  test('includes a rotating monthly seasonal achievement', () {
+    final seasonal =
+        service.getAll().where((a) => a.category == 'Seasonal').toList();
+    expect(seasonal, hasLength(1));
+    expect(seasonal.first.title, contains('Warrior'));
+    expect(seasonal.first.emoji, isNotEmpty);
+  });
 }

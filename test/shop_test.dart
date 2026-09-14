@@ -24,7 +24,7 @@ void main() {
   ShopItem item(String id) => ShopService.byId(id)!;
 
   test('catalog matches the plan and ids are unique', () {
-    expect(ShopService.catalog.length, 12);
+    expect(ShopService.catalog.length, 13);
     expect(
         ShopService.catalog.map((i) => i.id).toSet().length,
         ShopService.catalog.length);

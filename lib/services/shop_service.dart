@@ -66,6 +66,14 @@ class ShopService {
       emoji: '🥇',
     ),
     ShopItem(
+      id: 'frame_seasonal',
+      name: 'Seasonal Frame',
+      description: 'A limited rotating frame — this season only.',
+      cost: 500,
+      type: ShopItemType.cosmetic,
+      emoji: '🍃',
+    ),
+    ShopItem(
       id: 'theme_midnight',
       name: 'Midnight Theme',
       description: 'A deeper, darker app theme.',
