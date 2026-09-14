@@ -16,6 +16,8 @@ import '../services/activity_service.dart';
 import '../services/asha_prompts.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
+import '../models/quest.dart';
+import '../services/gamification_controller.dart';
 import '../services/notification_service.dart';
 import '../services/social_service.dart';
 import '../services/storage_service.dart';
@@ -76,6 +78,12 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<({String uid, String name, int kcal})>> _boardFuture;
   bool _enablingSteps = false;
 
+  GamificationController? get _gami => GamificationController.instance;
+
+  /// Streak shown in the UI: the multi-action gamification streak when the
+  /// controller is live, otherwise the legacy meal-only count.
+  int get _displayStreak => _gami?.streak ?? _streak;
+
   String? get _signedInEmail {
     try {
       return widget.auth.currentUser?.email;
@@ -117,10 +125,17 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() => _isOnline = online);
       }
     });
+    GamificationController.instance?.revision.addListener(_onGamificationChanged);
+  }
+
+  void _onGamificationChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    GamificationController.instance?.revision
+        .removeListener(_onGamificationChanged);
     _activitySub?.cancel();
     _activity.dispose();
     _billing?.dispose();
@@ -150,8 +165,10 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Your streak'),
         content: Text(
-          '$_streak day streak — keep the fire alive.\n\n'
-          'Log at least one meal a day to keep it going.',
+          '$_displayStreak day streak — keep the fire alive.\n\n'
+          'Log a meal, water, weight or exercise on a day to keep it going.'
+          '${(_gami?.freezes ?? 0) > 0 ? '\n\n❄️ ${_gami!.freezes} streak '
+              'freeze${_gami!.freezes == 1 ? '' : 's'} will cover a rest day.' : ''}',
         ),
         actions: [
           TextButton(
@@ -593,6 +610,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           SizedBox(height: 22),
+          _questCard(),
+          SizedBox(height: 22),
           _whatsCooking(),
           SizedBox(height: 22),
           _friendsStrip(),
@@ -734,7 +753,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SizedBox(width: 6),
         Semantics(
-          label: '$_streak day streak. Tap for details.',
+          label: '$_displayStreak day streak. Tap for details.',
           button: true,
           child: InkWell(
             onTap: () {
@@ -754,7 +773,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text('🔥', style: TextStyle(fontSize: 13)),
                   SizedBox(width: 4),
                   Text(
-                    '$_streak',
+                    '$_displayStreak',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -767,6 +786,257 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _questCard() {
+    final gami = _gami;
+    if (gami == null || gami.activeQuests.isEmpty) return const SizedBox.shrink();
+    final quests = gami.activeQuests;
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _showGamificationSheet();
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text('📋', style: TextStyle(fontSize: 15)),
+                SizedBox(width: 8),
+                Text(
+                   "Today's quests",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
+                Spacer(),
+                Text(
+                  '${gami.questsCompleted}/${quests.length}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 6),
+            Row(
+              children: [
+                Text(
+                  '🌱 Level ${gami.level} · ${gami.levelTitle}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                  ),
+                ),
+                Spacer(),
+                Text(
+                  '+${gami.todayPoints} pts today',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.green,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            ...quests.map(_questRow),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _questRow(ActiveQuest q) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: q.completed ? AppColors.green : AppColors.cardAlt,
+            ),
+            child: Icon(
+              q.completed ? Icons.check_rounded : Icons.circle_outlined,
+              size: 14,
+              color: q.completed ? Colors.white : AppColors.faint,
+            ),
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  q.template.title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: q.completed ? AppColors.muted : AppColors.ink,
+                    decoration:
+                        q.completed ? TextDecoration.lineThrough : null,
+                  ),
+                ),
+                SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: q.progress,
+                    minHeight: 5,
+                    backgroundColor: AppColors.cardAlt,
+                    valueColor: AlwaysStoppedAnimation(
+                      q.completed ? AppColors.green : AppColors.ink,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 10),
+          Text(
+            '+${q.calPoints}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.muted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGamificationSheet() {
+    final gami = _gami;
+    if (gami == null) return;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 18, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.cardAlt,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Text('🌱', style: TextStyle(fontSize: 24)),
+                  SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Level ${gami.level} · ${gami.levelTitle}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      Text(
+                        '${gami.calPoints} Cal Points',
+                        style: TextStyle(fontSize: 13, color: AppColors.muted),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: gami.levelProgress,
+                  minHeight: 8,
+                  backgroundColor: AppColors.cardAlt,
+                  valueColor: AlwaysStoppedAnimation(AppColors.ink),
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                '${gami.pointsToNextLevel} points to the next level',
+                style: TextStyle(fontSize: 12, color: AppColors.muted),
+              ),
+              SizedBox(height: 18),
+              Row(
+                children: [
+                  _statChip('🔥', '${gami.streak}', 'streak'),
+                  SizedBox(width: 8),
+                  _statChip('⚡', '${gami.weeklyPoints}', 'this week'),
+                  SizedBox(width: 8),
+                  _statChip('🪙', '${gami.nutriCoins}', 'coins'),
+                  SizedBox(width: 8),
+                  _statChip('❄️', '${gami.freezes}', 'freezes'),
+                ],
+              ),
+              SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statChip(String emoji, String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.cardAlt,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Text(emoji, style: TextStyle(fontSize: 15)),
+            SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(fontSize: 10, color: AppColors.muted),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
