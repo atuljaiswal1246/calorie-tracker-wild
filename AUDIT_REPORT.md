@@ -529,12 +529,32 @@ Process: see `AUDIT_PLAN.md` → "E2E VERIFICATION PLAN".
 | E2E-003 | Minor | A Onboarding | Home does not funnel into the first log | Reach Home | One-tap to log | 29.2 s to first log (via AI scan) | funnel event | Fixed — first-log CTA (only shown for zero-entry users) |
 | E2E-004 | Major | D Data | Calories disagree with macros from the AI (400 vs 425 kcal) | Scan a meal | kcal ≈ 4P+4C+9F | model kcal trusted verbatim | screenshot + code review | Fixed — calories now derived (Atwater) in FoodItem; fallback when no macros |
 | E2E-005 | Minor | I Observability | `first_log` only fires on the first-ever entry, so it can't measure time-to-first-log on an existing account | Existing account logs a meal | measurable | no event | funnel | Open |
+| E2E-006 | Minor | D Data | DB backfill divides AI values by `quantity` but compares against raw per-100g DB values | Log a matched meal with quantity > 1 | consistent units | apples-to-oranges fill | code review (mimo) | Open |
 
 ## Also fixed during this pass
 | ID | Area | Title | Fix |
 |----|------|-------|-----|
 | E2E-000a | Auth | Sign-out from Settings didn't return to Welcome (route stayed on top; setState-after-dispose crash) | pop to root before switching; guard `_load()`; best-effort Google sign-out (`1e05bd9`) |
 | E2E-000b | Onboarding | Fast/Moderate showed different kg/week + timelines at the same (floored) kcal | derive projection from the actual goal + safe-minimum note |
+
+## After-measurement (run 2, 2026-09-14)
+Same path, after the E2E-001/002/003 fixes (existing account, signed-in).
+
+| Metric | Baseline | After | Note |
+|--------|----------|-------|------|
+| Unhandled Firestore exceptions | 1 (`permission-denied`) | **0** | E2E-001 fixed |
+| Plan → sign-up | 27.9 s | **21.4 s** | improved |
+| Step 0 (name/DOB/sex) | 18.7 s | 23.2 s | no better this sample (variance / picker) |
+| Pace | 16.2 s (inflated) | 5.4 s | baseline was inflated |
+| `first_log` | 29.2 s | not measurable | E2E-005 (fires only first-ever) |
+
+## Nutrition data check (2026-09-14)
+A scanned "Palak Paneer" returned 400 kcal with macros 20/30/25 g (which imply
+425). Read-only worker review (mimo-v2.5-free) found: values are taken verbatim
+from the model; there is no kcal↔macro validation. Fixed by deriving calories
+from macros (Atwater 4/4/9) in `FoodItem.calories`, with the stored value as
+fallback when all macros are zero (commit 8ea5fec). The same review flagged the
+DB-backfill quantity bug (E2E-006).
 
 ## Automated results
 - `flutter analyze`: 0 errors

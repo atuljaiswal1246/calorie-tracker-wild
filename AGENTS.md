@@ -392,3 +392,26 @@ rate, and the pace screen explains why ("… is your safe minimum, so a faster p
 isn't safe"). The locked calorie-goal formula and `weeklyRateKg` constants are
 unchanged; `widget_test.dart` expectations updated (mod/fast lose → 27 wks,
 slow gain → 51 wks).
+
+
+## Free-worker delegation log (2026-09-14)
+This Cal Matters session offloaded coding to the free zen workers via the Asha
+harness (`~/Desktop/Asha/scripts/agent_run.sh --dir <repo> --model opencode/<model>
+--auto --task @brief`). Brain = plan + brief + verify the diff (analyze/tests) +
+commit; workers = edit. One task per dir at a time. Avoid paid models; **no free
+deepseek** — use `opencode/big-pickle` (mechanical/writing) and
+`opencode/mimo-v2.5-free` (code/reasoning); `muse-spark` is rate-limited.
+
+| Task | Worker | Commit | Verified |
+|------|--------|--------|----------|
+| Deny-by-default `firestore.rules` | big-pickle | 929af42 | read diff, correct |
+| DOB year-first picker (E2E-002) | mimo-v2.5-free | 9855b25 | analyze + tests |
+| First-log CTA on Home (E2E-003) | big-pickle | 3c8fc83 | analyze + tests |
+| `plan_view` funnel event | big-pickle | — | analyze + tests |
+| Nutrition read-only report | mimo-v2.5-free | (no files) | confirmed no edits |
+| kcal-from-macros fix + tests (E2E-004) | mimo-v2.5-free | 8ea5fec | analyze + 144 tests |
+
+Recipe: (1) brain writes a precise brief with exact anchors + constraints +
+"run flutter analyze"; (2) `agent_run.sh` runs `opencode run --auto`; (3) brain
+reads `git diff` and gates on `flutter analyze` + `flutter test`; (4) commit with
+"worker-written (model), brain-verified".
