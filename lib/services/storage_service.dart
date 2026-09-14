@@ -110,6 +110,17 @@ class StorageService {
     return FirebaseFirestore.instance.collection('users').doc(uid);
   }
 
+  /// Runs a Firestore (cloud) write best-effort. The local store is the source
+  /// of truth, so a network/permission failure must never throw into a logging
+  /// or navigation path (fixes E2E-001: unhandled cloud_firestore permission-denied).
+  Future<void> _cloud(Future<void> Function() op) async {
+    try {
+      await op();
+    } catch (_) {
+      // Offline / permission-denied / no rules — ignore; local copy stands.
+    }
+  }
+
   // ---- Profile ----
 
   Profile? get profile {
@@ -122,14 +133,19 @@ class StorageService {
     await _prefs.setString(_profileKey, jsonEncode(profile.toJson()));
     final ref = _profileRef();
     if (ref != null) {
-      await ref.set({'profile': profile.toJson()});
+      await _cloud(() => ref.set({'profile': profile.toJson()}));
     }
   }
 
   Future<Profile?> loadProfileFromCloud() async {
     final ref = _profileRef();
     if (ref == null) return null;
-    final doc = await ref.get();
+    DocumentSnapshot doc;
+    try {
+      doc = await ref.get();
+    } catch (_) {
+      return null; // offline / denied — local copy stands
+    }
     if (!doc.exists) return null;
     final data = doc.data() as Map<String, dynamic>?;
     if (data == null || data['profile'] == null) return null;
@@ -335,7 +351,8 @@ class StorageService {
 
     final ref = _profileRef();
     if (ref != null) {
-      await ref.collection('entries').doc(entry.id).set(entry.toJson());
+      await _cloud(
+          () => ref.collection('entries').doc(entry.id).set(entry.toJson()));
     }
     activityListener?.call(entry.imagePath.isNotEmpty
         ? StorageActivity.mealScanned
@@ -348,7 +365,7 @@ class StorageService {
 
     final ref = _profileRef();
     if (ref != null) {
-      await ref.collection('entries').doc(id).delete();
+      await _cloud(() => ref.collection('entries').doc(id).delete());
     }
   }
 
@@ -358,14 +375,20 @@ class StorageService {
 
     final ref = _profileRef();
     if (ref != null) {
-      await ref.collection('entries').doc(entry.id).set(entry.toJson());
+      await _cloud(
+          () => ref.collection('entries').doc(entry.id).set(entry.toJson()));
     }
   }
 
   Future<List<FoodEntry>> loadEntriesFromCloud() async {
     final ref = _profileRef();
     if (ref == null) return [];
-    final snapshot = await ref.collection('entries').get();
+    QuerySnapshot<Map<String, dynamic>> snapshot;
+    try {
+      snapshot = await ref.collection('entries').get();
+    } catch (_) {
+      return entries; // local copy stands
+    }
     final cloud = snapshot.docs
         .map((d) => FoodEntry.fromJson(d.data()))
         .toList();
@@ -556,10 +579,10 @@ class StorageService {
     await _prefs.setString(_gamificationKey, jsonEncode(state.toJson()));
     final ref = _profileRef();
     if (ref != null) {
-      await ref
+      await _cloud(() => ref
           .collection('gamification')
           .doc('state')
-          .set(state.toJson(), SetOptions(merge: true));
+          .set(state.toJson(), SetOptions(merge: true)));
     }
   }
 
@@ -851,14 +874,19 @@ class StorageService {
     await _prefs.setBool(_paidKey, paid);
     final ref = _profileRef();
     if (ref != null) {
-      await ref.set({'paid': paid}, SetOptions(merge: true));
+      await _cloud(() => ref.set({'paid': paid}, SetOptions(merge: true)));
     }
   }
 
   Future<bool> loadPaidFromCloud() async {
     final ref = _profileRef();
     if (ref == null) return isPaid;
-    final doc = await ref.get();
+    DocumentSnapshot doc;
+    try {
+      doc = await ref.get();
+    } catch (_) {
+      return isPaid; // offline / denied — keep the local flag
+    }
     if (!doc.exists) {
       // No cloud record — stale local flag must not survive.
       await _prefs.setBool(_paidKey, false);
