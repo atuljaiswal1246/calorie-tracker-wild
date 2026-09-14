@@ -280,7 +280,7 @@ void main() {
     expect(rt.name, 'Lunch');
     expect(rt.items.length, 2);
     expect(rt.items[0].name, 'Dal');
-    expect(rt.totalCalories, 450);
+    expect(rt.totalCalories, 441);
     expect(rt.totalProtein, 16);
     expect(rt.totalCarbs, 74);
     expect(rt.totalFat, 9);
@@ -308,7 +308,7 @@ void main() {
     expect(rt.dbMatchedName, 'Chapatis');
     expect(rt.dbSource, 'ICMR');
     expect(rt.dbCaloriesPer100g, 300);
-    expect(rt.calories, 120);
+    expect(rt.calories, 125);
   });
 
   test('FoodItem quantity scales calories', () {
@@ -320,6 +320,6 @@ void main() {
       fat: 1,
       quantity: 2,
     );
-    expect(item.calories, 400);
+    expect(item.calories, 402);
   });
 }

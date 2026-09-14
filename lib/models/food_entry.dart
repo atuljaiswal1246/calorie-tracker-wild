@@ -58,7 +58,10 @@ class FoodItem {
         _iron = iron,
         _vitaminC = vitaminC;
 
-  int get calories => (_calories * quantity).round();
+  int get _atwaterCalories => (_protein * 4 + _carbs * 4 + _fat * 9).round();
+  int get calories => (_protein > 0 || _carbs > 0 || _fat > 0)
+      ? (_atwaterCalories * quantity).round()
+      : (_calories * quantity).round();
   double get protein => _protein * quantity;
   double get carbs => _carbs * quantity;
   double get fat => _fat * quantity;
