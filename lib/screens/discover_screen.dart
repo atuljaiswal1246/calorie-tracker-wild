@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../config/features.dart';
 import 'package:flutter/services.dart';
 
 import '../services/achievements_service.dart';
@@ -303,6 +305,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         ),
         SizedBox(height: 20),
 
+        if (Features.asha) ...[
         // Asha — AI nutrition assistant (hero card)
         InkWell(
           onTap: () => Navigator.of(context).push(
@@ -366,6 +369,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           ),
         ),
         SizedBox(height: 20),
+        ],
 
         // Friends + weekly leaderboard
         _friendsCard(),
