@@ -293,6 +293,11 @@ checkAndUpdate()` API is unchanged so all callers keep working.
 engine, cosmetics/personalities/features recorded in `shop_inventory`),
 `screens/shop_screen.dart`, reachable from the hub's 🛍️ action.
 
-**Not yet built (Phase 2+):** leagues, notification engine, full-screen
-celebrations; shop effects beyond freezes (frames/themes/voices) are recorded but
-not yet applied in UI.
+**Also done (Phase 2):** weekly leagues — `models/league.dart`,
+`services/league_service.dart` (10 tiers from §4.6, Mon–Sun Cal Points scoring,
+deterministic simulated peers, promotion/demotion, podium rewards via
+`GamificationService.awardBonus`), `screens/league_screen.dart` from the hub's 🏆.
+
+**Not yet built (Phase 3+):** notification engine, full-screen celebrations;
+shop effects beyond freezes (frames/themes/voices) are recorded but not yet
+applied in UI; leagues simulate peers locally (no Cloud Function yet).

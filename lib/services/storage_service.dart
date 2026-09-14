@@ -592,6 +592,20 @@ class StorageService {
     await _prefs.setString(_shopKey, jsonEncode(inv));
   }
 
+  // ---- League state ----
+
+  static const _leagueKey = 'league_state';
+
+  Map<String, dynamic>? get leagueStateRaw {
+    final raw = _prefs.getString(_leagueKey);
+    if (raw == null) return null;
+    return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+  }
+
+  Future<void> saveLeagueState(Map<String, dynamic> state) async {
+    await _prefs.setString(_leagueKey, jsonEncode(state));
+  }
+
   // ---- Fasting ----
 
   static const _fastingStartKey = 'fasting_start';

@@ -377,6 +377,22 @@ class GamificationService {
     return true;
   }
 
+  /// Award an external bonus (e.g. a weekly league result). Uncapped by the
+  /// daily point limit, since league/streak rewards are not logging actions.
+  int awardBonus({int points = 0, int coins = 0, int freezes = 0, DateTime? at}) {
+    final when = at ?? _now();
+    _rollDay(when);
+    final today = dayKey(when);
+    if (points != 0) {
+      state.calPoints += points;
+      state.pointsByDay[today] = (state.pointsByDay[today] ?? 0) + points;
+      state.todayPoints += points;
+    }
+    if (coins != 0) state.nutriCoins += coins;
+    if (freezes > 0) addFreezes(freezes);
+    return points;
+  }
+
   /// Grant the once-a-day login NutriCoins. Returns coins granted (0 if
   /// already claimed today).
   int recordDailyLogin({DateTime? at}) {
