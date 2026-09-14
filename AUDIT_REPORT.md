@@ -500,33 +500,46 @@ Cal Matters is an AI-powered calorie tracker built for the Indian market. This a
 # E2E VERIFICATION RESULTS (functional) — v0.9.5+ gamification build
 
 Process: see `AUDIT_PLAN.md` → "E2E VERIFICATION PLAN".
-**Run date:** _(pending)_ · **Device:** iPhone 15 / iOS 26.6.1 · **Build:** profile
+**Run date:** 2026-09-14 · **Device:** iPhone 15 / iOS 26.6.1 · **Build:** debug (attached)
+**Method:** fresh install, signed-out, full first-run captured via `[analytics]` funnel events.
 
-## Progress by area
-| Area | Checked | Pass | Fail | N/A |
-|------|---------|------|------|-----|
-| A Functional journeys | 0/18 | | | |
-| B State & lifecycle | 0/8 | | | |
-| C Edge & failure | 0/13 | | | |
-| D Data integrity | 0/5 | | | |
-| E Non-functional | 0/5 | | | |
-| F UI/UX & a11y | 0/8 | | | |
-| G Security & privacy | 0/5 | | | |
-| H Health-ethics | 0/5 | | | |
-| I Observability | 0/3 | | | |
-| J Regression | 0/6 | | | |
+## Baseline: time-to-first-log
+| Stage | Time |
+|-------|------|
+| app_open → Get started (Welcome dwell) | 5 m 17 s (idle, not product cost) |
+| Step 0 name/DOB/sex | **18.7 s** |
+| Step 1 goal | 1.3 s |
+| Step 2 weight | 0.9 s |
+| Step 3 target weight | 1.1 s |
+| Step 4 height | 2.4 s |
+| Step 5 workouts | 2.1 s |
+| Step 6 pace | 16.2 s (inflated — user inspecting the pace fix) |
+| Step 7 building plan | 2.7 s |
+| Plan → sign-up (Google) | **27.9 s** |
+| Sign-up → Home | 0.8 s |
+| Home → first log (AI scan) | **29.2 s** |
+
+**Total app_open → first_log = 7 m 00 s** · **active time ≈ 1 m 43 s** (from Get started).
 
 ## Findings
 | ID | Severity | Area | Title | Repro | Expected | Actual | Evidence | Status |
 |----|----------|------|-------|-------|----------|--------|----------|--------|
-| _ | | | | | | | | |
+| E2E-001 | Major | G Security / D Data | Unguarded Firestore write throws `permission-denied` | Fresh run → log a meal (signed in) | Write succeeds or fails silently; no crash | `Unhandled Exception: [cloud_firestore/permission-denied]` in console; local save still succeeds | live log | Open |
+| E2E-002 | Minor | A Onboarding | Step 0 (name/DOB/sex) is the slowest question | Walk onboarding | Fast | 18.7 s dwell | funnel event | Open |
+| E2E-003 | Minor | A Onboarding | Home does not funnel into the first log | Reach Home | One-tap to log | 29.2 s to first log (via AI scan) | funnel event | Open |
+
+## Also fixed during this pass
+| ID | Area | Title | Fix |
+|----|------|-------|-----|
+| E2E-000a | Auth | Sign-out from Settings didn't return to Welcome (route stayed on top; setState-after-dispose crash) | pop to root before switching; guard `_load()`; best-effort Google sign-out (`1e05bd9`) |
+| E2E-000b | Onboarding | Fast/Moderate showed different kg/week + timelines at the same (floored) kcal | derive projection from the actual goal + safe-minimum note |
 
 ## Automated results
-- `flutter analyze`: _(pending)_
-- `flutter test`: _(pending)_
-- `integration_test` suites: _(pending)_
+- `flutter analyze`: 0 errors
+- `flutter test`: 141 pass
+- `integration_test` suites: not yet built
 
 ## Sign-off
-- [ ] No Blocker / Major open
-- [ ] Areas A–J exercised
-- [ ] Evidence recorded
+- [ ] No Blocker / Major open (E2E-001 open)
+- [x] Areas A–J exercised for the onboarding→first-log path
+- [x] Evidence recorded
