@@ -10,6 +10,7 @@ library;
 
 import 'dart:math';
 
+import '../config/features.dart';
 import '../models/quest.dart';
 import 'gamification_service.dart';
 
@@ -112,7 +113,10 @@ class QuestService {
 
   static QuestTemplate? templateById(String id) {
     for (final t in pool) {
-      if (t.id == id) return t;
+      if (t.id == id) {
+        if (!Features.asha && t.metric == QuestMetric.ashaChat) return null;
+        return t;
+      }
     }
     return null;
   }
@@ -162,6 +166,11 @@ class QuestService {
         pool.where((t) => !excludeIds.contains(t.id)).toList();
     if (candidates.length < count) {
       candidates = pool.toList(); // fall back to the whole pool
+    }
+    if (!Features.asha) {
+      candidates = candidates
+          .where((t) => t.metric != QuestMetric.ashaChat)
+          .toList();
     }
 
     final chosen = <QuestTemplate>[];

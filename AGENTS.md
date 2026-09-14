@@ -355,3 +355,12 @@ Minor / not blocking:
   state-management layer; services are constructed per screen;
   `GamificationController.instance` is a process-global.
 - No Firestore-rules tests and no CI.
+
+
+## Asha parked (2026-09-14)
+The in-app Asha AI chat is temporarily disconnected via `lib/config/features.dart`
+(`Features.asha = false`): the Home concierge card is hidden, `asha_chat` quests
+are never generated, and the shop's Asha voices are hidden. The chat screen,
+prompts, gamification action and personality code are all retained dormant — flip
+`Features.asha` to `true` to reconnect. The food analysis (`OpenAIService.
+analyzeImage/analyzeText`) and the weekly summary are **not** affected.

@@ -26,7 +26,7 @@ void main() {
   ShopItem item(String id) => ShopService.byId(id)!;
 
   test('catalog matches the plan and ids are unique', () {
-    expect(ShopService.catalog.length, 13);
+    expect(ShopService.catalog.length, 11); // 13 minus the 2 parked Asha voices
     expect(
         ShopService.catalog.map((i) => i.id).toSet().length,
         ShopService.catalog.length);
@@ -64,11 +64,6 @@ void main() {
     final again = await shop.purchase(item('frame_bronze'));
     expect(again.success, isFalse);
     expect(again.message, contains('already own'));
-  });
-
-  test('Asha personalities are recorded', () async {
-    await shop.purchase(item('asha_coach'));
-    expect(shop.inventory.ashaPersonality, 'asha_coach');
   });
 
   test('double points activates a 24h boost', () async {

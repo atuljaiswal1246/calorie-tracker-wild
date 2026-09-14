@@ -9,6 +9,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../config/features.dart';
 import '../models/food_entry.dart';
 import '../models/profile.dart';
 import '../services/achievements_service.dart';
@@ -610,9 +611,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
           SizedBox(height: 22),
-          // Asha — concierge (adaptive by time of day, tap = chat)
-          _ashaConcierge(),
-          SizedBox(height: 16),
+          // Asha — concierge (adaptive by time of day, tap = chat).
+          // Parked behind Features.asha while the core loop is perfected.
+          if (Features.asha) ...[
+            _ashaConcierge(),
+            SizedBox(height: 16),
+          ],
           _weekSelector(calorieGoal: goal),
           SizedBox(height: 20),
           Row(

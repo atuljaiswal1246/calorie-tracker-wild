@@ -6,6 +6,7 @@
 library;
 
 import '../models/gamification_state.dart';
+import '../config/features.dart';
 import '../models/shop.dart';
 import 'analytics_service.dart';
 import 'gamification_controller.dart';
@@ -25,8 +26,8 @@ class ShopService {
 
   ShopService(this.storage, this.controller);
 
-  /// The storefront (plan §4.4 shop table).
-  static const List<ShopItem> catalog = [
+  /// Every storefront item (plan §4.4 shop table).
+  static const List<ShopItem> _allItems = [
     ShopItem(
       id: 'streak_freeze',
       name: 'Streak Freeze',
@@ -132,6 +133,11 @@ class ShopService {
       emoji: '🏅',
     ),
   ];
+
+  /// The storefront, minus temporarily-disabled items (Asha voices).
+  static List<ShopItem> get catalog => Features.asha
+      ? _allItems
+      : _allItems.where((i) => !i.id.startsWith('asha_')).toList();
 
   static ShopItem? byId(String id) {
     for (final item in catalog) {
