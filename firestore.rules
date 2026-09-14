@@ -1,0 +1,26 @@
+rules_version = '2';
+// Firestore Security Rules — Cal Matters
+// Data shape: users/{uid} (profile, paid flag),
+//   users/{uid}/entries/{entryId} (meal entries),
+//   users/{uid}/gamification/state (gamification state).
+// Default: deny all. Authenticated users access only their own /users/{uid} subtree.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Per-user: only the signed-in user can read/write their own subtree
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // Subcollections (entries, gamification, and any future ones)
+      match /{subcollection}/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
