@@ -528,8 +528,8 @@ Process: see `AUDIT_PLAN.md` → "E2E VERIFICATION PLAN".
 | E2E-002 | Minor | A Onboarding | Step 0 (name/DOB/sex) is the slowest question | Walk onboarding | Fast | 18.7 s dwell | funnel event | Fixed — year-first date picker (pending re-measure) |
 | E2E-003 | Minor | A Onboarding | Home does not funnel into the first log | Reach Home | One-tap to log | 29.2 s to first log (via AI scan) | funnel event | Fixed — first-log CTA (only shown for zero-entry users) |
 | E2E-004 | Major | D Data | Calories disagree with macros from the AI (400 vs 425 kcal) | Scan a meal | kcal ≈ 4P+4C+9F | model kcal trusted verbatim | screenshot + code review | Fixed — calories now derived (Atwater) in FoodItem; fallback when no macros |
-| E2E-005 | Minor | I Observability | `first_log` only fires on the first-ever entry, so it can't measure time-to-first-log on an existing account | Existing account logs a meal | measurable | no event | funnel | Open |
-| E2E-006 | Minor | D Data | DB backfill divides AI values by `quantity` but compares against raw per-100g DB values | Log a matched meal with quantity > 1 | consistent units | apples-to-oranges fill | code review (mimo) | Open |
+| E2E-005 | Minor | I Observability | `first_log` only fires on the first-ever entry, so it can't measure time-to-first-log on an existing account | Existing account logs a meal | measurable | no event | funnel | Fixed — fires on first meal of the day |
+| E2E-006 | Minor | D Data | DB backfill divides AI values by `quantity` but compares against raw per-100g DB values | Log a matched meal with quantity > 1 | consistent units | apples-to-oranges fill | code review (mimo) | Fixed — DB fill now normalised by quantity |
 
 ## Also fixed during this pass
 | ID | Area | Title | Fix |

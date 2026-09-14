@@ -293,8 +293,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
           // DB per-100g values scaled up to the AI-estimated serving size.
           final scale = item.servingSizeGrams / 100;
           // Backfill ONLY values the AI couldn't estimate (0 = "unknown").
+          // Divide by q so DB values are normalised to per-unit like AI values.
           double fill(double aiVal, double dbPer100g) =>
-              aiVal > 0 ? aiVal : dbPer100g * scale;
+              aiVal > 0 ? aiVal : (dbPer100g * scale) / q;
 
           enrichedItems.add(FoodItem(
             name: item.name,
