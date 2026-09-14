@@ -27,6 +27,7 @@ import '../theme/app_colors.dart';
 import '../widgets/widgets.dart';
 import 'achievements_screen.dart';
 import 'barcode_scanner_screen.dart';
+import 'gamification_hub_screen.dart';
 import 'insights_screen.dart';
 import 'capture_screen.dart';
 import 'discover_screen.dart';
@@ -819,7 +820,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
-        _showGamificationSheet();
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const GamificationHubScreen()),
+        );
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -851,6 +854,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
+                  ),
+                ),
+                SizedBox(width: 6),
+                Text(
+                  'View all',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.accent,
                   ),
                 ),
               ],
@@ -943,122 +955,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showGamificationSheet() {
-    final gami = _gami;
-    if (gami == null) return;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
-      builder: (ctx) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 18, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.cardAlt,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Text('🌱', style: TextStyle(fontSize: 24)),
-                  SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Level ${gami.level} · ${gami.levelTitle}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                        ),
-                      ),
-                      Text(
-                        '${gami.calPoints} Cal Points',
-                        style: TextStyle(fontSize: 13, color: AppColors.muted),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              SizedBox(height: 14),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: gami.levelProgress,
-                  minHeight: 8,
-                  backgroundColor: AppColors.cardAlt,
-                  valueColor: AlwaysStoppedAnimation(AppColors.ink),
-                ),
-              ),
-              SizedBox(height: 6),
-              Text(
-                '${gami.pointsToNextLevel} points to the next level',
-                style: TextStyle(fontSize: 12, color: AppColors.muted),
-              ),
-              SizedBox(height: 18),
-              Row(
-                children: [
-                  _statChip('🔥', '${gami.streak}', 'streak'),
-                  SizedBox(width: 8),
-                  _statChip('⚡', '${gami.weeklyPoints}', 'this week'),
-                  SizedBox(width: 8),
-                  _statChip('🪙', '${gami.nutriCoins}', 'coins'),
-                  SizedBox(width: 8),
-                  _statChip('❄️', '${gami.freezes}', 'freezes'),
-                ],
-              ),
-              SizedBox(height: 8),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _statChip(String emoji, String value, String label) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.cardAlt,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          children: [
-            Text(emoji, style: TextStyle(fontSize: 15)),
-            SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(fontSize: 10, color: AppColors.muted),
-            ),
-          ],
-        ),
       ),
     );
   }
