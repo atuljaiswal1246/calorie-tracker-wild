@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/body_measurement_entry.dart';
 import '../models/food_entry.dart';
 import '../models/exercise_entry.dart';
+import '../models/gamification_state.dart';
 import '../models/profile.dart';
 
 /// EMail address that bypasses the paywall — SANDBOX ONLY (iOS dev builds).
@@ -513,6 +514,31 @@ class StorageService {
 
   Future<void> saveAchievements(Map<String, String> achievements) async {
     await _prefs.setString(_achievementsKey, jsonEncode(achievements));
+  }
+
+  // ---- Gamification (Cal Points, level, streak, NutriCoins) ----
+
+  static const _gamificationKey = 'gamification_state';
+
+  /// The persisted gamification state (a fresh one if never written).
+  GamificationState get gamification {
+    final raw = _prefs.getString(_gamificationKey);
+    if (raw == null) return GamificationState();
+    return GamificationState.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  /// Persist the gamification state locally, and mirror it to the user's
+  /// Firestore doc (`users/{uid}/gamification/state`) when signed in.
+  Future<void> saveGamification(GamificationState state) async {
+    await _prefs.setString(_gamificationKey, jsonEncode(state.toJson()));
+    final ref = _profileRef();
+    if (ref != null) {
+      await ref
+          .collection('gamification')
+          .doc('state')
+          .set(state.toJson(), SetOptions(merge: true));
+    }
   }
 
   // ---- Fasting ----
