@@ -50,6 +50,16 @@ class WeightEntry {
       );
 }
 
+/// Real user activity the gamification layer reacts to. StorageService emits
+/// these so every logging path earns rewards without touching each screen.
+enum StorageActivity {
+  mealLogged,
+  mealScanned,
+  waterLogged,
+  weightLogged,
+  exerciseLogged,
+}
+
 class StorageService {
   static const _profileKey = 'user_profile';
   static const _entriesKey = 'food_entries';
@@ -63,6 +73,10 @@ class StorageService {
 
   final SharedPreferences _prefs;
   String? _userId;
+
+  /// Set by the gamification controller (GamificationController.init). Null in
+  /// tests and before init, in which case logging behaves exactly as before.
+  void Function(StorageActivity activity)? activityListener;
 
   StorageService(this._prefs);
 
@@ -215,6 +229,7 @@ class StorageService {
   Future<void> addExercise(ExerciseEntry entry) async {
     final all = [...exercises, entry];
     await _prefs.setString(_exerciseKey, jsonEncode(all.map((e) => e.toJson()).toList()));
+    activityListener?.call(StorageActivity.exerciseLogged);
   }
 
   Future<void> deleteExercise(String id) async {
@@ -322,6 +337,9 @@ class StorageService {
     if (ref != null) {
       await ref.collection('entries').doc(entry.id).set(entry.toJson());
     }
+    activityListener?.call(entry.imagePath.isNotEmpty
+        ? StorageActivity.mealScanned
+        : StorageActivity.mealLogged);
   }
 
   Future<void> deleteEntry(String id) async {
@@ -399,6 +417,7 @@ class StorageService {
       _weightEntriesKey,
       jsonEncode(all.map((e) => e.toJson()).toList()),
     );
+    activityListener?.call(StorageActivity.weightLogged);
   }
 
   Future<void> deleteWeightEntry(DateTime date) async {
@@ -470,6 +489,9 @@ class StorageService {
       _waterEntriesKey,
       jsonEncode(all.map((e) => e.toJson()).toList()),
     );
+    if (waterMlForDay(todayNormalized) >= waterGoalMl) {
+      activityListener?.call(StorageActivity.waterLogged);
+    }
   }
 
   Future<void> undoLastWater() async {

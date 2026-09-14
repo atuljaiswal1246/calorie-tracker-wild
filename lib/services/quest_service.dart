@@ -122,9 +122,17 @@ class QuestService {
   String day;
   List<ActiveQuest> quests;
 
+  /// The ids generated on the previous day, excluded from the next set so the
+  /// same quests don't repeat back-to-back (plan §4.5 rule 1).
+  List<String> previousIds;
+
   QuestService(this.gamification,
-      {List<ActiveQuest>? quests, this.day = '', Random? rng})
+      {List<ActiveQuest>? quests,
+      this.day = '',
+      List<String>? previousIds,
+      Random? rng})
       : quests = quests ?? <ActiveQuest>[],
+        previousIds = previousIds ?? <String>[],
         _rng = rng ?? Random();
 
   int get questCount => quests.length;
@@ -147,6 +155,7 @@ class QuestService {
     int count = 3,
   }) {
     final when = at ?? DateTime.now();
+    previousIds = quests.map((q) => q.id).toList();
     day = GamificationService.dayKey(when);
 
     var candidates =
@@ -247,6 +256,7 @@ class QuestService {
 
   Map<String, dynamic> toJson() => {
         'day': day,
+        'previousIds': previousIds,
         'quests': quests.map((q) => q.toJson()).toList(),
       };
 
@@ -265,6 +275,10 @@ class QuestService {
       ));
     }
     return QuestService(gamification,
-        quests: list, day: json['day'] as String? ?? '');
+        quests: list,
+        day: json['day'] as String? ?? '',
+        previousIds: (json['previousIds'] as List?)
+            ?.map((e) => e as String)
+            .toList());
   }
 }
