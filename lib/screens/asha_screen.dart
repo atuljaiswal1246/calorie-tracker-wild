@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../models/shop.dart';
 import '../services/asha_prompts.dart';
 import '../services/gamification_controller.dart';
 import '../services/openai_service.dart';
@@ -91,6 +92,25 @@ SPEAK STYLE:
 - Compare today's log to targets if asked.
 - NEVER diagnose, prescribe drugs/supplements, or give medical treatment advice. For anything borderline: say "doctor se poocho, main sirf khaana hoon 😄".
 ''';
+
+    // Shop-purchased Asha voice (plan §4.4).
+    _systemPrompt += _personalitySuffix();
+  }
+
+  /// Extra instruction from the user's purchased Asha personality.
+  String _personalitySuffix() {
+    final inv =
+        ShopInventory.fromJson(widget.storage.shopInventoryRaw ?? const {});
+    switch (inv.ashaPersonality) {
+      case 'asha_coach':
+        return '\nVOICE (Coach): Be crisp, direct and goal-focused. Lead with the '
+            'single most useful next action, then one line of why. Fewer jokes.';
+      case 'asha_friend':
+        return '\nVOICE (Friend): Be extra warm and chatty — check in on how the '
+            'day is going before the nutrition point. More playful asides.';
+      default:
+        return '';
+    }
   }
 
   @override
