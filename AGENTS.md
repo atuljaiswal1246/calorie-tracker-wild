@@ -288,5 +288,11 @@ rewritten to ~40 achievements across 10 categories with live progress, secret
 badges and category-grouped UI; the existing `getAll()/unlockedCount/
 checkAndUpdate()` API is unchanged so all callers keep working.
 
-**Not yet built (Phase 2+):** NutriCoins shop UI, leagues, notification engine,
-full-screen celebrations.
+**Also done (Phase 2 start):** NutriCoins shop — `models/shop.dart`,
+`services/shop_service.dart` (12-item catalog, freeze purchases apply through the
+engine, cosmetics/personalities/features recorded in `shop_inventory`),
+`screens/shop_screen.dart`, reachable from the hub's 🛍️ action.
+
+**Not yet built (Phase 2+):** leagues, notification engine, full-screen
+celebrations; shop effects beyond freezes (frames/themes/voices) are recorded but
+not yet applied in UI.

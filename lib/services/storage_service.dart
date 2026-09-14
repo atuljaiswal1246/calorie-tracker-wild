@@ -578,6 +578,20 @@ class StorageService {
     await _prefs.setString(_questBoardKey, jsonEncode(board));
   }
 
+  // ---- Shop inventory ----
+
+  static const _shopKey = 'shop_inventory';
+
+  Map<String, dynamic>? get shopInventoryRaw {
+    final raw = _prefs.getString(_shopKey);
+    if (raw == null) return null;
+    return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+  }
+
+  Future<void> saveShopInventory(Map<String, dynamic> inv) async {
+    await _prefs.setString(_shopKey, jsonEncode(inv));
+  }
+
   // ---- Fasting ----
 
   static const _fastingStartKey = 'fasting_start';

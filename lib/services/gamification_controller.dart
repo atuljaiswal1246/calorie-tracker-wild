@@ -75,6 +75,13 @@ class GamificationController {
 
   void _bump() => revision.value = revision.value + 1;
 
+  /// Re-publish state after an external mutation (e.g. a shop purchase) and
+  /// persist it.
+  void refresh() {
+    unawaited(persist());
+    _bump();
+  }
+
   // ── Live values for the UI ────────────────────────────────────────────
   int get calPoints => state.calPoints;
   int get nutriCoins => state.nutriCoins;

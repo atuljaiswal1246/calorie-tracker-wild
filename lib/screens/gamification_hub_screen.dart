@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/quest.dart';
 import '../services/gamification_controller.dart';
 import '../theme/app_colors.dart';
+import 'shop_screen.dart';
 
 /// Gamification hub — the level/points/streak dashboard plus today's quests.
 /// Reached from the Home quest card ("View all").
@@ -45,6 +46,15 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
           'Your progress',
           style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Shop',
+            icon: const Text('🛍️', style: TextStyle(fontSize: 18)),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ShopScreen()),
+            ),
+          ),
+        ],
       ),
       body: gami == null
           ? Center(
