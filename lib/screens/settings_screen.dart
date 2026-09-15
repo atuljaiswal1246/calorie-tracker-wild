@@ -321,9 +321,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SizedBox(height: 24),
                   Center(
                     child: Text(
-                      'Calorie Tracker v0.9.5',
+                      'Cal Matters v0.9.6',
                       style: TextStyle(
                         fontSize: 12,
+                        color: AppColors.muted.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      'Cal Matters tracks food and activity. It is not medical '
+                      'advice — talk to a doctor or dietitian before changing '
+                      'your diet.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.4,
                         color: AppColors.muted.withValues(alpha: 0.6),
                       ),
                     ),
