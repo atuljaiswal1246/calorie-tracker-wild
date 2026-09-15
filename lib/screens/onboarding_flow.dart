@@ -1949,7 +1949,7 @@ class _ProjectionCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           SizedBox(
-            height: 104,
+            height: 120,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -1966,6 +1966,7 @@ class _ProjectionCard extends StatelessWidget {
                   left: 0,
                   top: 0,
                   child: Text('Now ${currentWeight.round()} kg',
+                      maxLines: 1,
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -1975,6 +1976,7 @@ class _ProjectionCard extends StatelessWidget {
                   right: 0,
                   bottom: 0,
                   child: Text('Goal ${targetWeight.round()} kg',
+                      maxLines: 1,
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -2040,8 +2042,8 @@ class _TrendPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const left = 6.0;
     final right = size.width - 6;
-    const top = 14.0;
-    final bottom = size.height - 18;
+    const top = 26.0;
+    final bottom = size.height - 26;
     final w = right - left;
     final h = bottom - top;
 
