@@ -477,26 +477,18 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFF4B4B), Color(0xFFFF7A45)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFFFF4B4B).withValues(alpha: 0.25),
-            blurRadius: 14,
-            offset: Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.accentOrange.withValues(alpha: 0.35)),
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Symbols.auto_awesome_rounded, size: 16, color: Colors.white),
+              Icon(Symbols.auto_awesome_rounded,
+                  size: 16, color: AppColors.accentOrange),
               SizedBox(width: 7),
               Expanded(
                 child: Text(
@@ -504,7 +496,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: AppColors.ink,
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -513,7 +505,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 range,
                 style: TextStyle(
                   fontSize: 11.5,
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: AppColors.muted,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -528,7 +520,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
+                    color: AppColors.ink,
                   ),
                 ),
                 SizedBox(width: 10),
@@ -536,7 +528,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   'Reading your week…',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: AppColors.muted,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -548,7 +540,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               style: TextStyle(
                 fontSize: 13.5,
                 height: 1.5,
-                color: Colors.white,
+                color: AppColors.ink,
                 fontWeight: FontWeight.w500,
               ),
             )
@@ -559,7 +551,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               style: TextStyle(
                 fontSize: 12.5,
                 height: 1.4,
-                color: Colors.white.withValues(alpha: 0.92),
+                color: AppColors.muted,
               ),
             ),
             SizedBox(height: 10),
@@ -567,8 +559,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
               alignment: Alignment.centerLeft,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.card,
-                  foregroundColor: Color(0xFFFF4B4B),
+                  backgroundColor: AppColors.inkButton,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -593,7 +585,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               _summaryError!,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: AppColors.missedRed,
               ),
             ),
           ],
@@ -606,7 +598,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: AppColors.muted,
                   ),
                 ),
                 SizedBox(width: 4),
@@ -634,31 +626,43 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Expanded(
       child: Column(
         children: [
+          // Label first, then the number (same reading order as Progress/Home).
           Text(
-            value,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: color,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
-          ),
-          SizedBox(height: 2),
-          Text(
-            unit,
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w700,
               color: AppColors.muted,
             ),
           ),
-          SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.ink,
+          SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+                SizedBox(width: 3),
+                Text(
+                  unit,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
