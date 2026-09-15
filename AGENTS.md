@@ -744,3 +744,28 @@ Rules:
 - `test/screen_preview_test.dart` has a `signup` golden. The harness must load
   the **FontAwesome brands** font (family `packages/font_awesome_flutter/
   FontAwesomeBrands`) or the Google "G" renders as a box.
+
+## ✅ FINALIZED — Onboarding screen 1 (Goal) — LOCKED
+Locked 2026-09-15 (commits `8c4886a` illustrated cards, `6a98eb4` shared card
+refactor). **Do not change without an explicit new request.** `_GoalStep` +
+the shared `_IllustCard` / `_IllustData` in `lib/screens/onboarding_flow.dart`,
+step index 0, progress **1/6**. (This was the screen the user originally wanted
+to rework — it is now signed off.)
+
+Locked composition — **four illustrated cards in a 2×2 grid** (the same
+treatment as screen 4, via the shared `_IllustCard`):
+- **Lose weight** → plate + calorie ring + downward arrow · *Burn more than you eat* — value `lose`
+- **Maintain weight** → balanced scale of food · *Stay right where you are* — value `maintain`
+- **Gain weight** → protein bowls + board · *Eat more, build up* — value `gain`
+- **Just exploring** → compass over a bowl · *See what the app can do* — value `exploring`
+- Selected = orange border + soft glow + check badge. Default `lose`.
+- Assets: `assets/onboarding/goal_{lose,maintain,gain,explore}.jpg` (Leonardo,
+  flat cream/coral/sage — the app's illustration family, same as the avatars,
+  the bowl and the activity cards).
+
+Rules:
+- The illustrations are the point — do **not** fall back to Material icons on
+  signature-colour tiles (an earlier attempt was rejected: "not generic").
+- The card values are the locked goal values; the maths for every option lives
+  in `Profile` and must not change.
+- `_IllustCard` is shared with screen 4 — change it once, for both.
