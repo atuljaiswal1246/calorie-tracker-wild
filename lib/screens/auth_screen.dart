@@ -1,11 +1,15 @@
 import 'dart:io' show Platform;
 
+import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../config/features.dart';
 import '../services/auth_service.dart';
+import '../theme/app_colors.dart';
 import '../services/funnel.dart';
 
 enum _AuthMode { signIn, signUp }
@@ -199,6 +203,49 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _open(String url) async {
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (_) {}
+  }
+
+  /// Terms / Privacy as tappable links (stores expect them at account creation).
+  Widget _legal() {
+    final style = TextStyle(fontSize: 11, height: 1.5, color: Colors.black38);
+    final link = TextStyle(
+      fontSize: 11,
+      height: 1.5,
+      color: Colors.black54,
+      fontWeight: FontWeight.w600,
+      decoration: TextDecoration.underline,
+    );
+    return Text.rich(
+      TextSpan(
+        style: style,
+        children: [
+          const TextSpan(text: 'By continuing you agree to our '),
+          TextSpan(
+            text: 'Terms of Service',
+            style: link,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => _open(
+                  'https://calorie-tracker-80a0b.web.app/terms.html'),
+          ),
+          const TextSpan(text: ' and '),
+          TextSpan(
+            text: 'Privacy Policy',
+            style: link,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => _open(
+                  'https://calorie-tracker-80a0b.web.app/privacy.html'),
+          ),
+          const TextSpan(text: '.'),
+        ],
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
   void _toggleMode() {
     setState(() {
       _mode = _mode == _AuthMode.signIn
@@ -213,9 +260,9 @@ class _AuthScreenState extends State<AuthScreen> {
     final isSignUp = _mode == _AuthMode.signUp;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.bg,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
@@ -224,44 +271,48 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: Form(
+        child: Column(
+          children: [
+            // Brand anchored at the top (the screen no longer floats in a void).
+            Padding(
+              padding: EdgeInsets.only(top: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: Image.asset(
+                      'assets/icons/app_icon.png',
+                      width: 38,
+                      height: 38,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(Icons.eco_rounded,
+                          size: 32, color: Colors.black),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Cal Matters',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Brand mark, so the screen belongs to the app they just
-                  // spent six steps in.
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(11),
-                        child: Image.asset(
-                          'assets/icons/app_icon.png',
-                          width: 38,
-                          height: 38,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(Icons.eco_rounded,
-                              size: 32, color: Colors.black),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        'Cal Matters',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 26),
                   Text(
                     isSignUp ? 'Save your plan' : 'Welcome back',
                     textAlign: TextAlign.center,
@@ -503,18 +554,17 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 18),
-                  Text(
-                    'By continuing you agree to our Terms of Service and '
-                    'Privacy Policy.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 11, height: 1.5, color: Colors.black38),
-                  ),
                 ],
               ),
             ),
-          ),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(24, 8, 24, 10),
+              child: _legal(),
+            ),
+          ],
         ),
       ),
     );

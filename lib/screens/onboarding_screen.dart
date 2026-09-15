@@ -3100,7 +3100,7 @@ class PricingScreenState extends State<PricingScreen> {
       return _PaymentApprovedScreen();
     }
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

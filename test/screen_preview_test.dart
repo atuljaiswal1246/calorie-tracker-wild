@@ -176,6 +176,19 @@ void main() {
         find.byType(AuthScreen), matchesGoldenFile('goldens/signup.png'));
   });
 
+  testWidgets('signin', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(_wrap(AuthScreen(
+      auth: AuthService(),
+      isSignUp: false,
+      onAuthenticated: () {},
+      onBack: () {},
+    )));
+    await _precache(tester);
+    await expectLater(
+        find.byType(AuthScreen), matchesGoldenFile('goldens/signin.png'));
+  });
+
   testWidgets('paywall', (tester) async {
     _phone(tester);
     SharedPreferences.setMockInitialValues({});

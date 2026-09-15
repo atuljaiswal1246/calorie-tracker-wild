@@ -738,6 +738,15 @@ Locked composition (sign-up variant):
 5. **"Already have an account? Sign in"**, then
    *"By continuing you agree to our Terms of Service and Privacy Policy."*
 6. Sign-in variant: "Welcome back" / "Sign in to continue."
+7. **Layout**: brand anchored at the TOP, the heading/copy/recap/buttons block
+   centred in the middle, and the legal line pinned at the BOTTOM (previously
+   everything floated as one block with big voids above and below).
+8. **Terms of Service / Privacy Policy are tappable links** (they open the
+   Firebase-hosted pages via `url_launcher`), matching the paywall — they were
+   plain grey text before.
+9. **Background is `AppColors.bg`** (warm #FAF9F7), not pure white, so the flow
+   does not seam between onboarding -> auth -> paywall -> Home. The paywall was
+   switched to the same background.
 
 Rules:
 - **Never say "free"** — the app is paid; the user corrected this explicitly.
