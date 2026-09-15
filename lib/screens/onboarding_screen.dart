@@ -3172,31 +3172,6 @@ class PricingScreenState extends State<PricingScreen> {
                             sub: '3 days free',
                             onTap: () => setState(() => _yearly = false),
                           ),
-                          if (_products.isEmpty && !_processing) ...[
-                            SizedBox(height: 12),
-                            Text(
-                              'Purchases open at launch.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 11.5, color: AppColors.faint),
-                            ),
-                          ],
-                          SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.lock_outline,
-                                  size: 13, color: AppColors.faint),
-                              SizedBox(width: 6),
-                              Flexible(
-                                child: Text(
-                                  'Secure payment · Cancel anytime',
-                                  style: TextStyle(
-                                      fontSize: 11.5, color: AppColors.faint),
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
