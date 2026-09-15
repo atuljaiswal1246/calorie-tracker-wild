@@ -1,13 +1,17 @@
-/// Lightweight analytics seam (plan §9 Phase 4).
+/// Analytics seam (plan §9 Phase 4).
 ///
-/// Records engagement events to a bounded local ring buffer so the loop can be
-/// measured today, and gives a single place to forward events to Firebase
-/// Analytics later (add `firebase_analytics` and call it from [log]).
+/// Every funnel event is recorded to a bounded local ring buffer (so it can be
+/// inspected in debug) AND forwarded to Firebase Analytics, which is what gives
+/// real numbers from testers and (later) production users.
 ///
-/// Local-only on purpose: no new dependency or platform config is required to
-/// keep the build green, and no data leaves the device.
+/// Privacy: this is usage/device data only — no food photos, no health values,
+/// no email. Google Analytics for Firebase is declared in the Play Data safety
+/// form and in the hosted privacy policy. If collection is ever disabled,
+/// nothing else in the app depends on it.
 library;
 
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
 import 'storage_service.dart';
@@ -35,6 +39,8 @@ class AnalyticsService {
   static void log(String event, [Map<String, Object?> params = const {}]) {
     final storage = _storage;
     if (storage == null) return;
+
+    // Local ring buffer (debug/inspection).
     final events = storage.analyticsEventsRaw;
     events.add({
       'event': event,
@@ -44,9 +50,48 @@ class AnalyticsService {
     if (events.length > maxEvents) {
       events.removeRange(0, events.length - maxEvents);
     }
-    // Fire-and-forget: analytics must never block or throw into a UI path.
     storage.saveAnalyticsEvents(events);
+
+    _send(event, params);
     if (kDebugMode) debugPrint('[analytics] $event $params');
+  }
+
+  /// Fire-and-forget forward to Firebase Analytics. Never throws into a UI path
+  /// and no-ops when Firebase isn't available (tests, or before init).
+  static void _send(String event, Map<String, Object?> params) {
+    if (Firebase.apps.isEmpty) return;
+    try {
+      FirebaseAnalytics.instance.logEvent(
+        name: _cleanName(event),
+        parameters: _cleanParams(params),
+      );
+    } catch (_) {
+      // Analytics must never affect the app.
+    }
+  }
+
+  /// Firebase event names: <=40 chars, letters/digits/underscore, must start
+  /// with a letter.
+  static String _cleanName(String raw) {
+    var s = raw.replaceAll(RegExp(r'[^A-Za-z0-9_]'), '_');
+    if (s.isEmpty || !RegExp(r'^[A-Za-z]').hasMatch(s)) s = 'e_$s';
+    return s.length <= 40 ? s : s.substring(0, 40);
+  }
+
+  /// Parameter values must be String/num; strings are capped at 100 chars.
+  static Map<String, Object> _cleanParams(Map<String, Object?> raw) {
+    final out = <String, Object>{};
+    raw.forEach((k, v) {
+      if (v == null) return;
+      final key = _cleanName(k);
+      if (v is num || v is bool) {
+        out[key] = v;
+      } else {
+        final str = v.toString();
+        out[key] = str.length <= 100 ? str : str.substring(0, 100);
+      }
+    });
+    return out;
   }
 
   static List<Map<String, dynamic>> recent() =>

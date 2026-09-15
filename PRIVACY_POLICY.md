@@ -34,6 +34,14 @@ This data stays on your device and is only synced to your personal Firebase/Fire
 
 All health and nutrition data is stored locally on your device using SharedPreferences. If you are signed in, data may be backed up to Firebase Firestore under your personal account.
 
+## Analytics
+
+We use **Google Analytics for Firebase** to measure how the app is used (which
+onboarding steps are reached, camera vs gallery, when the first meal is logged).
+It records app/device information and those events only — never food photos,
+calorie/macro values, weight entries or your email address. Contact us to have the
+analytics identifier deleted.
+
 ## Third-Party Services
 
 - **AICredits:** Used for food image analysis. Images are processed temporarily and not retained.

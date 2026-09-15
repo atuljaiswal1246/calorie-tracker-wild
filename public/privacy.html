@@ -48,6 +48,10 @@
       <li>Fasting records</li>
       <li>Meal plans</li>
     </ul>
+    <p>We also collect anonymous usage analytics (app events such as onboarding
+    steps completed, features opened, and app version/device type) to understand
+    how the app is used and to fix problems. This analytics data is not linked to
+    your food photos and is never sold.</p>
     <p>This data stays on your device and is only synced to your personal Firebase/Firestore account if you are signed in.</p>
 
     <h2>How We Use Your Information</h2>
@@ -61,10 +65,20 @@
     <h2>Data Storage</h2>
     <p>All health and nutrition data is stored locally on your device using SharedPreferences. If you are signed in, data may be backed up to Firebase Firestore under your personal account.</p>
 
+    <h2>Analytics</h2>
+    <p>We use <strong>Google Analytics for Firebase</strong> (free, provided by Google)
+    to measure how the app is used &mdash; for example which onboarding step users
+    reach, whether the camera or gallery is used, and when the first meal is logged.
+    It records app/device information (such as device model, OS version, a random app
+    instance identifier, and approximate region) and the events listed above. It does
+    <strong>not</strong> receive your food photos, your calorie/macro values, your
+    weight entries or your email address. You can opt out by not using the app, or by
+    contacting us and we will delete the associated analytics identifier.</p>
+
     <h2>Third-Party Services</h2>
     <ul>
       <li><strong>AICredits:</strong> Used for food image analysis. Images are processed temporarily and not retained.</li>
-      <li><strong>Firebase:</strong> Used for authentication and optional cloud backup.</li>
+      <li><strong>Firebase:</strong> Used for authentication, optional cloud backup, and usage analytics (Google Analytics for Firebase).</li>
       <li><strong>Open Food Facts:</strong> Used for barcode scanning (public database).</li>
     </ul>
 
