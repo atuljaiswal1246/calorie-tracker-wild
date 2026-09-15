@@ -168,10 +168,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
         SizedBox(height: 16),
         _weightCard(profile),
         SizedBox(height: 16),
-        _bodyCard(),
-        SizedBox(height: 16),
-        _fastingCard(),
-        SizedBox(height: 16),
         _periodToggle(),
         SizedBox(height: 16),
         if (_periodIndex == 0) ...[
@@ -184,6 +180,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
           _customRangeNavigator(context),
           SizedBox(height: 20),
         ],
+        _caloriesHeader(profile),
+        SizedBox(height: 12),
         _caloriesChart(profile),
         SizedBox(height: 16),
         _statsRow(profile),
@@ -218,6 +216,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
           )
         else
           ..._displayDays.reversed.map((day) => _dayRow(day, profile)),
+        SizedBox(height: 24),
+        _sectionTitle('Body'),
+        SizedBox(height: 12),
+        _bodyCard(),
+        SizedBox(height: 16),
+        _fastingCard(),
       ],
       ),
     );
@@ -1686,6 +1690,45 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 
+  Widget _caloriesHeader(Profile profile) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _sectionTitle('Calories'),
+        Semantics(
+          label: 'Edit calorie goal',
+          button: true,
+          child: InkWell(
+            onTap: () => _showEditCalorieGoalSheet(context),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.inkButton,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Goal: ${profile.calorieGoal} kcal',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(Icons.edit, size: 10, color: Colors.white),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _caloriesChart(Profile profile) {
     final goal = profile.calorieGoal;
     final days = _displayDays;
@@ -1704,49 +1747,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Calories',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.ink,
-                ),
-              ),
-              Semantics(
-                label: 'Edit calorie goal',
-                button: true,
-                child: InkWell(
-                onTap: () => _showEditCalorieGoalSheet(context),
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.inkButton,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Goal: $goal kcal',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(Icons.edit, size: 10, color: Colors.white),
-                    ],
-                  ),
-                ),
-              ),
-              ),
-            ],
-          ),
           SizedBox(height: 20),
           SizedBox(
             height: 160,
@@ -1969,34 +1969,54 @@ class _ProgressScreenState extends State<ProgressScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 22),
-            SizedBox(height: 10),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: color,
-                letterSpacing: -0.5,
-                fontFeatures: [ui.FontFeature.tabularFigures()],
-              ),
+            // Label first, then the number — the same reading order the Home
+            // tiles use. It used to read bottom-up (value, unit, then label).
+            Row(
+              children: [
+                Icon(icon, color: color, size: 16),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 2),
-            Text(
-              unit,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.muted,
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink,
+            SizedBox(height: 8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      letterSpacing: -0.6,
+                      fontFeatures: [ui.FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  SizedBox(width: 3),
+                  Text(
+                    unit,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
