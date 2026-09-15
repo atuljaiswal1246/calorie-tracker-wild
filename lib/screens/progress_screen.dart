@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
@@ -258,7 +259,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
               child: Row(
                 children: [
-                  Text('🔥', style: TextStyle(fontSize: 13)),
+                  Icon(Symbols.local_fire_department_rounded,
+                      size: 15, color: AppColors.accentOrange),
                   SizedBox(width: 4),
                   Text(
                     '$_streak',
@@ -297,7 +299,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
               child: Row(
                 children: [
-                  Text('🏆', style: TextStyle(fontSize: 13)),
+                  Icon(Symbols.emoji_events_rounded,
+                      size: 15, color: AppColors.accentOrange),
                   SizedBox(width: 4),
                   Text(
                     '$unlocked/${all.length}',
@@ -329,7 +332,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('🔥', style: TextStyle(fontSize: 32)),
+              Icon(Symbols.local_fire_department_rounded,
+                  size: 34, color: AppColors.accentOrange),
               SizedBox(height: 10),
               Text(
                 streak > 0 ? '$streak day streak' : 'No active streak',
@@ -569,7 +573,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             children: [
               Row(
                 children: [
-                  Text('⏰', style: TextStyle(fontSize: 18)),
+                  Icon(Symbols.timer_rounded, size: 19, color: AppColors.ink),
                   SizedBox(width: 8),
                   Text(
                     'Fasting',

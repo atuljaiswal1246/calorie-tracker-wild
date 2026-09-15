@@ -541,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(24),
             ),
             child: Center(
-              child: Text('🔒', style: TextStyle(fontSize: 40)),
+              child: Icon(Symbols.lock_rounded, size: 34, color: AppColors.ink),
             ),
           ),
           SizedBox(height: 24),
@@ -881,7 +881,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Row(
               children: [
-                Text('📋', style: TextStyle(fontSize: 15)),
+                Icon(Symbols.checklist_rounded, size: 17, color: AppColors.ink),
                 SizedBox(width: 8),
                 Text(
                    "Today's quests",
@@ -1749,7 +1749,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Row(
             children: [
-              Text('🍳', style: TextStyle(fontSize: 14)),
+              Icon(Symbols.restaurant_menu_rounded, size: 16, color: AppColors.ink),
               SizedBox(width: 7),
               Text(
                 'What\'s cooking?',
@@ -1942,7 +1942,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Row(
           children: [
-            Text('📏', style: TextStyle(fontSize: 15)),
+            Icon(Symbols.straighten_rounded, size: 17, color: AppColors.accentOrange),
             SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -2113,7 +2113,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 color: AppColors.cardAlt,
                 child: Center(
-                  child: Text('🍽️', style: TextStyle(fontSize: 26)),
+                  child: Icon(Symbols.restaurant_rounded, size: 24, color: AppColors.faint),
                 ),
               ),
             Positioned(

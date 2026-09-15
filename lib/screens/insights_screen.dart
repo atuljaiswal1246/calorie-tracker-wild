@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
@@ -8,6 +9,7 @@ import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
 import '../services/weekly_summary_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/empty_illustration.dart';
 import 'achievements_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
@@ -267,7 +269,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
               ),
               child: Row(
                 children: [
-                  Text('🔥', style: TextStyle(fontSize: 13)),
+                  Icon(Symbols.local_fire_department_rounded,
+                      size: 15, color: AppColors.accentOrange),
                   SizedBox(width: 4),
                   Text(
                     '$_currentStreak',
@@ -306,7 +309,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
               ),
               child: Row(
                 children: [
-                  Text('🏆', style: TextStyle(fontSize: 13)),
+                  Icon(Symbols.emoji_events_rounded,
+                      size: 15, color: AppColors.accentOrange),
                   SizedBox(width: 4),
                   Text(
                     '$unlocked/${all.length}',
@@ -338,7 +342,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('🔥', style: TextStyle(fontSize: 32)),
+              Icon(Symbols.local_fire_department_rounded,
+                  size: 34, color: AppColors.accentOrange),
               SizedBox(height: 12),
               Text(
                 streak == 1 ? '1 day streak' : '$streak day streak',
@@ -383,7 +388,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
       padding: EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          Text('📊', style: TextStyle(fontSize: 48)),
+          const EmptyIllustration(
+            asset: 'assets/illustrations/empty_progress.jpg',
+            size: 132,
+          ),
           SizedBox(height: 16),
           Text(
             'No data yet',
@@ -488,7 +496,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         children: [
           Row(
             children: [
-              Text('✨', style: TextStyle(fontSize: 15)),
+              Icon(Symbols.auto_awesome_rounded, size: 16, color: Colors.white),
               SizedBox(width: 7),
               Expanded(
                 child: Text(
