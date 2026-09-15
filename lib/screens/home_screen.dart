@@ -12,7 +12,6 @@ import 'package:path_provider/path_provider.dart';
 import '../config/features.dart';
 import '../models/food_entry.dart';
 import '../models/profile.dart';
-import '../services/achievements_service.dart';
 import '../services/activity_service.dart';
 import '../services/asha_prompts.dart';
 import '../services/auth_service.dart';
@@ -28,10 +27,8 @@ import '../services/notification_coordinator.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../services/widget_service.dart';
-import '../services/weekly_summary_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/widgets.dart';
-import 'achievements_screen.dart';
 import 'barcode_scanner_screen.dart';
 import 'gamification_hub_screen.dart';
 import 'insights_screen.dart';
@@ -599,7 +596,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _homePage(Profile profile) {
     final goal = profile.calorieGoal;
-    final proteinGoal = profile.proteinGrams;
 
     return RefreshIndicator(
       color: AppColors.ink,
@@ -647,51 +643,24 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           _weekSelector(calorieGoal: goal),
           SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 5, child: _dayHeroTile(profile)),
-              SizedBox(width: 10),
-              Expanded(
-                flex: 4,
-                child: Column(
-                  children: [
-                    _smallTile(
-                      icon: Symbols.egg,
-                      iconColor: AppColors.protein,
-                      label: 'Protein',
-                      value:
-                          '${_protein(_selected).round()} / ${proteinGoal.round()}g',
-                      sub: 'log more protein today',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MacroBreakdownScreen(
-                            macroType: MacroType.protein,
-                            entries: _on(_selected),
-                            total: _protein(_selected),
-                            target: proteinGoal.toDouble(),
-                            color: AppColors.protein,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    _stepsTile(),
-                    SizedBox(height: 10),
-                    _waterTile(),
-                  ],
-                ),
-              ),
-            ],
+          _dayHeroTile(profile),
+          SizedBox(height: 12),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _stepsTile()),
+                SizedBox(width: 10),
+                Expanded(child: _waterTile()),
+              ],
+            ),
           ),
-          SizedBox(height: 22),
-          _questCard(),
+          SizedBox(height: 12),
+          _secondaryStats(),
           SizedBox(height: 22),
           _whatsCooking(),
           SizedBox(height: 22),
-          _bodyStrip(),
-          SizedBox(height: 14),
-          _weeklyTeaser(),
+          _questCard(),
           SizedBox(height: 22),
           _recentSection(),
         ],
@@ -708,27 +677,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _greeting(Profile profile) {
-    return Text.rich(
-      TextSpan(
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: AppColors.muted,
-          letterSpacing: -0.3,
-        ),
-        children: [
-          TextSpan(text: '$_greetingText, '),
-          TextSpan(
-            text: profile.name.split(' ').first,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$_greetingText,',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            color: AppColors.muted,
           ),
-        ],
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: 2),
+        Text(
+          profile.name.split(' ').first,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+            letterSpacing: -0.8,
+          ),
+        ),
+      ],
     );
   }
 
@@ -744,17 +719,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _load();
   }
 
-  /// Home header: the greeting is the page title (the app name lives on the
-  /// welcome screen — repeating it here squeezed the status pills off narrow
-  /// Android phones), with the user's status pills on the right.
+  /// Home header. The greeting is the page title — two lines so it can be
+  /// big without fighting the pills for width. Insights lives here (it has no
+  /// other entry point); achievements is deliberately NOT duplicated here, it
+  /// already has a pill on the Progress tab.
   Widget _header(Profile profile) {
     return Row(
       children: [
         Expanded(child: _greeting(profile)),
-        SizedBox(width: 8),
+        SizedBox(width: 10),
         _insightsPill(),
-        SizedBox(width: 6),
-        _achievementsPill(),
         SizedBox(width: 6),
         _streakPill(),
       ],
@@ -780,42 +754,6 @@ class _HomeScreenState extends State<HomeScreen> {
           boxShadow: AppColors.cardShadow,
         ),
         child: Icon(Icons.insights_rounded, size: 17, color: AppColors.ink),
-      ),
-    );
-  }
-
-  Widget _achievementsPill() {
-    return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => AchievementsScreen(storage: widget.storage),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Row(
-          children: [
-            Icon(Symbols.emoji_events_rounded,
-                size: 15, color: AppColors.accentOrange),
-            SizedBox(width: 4),
-            Text(
-              '${AchievementsService(widget.storage).unlockedCount}',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1016,14 +954,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: AppColors.cardShadow,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 2),
       child: SizedBox(
-        height: 64,
+        height: 60,
         child: SingleChildScrollView(
           controller: _weekScrollController,
           scrollDirection: Axis.horizontal,
@@ -1257,132 +1190,171 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Big hero: day ring, streak, carbs/fat, macro pills (fiber/sugar/sodium).
+  /// The screen's focal point: one full-width card that answers "how am I
+  /// doing today?" — the calorie ring, what is left, and all three macros with
+  /// their targets in one place. Previously the hero was half-width and macros
+  /// were split across a side tile, a text line and three pills.
   Widget _dayHeroTile(Profile profile) {
     final logged = _calories(_selected);
     final goal = profile.calorieGoal;
     final progress = goal > 0 ? (logged / goal).clamp(0.0, 1.0) : 0.0;
+    final left = goal - logged;
 
     return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => MacroBreakdownScreen(
-            macroType: MacroType.calories,
-            entries: _on(_selected),
-            total: logged.toDouble(),
-            target: goal.toDouble(),
-            color: AppColors.ink,
-          ),
-        ),
-      ),
-      borderRadius: BorderRadius.circular(24),
+      onTap: () => _openMacro(
+          MacroType.calories, logged.toDouble(), goal.toDouble(), AppColors.ink),
+      borderRadius: BorderRadius.circular(26),
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(26),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Today',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.muted,
-              ),
-            ),
-            SizedBox(height: 10),
-            // The ring carries the calorie total (the app's own language — the
-            // plan screen does the same). The old side-by-side number wrapped
-            // onto two lines on every phone ("10" / "86").
-            Center(
-              child: SizedBox(
-                width: 108,
-                height: 108,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 10,
-                      backgroundColor: AppColors.track,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(AppColors.ink),
-                      strokeCap: StrokeCap.round,
-                    ),
-                    Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(18),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            '$logged',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.ink,
-                              letterSpacing: -1,
-                              fontFeatures: [
-                                FontFeature.tabularFigures()
-                              ],
+            Row(
+              children: [
+                SizedBox(
+                  width: 128,
+                  height: 128,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 11,
+                        backgroundColor: AppColors.track,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(AppColors.ink),
+                        strokeCap: StrokeCap.round,
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '$logged',
+                              style: TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink,
+                                letterSpacing: -1,
+                                fontFeatures: [
+                                  FontFeature.tabularFigures()
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ),
-            SizedBox(height: 8),
-            Center(
-              child: Text(
-                'of $goal kcal',
-                style: TextStyle(fontSize: 12.5, color: AppColors.muted),
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              'C ${_carbs(_selected).round()}g · '
-              'F ${_fat(_selected).round()}g · '
-              'Fib ${_on(_selected).fold(0.0, (s, e) => s + e.totalFiber).round()}g',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11.5, color: AppColors.muted),
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                _macroPill(
-                  'Sugar',
-                  '${_on(_selected).fold(0.0, (s, e) => s + e.totalSugar).round()}g',
-                  AppColors.sugar,
-                  () => _openMacro(MacroType.sugar,
-                      _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
-                      _sugarTarget.toDouble(), AppColors.sugar),
-                ),
-                SizedBox(width: 6),
-                _macroPill(
-                  'Sodium',
-                  '${_sodiumKcal().round()}mg',
-                  AppColors.sodium,
-                  () => _openMacro(MacroType.sodium, _sodiumKcal(),
-                      _sodiumTarget.toDouble(), AppColors.sodium),
-                ),
-                SizedBox(width: 6),
-                _macroPill(
-                  'Burn',
-                  '${_activity.todayExercises().fold(0, (s, e) => s + e.calories)} kcal',
-                  AppColors.accentOrange,
-                  () {},
+                SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Today',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'of $goal kcal',
+                        style:
+                            TextStyle(fontSize: 13, color: AppColors.muted),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        left >= 0 ? '$left left' : '${-left} over',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: left >= 0
+                              ? AppColors.ink
+                              : AppColors.missedRed,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
+            SizedBox(height: 18),
+            _macroBar('Protein', _protein(_selected), profile.proteinGrams,
+                AppColors.protein, MacroType.protein),
+            SizedBox(height: 12),
+            _macroBar('Carbs', _carbs(_selected), profile.carbsGrams,
+                AppColors.carbs, MacroType.carbs),
+            SizedBox(height: 12),
+            _macroBar('Fats', _fat(_selected), profile.fatGrams, AppColors.fat,
+                MacroType.fat),
           ],
         ),
+      ),
+    );
+  }
+
+  /// One macro with its target and a progress bar — the single home for
+  /// macros on Home.
+  Widget _macroBar(String label, double value, int target, Color color,
+      MacroType type) {
+    final pct = target > 0 ? (value / target).clamp(0.0, 1.0) : 0.0;
+    return InkWell(
+      onTap: () =>
+          _openMacro(type, value, target.toDouble(), color),
+      borderRadius: BorderRadius.circular(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration:
+                    BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              Spacer(),
+              Text(
+                '${value.round()} / ${target}g',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.muted,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: pct,
+              minHeight: 6,
+              backgroundColor: AppColors.track,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1401,6 +1373,32 @@ class _HomeScreenState extends State<HomeScreen> {
           color: color,
         ),
       ),
+    );
+  }
+
+  /// Secondary nutrients (fiber, sugar, sodium) and today's exercise burn.
+  /// Deliberately low in the page and small: they matter, but they are not
+  /// what the user opened the app for — the hero owns calories and macros.
+  Widget _secondaryStats() {
+    final fiber = _on(_selected).fold(0.0, (s, e) => s + e.totalFiber);
+    final sugar = _on(_selected).fold(0.0, (s, e) => s + e.totalSugar);
+    final sodium = _sodiumKcal();
+    final burn = _activity.todayExercises().fold(0, (s, e) => s + e.calories);
+    return Row(
+      children: [
+        _macroPill('Fiber', '${fiber.round()}g', AppColors.muted,
+            () => _openMacro(MacroType.fiber, fiber, 28, AppColors.fiber)),
+        SizedBox(width: 6),
+        _macroPill('Sugar', '${sugar.round()}g', AppColors.muted,
+            () => _openMacro(MacroType.sugar, sugar,
+                _sugarTarget.toDouble(), AppColors.sugar)),
+        SizedBox(width: 6),
+        _macroPill('Sodium', '${sodium.round()}mg', AppColors.muted,
+            () => _openMacro(MacroType.sodium, sodium,
+                _sodiumTarget.toDouble(), AppColors.sodium)),
+        SizedBox(width: 6),
+        _macroPill('Burn', '$burn kcal', AppColors.accentOrange, () {}),
+      ],
     );
   }
 
@@ -1442,62 +1440,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _smallTile({
-    required IconData icon,
-    required Color iconColor,
-    required String label,
-    required String value,
-    required String sub,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 15, color: iconColor),
-                SizedBox(width: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.muted,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              sub,
-              style: TextStyle(fontSize: 10.5, color: AppColors.muted),
-            ),
-          ],
         ),
       ),
     );
@@ -1598,7 +1540,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '🏃 + Exercise',
+                      '+ Exercise',
                       style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w600,
@@ -1655,8 +1597,43 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: 2),
             Text(
-              'tap to add glass',
+              _waterGoalMl > 0
+                  ? '${((_waterMl / _waterGoalMl) * 100).clamp(0, 999).round()}% of goal'
+                  : 'tap to add',
               style: TextStyle(fontSize: 10.5, color: AppColors.muted),
+            ),
+            SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: _waterGoalMl > 0
+                    ? (_waterMl / _waterGoalMl).clamp(0.0, 1.0)
+                    : 0.0,
+                minHeight: 6,
+                backgroundColor: AppColors.track,
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(AppColors.water),
+              ),
+            ),
+            SizedBox(height: 8),
+            InkWell(
+              onTap: _openWaterSheet,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.bg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '+ Add',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -1752,7 +1729,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(Symbols.restaurant_menu_rounded, size: 16, color: AppColors.ink),
               SizedBox(width: 7),
               Text(
-                'What\'s cooking?',
+                'Log a meal',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
@@ -1763,56 +1740,49 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           SizedBox(height: 12),
+          // One primary action, full width (the pattern the locked screens
+          // use), then four equal secondary tiles.
+          _primaryCta(
+            icon: Icons.center_focus_strong,
+            label: 'Scan food',
+            onTap: _openCapture,
+          ),
+          SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: _logCta(
-                  icon: Icons.center_focus_strong,
-                  label: 'Scan food',
-                  primary: true,
-                  onTap: _openCapture,
+                  icon: Icons.photo_library_outlined,
+                  label: 'Gallery',
+                  onTap: _openGallery,
                 ),
               ),
               SizedBox(width: 8),
-              _logCta(
-                icon: Icons.photo_library_outlined,
-                label: 'Gallery',
-                onTap: _openGallery,
-              ),
-              SizedBox(width: 8),
-              _logCta(
-                icon: Icons.restaurant_menu,
-                label: 'Quick picks',
-                onTap: _openQuickPicks,
+              Expanded(
+                child: _logCta(
+                  icon: Icons.restaurant_menu,
+                  label: 'Quick picks',
+                  onTap: _openQuickPicks,
+                ),
               ),
             ],
           ),
-          SizedBox(height: 10),
+          SizedBox(height: 8),
           Row(
             children: [
-              InkWell(
-                onTap: _openManualEntry,
-                borderRadius: BorderRadius.circular(8),
-                child: Text(
-                  'Add manually',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.muted,
-                  ),
+              Expanded(
+                child: _logCta(
+                  icon: Icons.edit_note_rounded,
+                  label: 'Add manually',
+                  onTap: _openManualEntry,
                 ),
               ),
-              SizedBox(width: 16),
-              InkWell(
-                onTap: _openBarcodeScanner,
-                borderRadius: BorderRadius.circular(8),
-                child: Text(
-                  'Barcode scan',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.muted,
-                  ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _logCta(
+                  icon: Icons.qr_code_scanner_rounded,
+                  label: 'Barcode scan',
+                  onTap: _openBarcodeScanner,
                 ),
               ),
             ],
@@ -1852,6 +1822,41 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _primaryCta({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.inkButton,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: Colors.white),
+            SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1919,107 +1924,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'snack';
   }
 
-  /// Body story — weight/waist trendline nudge.
-  Widget _bodyStrip() {
-    final weights = widget.storage.weightEntries;
-    final latestW = weights.isNotEmpty ? weights.last.weightKg : null;
-    final firstW = weights.isNotEmpty ? weights.first.weightKg : null;
-    final deltaW =
-        (latestW != null && firstW != null) ? latestW - firstW : null;
-    final bodies = widget.storage.bodyMeasurements;
-    final latestWaist = bodies.isNotEmpty ? bodies.first.waist : null;
-
-    return InkWell(
-      onTap: () => setState(() => _navIndex = 1),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Row(
-          children: [
-            Icon(Symbols.straighten_rounded, size: 17, color: AppColors.accentOrange),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                deltaW != null
-                    ? '${deltaW <= 0 ? '▼' : '▲'} ${deltaW.abs().toStringAsFixed(1)}kg'
-                        '${latestWaist != null ? ' · waist ${latestWaist.toStringAsFixed(1)}cm' : ''} — your story'
-                    : 'Start tracking your body story',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                ),
-              ),
-            ),
-            Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Weekly AI review teaser — 1 line, tap into Insights.
-  Widget _weeklyTeaser() {
-    final cached =
-        WeeklySummaryService(widget.storage).cached()?.replaceAll('\n', ' ');
-    final line = cached != null && cached.isNotEmpty
-        ? (cached.length > 110 ? cached.substring(0, 110) : cached)
-        : null;
-    // Nothing to review on a fresh account — don't advertise an empty screen.
-    if (line == null && _entries.isEmpty) return const SizedBox.shrink();
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => InsightsScreen(storage: widget.storage),
-        ),
-      ),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFFF4B4B).withValues(alpha: 0.14),
-              Color(0xFFFF7A45).withValues(alpha: 0.14),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppColors.protein.withValues(alpha: 0.25),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(Symbols.insights_rounded,
-                size: 17, color: AppColors.accentOrange),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                line != null ? '"$line…"' : 'Your week in review — read it',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                  height: 1.35,
-                ),
-              ),
-            ),
-            Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Recently uploaded — 2-col photo grid.
   Widget _recentSection() {
     final recent = _on(_selected).take(4).toList();
@@ -2030,7 +1934,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recently uploaded',
+              'Recent meals',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
