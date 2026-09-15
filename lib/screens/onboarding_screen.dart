@@ -3128,82 +3128,59 @@ class PricingScreenState extends State<PricingScreen> {
               )
             else
               SizedBox(height: 6),
+            // Everything must fit without scrolling so BOTH plans stay
+            // visible for comparison: the hero absorbs whatever space is left
+            // after the fixed content below it.
             Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.zero,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Hero: a real meal + its macros, on the app's own card
-                    // language. (Replaces the old grey mock, black gradient
-                    // and oversized wordmark.)
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'Keep your plan',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 27,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.ink,
-                              letterSpacing: -0.6,
-                            ),
-                          ),
-                          SizedBox(height: 9),
-                          Text(
-                            _planLine,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 13.5, color: AppColors.muted),
-                          ),
-                          SizedBox(height: 18),
-                          _PaywallHero(
-                            height: (MediaQuery.sizeOf(context).height * 0.34)
-                                .clamp(196.0, 340.0),
-                          ),
-                          SizedBox(height: 18),
-                          _BenefitRow('Snap a photo → instant calories & macros'),
-                          _BenefitRow('1,800+ Indian foods, works offline'),
-                          _BenefitRow('Your targets, pace & weekly progress'),
-                        ],
+                    Text(
+                      'Keep your plan',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 27,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                        letterSpacing: -0.6,
                       ),
                     ),
-                    SizedBox(height: 28),
-
-                    // Plan options
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Yearly (default selected)
-                          _PlanOptionCard(
-                            selected: _yearly,
-                            badge: 'SAVE $_savingsPercent%',
-                            left: 'Annual',
-                            right: _inr(_yearlyPrice),
-                            period: '/ year',
-                            sub:
-                                '≈ ${_inr((_yearlyPrice / 12).round())}/month · 3 days free',
-                            onTap: () => setState(() => _yearly = true),
-                          ),
-                          SizedBox(height: 10),
-                          // Monthly
-                          _PlanOptionCard(
-                            selected: !_yearly,
-                            left: 'Monthly',
-                            right: _inr(_monthlyPrice),
-                            period: '/ month',
-                            sub: '3 days free',
-                            onTap: () => setState(() => _yearly = false),
-                          ),
-                        ],
-                      ),
+                    SizedBox(height: 9),
+                    Text(
+                      _planLine,
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(fontSize: 13.5, color: AppColors.muted),
                     ),
-                    SizedBox(height: 24),
+                    SizedBox(height: 16),
+                    Expanded(child: _PaywallHero()),
+                    SizedBox(height: 16),
+                    _BenefitRow('Snap a photo → instant calories & macros'),
+                    _BenefitRow('1,800+ Indian foods, works offline'),
+                    _BenefitRow('Your targets, pace & weekly progress'),
+                    SizedBox(height: 12),
+                    _PlanOptionCard(
+                      selected: _yearly,
+                      badge: 'SAVE $_savingsPercent%',
+                      left: 'Annual',
+                      right: _inr(_yearlyPrice),
+                      period: '/ year',
+                      sub:
+                          '≈ ${_inr((_yearlyPrice / 12).round())}/month · 3 days free',
+                      onTap: () => setState(() => _yearly = true),
+                    ),
+                    SizedBox(height: 10),
+                    _PlanOptionCard(
+                      selected: !_yearly,
+                      left: 'Monthly',
+                      right: _inr(_monthlyPrice),
+                      period: '/ month',
+                      sub: '3 days free',
+                      onTap: () => setState(() => _yearly = false),
+                    ),
+                    SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -3407,16 +3384,13 @@ class _HeroMacro extends StatelessWidget {
 /// The paywall hero: a real meal with its macro breakdown floating over it —
 /// the app's core promise (photo -> calories & macros) shown, not described.
 class _PaywallHero extends StatelessWidget {
-  final double height;
-
-  _PaywallHero({required this.height});
+  _PaywallHero();
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
-      child: SizedBox(
-        height: height,
+      child: SizedBox.expand(
         child: Stack(
           fit: StackFit.expand,
           children: [
