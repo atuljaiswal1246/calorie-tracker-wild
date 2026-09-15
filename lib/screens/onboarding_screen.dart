@@ -1,7 +1,10 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/cupertino.dart' show CupertinoDatePicker, CupertinoDatePickerMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/profile.dart';
 import '../services/funnel.dart';
@@ -2951,6 +2954,57 @@ class PricingScreenState extends State<PricingScreen> {
 
   List<ProductDetails> _products = [];
 
+  /// "1,829 kcal/day · Lose 5 kg · 3–5×/week" from the plan they just built.
+  String get _planLine {
+    final p = widget.storage.profile;
+    if (p == null) return 'Your personal targets are ready';
+    final bits = <String>['${p.calorieGoal} kcal/day'];
+    final t = p.targetWeightKg;
+    if (p.goal == 'lose' && t != null && t > 0) {
+      bits.add('Lose ${(p.weightKg - t).round()} kg');
+    } else if (p.goal == 'gain' && t != null && t > 0) {
+      bits.add('Gain ${(t - p.weightKg).round()} kg');
+    } else if (p.goal == 'maintain') {
+      bits.add('Maintain weight');
+    }
+    final w = switch (p.workoutFreq) {
+      'none' => 'No workouts',
+      '1to2' => '1–2×/week',
+      '3to5' => '3–5×/week',
+      '6plus' => '6+×/week',
+      _ => null,
+    };
+    if (w != null) bits.add(w);
+    return bits.join(' · ');
+  }
+
+  Widget _legalLink(String text, VoidCallback? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11.5,
+          color: AppColors.muted,
+          fontWeight: FontWeight.w600,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+
+  Widget _legalDot() => Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: Text('·',
+            style: TextStyle(fontSize: 11.5, color: AppColors.faint)),
+      );
+
+  Future<void> _open(String url) async {
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (_) {}
+  }
+
   int get _savingsPercent {
     final annualIfMonthly = _monthlyPrice * 12;
     return ((annualIfMonthly - _yearlyPrice) / annualIfMonthly * 100).round();
@@ -3003,7 +3057,9 @@ class PricingScreenState extends State<PricingScreen> {
     if (product == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Products unavailable — set them up in Google Play Console.'),
+          content: Text(Platform.isIOS
+              ? 'Purchases aren\'t available yet on this device.'
+              : 'Products unavailable — set them up in Play Console.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -3057,57 +3113,40 @@ class PricingScreenState extends State<PricingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Hero image with fading bottom + heading overlay
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.4,
-                      child: Stack(
-                        fit: StackFit.expand,
+                    // Hero: a real meal + its macros, on the app's own card
+                    // language. (Replaces the old grey mock, black gradient
+                    // and oversized wordmark.)
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // App placeholder (phone mockup)
-                          Container(
-                            color: Color(0xFFF7F7F7),
-                            child: Center(
-                              child: _PricingHeroMock(),
+                          Text(
+                            'Keep your plan',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 27,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.ink,
+                              letterSpacing: -0.6,
                             ),
                           ),
-                          // Bottom fade so the heading is readable
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              height: 150,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black,
-                                  ],
-                                ),
-                              ),
-                            ),
+                          SizedBox(height: 9),
+                          Text(
+                            _planLine,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 13.5, color: AppColors.muted),
                           ),
-                          // Heading overlaid on the faded area
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.fromLTRB(24, 0, 24, 24),
-                              child: Text(
-                                'Cal Matters',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                            ),
-                          ),
+                          SizedBox(height: 18),
+                          _PaywallHero(),
+                          SizedBox(height: 18),
+                          _BenefitRow('Snap a photo → instant calories & macros'),
+                          _BenefitRow('1,800+ Indian foods, works offline'),
+                          _BenefitRow('Your targets, pace & weekly progress'),
                         ],
                       ),
                     ),
-
                     SizedBox(height: 28),
 
                     // Plan options
@@ -3119,22 +3158,35 @@ class PricingScreenState extends State<PricingScreen> {
                           // Yearly (default selected)
                           _PlanOptionCard(
                             selected: _yearly,
-                            badge: '3 days free',
-                            left: 'Start for free & save $_savingsPercent%',
-                            right: '${_inr(_yearlyPrice)}/year',
-                            sub: 'About ${_inr(_monthlyPrice)}/month · ${_inr(_yearlyPrice)} billed annually',
+                            badge: 'BEST VALUE · SAVE $_savingsPercent%',
+                            left: 'Annual',
+                            right: _inr(_yearlyPrice),
+                            period: '/ year',
+                            sub:
+                                '≈ ${_inr((_yearlyPrice / 12).round())}/month · 3 days free',
                             onTap: () => setState(() => _yearly = true),
                           ),
                           SizedBox(height: 14),
                           // Monthly
                           _PlanOptionCard(
                             selected: !_yearly,
-                            badge: '3 days free',
                             left: 'Monthly',
-                            right: '${_inr(_monthlyPrice)}/month',
-                            sub: '3 days free, then ${_inr(_monthlyPrice)}/month',
+                            right: _inr(_monthlyPrice),
+                            period: '/ month',
+                            sub: '3 days free',
                             onTap: () => setState(() => _yearly = false),
                           ),
+                          if (_products.isEmpty && !_processing) ...[
+                            SizedBox(height: 12),
+                            Text(
+                              Platform.isIOS
+                                  ? 'Purchases open at launch on the App Store.'
+                                  : 'Purchases open at launch on Google Play.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 11.5, color: AppColors.faint),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -3170,55 +3222,38 @@ class PricingScreenState extends State<PricingScreen> {
                                       strokeWidth: 2, color: Colors.white),
                                 )
                               : Text(
-                                  'Continue',
+                                  'Start 3-day free trial',
                                   style: TextStyle(
                                       fontSize: 17,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: -0.5),
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -0.3),
                                 ),
                         ),
                       ),
-                      SizedBox(height: 12),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            _yearly
-                                ? '3 days free, then ${_inr(_yearlyPrice)} per year. '
-                                : '3 days free, then ${_inr(_monthlyPrice)} per month. ',
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.black38),
-                          ),
-                          TextButton(
-                            onPressed: _processing ? null : _restore,
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size(0, 12),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: Text(
-                              'Restore purchases',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.black45,
-                                fontWeight: FontWeight.w500,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 2),
+                      SizedBox(height: 9),
                       Text(
                         _yearly
-                            ? 'Billed annually and renews automatically unless cancelled.'
-                            : 'Billed monthly and renews automatically unless cancelled.',
+                            ? 'Then ${_inr(_yearlyPrice)}/year. Cancel anytime.'
+                            : 'Then ${_inr(_monthlyPrice)}/month. Cancel anytime.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black38,
-                            height: 1.5),
+                            fontSize: 11.5,
+                            color: AppColors.muted,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _legalLink('Terms',
+                              () => _open('https://calorie-tracker-80a0b.web.app/terms.html')),
+                          _legalDot(),
+                          _legalLink('Privacy',
+                              () => _open('https://calorie-tracker-80a0b.web.app/privacy.html')),
+                          _legalDot(),
+                          _legalLink('Restore purchases',
+                              _processing ? null : _restore),
+                        ],
                       ),
                     ],
                   ),
@@ -3356,11 +3391,179 @@ class _HeroMacro extends StatelessWidget {
 }
 
 // ---------------- Selectable plan option ----------------
+/// The paywall hero: a real meal with its macro breakdown floating over it —
+/// the app's core promise (photo -> calories & macros) shown, not described.
+class _PaywallHero extends StatelessWidget {
+  _PaywallHero();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: SizedBox(
+        height: 208,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'assets/onboarding/food_palak_paneer.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => ColoredBox(
+                color: const Color(0xFFFBF3E2),
+              ),
+            ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.96),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                              color: AppColors.green,
+                              shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 7),
+                        Text('Palak Paneer',
+                            style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink)),
+                        const Spacer(),
+                        Text('265 kcal',
+                            style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink)),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    _PaywallBar('Protein', '14g', 0.42, AppColors.green),
+                    _PaywallBar('Carbs', '9g', 0.28, AppColors.carbs),
+                    _PaywallBar('Fats', '19g', 0.52, const Color(0xFF8B5CF6)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PaywallBar extends StatelessWidget {
+  final String label;
+  final String value;
+  final double pct;
+  final Color color;
+
+  _PaywallBar(this.label, this.value, this.pct, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 44,
+            child: Text(label,
+                style: TextStyle(fontSize: 10, color: AppColors.muted)),
+          ),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: pct),
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOutCubic,
+                builder: (_, v, __) => LinearProgressIndicator(
+                  value: v,
+                  minHeight: 6,
+                  backgroundColor: color.withValues(alpha: 0.16),
+                  color: color,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 8),
+          SizedBox(
+            width: 30,
+            child: Text(value,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One "what you get" line.
+class _BenefitRow extends StatelessWidget {
+  final String text;
+
+  _BenefitRow(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: AppColors.green.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.check_rounded,
+                size: 13, color: AppColors.green),
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(text,
+                style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PlanOptionCard extends StatelessWidget {
   final bool selected;
   final String? badge;
   final String left;
   final String right;
+  final String? period;
   final String? sub;
   final VoidCallback onTap;
 
@@ -3370,6 +3573,7 @@ class _PlanOptionCard extends StatelessWidget {
     required this.right,
     required this.onTap,
     this.badge,
+    this.period,
     this.sub,
   });
 
@@ -3391,7 +3595,7 @@ class _PlanOptionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (badge != null && selected) ...[
+            if (badge != null) ...[
               Container(
                 padding: EdgeInsets.symmetric(
                     horizontal: 10, vertical: 4),
@@ -3418,16 +3622,40 @@ class _PlanOptionCard extends StatelessWidget {
                           color: Colors.black)),
                 ),
                 SizedBox(width: 12),
-                Text(right,
+                Text.rich(
+                  TextSpan(
+                    text: right,
                     style: TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w800)),
+                        fontSize: 15.5, fontWeight: FontWeight.w800),
+                    children: period == null
+                        ? null
+                        : [
+                            TextSpan(
+                              text: ' $period',
+                              style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black54),
+                            ),
+                          ],
+                  ),
+                ),
                 SizedBox(width: 8),
-                Icon(
-                  selected
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: selected ? Colors.black : Colors.black38,
-                  size: 22,
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: selected ? Colors.black : Colors.transparent,
+                    border: Border.all(
+                      color: selected ? Colors.black : AppColors.divider,
+                      width: 2,
+                    ),
+                  ),
+                  child: selected
+                      ? const Icon(Icons.check,
+                          size: 12, color: Colors.white)
+                      : null,
                 ),
               ],
             ),

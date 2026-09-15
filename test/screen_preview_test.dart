@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:calorie_tracker/models/profile.dart';
 import 'package:calorie_tracker/screens/auth_screen.dart';
+import 'package:calorie_tracker/screens/onboarding_screen.dart' show PricingScreen;
 import 'package:calorie_tracker/screens/demo/demo_exercise_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_scan_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_search_screen.dart';
@@ -164,6 +166,30 @@ void main() {
     await _precache(tester);
     await expectLater(
         find.byType(AuthScreen), matchesGoldenFile('goldens/signup.png'));
+  });
+
+  testWidgets('paywall', (tester) async {
+    _phone(tester);
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final storage = StorageService(prefs);
+    await storage.saveProfile(Profile(
+      name: 'Atul',
+      age: 25,
+      sex: 'male',
+      weightKg: 70,
+      heightCm: 165,
+      activityLevel: 'sedentary',
+      workoutFreq: '3to5',
+      goal: 'lose',
+      pace: 'recommended',
+      targetWeightKg: 65,
+    ));
+    await tester.pumpWidget(
+        _wrap(PricingScreen(storage: storage, onPaid: () {})));
+    await _precache(tester);
+    await expectLater(
+        find.byType(PricingScreen), matchesGoldenFile('goldens/paywall.png'));
   });
 
   testWidgets('demo scan', (tester) async {

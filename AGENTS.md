@@ -595,3 +595,44 @@ Status of each piece:
 **Why it matters**: App Store guideline **4.8** requires it once Google sign-in is
 offered, so this belongs on the **App Store submission checklist** (Play does not
 need it). Decision: ship Play first with Google + email; add Apple during the iOS pass.
+
+## Paywall redesign (2026-09-15) — approved variant B
+`PricingScreen` (lib/screens/onboarding_screen.dart). The old hero was a grey
+`#F7F7F7` block + a fake phone mock + a **150px black gradient with a 34px
+"Cal Matters" wordmark** over it — that combination is what looked washed out
+(and it hid the mock's lower half). Replaced with:
+- **Hero = a real meal + its macros**: `assets/onboarding/food_palak_paneer.jpg`
+  with a floating white macro card (Palak Paneer · 265 kcal · Protein 14g /
+  Carbs 9g / Fats 19g, animated bars).
+- Headline **"Keep your plan"** + a plan line built from the saved profile
+  (`_planLine`: kcal/day · goal · workouts).
+- Three benefit rows; **Annual** card with a `BEST VALUE · SAVE 17%` badge and
+  `≈ ₹83/month · 3 days free`; **Monthly** `₹100/month · 3 days free`.
+- CTA **"Start 3-day free trial"** + "Then ₹1,000/year. Cancel anytime." and a
+  legal row: **Terms · Privacy · Restore purchases** (Terms/Privacy open the
+  Firebase-hosted pages via `url_launcher`).
+- `_PlanOptionCard` now always shows the badge and uses one consistent radio
+  (filled black circle + check when selected).
+
+Also hardened `BillingService._init()` (`isAvailable()` .catchError + try/catch)
+so a billing/plugin failure can never throw into the paywall — the screen still
+renders. `test/screen_preview_test.dart` has a `paywall` golden.
+
+## Store billing: Play NOW, App Store LATER THIS YEAR
+- **Billing is configured for Android/Play only** (products created in Play
+  Console; `in_app_purchase` is cross-platform, so StoreKit needs the same two
+  product IDs created in App Store Connect — `cal_matters_monthly` /
+  `cal_matters_yearly` — no code change).
+- On iOS today the store returns no products, so the paywall shows
+  "Purchases open at launch on the App Store." and the CTA explains instead of
+  silently doing nothing.
+- **App Store checklist (do before submitting)**:
+  1. Enrol in the paid Apple Developer Program ($99/yr) — the current team is a
+     personal/free team, which also blocks the capabilities below.
+  2. **Sign in with Apple** (guideline 4.8, required since Google sign-in
+     exists): flip `Features.appleSignIn = true` + wire the entitlement
+     (`ios/Runner/Runner.entitlements` already exists; add
+     `CODE_SIGN_ENTITLEMENTS` to the Runner configs).
+  3. Create the two subscriptions in App Store Connect with the SAME IDs.
+  4. Add the App Store privacy questionnaire (photos are sent for analysis,
+     not stored) + the hosted privacy/terms URLs.

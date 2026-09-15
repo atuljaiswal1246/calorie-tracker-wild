@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cal Matters — Paywall v2</title>
+<style>
+  :root{
+    --bg:#FAF9F7; --cream:#FBF6EC; --ink:#1C1C1E; --muted:#6E6E73; --faint:#8A8A85;
+    --divider:#ECECE7; --orange:#FF9500; --green:#34C759; --purple:#8B5CF6;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif;
+    background:#0f1013;color:#fff;padding:30px 20px 60px}
+  h1{font-size:21px;font-weight:800;margin:0 0 4px}
+  .sub{color:#9aa0aa;font-size:13px;margin:0 0 22px}
+  .rail{display:flex;gap:26px;overflow-x:auto;padding-bottom:16px}
+  .label{font-size:12px;color:#c9cdd4;margin:0 0 8px;font-weight:700}
+  .phone{width:340px;height:760px;border-radius:38px;background:var(--bg);position:relative;
+    overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.4);padding:14px 20px 12px;display:flex;flex-direction:column}
+  .back{width:34px;height:34px;border-radius:17px;display:grid;place-items:center;font-size:18px;color:var(--ink)}
+  h2{font-size:27px;font-weight:800;color:var(--ink);text-align:center;letter-spacing:-.6px;margin:10px 0 0}
+  .plan{text-align:center;font-size:13.5px;color:var(--muted);margin:9px 0 0}
+
+  /* ---- hero A: the plan card (same language as the plan screen) ---- */
+  .hero{background:var(--card);border:1.2px solid var(--divider);border-radius:22px;
+    box-shadow:0 10px 26px rgba(28,28,30,.07);padding:16px;margin-top:16px}
+  .ringwrap{display:flex;justify-content:center}
+  .ring{width:140px;height:140px;border-radius:50%;
+    background:conic-gradient(var(--orange) 0 78%, var(--divider) 78% 100%);display:grid;place-items:center}
+  .ring .in{width:112px;height:112px;border-radius:50%;background:#fff;display:grid;place-items:center;text-align:center}
+  .ring .n{font-size:30px;font-weight:800;color:var(--ink);letter-spacing:-1px;line-height:1}
+  .ring .u{font-size:10.5px;color:var(--muted);margin-top:3px}
+  .mline{display:flex;margin-top:16px;padding-top:13px;border-top:1px solid var(--divider)}
+  .mc{flex:1;text-align:center}
+  .mc .d{width:7px;height:7px;border-radius:50%;display:inline-block;margin-bottom:6px}
+  .mc .g{font-size:14.5px;font-weight:800;color:var(--ink)}
+  .mc .k{font-size:10.5px;color:var(--muted);margin-top:1px}
+
+  /* ---- hero B: real food photo + macro card ---- */
+  .photo{position:relative;margin-top:16px;border-radius:22px;overflow:hidden;
+    border:1.2px solid var(--divider);box-shadow:0 10px 26px rgba(28,28,30,.07);height:214px}
+  .photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .macard{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.96);
+    border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px rgba(0,0,0,.18)}
+  .macard .top{display:flex;align-items:center;gap:7px}
+  .macard .dotg{width:7px;height:7px;border-radius:50%;background:var(--green)}
+  .macard .nm{font-size:12.5px;font-weight:800;color:var(--ink)}
+  .macard .kcal{margin-left:auto;font-size:12.5px;font-weight:800;color:var(--ink)}
+  .mbars{margin-top:7px}
+  .mb{display:flex;align-items:center;gap:7px;margin-top:4px}
+  .mb .l{width:44px;font-size:10px;color:var(--muted)}
+  .mb .t{flex:1;height:6px;border-radius:3px;background:#EFEFEA;overflow:hidden}
+  .mb .t>i{display:block;height:100%;border-radius:3px}
+  .mb .v{width:30px;text-align:right;font-size:10.5px;font-weight:700;color:var(--ink)}
+
+  /* ---- benefits ---- */
+  .ben{margin-top:16px}
+  .brow{display:flex;align-items:center;gap:10px;padding:6px 2px}
+  .btick{width:20px;height:20px;border-radius:10px;background:rgba(52,199,89,.15);
+    display:grid;place-items:center;color:var(--green);font-size:11.5px;font-weight:900;flex:0 0 auto}
+  .btxt{font-size:13.5px;font-weight:600;color:var(--ink)}
+
+  /* ---- plans ---- */
+  .opt{position:relative;border:1.5px solid var(--divider);background:var(--card);border-radius:16px;
+    padding:14px;margin-top:12px}
+  .opt.on{border-color:var(--ink);border-width:2px}
+  .obadge{position:absolute;top:-9px;left:12px;background:var(--ink);color:#fff;font-size:9.5px;
+    font-weight:800;padding:3px 9px;border-radius:9px;letter-spacing:.3px}
+  .orow{display:flex;align-items:center;gap:10px}
+  .ot{font-size:15px;font-weight:800;color:var(--ink)}
+  .op{margin-left:auto;font-size:15.5px;font-weight:800;color:var(--ink)}
+  .op span{font-size:11.5px;font-weight:600;color:var(--muted)}
+  .radio{width:20px;height:20px;border-radius:10px;border:2px solid var(--divider);flex:0 0 auto}
+  .radio.on{border-color:var(--ink);background:var(--ink);display:grid;place-items:center;color:#fff;font-size:11px}
+  .osub{font-size:11.5px;color:var(--muted);margin-top:4px}
+
+  .cta{margin-top:auto;height:56px;border-radius:18px;background:var(--ink);color:#fff;display:flex;
+    align-items:center;justify-content:center;font-size:17px;font-weight:700}
+  .ctasub{text-align:center;font-size:11px;color:var(--muted);margin-top:8px}
+  .links{display:flex;justify-content:center;gap:12px;font-size:11px;color:var(--faint);margin-top:6px}
+  .links u{color:var(--muted)}
+</style>
+</head>
+<body>
+  <h1>Paywall v2 — improving the existing screen</h1>
+  <p class="sub">Same skeleton (hero → plans → CTA → fine print). The grey block, the black gradient and the giant wordmark are gone; the hero now shows the product with the app's own language.</p>
+  <div class="rail">
+
+    <!-- A -->
+    <div>
+      <p class="label">A · Hero = your plan card (continuity with the plan screen)</p>
+      <div class="phone">
+        <div class="back">←</div>
+        <h2>Keep your plan</h2>
+        <div class="plan">Personalised for you in 6 steps</div>
+
+        <div class="hero">
+          <div class="ringwrap">
+            <div class="ring"><div class="in"><div>
+              <div class="n">1,829</div><div class="u">kcal / day</div>
+            </div></div></div>
+          </div>
+          <div class="mline">
+            <div class="mc"><div class="d" style="background:var(--green)"></div><div class="g">132g</div><div class="k">Protein</div></div>
+            <div class="mc"><div class="d" style="background:var(--orange)"></div><div class="g">145g</div><div class="k">Carbs</div></div>
+            <div class="mc"><div class="d" style="background:var(--purple)"></div><div class="g">79g</div><div class="k">Fats</div></div>
+          </div>
+        </div>
+
+        <div class="ben">
+          <div class="brow"><div class="btick">✓</div><div class="btxt">Snap a photo → instant calories</div></div>
+          <div class="brow"><div class="btick">✓</div><div class="btxt">1,800+ Indian foods, works offline</div></div>
+          <div class="brow"><div class="btick">✓</div><div class="btxt">Streaks, quests &amp; weekly progress</div></div>
+        </div>
+
+        <div class="opt on">
+          <div class="obadge">BEST VALUE · SAVE 17%</div>
+          <div class="orow">
+            <div class="ot">Annual</div>
+            <div class="op">₹1,000<span> / year</span></div>
+            <div class="radio on">✓</div>
+          </div>
+          <div class="osub">≈ ₹83/month · 3 days free</div>
+        </div>
+        <div class="opt">
+          <div class="orow">
+            <div class="ot">Monthly</div>
+            <div class="op">₹100<span> / month</span></div>
+            <div class="radio"></div>
+          </div>
+          <div class="osub">3 days free</div>
+        </div>
+
+        <div class="cta">Start 3-day free trial</div>
+        <div class="ctasub">Then ₹1,000/year. Cancel anytime.</div>
+        <div class="links"><u>Terms</u> · <u>Privacy</u> · <u>Restore purchases</u></div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div>
+      <p class="label">B · Hero = a real meal + its macros (shows the magic)</p>
+      <div class="phone">
+        <div class="back">←</div>
+        <h2>Keep your plan</h2>
+        <div class="plan">1,829 kcal/day · Lose 5 kg · 3–5×/week</div>
+
+        <div class="photo">
+          <img src="../assets/onboarding/food_palak_paneer.jpg" alt="">
+          <div class="macard">
+            <div class="top">
+              <div class="dotg"></div>
+              <div class="nm">Palak Paneer</div>
+              <div class="kcal">265 kcal</div>
+            </div>
+            <div class="mbars">
+              <div class="mb"><div class="l">Protein</div><div class="t"><i style="width:42%;background:var(--green)"></i></div><div class="v">14g</div></div>
+              <div class="mb"><div class="l">Carbs</div><div class="t"><i style="width:28%;background:var(--orange)"></i></div><div class="v">9g</div></div>
+              <div class="mb"><div class="l">Fats</div><div class="t"><i style="width:52%;background:var(--purple)"></i></div><div class="v">19g</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ben">
+          <div class="brow"><div class="btick">✓</div><div class="btxt">AI photo logging, Indian-first</div></div>
+          <div class="brow"><div class="btick">✓</div><div class="btxt">1,800+ foods, works offline</div></div>
+          <div class="brow"><div class="btick">✓</div><div class="btxt">Your targets, pace &amp; macros</div></div>
+        </div>
+
+        <div class="opt on">
+          <div class="obadge">BEST VALUE · SAVE 17%</div>
+          <div class="orow">
+            <div class="ot">Annual</div>
+            <div class="op">₹1,000<span> / year</span></div>
+            <div class="radio on">✓</div>
+          </div>
+          <div class="osub">≈ ₹83/month · 3 days free</div>
+        </div>
+        <div class="opt">
+          <div class="orow">
+            <div class="ot">Monthly</div>
+            <div class="op">₹100<span> / month</span></div>
+            <div class="radio"></div>
+          </div>
+          <div class="osub">3 days free</div>
+        </div>
+
+        <div class="cta">Start 3-day free trial</div>
+        <div class="ctasub">Then ₹1,000/year. Cancel anytime.</div>
+        <div class="links"><u>Terms</u> · <u>Privacy</u> · <u>Restore purchases</u></div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

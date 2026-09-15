@@ -25,14 +25,22 @@ class BillingService {
   StreamSubscription<List<PurchaseDetails>>? _sub;
 
   void _init() {
-    _iap.isAvailable().then((isAvailable) {
-      if (!isAvailable) {
-        status = BillingStatus.failed;
-        error = 'In-app billing not available on this device';
-        onStatusChanged?.call();
-      }
-    });
-    _sub = _iap.purchaseStream.listen(_handlePurchases, onError: (e) {});
+    // Best-effort: a billing/plugin failure (or no store on the device) must
+    // never throw into the paywall — the screen still renders and the user
+    // just can't complete a purchase.
+    try {
+      _iap.isAvailable().then((isAvailable) {
+        if (!isAvailable) {
+          status = BillingStatus.failed;
+          error = 'In-app billing not available on this device';
+          onStatusChanged?.call();
+        }
+      }).catchError((_) {});
+      _sub = _iap.purchaseStream.listen(_handlePurchases, onError: (e) {});
+    } catch (_) {
+      status = BillingStatus.failed;
+      error = 'In-app billing unavailable';
+    }
   }
 
   /// Queries the two subscription products from the store.
