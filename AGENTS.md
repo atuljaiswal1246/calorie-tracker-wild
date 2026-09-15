@@ -636,3 +636,40 @@ renders. `test/screen_preview_test.dart` has a `paywall` golden.
   3. Create the two subscriptions in App Store Connect with the SAME IDs.
   4. Add the App Store privacy questionnaire (photos are sent for analysis,
      not stored) + the hosted privacy/terms URLs.
+
+## ✅ FINALIZED — Payment screen (paywall) — LOCKED
+Locked 2026-09-15 by the user ("that's it, lock it"). Commits: `3bbb413` (redesign),
+`fe2f222` (compact), `f056ebe` (filler removed), `00c2a29` (back + bigger hero),
+`2ca5d16` (both plans visible), `1c83f4d` (centred dish).
+**Do not change without an explicit new request.** `PricingScreen` in
+`lib/screens/onboarding_screen.dart` (`_PaywallHero`, `_PaywallMacro`, `_BenefitRow`,
+`_PlanOptionCard`).
+
+Locked composition, top → bottom:
+1. **Back button** (optional `onBack`; shown when provided — the funnel returns to
+   the plan step, the Settings dev preview pops).
+2. **"Keep your plan"** + a plan line built from the saved profile
+   (`_planLine`: kcal/day · goal · workouts).
+3. **Hero = a real meal + macros**: `assets/onboarding/food_palak_paneer.jpg`,
+   `BoxFit.cover` **centred on both axes**, with a compact white card over the
+   bottom (Palak Paneer · 265 kcal · one row of macro chips: Protein 14g /
+   Carbs 9g / Fats 19g).
+4. Three benefit rows (check icon): photo → calories · 1,800+ Indian foods
+   offline · targets/pace/progress.
+5. **Annual** (selected) with an inline `SAVE 17%` chip: `₹1,000 / year`,
+   *≈ ₹83/month · 3 days free*; **Monthly**: `₹100 / month`, *3 days free*.
+6. CTA **"Start 3-day free trial"** + *"Then ₹1,000/year. Cancel anytime."* +
+   legal row **Terms · Privacy · Restore purchases** (Terms/Privacy open the
+   Firebase-hosted pages via `url_launcher`; Restore stays wired to billing).
+
+Hard-won rules (don't regress):
+- **Both plan cards must be visible without scrolling**, so the section is a
+  non-scrolling Column and the **hero is `Expanded`** — it takes exactly the
+  space left over. Do NOT give the hero a fixed height/percentage again (that
+  pushed Monthly below the fold).
+- **No filler lines** on this screen. "Purchases open at launch" (a dev-only
+  state) and "Secure payment…" were both deleted on request.
+- **One design for both stores** — no platform-branching copy: the paywall is
+  identical on Google Play and the App Store.
+- `test/screen_preview_test.dart` has `paywall` (iPhone) + `paywall_android`
+  goldens, and the Android-size sweep fails on any overflow.
