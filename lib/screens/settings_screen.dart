@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
+import 'onboarding_screen.dart' show PricingScreen;
 import '../theme/app_colors.dart';
 
 /// Dedicated Settings screen: reminders (proper switches), data export,
@@ -258,6 +260,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
+
+                  // ------- Developer (debug/profile builds only) -------
+                  if (!kReleaseMode) ...[
+                    _SectionLabel('Developer'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: AppColors.cardShadow,
+                      ),
+                      child: _TapRow(
+                        icon: Icons.credit_card,
+                        iconColor: AppColors.carbs,
+                        label: 'Preview payment screen',
+                        subtitle: 'Open the paywall without signing up',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PricingScreen(
+                              storage: widget.storage,
+                              onPaid: () => Navigator.of(context).pop(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                  ],
 
                   // ------- Account -------
                   _SectionLabel('Account'),
