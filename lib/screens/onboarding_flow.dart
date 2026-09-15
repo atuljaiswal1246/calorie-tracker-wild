@@ -1785,9 +1785,30 @@ class _TargetPaceStepState extends State<_TargetPaceStep> {
   double get _max =>
       widget.isLose ? (widget.currentWeight - 1).clamp(30, 200) : 200;
 
+  /// Signature of the numbers a pace would show, so we can spot duplicates.
+  String _sig(String pace) {
+    final s = widget.statsFor(_target, pace);
+    return '${s['kcal']}/${s['weekly']}/${s['time']}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final current = widget.pace ?? 'recommended';
+    // When the safety floor binds, faster paces collapse to the same plan.
+    // Showing two identical options is confusing, so drop the duplicate.
+    final modDupSlow = _sig('recommended') == _sig('slow');
+    final modDupFast = _sig('recommended') == _sig('fast');
+    final hideModerate = modDupSlow || modDupFast;
+
+    var current = widget.pace ?? 'recommended';
+    if (hideModerate && current == 'recommended') {
+      current = modDupSlow ? 'slow' : 'fast';
+      // Persist the visible choice (same plan, but keeps profile + UI in sync).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && widget.pace == 'recommended') {
+          widget.onPace(current);
+        }
+      });
+    }
     final stats = widget.statsFor(_target, current);
 
     return Column(
@@ -1853,14 +1874,17 @@ class _TargetPaceStepState extends State<_TargetPaceStep> {
           const SizedBox(height: 12),
           Row(
             children: [
-              for (var i = 0; i < _paces.length; i++) ...[
-                if (i > 0) const SizedBox(width: 8),
+              for (final p in [
+                for (final pace in _paces)
+                  if (!(hideModerate && pace.value == 'recommended')) pace,
+              ]) ...[
+                if (p.value != 'slow') const SizedBox(width: 8),
                 _PacePill(
-                  title: _paces[i].name,
-                  rate: '${widget.statsFor(_target, _paces[i].value)['weekly']} kg/wk',
-                  time: widget.statsFor(_target, _paces[i].value)['time'] ?? '',
-                  selected: current == _paces[i].value,
-                  onTap: () => widget.onPace(_paces[i].value),
+                  title: p.name,
+                  rate: '${widget.statsFor(_target, p.value)['weekly']} kg/wk',
+                  time: widget.statsFor(_target, p.value)['time'] ?? '',
+                  selected: current == p.value,
+                  onTap: () => widget.onPace(p.value),
                 ),
               ],
             ],
