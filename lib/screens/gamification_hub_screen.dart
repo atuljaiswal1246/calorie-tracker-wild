@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../models/quest.dart';
 import '../services/gamification_controller.dart';
@@ -50,13 +51,13 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
         actions: [
           IconButton(
             tooltip: 'League',
-            icon: const Text('🏆', style: TextStyle(fontSize: 18)),
+            icon: const Icon(Symbols.emoji_events_rounded, size: 20),
             onPressed: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const LeagueScreen())),
           ),
           IconButton(
             tooltip: 'Shop',
-            icon: const Text('🛍️', style: TextStyle(fontSize: 18)),
+            icon: const Icon(Symbols.shopping_bag_rounded, size: 20),
             onPressed: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const ShopScreen())),
           ),
@@ -109,7 +110,8 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
         children: [
           Row(
             children: [
-              Text('🌱', style: TextStyle(fontSize: 26)),
+              Icon(Symbols.eco_rounded,
+                  size: 28, color: AppColors.green),
               SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,18 +155,22 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
   Widget _statRow(GamificationController gami) {
     return Row(
       children: [
-        _statChip('🔥', '${gami.streak}', 'streak'),
+        _statChip(Symbols.local_fire_department_rounded, AppColors.accentOrange,
+            '${gami.streak}', 'streak'),
         SizedBox(width: 8),
-        _statChip('⚡', '${gami.weeklyPoints}', 'this week'),
+        _statChip(Symbols.bolt_rounded, AppColors.warningOrange,
+            '${gami.weeklyPoints}', 'this week'),
         SizedBox(width: 8),
-        _statChip('🪙', '${gami.nutriCoins}', 'coins'),
+        _statChip(Symbols.monetization_on_rounded, AppColors.gold,
+            '${gami.nutriCoins}', 'coins'),
         SizedBox(width: 8),
-        _statChip('❄️', '${gami.freezes}', 'freezes'),
+        _statChip(Symbols.ac_unit_rounded, AppColors.water,
+            '${gami.freezes}', 'freezes'),
       ],
     );
   }
 
-  Widget _statChip(String emoji, String value, String label) {
+  Widget _statChip(IconData icon, Color color, String value, String label) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 12),
@@ -174,17 +180,36 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
         ),
         child: Column(
           children: [
-            Text(emoji, style: TextStyle(fontSize: 15)),
+            // Label first, then the number — the reading order the rest of the
+            // app now uses.
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 14, color: color),
+                SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: 4),
             Text(
               value,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 17,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
               ),
             ),
-            Text(label, style: TextStyle(fontSize: 10, color: AppColors.muted)),
           ],
         ),
       ),
