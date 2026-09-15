@@ -4,7 +4,17 @@ import 'dart:typed_data';
 
 import 'package:calorie_tracker/models/food_entry.dart';
 import 'package:calorie_tracker/models/profile.dart';
+import 'package:calorie_tracker/screens/achievements_screen.dart';
+import 'package:calorie_tracker/screens/all_entries_screen.dart';
+import 'package:calorie_tracker/screens/capture_screen.dart';
+import 'package:calorie_tracker/screens/gamification_hub_screen.dart';
 import 'package:calorie_tracker/screens/home_screen.dart';
+import 'package:calorie_tracker/screens/insights_screen.dart';
+import 'package:calorie_tracker/screens/league_screen.dart';
+import 'package:calorie_tracker/screens/manual_entry_screen.dart';
+import 'package:calorie_tracker/screens/quick_picks_screen.dart';
+import 'package:calorie_tracker/screens/settings_screen.dart';
+import 'package:calorie_tracker/screens/shop_screen.dart';
 import 'package:calorie_tracker/services/auth_service.dart';
 import 'package:calorie_tracker/services/funnel.dart';
 import 'package:calorie_tracker/services/storage_service.dart';
@@ -55,17 +65,20 @@ Future<void> _loadFonts() async {
   // icons render as blank boxes in goldens.
   final symbolsDir =
       '/Users/neharohilla/.pub-cache/hosted/pub.dev/material_symbols_icons-4.2960.0/lib/fonts';
+  final symbols = <Future<void>>[];
   for (final family in const [
     'MaterialSymbolsRounded',
     'MaterialSymbolsOutlined',
     'MaterialSymbolsSharp',
   ]) {
-    final loader = FontLoader(family);
+    // Package fonts are namespaced by Flutter.
+    final loader =
+        FontLoader('packages/material_symbols_icons/$family');
     loader.addFont(Future.value(ByteData.view(
         (await File('$symbolsDir/$family.ttf').readAsBytes()).buffer)));
-    loader.load();
+    symbols.add(loader.load());
   }
-  await Future.wait([inter.load(), icons.load(), emoji.load()]);
+  await Future.wait([inter.load(), icons.load(), emoji.load(), ...symbols]);
 }
 
 Widget _wrap(Widget child) => MaterialApp(
@@ -310,5 +323,35 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/app_home_full_android.png'));
+  });
+
+  testWidgets('secondary screens render (full page)', (tester) async {
+    final prefs = await _seed();
+    final storage = StorageService(prefs);
+    final screens = <String, Widget>{
+      'insights': InsightsScreen(storage: storage),
+      'history': AllEntriesScreen(storage: storage),
+      'achievements': AchievementsScreen(storage: storage),
+      'hub': const GamificationHubScreen(),
+      'shop': const ShopScreen(),
+      'league': const LeagueScreen(),
+      'settings': SettingsScreen(
+        storage: storage,
+        onResetGoals: () {},
+        onSignOut: () {},
+      ),
+      'quick_picks': QuickPicksScreen(storage: storage),
+      'manual_entry': ManualEntryScreen(storage: storage),
+      'capture': CaptureScreen(storage: storage),
+    };
+    for (final entry in screens.entries) {
+      _tallPhone(tester);
+      await tester.pumpWidget(_wrap(entry.value));
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(tester.takeException(), isNull,
+          reason: '${entry.key} threw while rendering');
+      await expectLater(find.byType(MaterialApp),
+          matchesGoldenFile('goldens/app_${entry.key}_full.png'));
+    }
   });
 }

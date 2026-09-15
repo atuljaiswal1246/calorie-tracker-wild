@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../models/food_entry.dart';
 import '../theme/app_colors.dart';
@@ -63,32 +64,45 @@ class MealCard extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 6),
-                    Row(
+                    // Wrap, not Row: a long calorie count plus three macro
+                    // pills overflowed the card by a few pixels on narrow
+                    // phones (the pills now drop to a second line instead).
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text(
-                          '🔥 ${entry.totalCalories}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
-                            fontFeatures: [FontFeature.tabularFigures()],
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Symbols.local_fire_department_rounded,
+                                size: 15, color: AppColors.accentOrange),
+                            SizedBox(width: 3),
+                            Text(
+                              '${entry.totalCalories}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink,
+                                fontFeatures: [
+                                  FontFeature.tabularFigures()
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 8),
                         if (hasProtein)
                           MacroPill(
                             icon: Icons.egg_alt,
                             color: AppColors.protein,
                             text: '${entry.totalProtein.toStringAsFixed(0)}g',
                           ),
-                        if (hasProtein && hasCarbs) SizedBox(width: 6),
                         if (hasCarbs)
                           MacroPill(
                             icon: Icons.grain,
                             color: AppColors.carbs,
                             text: '${entry.totalCarbs.toStringAsFixed(0)}g',
                           ),
-                        if (hasCarbs && hasFat) SizedBox(width: 6),
                         if (hasFat)
                           MacroPill(
                             icon: Icons.water_drop,

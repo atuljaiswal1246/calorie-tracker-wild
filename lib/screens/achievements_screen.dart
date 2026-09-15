@@ -152,7 +152,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           crossAxisCount: 3,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.85,
+          // Fixed height instead of an aspect ratio: the tiles overflowed
+          // their cells (emoji + 2-line title + 2-line description + progress
+          // bar) at common phone widths.
+          mainAxisExtent: 142,
         ),
         itemCount: items.length,
         itemBuilder: (context, index) => _achievementBadge(items[index]),
@@ -166,7 +169,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final unlocked = achievement.unlocked;
 
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: unlocked ? AppColors.card : AppColors.card.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(20),
@@ -189,16 +192,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           Text(
             achievement.emoji,
             style: TextStyle(
-              fontSize: 32,
+              fontSize: 28,
               color: unlocked ? null : Colors.grey.withValues(alpha: 0.4),
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 6),
           Text(
             achievement.title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10.5,
               fontWeight: FontWeight.w700,
               color: unlocked ? AppColors.ink : AppColors.muted.withValues(alpha: 0.5),
             ),
@@ -217,7 +220,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             overflow: TextOverflow.ellipsis,
           ),
           if (!unlocked && achievement.progress > 0) ...[
-            SizedBox(height: 8),
+            SizedBox(height: 6),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: SizedBox(
