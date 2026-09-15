@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import '../services/funnel.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/animated_stats.dart';
 import '../widgets/app_image.dart';
 import '../widgets/date_picker_3step.dart';
 import 'auth_screen.dart';
@@ -2398,7 +2399,7 @@ class _PlanReadyScreen extends StatelessWidget {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -2436,34 +2437,26 @@ class _PlanReadyScreen extends StatelessWidget {
                         color: AppColors.muted,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.inkButton,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Row(
-                        children: [
-                          _Stat(
-                              value: '${profile.calorieGoal}',
-                              label: 'kcal/day'),
-                          _Stat(
-                              value: '${profile.proteinGrams}g',
-                              label: 'protein'),
-                          _Stat(
-                              value: '${profile.carbsGrams}g',
-                              label: 'carbs'),
-                          _Stat(
-                              value: '${profile.fatGrams}g', label: 'fat'),
-                        ],
-                      ),
+                    const SizedBox(height: 18),
+                    _PlanHero(profile: profile),
+                    const SizedBox(height: 12),
+                    _SummaryRow(
+                      label: 'Your goal',
+                      value: goalSummary,
+                      glyph: const _SparkGlyph(),
+                    ),
+                    const SizedBox(height: 10),
+                    _SummaryRow(
+                      label: 'Workouts',
+                      value: workoutSummary,
+                      glyph: const _BarsGlyph(),
                     ),
                     const SizedBox(height: 14),
-                    _InfoRow(label: 'Goal', value: goalSummary),
-                    const SizedBox(height: 10),
-                    _InfoRow(label: 'Workouts', value: workoutSummary),
+                    Text(
+                      'You can change any of this later in Settings.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11, color: AppColors.faint),
+                    ),
                   ],
                 ),
               ),
@@ -2481,32 +2474,85 @@ class _PlanReadyScreen extends StatelessWidget {
   }
 }
 
-class _Stat extends StatelessWidget {
-  final String value;
-  final String label;
+/// The daily target, in the same language as Home: a calorie ring + macros.
+class _PlanHero extends StatelessWidget {
+  final Profile profile;
 
-  const _Stat({required this.value, required this.label});
+  const _PlanHero({required this.profile});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.divider, width: 1.2),
+        boxShadow: AppColors.cardShadowLight,
+      ),
       child: Column(
         children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
+          SizedBox(
+            width: 148,
+            height: 148,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 0.78),
+                  duration: const Duration(milliseconds: 1100),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, __) => SizedBox(
+                    width: 148,
+                    height: 148,
+                    child: CircularProgressIndicator(
+                      value: v,
+                      strokeWidth: 11,
+                      strokeCap: StrokeCap.round,
+                      backgroundColor: AppColors.track,
+                      valueColor:
+                          const AlwaysStoppedAnimation(AppColors.carbs),
+                    ),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CountUp(
+                      value: profile.calorieGoal,
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    Text('kcal / day',
+                        style: TextStyle(
+                            fontSize: 10.5, color: AppColors.muted)),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10.5,
-              color: Colors.white.withValues(alpha: 0.7),
-            ),
+          const SizedBox(height: 16),
+          Container(height: 1, color: AppColors.divider),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _MacroCol(
+                  color: AppColors.green,
+                  grams: profile.proteinGrams,
+                  label: 'Protein'),
+              _MacroCol(
+                  color: AppColors.carbs,
+                  grams: profile.carbsGrams,
+                  label: 'Carbs'),
+              _MacroCol(
+                  color: const Color(0xFF8B5CF6),
+                  grams: profile.fatGrams,
+                  label: 'Fats'),
+            ],
           ),
         ],
       ),
@@ -2514,41 +2560,172 @@ class _Stat extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
+class _MacroCol extends StatelessWidget {
+  final Color color;
+  final int grams;
   final String label;
-  final String value;
 
-  const _InfoRow({required this.label, required this.value});
+  const _MacroCol({
+    required this.color,
+    required this.grams,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider, width: 1.5),
-        boxShadow: AppColors.cardShadowLight,
-      ),
-      child: Row(
+    return Expanded(
+      child: Column(
         children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 14.5, color: AppColors.muted),
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          const Spacer(),
-          Text(
-            value,
+          const SizedBox(height: 6),
+          CountUp(
+            value: grams,
+            suffix: 'g',
+            duration: const Duration(milliseconds: 900),
             style: TextStyle(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
               color: AppColors.ink,
             ),
           ),
+          const SizedBox(height: 1),
+          Text(label,
+              style: TextStyle(fontSize: 10.5, color: AppColors.muted)),
         ],
       ),
     );
   }
+}
+
+/// A summary row with a small glyph on the right.
+class _SummaryRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Widget glyph;
+
+  const _SummaryRow({
+    required this.label,
+    required this.value,
+    required this.glyph,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.divider, width: 1.2),
+        boxShadow: AppColors.cardShadowLight,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.muted)),
+                const SizedBox(height: 2),
+                Text(value,
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink)),
+              ],
+            ),
+          ),
+          glyph,
+        ],
+      ),
+    );
+  }
+}
+
+/// Mini projection curve for the goal row.
+class _SparkGlyph extends StatelessWidget {
+  const _SparkGlyph();
+
+  @override
+  Widget build(BuildContext context) =>
+      SizedBox(width: 76, height: 30, child: CustomPaint(painter: _SparkPainter()));
+}
+
+class _SparkPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final path = Path()
+      ..moveTo(2, 5)
+      ..cubicTo(w * 0.32, h * 0.3, w * 0.66, h * 0.72, w - 2, h - 5);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeCap = StrokeCap.round
+        ..color = AppColors.carbs,
+    );
+    canvas.drawCircle(Offset(2, 5), 3.4, Paint()..color = AppColors.card);
+    canvas.drawCircle(
+      Offset(2, 5),
+      3.4,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..color = AppColors.carbs,
+    );
+    canvas.drawCircle(
+        Offset(w - 2, h - 5), 3.4, Paint()..color = AppColors.carbs);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter old) => false;
+}
+
+/// Mini weekly bars for the workouts row.
+class _BarsGlyph extends StatelessWidget {
+  const _BarsGlyph();
+
+  @override
+  Widget build(BuildContext context) =>
+      SizedBox(width: 76, height: 30, child: CustomPaint(painter: _BarsPainter()));
+}
+
+class _BarsPainter extends CustomPainter {
+  static const _heights = [0.4, 0.6, 1.0, 0.75, 0.5];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const bw = 8.0;
+    final gap = (size.width - bw * _heights.length) / (_heights.length - 1);
+    for (var i = 0; i < _heights.length; i++) {
+      final h = size.height * _heights[i];
+      final x = i * (bw + gap);
+      final active = _heights[i] == 1.0;
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(x, size.height - h, bw, h),
+        const Radius.circular(2),
+      );
+      canvas.drawRRect(
+        rect,
+        Paint()
+          ..color = AppColors.carbs
+              .withValues(alpha: active ? 1.0 : 0.35 + i * 0.08),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter old) => false;
 }
 
 // ── wheel sheets (height + weight) ────────────────────────────────────────
