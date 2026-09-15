@@ -11,6 +11,7 @@ import '../services/notification_service.dart';
 import '../services/openai_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/empty_illustration.dart';
 import 'manual_entry_screen.dart';
 
 class CaptureScreen extends StatefulWidget {
@@ -838,6 +839,11 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     if (_image == null && _items == null)
                       Column(
                         children: [
+                          const EmptyIllustration(
+                            asset: 'assets/illustrations/scan_food.jpg',
+                            size: 190,
+                          ),
+                          const SizedBox(height: 20),
                           Container(
                             padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(

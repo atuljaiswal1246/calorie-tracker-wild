@@ -96,6 +96,9 @@ flutter:
     - assets/merged_foods.json
     - assets/quick_picks.json
     - assets/icons/app_icon.png
+    - assets/illustrations/empty_meals.jpg
+    - assets/illustrations/empty_progress.jpg
+    - assets/illustrations/scan_food.jpg
     - assets/onboarding/hero_bowl.jpg
     - assets/onboarding/avatar_male.png
     - assets/onboarding/avatar_female.png

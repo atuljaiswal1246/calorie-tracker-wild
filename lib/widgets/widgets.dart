@@ -6,6 +6,7 @@ library;
 export 'app_card.dart';
 export 'calories_card.dart';
 export 'empty_card.dart';
+export 'empty_illustration.dart';
 export 'floating_nav.dart';
 export 'macro_card.dart';
 export 'macro_pill.dart';

@@ -9,6 +9,7 @@ import '../models/profile.dart';
 import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/empty_illustration.dart';
 import 'achievements_screen.dart';
 
 class ProgressScreen extends StatefulWidget {
@@ -1894,8 +1895,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
         ),
         child: Column(
           children: [
-            Icon(Icons.restaurant_rounded, size: 26, color: AppColors.faint),
-            SizedBox(height: 10),
+            const EmptyIllustration(
+              asset: 'assets/illustrations/empty_progress.jpg',
+              size: 116,
+            ),
+            SizedBox(height: 14),
             Text(
               'Nothing logged yet',
               style: TextStyle(

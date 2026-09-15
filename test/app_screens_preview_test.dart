@@ -34,6 +34,9 @@ const _materialIcons =
     '/opt/homebrew/Caskroom/flutter/3.47.1/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf';
 
 const _images = [
+  'assets/illustrations/empty_meals.jpg',
+  'assets/illustrations/empty_progress.jpg',
+  'assets/illustrations/scan_food.jpg',
   'assets/onboarding/hero_bowl.jpg',
   'assets/onboarding/food_palak_paneer.jpg',
   'assets/onboarding/food_scan.jpg',

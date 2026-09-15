@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'empty_illustration.dart';
 
 /// Empty state shown when no meals have been logged.
 class EmptyCard extends StatelessWidget {
@@ -20,14 +21,17 @@ class EmptyCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text('🍽️', style: TextStyle(fontSize: 34)),
-          SizedBox(height: 10),
+          const EmptyIllustration(
+            asset: 'assets/illustrations/empty_meals.jpg',
+            size: 108,
+          ),
+          SizedBox(height: 14),
           Text(
             'No meals logged yet',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: AppColors.inkButton,
+              color: AppColors.ink,
             ),
           ),
           SizedBox(height: 4),
