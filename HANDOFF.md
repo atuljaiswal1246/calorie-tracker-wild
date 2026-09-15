@@ -128,17 +128,38 @@ before/after sheets (01–08) rendered from the real widgets, built by checking
 out the pre-session commit in a temporary git worktree and running the same
 harness there. Read `README.md` in that folder first.
 
+**Also in this session (not in the sheets):**
+- **Undo after deleting a meal** — Home + History show a 6s Undo snackbar;
+  `StorageService.restoreEntry` deliberately does NOT emit a logging activity,
+  so undoing cannot farm Cal Points or advance quests twice
+  (`test/storage_entries_test.dart`).
+- **One icon language** on Home/Progress/Insights: functional emoji replaced
+  with Material Symbols (decorative level emoji left alone).
+- **Analyzer cleanup**: 166 → 155 issues (unused imports, dead getters, a dead
+  local). The remaining `social_service.dart` warning is a dormant file.
+- **Fresh artifacts at the end:** `~/Desktop/CalMatters-0.9.6+10.aab` and the
+  same build installed/running on the iPhone. `flutter test`: **180 pass**.
+- Nothing was pushed to GitHub.
+
 ## 3. Plan forward (in order)
+
+**Status after the 2026-09-16 overnight pass:** the app was verified on pixels
+for every non-locked screen, six layout bugs + two crash risks were fixed, and
+the release AAB was rebuilt (`~/Desktop/CalMatters-0.9.6+10.aab`, installed on
+the iPhone too). Still true: **no human has used this build yet** — the user's
+device test is the next real gate. See `§2b` and the Desktop review folder.
 
 | # | Step | Owner | Notes |
 |---|------|-------|-------|
 | 1 | Update the **Play Console listing text** to match `PLAY_STORE_LISTING.md` (drop the Groups line, fix the "data stays on your device" claim) | **user** | The repo doc is fixed; the Console copy is a separate edit nobody has done yet |
 | 2 | Watch the **Data safety review** result (Publishing overview / Inbox) | user | Submitted 2026-09-15 |
 | 3 | Finish closed testing (day 14), request **production access**, then move to open testing | user | Google decides; keep testers opted in |
-| 4 | Cut the next release **0.9.6+10**: verify the locked flow on a real device, then `flutter build appbundle --release` (Play needs an **AAB**, not the profile APK) | assistant | ~3 days out, per the user. Release signing is already configured via gitignored `android/app/release-key.jks` |
+| 4 | Cut the next release **0.9.6+10** | assistant | **AAB built + signed** at `~/Desktop/CalMatters-0.9.6+10.aab` (75.6 MB) and installed on the iPhone. Remaining: the user's own walkthrough on a device, then upload to Play (Play needs the **AAB**, not the profile APK) |
 | 5 | Back up `android/app/release-key.jks` somewhere safe (password manager / encrypted drive) | **user** | It is gitignored, so it is NOT on GitHub. Losing it means no more updates to the same Play listing |
-| 6 | `git push` the ~10 unpushed commits to `github.com/atuljaiswal1246/calmatters-app` | assistant (on request) | Local `main` is ahead of `origin/main` |
+| 6 | `git push` the unpushed commits to `github.com/atuljaiswal1246/calmatters-app` | assistant (on request) | Local `main` is now ~25 commits ahead of `origin/main` |
 | 7 | After launch: Hindi/localisation, DPDP compliance (Nov 2026), iOS ($99 program → Apple sign-in → StoreKit with the same product IDs), friends public-aggregate design, performance profiling, prefs O(n) write tidy-up | both | See `AUDIT_REPORT.md` §7–8 for the full gap list |
+| 8 | Decide the **macro-split basis** (weight vs calories) — see §2b | **user** | One-line change; needs a product call |
+
 
 ## 4. Open decisions for the user
 
