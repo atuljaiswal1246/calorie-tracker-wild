@@ -458,6 +458,26 @@ class _HomeScreenState extends State<HomeScreen> {
     if (confirmed == true) {
       await widget.storage.deleteEntry(entry.id);
       _load();
+      if (!mounted) return;
+      // Undo, because deleting a logged meal is easy to do by accident
+      // (long-press) and there was no way back.
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Meal deleted'),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.fromLTRB(16, 0, 16, 92),
+            duration: Duration(seconds: 6),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () async {
+                await widget.storage.restoreEntry(entry);
+                _load();
+              },
+            ),
+          ),
+        );
     }
   }
 

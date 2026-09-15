@@ -145,7 +145,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Delete entry?'),
-        content: Text('This cannot be undone.'),
+        content: Text('You can undo this right after.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -164,6 +164,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
       setState(() {
         _entries = widget.storage.entries;
       });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Entry deleted'),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.fromLTRB(16, 0, 16, 92),
+            duration: Duration(seconds: 6),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () async {
+                await widget.storage.restoreEntry(entry);
+                if (!mounted) return;
+                setState(() {
+                  _entries = widget.storage.entries;
+                });
+              },
+            ),
+          ),
+        );
     }
   }
 }

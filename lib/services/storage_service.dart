@@ -386,8 +386,20 @@ class StorageService {
     }
   }
 
-  Future<void> updateEntry(FoodEntry entry) async {
-    final all = entries.map((e) => e.id == entry.id ? entry : e).toList();
+  /// Put back an entry that was just deleted (undo). Deliberately does NOT
+  /// emit a logging activity — that meal was already logged once.
+  Future<void> restoreEntry(FoodEntry entry) async {
+    if (entries.any((e) => e.id == entry.id)) return;
+    await _saveEntries([...entries, entry]);
+
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(
+          () => ref.collection('entries').doc(entry.id).set(entry.toJson()));
+    }
+  }
+
+  Future<void> updateEntry(FoodEntry entry) async {    final all = entries.map((e) => e.id == entry.id ? entry : e).toList();
     await _saveEntries(all);
 
     final ref = _profileRef();

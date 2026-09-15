@@ -179,7 +179,10 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('🍽️', style: TextStyle(fontSize: 48)),
+                          const EmptyIllustration(
+                            asset: 'assets/illustrations/empty_meals.jpg',
+                            size: 132,
+                          ),
                           SizedBox(height: 16),
                           Text(
                             'No meals logged $periodLabel',
