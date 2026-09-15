@@ -423,8 +423,13 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   underline: SizedBox(),
                   dropdownColor: AppColors.card,
                   borderRadius: BorderRadius.circular(14),
-                  style: TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
+                  // Merge onto the theme's title style so the family (Inter)
+                  // survives — a bare TextStyle drops it.
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
+                      ),
                   items: [
                     DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
                     DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
@@ -1157,12 +1162,13 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
               value: _mealType,
               isExpanded: true,
               underline: SizedBox(),
-              dropdownColor: Colors.white,
+              dropdownColor: AppColors.card,
               borderRadius: BorderRadius.circular(14),
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
+                  ),
               items: [
                 DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
                 DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
@@ -1488,9 +1494,13 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
                 value: _mealType,
                 isExpanded: true,
                 underline: SizedBox(),
-                dropdownColor: Colors.white,
+                dropdownColor: AppColors.card,
                 borderRadius: BorderRadius.circular(14),
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
+                    ),
                 items: [
                   DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
                   DropdownMenuItem(value: 'lunch', child: Text('Lunch')),

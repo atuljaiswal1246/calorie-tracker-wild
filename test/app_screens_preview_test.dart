@@ -83,11 +83,33 @@ Future<void> _loadFonts() async {
   await Future.wait([inter.load(), icons.load(), emoji.load(), ...symbols]);
 }
 
+/// Mirrors the app's real theme (main.dart): the family is set on every
+/// text-theme entry, not just the root — some Material widgets (e.g.
+/// DropdownButton) otherwise fall back to the test font and render as boxes.
+TextTheme _textTheme() => const TextTheme(
+      bodyLarge: TextStyle(fontFamily: 'Inter'),
+      bodyMedium: TextStyle(fontFamily: 'Inter'),
+      bodySmall: TextStyle(fontFamily: 'Inter'),
+      titleLarge: TextStyle(fontFamily: 'Inter'),
+      titleMedium: TextStyle(fontFamily: 'Inter'),
+      titleSmall: TextStyle(fontFamily: 'Inter'),
+      headlineLarge: TextStyle(fontFamily: 'Inter'),
+      headlineMedium: TextStyle(fontFamily: 'Inter'),
+      headlineSmall: TextStyle(fontFamily: 'Inter'),
+      displayLarge: TextStyle(fontFamily: 'Inter'),
+      displayMedium: TextStyle(fontFamily: 'Inter'),
+      displaySmall: TextStyle(fontFamily: 'Inter'),
+      labelLarge: TextStyle(fontFamily: 'Inter'),
+      labelMedium: TextStyle(fontFamily: 'Inter'),
+      labelSmall: TextStyle(fontFamily: 'Inter'),
+    );
+
 Widget _wrap(Widget child) => MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Inter',
+        textTheme: _textTheme(),
         fontFamilyFallback: const ['Emoji'],
       ),
       home: child,
@@ -100,6 +122,7 @@ Widget _wrapDark(Widget child) => MaterialApp(
         useMaterial3: true,
         brightness: Brightness.dark,
         fontFamily: 'Inter',
+        textTheme: _textTheme(),
         fontFamilyFallback: const ['Emoji'],
         scaffoldBackgroundColor: const Color(0xFF0E0F11),
         colorScheme: ColorScheme.fromSeed(
