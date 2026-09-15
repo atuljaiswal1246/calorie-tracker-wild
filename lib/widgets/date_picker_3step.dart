@@ -48,9 +48,9 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
   int? _month;
   late int _pageStart;
 
-  /// Default page: 1990–1999 (10 years, 5x2). Arrows page by a decade.
+  /// Default page: 1990–2009 (20 years, 4x5). Arrows page by 20 years.
   static const _firstPageStart = 1990;
-  static const _yearsPerPage = 10;
+  static const _yearsPerPage = 20;
 
   static const _months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -210,10 +210,10 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
       return GridView.count(
         shrinkWrap: true,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        crossAxisCount: 5,
-        mainAxisSpacing: 9,
-        crossAxisSpacing: 9,
-        childAspectRatio: 1.5,
+        crossAxisCount: 4,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 1.9,
         children: [
           for (final y in _pageYears) _cell('$y', y == _year, () => _pick(y)),
         ],
