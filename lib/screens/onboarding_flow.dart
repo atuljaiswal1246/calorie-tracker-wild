@@ -824,27 +824,172 @@ class _GoalStep extends StatelessWidget {
   const _GoalStep({required this.selected, required this.onSelect});
 
   static const _choices = [
-    _Choice(Icons.trending_down_rounded, 'Lose weight', 'lose'),
-    _Choice(Icons.balance_rounded, 'Maintain weight', 'maintain'),
-    _Choice(Icons.trending_up_rounded, 'Gain weight / Build muscle', 'gain'),
-    _Choice(Icons.explore_outlined, 'Just exploring', 'exploring'),
+    _GoalChoice(
+      asset: 'assets/onboarding/goal_lose.jpg',
+      label: 'Lose weight',
+      sub: 'Burn more than you eat',
+      value: 'lose',
+    ),
+    _GoalChoice(
+      asset: 'assets/onboarding/goal_maintain.jpg',
+      label: 'Maintain weight',
+      sub: 'Stay right where you are',
+      value: 'maintain',
+    ),
+    _GoalChoice(
+      asset: 'assets/onboarding/goal_gain.jpg',
+      label: 'Gain weight',
+      sub: 'Eat more, build up',
+      value: 'gain',
+    ),
+    _GoalChoice(
+      asset: 'assets/onboarding/goal_explore.jpg',
+      label: 'Just exploring',
+      sub: 'See what the app can do',
+      value: 'exploring',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 0.82,
       children: [
         for (final c in _choices)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _OptionCard(
-              icon: c.icon,
-              label: c.label,
-              selected: selected == c.value,
-              onTap: () => onSelect(c.value),
-            ),
+          _GoalCard(
+            choice: c,
+            selected: selected == c.value,
+            onTap: () => onSelect(c.value),
           ),
       ],
+    );
+  }
+}
+
+class _GoalChoice {
+  final String asset;
+  final String label;
+  final String sub;
+  final String value;
+  const _GoalChoice({
+    required this.asset,
+    required this.label,
+    required this.sub,
+    required this.value,
+  });
+}
+
+/// Illustrated goal card — image on top, label + outcome line below, with the
+/// same orange selected treatment as the gender cards.
+class _GoalCard extends StatelessWidget {
+  final _GoalChoice choice;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _GoalCard({
+    required this.choice,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: selected ? AppColors.carbs : AppColors.divider,
+            width: selected ? 2 : 1.2,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: AppColors.carbs.withValues(alpha: 0.22),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : AppColors.cardShadowLight,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: ColoredBox(
+                    color: const Color(0xFFFBF3E2),
+                    child: Image.asset(
+                      choice.asset,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        choice.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        choice.sub,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (selected)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppColors.carbs,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.card, width: 2),
+                  ),
+                  child:
+                      const Icon(Icons.check, size: 14, color: Colors.white),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

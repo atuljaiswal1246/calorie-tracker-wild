@@ -34,6 +34,10 @@ const _images = [
   'assets/onboarding/feature_water.jpg',
   'assets/onboarding/food_palak_paneer.jpg',
   'assets/onboarding/food_scan.jpg',
+  'assets/onboarding/goal_lose.jpg',
+  'assets/onboarding/goal_maintain.jpg',
+  'assets/onboarding/goal_gain.jpg',
+  'assets/onboarding/goal_explore.jpg',
   'assets/icons/app_icon.png',
 ];
 
