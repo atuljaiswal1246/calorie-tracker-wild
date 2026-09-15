@@ -5,7 +5,7 @@ import 'models/profile.dart';
 import 'models/shop.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/onboarding_flow.dart';
 import 'screens/welcome_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/auth_service.dart';
@@ -204,7 +204,7 @@ class _CalorieAppState extends State<CalorieApp> {
             onAuthenticated: _onAuthenticated,
             onBack: () => _goTo(_AppScreen.welcome),
           ),
-          _AppScreen.onboarding => OnboardingScreen(
+          _AppScreen.onboarding => OnboardingFlow(
             storage: widget.storage,
             auth: widget.auth,
             onComplete: () => _goTo(_AppScreen.home),

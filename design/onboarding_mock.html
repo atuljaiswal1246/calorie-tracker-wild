@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cal Matters — full flow mock (7 screens)</title>
+<style>
+  :root{
+    --cream:#FBF6EC; --ink:#2E2018; --muted:#7A6E60; --line:rgba(46,32,24,.10);
+    --brown:#C77630; --green:#5B7F3F; --purple:#8B5CF6; --pink:#FF4D6D; --carbs:#FF9500;
+    --black:#1C1C1E; --card:#FFFFFF; --shadow:0 10px 26px rgba(46,32,24,.10);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif;
+    background:#0f1013;color:#fff;padding:30px 20px 60px}
+  h1{font-size:22px;font-weight:800;margin:0 0 4px}
+  .sub{color:#9aa0aa;font-size:13px;margin:0 0 22px}
+  .rail{display:flex;gap:26px;overflow-x:auto;padding-bottom:18px}
+  .wrap{flex:0 0 auto}
+  .label{font-size:12px;color:#c9cdd4;margin:0 0 8px;font-weight:700}
+  .phone{width:330px;height:680px;border-radius:38px;background:var(--cream);position:relative;
+    overflow:hidden;box-shadow:var(--shadow);padding:16px 18px 14px;display:flex;flex-direction:column}
+  .phone:after{content:"";position:absolute;inset:0;border-radius:38px;border:1px solid rgba(255,255,255,.10);pointer-events:none}
+  .doodle{position:absolute;font-size:16px;color:var(--carbs);letter-spacing:2px}
+  .top{display:flex;align-items:center;gap:10px;z-index:2}
+  .back{width:34px;height:34px;border-radius:17px;background:rgba(46,32,24,.06);display:grid;place-items:center;font-size:15px;color:var(--ink)}
+  .bar{flex:1;height:5px;background:rgba(46,32,24,.10);border-radius:3px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:var(--carbs)}
+  .cnt{font-size:12px;font-weight:700;color:var(--muted)}
+  .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px}
+  .logo{width:34px;height:34px;border-radius:10px;background:var(--black);display:grid;place-items:center;color:#fff;font-size:18px}
+  .bname{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+  .tag{text-align:center;font-size:13px;color:var(--muted);margin-top:4px}
+  .hero{margin-top:16px;border-radius:26px;overflow:hidden;position:relative;aspect-ratio:1/1.02;background:#F3E7D3}
+  .hero img{width:100%;height:100%;object-fit:cover;display:block}
+  .nut{position:absolute;top:14px;right:14px;width:176px;background:rgba(255,255,255,.95);border-radius:18px;
+    padding:12px;display:flex;gap:12px;box-shadow:var(--shadow)}
+  .ring{width:52px;height:52px;border-radius:50%;background:conic-gradient(var(--green) 0 62%, rgba(91,127,63,.18) 62% 100%);
+    display:grid;place-items:center}
+  .ring i{width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;flex-direction:column;
+    font-style:normal;text-align:center;font-size:14px;font-weight:800;color:var(--ink)}
+  .ring i small{display:block;font-size:9px;color:var(--muted);font-weight:600}
+  .macros{flex:1;font-size:11px;color:var(--muted)}
+  .macros div{display:flex;justify-content:space-between;margin:3px 0}
+  .macros b{color:var(--ink);font-weight:700}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+  .script{position:absolute;right:18px;bottom:20px;transform:rotate(-4deg);font-style:italic;font-weight:700;
+    color:rgba(0,0,0,.5);font-size:17px;line-height:1.1;text-align:left}
+  h2{font-size:30px;line-height:1.13;font-weight:800;color:var(--ink);text-align:center;letter-spacing:-.6px;margin:24px 0 0}
+  .lead{text-align:center;font-size:14px;color:var(--muted);line-height:1.4;margin:10px 0 0}
+  .benefits{display:flex;justify-content:space-between;margin:22px 0 0}
+  .benefits .b{flex:1;text-align:center}
+  .bic{width:48px;height:48px;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;font-size:20px}
+  .benefits span{display:block;font-size:11px;color:var(--muted);font-weight:600;line-height:1.25}
+  .cta{margin-top:auto;height:58px;border-radius:18px;background:var(--black);color:#fff;display:flex;align-items:center;
+    justify-content:center;gap:8px;font-size:17px;font-weight:700;z-index:2}
+  .ghost{text-align:center;font-size:13px;color:var(--muted);margin-top:12px}
+  .ghost b{color:var(--ink);text-decoration:underline}
+  .fine{text-align:center;font-size:11px;color:#A79C8E;margin-top:14px}
+  .qhead{font-size:26px;font-weight:800;color:var(--ink);letter-spacing:-.5px;margin:16px 2px 0}
+  .qsub{font-size:13.5px;color:var(--muted);margin:6px 2px 0;line-height:1.4}
+  .card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:14px;display:flex;
+    align-items:center;gap:12px;box-shadow:0 4px 14px rgba(46,32,24,.05);margin-top:10px}
+  .card.sel{border-color:var(--carbs);background:rgba(255,149,0,.08)}
+  .ico{width:38px;height:38px;border-radius:12px;background:#F3E9D6;display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+  .card.sel .ico{background:var(--carbs);color:#fff}
+  .ct{font-size:14.5px;font-weight:700;color:var(--ink)}
+  .check{margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--carbs);color:#fff;display:grid;place-items:center;font-size:13px}
+  .field{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:15px;display:flex;align-items:center;
+    justify-content:space-between;margin-top:10px;box-shadow:0 4px 14px rgba(46,32,24,.05)}
+  .field .k{font-size:13.5px;color:var(--muted)}
+  .field .v{font-size:15px;font-weight:700;color:var(--ink)}
+  .chiprow{display:flex;gap:8px;margin-top:8px}
+  .chip{flex:1;text-align:center;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px 0;
+    font-size:13px;font-weight:700;color:var(--ink)}
+  .chip.sel{border-color:var(--carbs);background:rgba(255,149,0,.08)}
+  .sexrow{display:flex;gap:10px;margin-top:12px}
+  .sex{flex:1;border-radius:16px;padding:10px 6px 12px;text-align:center;border:1.5px solid var(--line);background:#fff;position:relative}
+  .sex.sel{border-color:var(--carbs);background:rgba(255,149,0,.08)}
+  .sex .badge{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--carbs);color:#fff;display:grid;place-items:center;font-size:12px}
+  .sex .av{width:56px;height:56px;border-radius:50%;margin:0 auto 6px;display:block}
+  .sex p{margin:0;font-size:13px;font-weight:700;color:var(--ink)}
+  .illust{position:relative;margin-top:auto;height:120px}
+  .illust .bowl{position:absolute;right:6px;bottom:6px;width:150px;height:110px;border-radius:16px;
+    background:radial-gradient(circle at 40% 45%, #fff 0 34%, transparent 35%),#FBE7D2;display:grid;place-items:center;font-size:44px}
+  .illust .hand{position:absolute;left:6px;bottom:18px;transform:rotate(-6deg);font-style:italic;font-weight:800;
+    color:rgba(0,0,0,.45);font-size:16px;line-height:1.15}
+  .summary{background:var(--black);border-radius:18px;padding:16px;display:flex;justify-content:space-between;margin-top:12px}
+  .summary .s{text-align:center;flex:1}
+  .summary .n{font-size:16px;font-weight:800;color:#fff}
+  .summary .l{font-size:10.5px;color:rgba(255,255,255,.7);margin-top:2px}
+  .note{font-size:11.5px;color:var(--muted);text-align:center;margin-top:10px}
+</style>
+</head>
+<body>
+  <h1>Cal Matters — full flow (7 screens)</h1>
+  <p class="sub">Design mock · first screen + 6 onboarding · warm cream + ink + black CTA · real photo · screen‑by‑screen</p>
+  <div class="rail">
+
+    <!-- 1 · FIRST SCREEN -->
+    <div class="wrap"><p class="label">1 · First screen (Get started)</p>
+      <div class="phone">
+        <div class="brand"><div class="logo">🍃</div><div class="bname">Cal Matters</div></div>
+        <div class="tag">Track · Eat · Feel Better</div>
+        <div class="hero">
+          <img src="../assets/onboarding/hero_bowl.jpg" alt="food" />
+          <div class="nut">
+            <div class="ring"><i>420<small>kcal</small></i></div>
+            <div class="macros">
+              <div><span><i class="dot" style="background:var(--green)"></i>Protein</span><b>18g</b></div>
+              <div><span><i class="dot" style="background:var(--carbs)"></i>Carbs</span><b>52g</b></div>
+              <div><span><i class="dot" style="background:var(--purple)"></i>Fats</span><b>14g</b></div>
+            </div>
+          </div>
+          <div class="script">Good food.<br>Real progress.</div>
+        </div>
+        <h2>Track your calories,<br>live a healthier you.</h2>
+        <div class="lead">Log your meals, see your nutrition, and reach your goals — one bite at a time.</div>
+        <div class="benefits">
+          <div class="b"><div class="bic" style="background:rgba(91,127,63,.14);color:var(--green)">🍴</div><span>Log meals easily</span></div>
+          <div class="b"><div class="bic" style="background:rgba(255,149,0,.14);color:var(--carbs)">📊</div><span>Track calories &amp; macros</span></div>
+          <div class="b"><div class="bic" style="background:rgba(139,92,246,.14);color:var(--purple)">🎯</div><span>Stay on your goals</span></div>
+          <div class="b"><div class="bic" style="background:rgba(255,77,109,.14);color:var(--pink)">❤️</div><span>Build healthier habits</span></div>
+        </div>
+        <div class="cta">Get started →</div>
+        <div class="ghost">Already have an account? <b>Sign in</b></div>
+        <div class="fine">AI-powered · Your data stays private · Terms · Privacy</div>
+      </div>
+    </div>
+
+    <!-- 2 · GOAL -->
+    <div class="wrap"><p class="label">2 · Goal</p>
+      <div class="phone">
+        <div class="top"><div class="back">←</div><div class="bar"><i style="width:17%"></i></div><div class="cnt">1/6</div></div>
+        <div class="doodle" style="top:66px;left:18px">///</div>
+        <div class="qhead" style="text-align:center;margin-top:26px">What’s your goal?</div>
+        <div class="qsub" style="text-align:center">I’ll build your plan around this.</div>
+        <div class="card sel"><div class="ico">⬇️</div><div class="ct">Lose weight</div><div class="check">✓</div></div>
+        <div class="card"><div class="ico">⚖️</div><div class="ct">Maintain weight</div></div>
+        <div class="card"><div class="ico">⬆️</div><div class="ct">Gain weight / Build muscle</div></div>
+        <div class="card"><div class="ico">🧭</div><div class="ct">Just exploring</div></div>
+        <div class="cta">Continue →</div>
+      </div>
+    </div>
+
+    <!-- 3 · YOU -->
+    <div class="wrap"><p class="label">3 · You (personal details)</p>
+      <div class="phone">
+        <div class="top"><div class="back">←</div><div class="bar"><i style="width:33%"></i></div><div class="cnt">2/6</div></div>
+        <div class="doodle" style="top:66px;left:20px">///</div>
+        <div class="qhead" style="margin-top:22px">First things first.</div>
+        <div class="qsub">Help us personalize your experience and get better calorie insights.</div>
+        <div class="field"><span class="k">👤 Name</span></div>
+        <div class="field"><span class="k">📅 Date of birth</span><span class="v">⌄</span></div>
+        <div class="sexrow">
+          <div class="sex sel"><span class="badge">✓</span>
+            <svg class="av" viewBox="0 0 64 64"><circle cx="32" cy="26" r="13" fill="#F3C9A6"/><path d="M32 12c9 0 14 7 14 14H18c0-7 5-14 14-14z" fill="#4A2E1E"/><path d="M12 62c2-13 10-20 20-20s18 7 20 20z" fill="#5B7F3F"/></svg>
+            <p>Male</p></div>
+          <div class="sex">
+            <svg class="av" viewBox="0 0 64 64"><circle cx="32" cy="26" r="13" fill="#F3C9A6"/><path d="M32 10c11 0 16 9 15 20l-6-4c0-6-3-10-9-10s-9 4-9 10l-6 4c-1-11 4-20 15-20z" fill="#3B2A22"/><path d="M12 62c2-13 10-20 20-20s18 7 20 20z" fill="#E97A6A"/></svg>
+            <p>Female</p></div>
+          <div class="sex">
+            <svg class="av" viewBox="0 0 64 64"><circle cx="32" cy="26" r="13" fill="#F3C9A6"/><path d="M32 11c10 0 15 8 15 15H17c0-7 5-15 15-15z" fill="#3B2A22"/><path d="M12 62c2-13 10-20 20-20s18 7 20 20z" fill="#8B5CF6"/></svg>
+            <p>Other</p></div>
+        </div>
+        <div class="illust">
+          <div class="bowl">🥗</div>
+          <div class="hand">Better choices.<br>Healthier you.</div>
+        </div>
+        <div class="cta">Continue →</div>
+      </div>
+    </div>
+
+    <!-- 4 · BODY -->
+    <div class="wrap"><p class="label">4 · Height &amp; weight</p>
+      <div class="phone">
+        <div class="top"><div class="back">←</div><div class="bar"><i style="width:50%"></i></div><div class="cnt">3/6</div></div>
+        <div class="qhead" style="text-align:center;margin-top:26px">Your height &amp; weight</div>
+        <div class="qsub" style="text-align:center">Tap to adjust — no typing needed.</div>
+        <div class="field"><span class="k">Height</span><span class="v">5 ft 9 in</span></div>
+        <div class="field"><span class="k">Current weight</span><span class="v">78 kg</span></div>
+        <div class="cta">Continue →</div>
+      </div>
+    </div>
+
+    <!-- 5 · ACTIVITY -->
+    <div class="wrap"><p class="label">5 · Activity</p>
+      <div class="phone">
+        <div class="top"><div class="back">←</div><div class="bar"><i style="width:67%"></i></div><div class="cnt">4/6</div></div>
+        <div class="qhead" style="text-align:center;margin-top:26px">How often do you<br>work out?</div>
+        <div class="qsub" style="text-align:center">This sets how many calories you burn.</div>
+        <div class="card"><div class="ico">🛋️</div><div class="ct">0–2 times a week</div></div>
+        <div class="card sel"><div class="ico">🚶</div><div class="ct">3–5 times a week</div><div class="check">✓</div></div>
+        <div class="card"><div class="ico">🏃</div><div class="ct">6+ times a week</div></div>
+        <div class="cta">Continue →</div>
+      </div>
+    </div>
+
+    <!-- 6 · TARGET & PACE -->
+    <div class="wrap"><p class="label">6 · Target &amp; pace</p>
+      <div class="phone">
+        <div class="top"><div class="back">←</div><div class="bar"><i style="width:83%"></i></div><div class="cnt">5/6</div></div>
+        <div class="qhead" style="text-align:center;margin-top:26px">Your target &amp; pace</div>
+        <div class="qsub" style="text-align:center">Slow and steady wins — pick what feels real.</div>
+        <div class="field"><span class="k">Target weight</span><span class="v">70 kg</span></div>
+        <div class="chiprow">
+          <div class="chip">Slow<br><small style="color:var(--muted)">~0.1 kg/wk</small></div>
+          <div class="chip sel">Moderate<br><small style="color:var(--muted)">~0.4 kg/wk</small></div>
+          <div class="chip">Fast<br><small style="color:var(--muted)">safe min</small></div>
+        </div>
+        <div class="note">You’ll lose ~8 kg in ~5 months, eating 1,700 kcal/day.</div>
+        <div class="cta">Continue →</div>
+      </div>
+    </div>
+
+    <!-- 7 · PLAN -->
+    <div class="wrap"><p class="label">7 · Your plan is ready</p>
+      <div class="phone">
+        <div class="top"><div class="back">←</div><div class="bar"><i style="width:100%"></i></div><div class="cnt">6/6</div></div>
+        <div class="qhead" style="text-align:center;margin-top:26px">Your plan is ready 🎉</div>
+        <div class="qsub" style="text-align:center">Hi Atul — here’s your daily target.</div>
+        <div class="summary">
+          <div class="s"><div class="n">1,700</div><div class="l">kcal/day</div></div>
+          <div class="s"><div class="n">130g</div><div class="l">protein</div></div>
+          <div class="s"><div class="n">55g</div><div class="l">carbs</div></div>
+          <div class="s"><div class="n">75g</div><div class="l">fat</div></div>
+        </div>
+        <div class="field"><span class="k">Goal</span><span class="v">Lose 8 kg · ~5 months</span></div>
+        <div class="field"><span class="k">Workouts</span><span class="v">3–5× / week</span></div>
+        <div class="cta">Start tracking →</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
