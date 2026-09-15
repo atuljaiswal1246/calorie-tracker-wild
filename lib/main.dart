@@ -14,6 +14,7 @@ import 'services/funnel.dart';
 import 'services/gamification_controller.dart';
 import 'services/notification_service.dart';
 import 'services/storage_service.dart';
+import 'services/widget_service.dart';
 import 'theme/app_colors.dart';
 
 void main() async {
@@ -30,6 +31,14 @@ void main() async {
       ShopInventory.fromJson(storage.shopInventoryRaw ?? const {}).theme ??
           'default';
   NotificationService.init();
+  // The widget should reflect reality as soon as anything is logged, from any
+  // screen — so chain onto the gamification listener instead of replacing it.
+  final previousListener = storage.activityListener;
+  storage.activityListener = (activity) {
+    previousListener?.call(activity);
+    WidgetService.push(storage);
+  };
+
   runApp(CalorieApp(storage: storage, auth: AuthService()));
 }
 
@@ -46,6 +55,7 @@ class CalorieApp extends StatefulWidget {
 enum _AppScreen { loading, welcome, signIn, onboarding, home }
 
 class _CalorieAppState extends State<CalorieApp> {
+  late final AppLifecycleListener _lifecycle;
   _AppScreen _screen = _AppScreen.loading;
   // Explicit intent for the next onboarding visit: none (fresh questions),
   // resume at sign-up (guest dropped mid-flow) or jump to pricing
@@ -58,7 +68,17 @@ class _CalorieAppState extends State<CalorieApp> {
   @override
   void initState() {
     super.initState();
+    // Opening the app always refreshes the widget (and thus the day's state).
+    _lifecycle = AppLifecycleListener(
+      onResume: () => WidgetService.push(widget.storage),
+    );
     _init();
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
   }
 
   Future<void> _init() async {

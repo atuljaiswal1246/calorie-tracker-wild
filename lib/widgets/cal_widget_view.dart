@@ -17,6 +17,10 @@ class CalWidgetView extends StatelessWidget {
   final List<WidgetDay> week;
   final String mealLabel;
 
+  /// Follows the system theme: the widget sits on the OS home screen, whose
+  /// context is the system, not the app's own dark toggle.
+  final bool dark;
+
   const CalWidgetView({
     super.key,
     required this.remaining,
@@ -24,6 +28,7 @@ class CalWidgetView extends StatelessWidget {
     required this.goal,
     required this.week,
     required this.mealLabel,
+    this.dark = false,
     this.width = 340,
     this.height = 168,
   });
@@ -31,17 +36,18 @@ class CalWidgetView extends StatelessWidget {
   final double width;
   final double height;
 
-  static const _card = Color(0xFFFFFFFF);
-  static const _ink = Color(0xFF1C1C1E);
-  static const _muted = Color(0xFF6E6E73);
-  static const _track = Color(0xFFEFEFEA);
+  Color get _card => dark ? const Color(0xFF1B1C1E) : const Color(0xFFFFFFFF);
+  Color get _ink => dark ? const Color(0xFFF2F2F4) : const Color(0xFF1C1C1E);
+  Color get _muted => dark ? const Color(0xFF9A9AA2) : const Color(0xFF6E6E73);
+  Color get _track => dark ? const Color(0xFF2C2D31) : const Color(0xFFEFEFEA);
+
   static const _green = Color(0xFF34C759);
   static const _orange = Color(0xFFFF9500);
   static const _red = Color(0xFFFF3B30);
 
   Color _dayColor(WidgetDay d) => switch (d) {
         WidgetDay.future => _track,
-        WidgetDay.empty => _red.withValues(alpha: 0.30),
+        WidgetDay.empty => _red.withValues(alpha: 0.35),
         WidgetDay.logged => _orange,
         WidgetDay.onTarget => _green,
       };
@@ -60,7 +66,7 @@ class CalWidgetView extends StatelessWidget {
           color: _card,
           borderRadius: BorderRadius.circular(26),
         ),
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        padding: EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -71,18 +77,19 @@ class CalWidgetView extends StatelessWidget {
                 painter: _Ring(
                   progress: progress,
                   color: over ? _red : _ink,
+                  track: _track,
                 ),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.symmetric(horizontal: 16),
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
                             '$remaining',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 30,
                               height: 1.0,
                               fontWeight: FontWeight.w800,
@@ -92,7 +99,7 @@ class CalWidgetView extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const Text(
+                      Text(
                         'left',
                         style: TextStyle(
                           fontSize: 10,
@@ -106,13 +113,13 @@ class CalWidgetView extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Today',
                     style: TextStyle(
                       fontSize: 11,
@@ -120,12 +127,12 @@ class CalWidgetView extends StatelessWidget {
                       color: _muted,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     '$consumed of $goal kcal',
-                    style: const TextStyle(fontSize: 12, color: _muted),
+                    style: TextStyle(fontSize: 12, color: _muted),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Row(
                     children: [
                       for (var i = 0; i < week.length; i++) ...[
@@ -137,13 +144,13 @@ class CalWidgetView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
-                        if (i < week.length - 1) const SizedBox(width: 4),
+                        if (i < week.length - 1) SizedBox(width: 4),
                       ],
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                         horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
                       color: _ink,
@@ -151,7 +158,7 @@ class CalWidgetView extends StatelessWidget {
                     ),
                     child: Text(
                       '+ Log $mealLabel',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
                         color: _card,
@@ -171,7 +178,8 @@ class CalWidgetView extends StatelessWidget {
 class _Ring extends CustomPainter {
   final double progress;
   final Color color;
-  _Ring({required this.progress, required this.color});
+  final Color track;
+  _Ring({required this.progress, required this.color, required this.track});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -180,11 +188,11 @@ class _Ring extends CustomPainter {
     final centre = rect.center;
     final radius = (size.shortestSide - stroke) / 2;
 
-    final track = Paint()
+    final trackPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = stroke
-      ..color = _trackColor;
-    canvas.drawCircle(centre, radius, track);
+      ..color = track;
+    canvas.drawCircle(centre, radius, trackPaint);
 
     if (progress > 0) {
       final arc = Paint()
@@ -202,9 +210,9 @@ class _Ring extends CustomPainter {
     }
   }
 
-  static const _trackColor = Color(0xFFEFEFEA);
-
   @override
   bool shouldRepaint(_Ring old) =>
-      old.progress != progress || old.color != color;
+      old.progress != progress ||
+      old.color != color ||
+      old.track != track;
 }

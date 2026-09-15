@@ -57,6 +57,31 @@ void main() {
         matchesGoldenFile('goldens/cal_widget_lunch.png'));
   });
 
+  testWidgets('widget view: dark mode', (tester) async {
+    tester.view.physicalSize = const Size(1200, 700);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_wrap(const CalWidgetView(
+      remaining: 640,
+      consumed: 1441,
+      goal: 2081,
+      dark: true,
+      week: [
+        WidgetDay.onTarget,
+        WidgetDay.onTarget,
+        WidgetDay.logged,
+        WidgetDay.onTarget,
+        WidgetDay.future,
+        WidgetDay.future,
+        WidgetDay.future,
+      ],
+      mealLabel: 'dinner',
+    )));
+    await tester.pumpAndSettle();
+    await expectLater(find.byType(CalWidgetView),
+        matchesGoldenFile('goldens/cal_widget_dark.png'));
+  });
+
   testWidgets('widget view: over budget', (tester) async {
     tester.view.physicalSize = const Size(1200, 700);
     tester.view.devicePixelRatio = 2.0;

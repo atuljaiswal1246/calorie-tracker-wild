@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -49,6 +50,10 @@ class WidgetService {
         goal: goal,
         week: week,
         mealLabel: mealLabelFor(now),
+        // Widgets live on the OS home screen, so they follow the system
+        // theme rather than the app's own dark toggle.
+        dark: PlatformDispatcher.instance.platformBrightness ==
+            Brightness.dark,
       );
 
       await HomeWidget.saveWidgetData<int>('remaining', remaining);
