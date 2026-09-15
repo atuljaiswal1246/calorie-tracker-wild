@@ -569,6 +569,36 @@ Each slide's **Try** button opens a demo (no account, no payment):
 - Shared shell: `demo/demo_common.dart` (`DemoBadge/Header/Cta/Card`, `MacroBar`,
   `CountUp`, `RingStat`).
 
+## UI improvement loop (locked 2026-09-16) — how to keep improving without the user
+The user asked for a continuous improvement loop. Run it per screen, in this
+order, and do not skip the "look" step:
+
+1. **Render** — `flutter test --update-goldens test/app_screens_preview_test.dart`
+2. **Look** — open the PNG, and **crop with PIL before judging** (low-res
+   whole-page views lie; several "bugs" were only downscaling).
+3. **List defects** against the house rules below.
+4. **Fix** the top one or two — small commits, one idea each.
+5. **Verify** — `flutter analyze` (0 errors) + `flutter test` (all pass; the
+   goldens must pass *without* `--update-goldens` too).
+6. **Commit** with what changed and why.
+
+**House rules distilled from the locked screens** (onboarding, welcome, auth,
+paywall — the work the user personally signed off):
+- **One dominant idea per screen.** One hero; everything else supports it.
+- **Big, left-aligned type.** Titles are 20–26px w800 with negative letter
+  spacing, not 12–13px everywhere.
+- **One accent colour + near-black.** The palette is cream/near-black plus the
+  orange accent; macro red/orange/blue are the only other colours allowed.
+  Do not add new hues.
+- **One primary CTA**, full width, black (white in dark mode). Everything else
+  is a secondary tile or a text link with a Material Symbol.
+- **Real illustrations, never emoji-as-art.** Use `EmptyIllustration` +
+  `assets/illustrations/*` (Leonardo, cream/sage/coral).
+- **No filler.** If a card's label is vague ("What's cooking?", "Start tracking
+  your body story") it is filler — delete it or rename it plainly.
+- **Label first, then the value** on stat tiles (label / number / unit).
+- **Material Symbols** for functional icons; decorative gamification emoji only.
+
 ## Main-screen golden harness (2026-09-16) — the eyes for non-locked screens
 `test/app_screens_preview_test.dart` renders the **real** Home (all tabs),
 Progress, Profile, first-run Home/Progress, dark mode, and Insights, History,
