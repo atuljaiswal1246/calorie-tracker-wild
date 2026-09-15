@@ -48,52 +48,56 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             _cornerShapes(),
             FadeTransition(
               opacity: _c,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 6, 20, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _brand(),
-                    const SizedBox(height: 18),
-                    _hero(),
-                    const SizedBox(height: 26),
+                    const SizedBox(height: 14),
+                    // Flexible hero — absorbs whatever height is left so the
+                    // whole screen always fits without scrolling.
+                    Expanded(child: _hero()),
+                    const SizedBox(height: 16),
                     Text(
                       'Track your calories,\nlive a healthier you.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.ink,
-                        fontSize: 30,
-                        height: 1.15,
+                        fontSize: 27,
+                        height: 1.13,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.6,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       'Log your meals, see your nutrition, and reach your goals — one bite at a time.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         color: AppColors.muted,
-                        height: 1.4,
+                        height: 1.35,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     _benefits(),
-                    const SizedBox(height: 26),
+                    const SizedBox(height: 16),
                     _SpringButton(
                         label: 'Get started', onTap: _start, arrow: true),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     Center(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text('Already have an account? ',
-                              style: TextStyle(color: AppColors.muted)),
+                              style: TextStyle(
+                                  color: AppColors.muted, fontSize: 13)),
                           GestureDetector(
                             onTap: widget.onSignIn,
                             child: Text('Sign in',
                                 style: TextStyle(
+                                  fontSize: 13,
                                   color: AppColors.ink,
                                   fontWeight: FontWeight.w700,
                                   decoration: TextDecoration.underline,
@@ -102,11 +106,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Text(
                       'AI-powered  ·  Your data stays private  ·  Terms  ·  Privacy',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11, color: AppColors.faint),
+                      style: TextStyle(fontSize: 10.5, color: AppColors.faint),
                     ),
                   ],
                 ),
@@ -205,28 +209,57 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ),
               // Nutrition overlay card
               Positioned(top: 14, right: 14, child: _nutritionCard()),
+              // Legibility scrim for the handwritten accent
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.center,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.28),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               // Handwritten accent
               Positioned(
-                right: 18,
-                bottom: 22,
+                right: 16,
+                bottom: 14,
                 child: Transform.rotate(
-                  angle: -0.06,
+                  angle: -0.05,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text('Good food.',
                           style: TextStyle(
                             fontSize: 17,
                             fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black.withValues(alpha: 0.55),
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.45),
+                                blurRadius: 6,
+                              ),
+                            ],
                           )),
                       Text('Real progress.',
                           style: TextStyle(
                             fontSize: 17,
                             fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black.withValues(alpha: 0.55),
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.45),
+                                blurRadius: 6,
+                              ),
+                            ],
                           )),
                     ],
                   ),
@@ -323,31 +356,32 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Widget _benefits() {
     final items = [
       (Icons.restaurant, AppColors.green, 'Log meals\neasily'),
-      (Icons.bar_chart_rounded, AppColors.carbs, 'Track\ncalories & macros'),
+      (Icons.bar_chart_rounded, AppColors.carbs, 'Calories\n& macros'),
       (Icons.track_changes_rounded, const Color(0xFF8B5CF6), 'Stay on\nyour goals'),
-      (Icons.favorite_rounded, const Color(0xFFFF4D6D), 'Build\nhealthier habits'),
+      (Icons.favorite_rounded, const Color(0xFFFF4D6D), 'Healthy\nhabits'),
     ];
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final it in items)
           Expanded(
             child: Column(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: it.$2.withValues(alpha: 0.14),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(it.$1, size: 22, color: it.$2),
+                  child: Icon(it.$1, size: 20, color: it.$2),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(it.$3,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 11,
-                        height: 1.25,
+                        fontSize: 10.5,
+                        height: 1.2,
                         color: AppColors.muted,
                         fontWeight: FontWeight.w600)),
               ],

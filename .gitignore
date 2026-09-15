@@ -60,3 +60,7 @@ tools/serviceAccountKey.json
 tools/node_modules/
 
 cloudflare_worker/.wrangler/
+
+# Secrets — never commit
+.env
+.env.*

@@ -93,6 +93,10 @@ flutter:
     - assets/quick_picks.json
     - assets/icons/app_icon.png
     - assets/onboarding/hero_bowl.jpg
+    - assets/onboarding/avatar_male.png
+    - assets/onboarding/avatar_female.png
+    - assets/onboarding/avatar_other.png
+    - assets/onboarding/bowl_illustration.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

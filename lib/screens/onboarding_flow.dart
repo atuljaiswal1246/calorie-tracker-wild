@@ -1575,8 +1575,21 @@ class _PlanReadyScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Center(
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppColors.carbs.withValues(alpha: 0.14),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.check_rounded,
+                            size: 30, color: AppColors.carbs),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
                     Text(
-                      'Your plan is ready 🎉',
+                      'Your plan is ready',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 28,
