@@ -1500,7 +1500,7 @@ class _RulerState extends State<_Ruler> {
             }
           },
           child: SizedBox(
-            height: 28,
+            height: 36,
             width: constraints.maxWidth,
             child: CustomPaint(
               painter: _RulerPainter(
@@ -1542,17 +1542,17 @@ class _RulerPainter extends CustomPainter {
     final tick = Paint()
       ..color = const Color(0x2E1C1C1E)
       ..strokeWidth = 1;
-    const spacing = 9.0;
+    const spacing = 11.0;
     final phase = -((value - min) * pxPerUnit) % spacing;
     for (var x = phase; x < size.width + spacing; x += spacing) {
       canvas.drawLine(
-          Offset(x, size.height * 0.22), Offset(x, size.height * 0.78), tick);
+          Offset(x, size.height * 0.18), Offset(x, size.height * 0.82), tick);
     }
 
     // Centre indicator
     final center = Paint()
       ..color = AppColors.carbs
-      ..strokeWidth = 2.5
+      ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(Offset(size.width / 2, 2),
         Offset(size.width / 2, size.height - 2), center);
