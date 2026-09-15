@@ -408,6 +408,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/app_first_run_progress.png'));
+    _tallPhone(tester);
+    await tester.pumpWidget(_wrap(InsightsScreen(storage: storage)));
+    await tester.pump(const Duration(milliseconds: 800));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/app_first_run_insights.png'));
   });
 
   testWidgets('dark mode: home and progress', (tester) async {
