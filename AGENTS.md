@@ -563,3 +563,35 @@ Then **open the PNGs and look at them** before reporting. Notes:
   Xcode's "External Agent Access" should be set to **Always** for agent tooling.
 - User pushes commits; brain commits locally only when asked.
 
+## Sign in with Apple — PARKED (tried 2026-09-15, blocked by Apple's paywall)
+**Verdict: needs the paid Apple Developer Program ($99/yr).** I wired it fully and
+Xcode refused to sign:
+
+> Cannot create a iOS App Development provisioning profile for
+> "com.neharohilla.calorietracker". **Personal development teams, including
+> "Atul Jaiswal", do not support the Sign In with Apple capability.**
+> Provisioning profile ... doesn't include the com.apple.developer.applesignin entitlement.
+
+Status of each piece:
+- **Firebase**: Apple provider ENABLED. Note the console says "Services ID (not
+  required for Apple)" and the OAuth code flow is optional — for the native iOS
+  flow **no Services ID and no `.p8` are needed** (that requirement is only for the
+  web/Android flow). So the Firebase side is genuinely free.
+- **Code (done, dormant)**: `sign_in_with_apple` + `crypto` added; `AuthService
+  .signInWithApple()` implemented (nonce + `OAuthProvider('apple.com').credential`);
+  the button exists in `auth_screen.dart` (iOS/macOS only); `Features.appleSignIn`
+  = **false** to keep it hidden.
+- **Entitlement (ready, un-wired)**: `ios/Runner/Runner.entitlements` exists with
+  `com.apple.developer.applesignin`. It is deliberately NOT referenced from
+  `project.pbxproj`, because signing fails while the team is personal.
+
+**To enable after enrolling** (2 minutes):
+1. developer.apple.com → App ID `com.neharohilla.calorietracker` → tick **Sign in
+   with Apple** (Xcode can also do this once the team is paid).
+2. `project.pbxproj`: add `CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;`
+   to the three Runner (app) build configs.
+3. Flip `Features.appleSignIn = true` and rebuild.
+
+**Why it matters**: App Store guideline **4.8** requires it once Google sign-in is
+offered, so this belongs on the **App Store submission checklist** (Play does not
+need it). Decision: ship Play first with Google + email; add Apple during the iOS pass.

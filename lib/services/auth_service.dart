@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthService {
   // Lazy so the service can be constructed in widget tests / previews
@@ -49,6 +54,43 @@ class AuthService {
     );
 
     return _auth.signInWithCredential(credential);
+  }
+
+  /// Native "Sign in with Apple" (iOS). Apple returns an identity token bound
+  /// to a nonce we generate here; Firebase verifies it against Apple's keys.
+  /// No Services ID / client secret is needed for the native flow.
+  Future<UserCredential> signInWithApple() async {
+    final rawNonce = _nonce();
+    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
+
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: hashedNonce,
+    );
+
+    final idToken = appleCredential.identityToken;
+    if (idToken == null) {
+      throw Exception('Apple did not return an identity token.');
+    }
+
+    final credential = OAuthProvider('apple.com').credential(
+      idToken: idToken,
+      rawNonce: rawNonce,
+      accessToken: appleCredential.authorizationCode,
+    );
+
+    return _auth.signInWithCredential(credential);
+  }
+
+  static String _nonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final rnd = Random.secure();
+    return List.generate(
+        length, (_) => charset[rnd.nextInt(charset.length)]).join();
   }
 
   Future<void> signOut() async {

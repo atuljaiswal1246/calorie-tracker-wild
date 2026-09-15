@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -176,13 +178,25 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  /// Dormant until [Features.appleSignIn] is enabled (needs the Apple
-  /// developer Service ID + client secret and a sign_in_with_apple dependency).
+  /// Native Apple sign-in. Only offered where it exists (iOS/macOS).
   Future<void> _signInWithApple() async {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sign in with Apple is coming soon.')),
-    );
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await widget.auth.signInWithApple();
+      if (!mounted) return;
+      Funnel.signup('apple');
+      widget.onAuthenticated();
+    } catch (e) {
+      if (!mounted) return;
+      final cancelled = e.toString().toLowerCase().contains('cancel');
+      setState(() {
+        _loading = false;
+        _error = cancelled ? null : 'Apple sign-in failed. Try again.';
+      });
+    }
   }
 
   void _toggleMode() {
@@ -297,7 +311,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                     ),
-                    if (Features.appleSignIn) ...[
+                    if (Features.appleSignIn &&
+                        (Platform.isIOS || Platform.isMacOS)) ...[
                       SizedBox(height: 14),
                       SizedBox(
                         height: 54,
