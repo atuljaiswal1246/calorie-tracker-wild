@@ -376,6 +376,40 @@ void main() {
           reason: '${entry.key} threw while rendering');
       await expectLater(find.byType(MaterialApp),
           matchesGoldenFile('goldens/app_${entry.key}_full.png'));
+
+      // The same screen on a narrower Android phone — the width where the
+      // Home header overflow went unnoticed.
+      _tallAndroid(tester);
+      await tester.pumpWidget(_wrap(entry.value));
+      await tester.pump(const Duration(milliseconds: 700));
+      final ex = tester.takeException();
+      if (ex != null) {
+        debugPrint('ANDROID OVERFLOW [${entry.key}]: '
+            '${ex is FlutterError ? ex.diagnostics.map((d) => d.toString()).join(' | ') : ex}');
+      }
+      expect(ex, isNull,
+          reason: '${entry.key} overflowed at Android width');
+    }
+  });
+
+  testWidgets('home and tabs overflow-free at Android width', (tester) async {
+    final storage = await _storage();
+    for (final tab in [
+      Icons.home_rounded,
+      Icons.bar_chart_rounded,
+    ]) {
+      _tallAndroid(tester);
+      await tester.pumpWidget(_wrap(HomeScreen(
+        storage: storage,
+        auth: _FakeAuth(),
+        onSignedOut: () {},
+        onResetGoals: () {},
+      )));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.byIcon(tab));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(tester.takeException(), isNull,
+          reason: 'Home tab $tab overflowed at Android width');
     }
   });
 }

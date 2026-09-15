@@ -104,24 +104,32 @@ class _ShopScreenState extends State<ShopScreen> {
         children: [
           Text('🪙', style: TextStyle(fontSize: 26)),
           SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${gami.nutriCoins} NutriCoins',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
+          // Expanded: the subtitle used to run under the freezes chip and
+          // overflow the row on 360dp phones.
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${gami.nutriCoins} NutriCoins',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
                 ),
-              ),
-              Text(
-                'Earned from quests, streaks and leagues',
-                style: TextStyle(fontSize: 12, color: AppColors.muted),
-              ),
-            ],
+                Text(
+                  'Earned from quests, streaks and leagues',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                ),
+              ],
+            ),
           ),
-          Spacer(),
+          SizedBox(width: 10),
           Text('❄️ ${gami.freezes}',
               style: TextStyle(
                   fontSize: 14,
