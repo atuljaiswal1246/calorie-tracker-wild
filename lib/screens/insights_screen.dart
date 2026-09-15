@@ -492,7 +492,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               SizedBox(width: 7),
               Expanded(
                 child: Text(
-                  'Your week in Asha\'s words',
+                  'Your week in review',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
@@ -525,7 +525,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 ),
                 SizedBox(width: 10),
                 Text(
-                  'Asha is reading your week…',
+                  'Reading your week…',
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.white.withValues(alpha: 0.9),

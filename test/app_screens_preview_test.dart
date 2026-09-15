@@ -19,6 +19,7 @@ import 'package:calorie_tracker/services/auth_service.dart';
 import 'package:calorie_tracker/services/funnel.dart';
 import 'package:calorie_tracker/services/gamification_controller.dart';
 import 'package:calorie_tracker/services/storage_service.dart';
+import 'package:calorie_tracker/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,6 +89,23 @@ Widget _wrap(Widget child) => MaterialApp(
         useMaterial3: true,
         fontFamily: 'Inter',
         fontFamilyFallback: const ['Emoji'],
+      ),
+      home: child,
+    );
+
+/// Same, in the app's real dark theme (AppColors reads `darkNotifier`).
+Widget _wrapDark(Widget child) => MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        fontFamily: 'Inter',
+        fontFamilyFallback: const ['Emoji'],
+        scaffoldBackgroundColor: const Color(0xFF0E0F11),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepOrange,
+          brightness: Brightness.dark,
+        ),
       ),
       home: child,
     );
@@ -348,6 +366,27 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/app_first_run_progress.png'));
+  });
+
+  testWidgets('dark mode: home and progress', (tester) async {
+    AppColors.darkNotifier.value = true;
+    addTearDown(() => AppColors.darkNotifier.value = false);
+    final storage = await _storage();
+    _tallPhone(tester);
+    await tester.pumpWidget(_wrapDark(HomeScreen(
+      storage: storage,
+      auth: _FakeAuth(),
+      onSignedOut: () {},
+      onResetGoals: () {},
+    )));
+    await _precache(tester);
+    await tester.pump(const Duration(milliseconds: 600));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/app_home_dark.png'));
+    await tester.tap(find.byIcon(Icons.bar_chart_rounded));
+    await tester.pump(const Duration(milliseconds: 700));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/app_progress_dark.png'));
   });
 
   testWidgets('secondary screens render (full page)', (tester) async {
