@@ -48,9 +48,9 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
   int? _month;
   late int _pageStart;
 
-  /// Default page: 1990–2010 (21 years, 3x7). Arrows page by a full screen.
+  /// Default page: 1990–1999 (10 years, 5x2). Arrows page by a decade.
   static const _firstPageStart = 1990;
-  static const _yearsPerPage = 21;
+  static const _yearsPerPage = 10;
 
   static const _months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -149,7 +149,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
             ),
             if (_step == 0) _decadeNav(),
             const SizedBox(height: 4),
-            Expanded(child: _grid()),
+            Flexible(child: _grid()),
           ],
         ),
       ),
@@ -208,11 +208,12 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
   Widget _grid() {
     if (_step == 0) {
       return GridView.count(
+        shrinkWrap: true,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        crossAxisCount: 3,
+        crossAxisCount: 5,
         mainAxisSpacing: 9,
         crossAxisSpacing: 9,
-        childAspectRatio: 2.2,
+        childAspectRatio: 1.5,
         children: [
           for (final y in _pageYears) _cell('$y', y == _year, () => _pick(y)),
         ],
@@ -220,6 +221,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
     }
     if (_step == 1) {
       return GridView.count(
+        shrinkWrap: true,
         padding: const EdgeInsets.all(16),
         crossAxisCount: 3,
         mainAxisSpacing: 10,
@@ -232,6 +234,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
       );
     }
     return GridView.count(
+      shrinkWrap: true,
       padding: const EdgeInsets.all(16),
       crossAxisCount: 5,
       mainAxisSpacing: 10,
