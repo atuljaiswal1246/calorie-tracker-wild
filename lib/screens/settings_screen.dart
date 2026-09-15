@@ -280,6 +280,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             builder: (_) => PricingScreen(
                               storage: widget.storage,
                               onPaid: () => Navigator.of(context).pop(),
+                              onBack: () => Navigator.of(context).pop(),
                             ),
                           ),
                         ),

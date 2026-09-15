@@ -2926,9 +2926,14 @@ class PricingScreen extends StatefulWidget {
   final StorageService storage;
   final VoidCallback onPaid;
 
+  /// Optional — when provided (walking the funnel, or the dev preview) a back
+  /// control is shown at the top.
+  final VoidCallback? onBack;
+
   PricingScreen({
     required this.storage,
     required this.onPaid,
+    this.onBack,
   });
 
   @override
@@ -3100,9 +3105,29 @@ class PricingScreenState extends State<PricingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // No back button: once at the payment page the only way is
-            // forward (pay or restore an existing purchase).
-            SizedBox(height: 6),
+            if (widget.onBack != null)
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: widget.onBack,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.ink.withValues(alpha: 0.06),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.arrow_back_rounded,
+                            size: 18, color: AppColors.ink),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              SizedBox(height: 6),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.zero,
@@ -3135,7 +3160,10 @@ class PricingScreenState extends State<PricingScreen> {
                                 fontSize: 13.5, color: AppColors.muted),
                           ),
                           SizedBox(height: 18),
-                          _PaywallHero(),
+                          _PaywallHero(
+                            height: (MediaQuery.sizeOf(context).height * 0.34)
+                                .clamp(196.0, 340.0),
+                          ),
                           SizedBox(height: 18),
                           _BenefitRow('Snap a photo → instant calories & macros'),
                           _BenefitRow('1,800+ Indian foods, works offline'),
@@ -3379,14 +3407,16 @@ class _HeroMacro extends StatelessWidget {
 /// The paywall hero: a real meal with its macro breakdown floating over it —
 /// the app's core promise (photo -> calories & macros) shown, not described.
 class _PaywallHero extends StatelessWidget {
-  _PaywallHero();
+  final double height;
+
+  _PaywallHero({required this.height});
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
       child: SizedBox(
-        height: 196,
+        height: height,
         child: Stack(
           fit: StackFit.expand,
           children: [

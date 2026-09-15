@@ -474,7 +474,11 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       );
     }
     if (_step == _pricingStep) {
-      return PricingScreen(storage: widget.storage, onPaid: _onPaid);
+      return PricingScreen(
+        storage: widget.storage,
+        onPaid: _onPaid,
+        onBack: () => setState(() => _step = _planStep),
+      );
     }
     return _questionScreen();
   }

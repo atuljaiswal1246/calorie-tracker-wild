@@ -194,7 +194,7 @@ void main() {
       targetWeightKg: 65,
     ));
     await tester.pumpWidget(
-        _wrap(PricingScreen(storage: storage, onPaid: () {})));
+        _wrap(PricingScreen(storage: storage, onPaid: () {}, onBack: () {})));
     await _precache(tester);
     await expectLater(
         find.byType(PricingScreen), matchesGoldenFile('goldens/paywall.png'));
@@ -218,7 +218,7 @@ void main() {
       targetWeightKg: 65,
     ));
     await tester.pumpWidget(
-        _wrap(PricingScreen(storage: storage, onPaid: () {})));
+        _wrap(PricingScreen(storage: storage, onPaid: () {}, onBack: () {})));
     await _precache(tester);
     await expectLater(find.byType(PricingScreen),
         matchesGoldenFile('goldens/paywall_android.png'));
@@ -254,7 +254,8 @@ void main() {
         onAuthenticated: () {},
         onBack: () {},
       ),
-      'paywall': PricingScreen(storage: storage, onPaid: () {}),
+      'paywall': PricingScreen(
+          storage: storage, onPaid: () {}, onBack: () {}),
       'demo_search': DemoSearchScreen(onGetStarted: () {}),
       'demo_exercise': DemoExerciseScreen(onGetStarted: () {}),
       'demo_water': DemoWaterScreen(onGetStarted: () {}),
