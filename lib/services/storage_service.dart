@@ -110,6 +110,12 @@ class StorageService {
     return FirebaseFirestore.instance.collection('users').doc(uid);
   }
 
+  /// yyyyMMdd key for the per-day cloud docs (water / weight).
+  static String _dayKey(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}'
+      '${d.month.toString().padLeft(2, '0')}'
+      '${d.day.toString().padLeft(2, '0')}';
+
   /// Runs a Firestore (cloud) write best-effort. The local store is the source
   /// of truth, so a network/permission failure must never throw into a logging
   /// or navigation path (fixes E2E-001: unhandled cloud_firestore permission-denied).
@@ -245,12 +251,23 @@ class StorageService {
   Future<void> addExercise(ExerciseEntry entry) async {
     final all = [...exercises, entry];
     await _prefs.setString(_exerciseKey, jsonEncode(all.map((e) => e.toJson()).toList()));
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(() => ref
+          .collection('exercise')
+          .doc(entry.id)
+          .set(entry.toJson(), SetOptions(merge: true)));
+    }
     activityListener?.call(StorageActivity.exerciseLogged);
   }
 
   Future<void> deleteExercise(String id) async {
     final all = exercises.where((e) => e.id != id).toList();
     await _prefs.setString(_exerciseKey, jsonEncode(all.map((e) => e.toJson()).toList()));
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(() => ref.collection('exercise').doc(id).delete());
+    }
   }
 
   // ---- Body measurements ----
@@ -406,6 +423,76 @@ class StorageService {
     );
   }
 
+  /// Restores cloud data that the profile/entries loaders don't cover
+  /// (water, weight, exercise, league, gamification) when the user signs in on
+  /// a device. Only fills stores that are EMPTY locally, so real local data is
+  /// never overwritten by an older cloud copy. Best-effort: never throws.
+  Future<void> syncUserDataFromCloud() async {
+    final ref = _profileRef();
+    if (ref == null) return;
+
+    if (waterEntries.isEmpty) {
+      try {
+        final snap = await ref.collection('water').get();
+        if (snap.docs.isNotEmpty) {
+          final list = snap.docs
+              .map((d) => WaterEntry.fromJson(d.data()))
+              .toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+          await _prefs.setString(
+              _waterEntriesKey, jsonEncode(list.map((e) => e.toJson()).toList()));
+        }
+      } catch (_) {}
+    }
+
+    if (weightEntries.isEmpty) {
+      try {
+        final snap = await ref.collection('weight').get();
+        if (snap.docs.isNotEmpty) {
+          final list = snap.docs
+              .map((d) => WeightEntry.fromJson(d.data()))
+              .toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+          await _prefs.setString(_weightEntriesKey,
+              jsonEncode(list.map((e) => e.toJson()).toList()));
+        }
+      } catch (_) {}
+    }
+
+    if (exercises.isEmpty) {
+      try {
+        final snap = await ref.collection('exercise').get();
+        if (snap.docs.isNotEmpty) {
+          final list = snap.docs
+              .map((d) => ExerciseEntry.fromJson(d.data()))
+              .toList();
+          await _prefs.setString(
+              _exerciseKey, jsonEncode(list.map((e) => e.toJson()).toList()));
+        }
+      } catch (_) {}
+    }
+
+    if (leagueStateRaw == null) {
+      try {
+        final doc = await ref.collection('league').doc('current').get();
+        final data = doc.data();
+        if (doc.exists && data != null) {
+          await _prefs.setString(_leagueKey, jsonEncode(data));
+        }
+      } catch (_) {}
+    }
+
+    if (_prefs.getString(_gamificationKey) == null) {
+      try {
+        final doc = await ref.collection('gamification').doc('state').get();
+        final data = doc.data();
+        if (doc.exists && data != null) {
+          await _prefs.setString(_gamificationKey, jsonEncode(data));
+        }
+      } catch (_) {}
+    }
+  }
+
   // ---- Weight Entries ----
 
   static const _weightEntriesKey = 'weight_entries';
@@ -440,6 +527,14 @@ class StorageService {
       _weightEntriesKey,
       jsonEncode(all.map((e) => e.toJson()).toList()),
     );
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(() => ref
+          .collection('weight')
+          .doc(_dayKey(todayNormalized))
+          .set(WeightEntry(date: todayNormalized, weightKg: weightKg).toJson(),
+              SetOptions(merge: true)));
+    }
     activityListener?.call(StorageActivity.weightLogged);
   }
 
@@ -453,6 +548,10 @@ class StorageService {
       _weightEntriesKey,
       jsonEncode(all.map((e) => e.toJson()).toList()),
     );
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(() => ref.collection('weight').doc(_dayKey(normalized)).delete());
+    }
   }
 
   // ---- Water Entries ----
@@ -512,6 +611,15 @@ class StorageService {
       _waterEntriesKey,
       jsonEncode(all.map((e) => e.toJson()).toList()),
     );
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(() => ref
+          .collection('water')
+          .doc(_dayKey(todayNormalized))
+          .set(
+              WaterEntry(date: todayNormalized, ml: existingMl + ml).toJson(),
+              SetOptions(merge: true)));
+    }
     if (waterMlForDay(todayNormalized) >= waterGoalMl) {
       activityListener?.call(StorageActivity.waterLogged);
     }
@@ -627,6 +735,13 @@ class StorageService {
 
   Future<void> saveLeagueState(Map<String, dynamic> state) async {
     await _prefs.setString(_leagueKey, jsonEncode(state));
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(() => ref
+          .collection('league')
+          .doc('current')
+          .set(state, SetOptions(merge: true)));
+    }
   }
 
   // ---- Notification engine state ----

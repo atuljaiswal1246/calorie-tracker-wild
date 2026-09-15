@@ -100,6 +100,9 @@ class _CalorieAppState extends State<CalorieApp> {
       profile = await widget.storage.loadProfileFromCloud();
       await widget.storage.loadEntriesFromCloud();
       await widget.storage.loadPaidFromCloud();
+      // Water / weight / exercise / league / gamification — restored only if
+      // this device has none (so a phone switch doesn't look like data loss).
+      await widget.storage.syncUserDataFromCloud();
     } catch (_) {
       // Cloud not ready / offline — proceed with local data.
     }

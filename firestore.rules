@@ -2,7 +2,8 @@ rules_version = '2';
 // Firestore Security Rules — Cal Matters
 // Data shape: users/{uid} (profile, paid flag),
 //   users/{uid}/entries/{entryId} (meal entries),
-//   users/{uid}/gamification/state (gamification state).
+//   users/{uid}/gamification/state (gamification state),
+//   users/{uid}/water|weight|exercise|league/* (cloud continuity).
 // Default: deny all. Authenticated users access only their own /users/{uid} subtree.
 
 service cloud.firestore {

@@ -333,7 +333,13 @@ base-layer gaps are the only ones worth scheduling. Ranked, with evidence.
    cloud data (calories, weight, photos metadata) is protected only by whatever
    console default is set. FIX: add rules (a user may read/write only their own
    `users/{uid}/**`) and `firebase deploy --only firestore:rules`.
-2. **Cloud writes unguarded + offline persistence off.** `storage_service.dart`
+2. ~~**Cloud writes unguarded + offline persistence off.**~~ **CLOSED
+   (2026-09-15):** all Firestore writes now go through the guarded `_cloud()`
+   helper (local stays the source of truth), and offline persistence was never
+   actually missing — on Android/iOS Firestore persistence is **on by default**
+   (`Settings.persistenceEnabled` is nullable = platform default; the
+   `enablePersistence()` API that IS required is web-only, and we don't ship
+   web). The earlier audit note was wrong on that point. `storage_service.dart`
    awaits Firestore with no try/catch in `addEntry` (:338), `deleteEntry` (:351),
    `updateEntry` (:361), `loadEntriesFromCloud` (:368) and `saveGamification`
    (:560) — only `resetProfile` (:150) guards. There are ~10
@@ -348,9 +354,14 @@ base-layer gaps are the only ones worth scheduling. Ranked, with evidence.
    O(n) startup. FIX when volume grows: sqflite/drift or per-day keys.
 
 Minor / not blocking:
-- Cloud restore covers only profile/entries/paid; water/weight/exercise/league
-  state are never read back on a new device (gamification writes cloud but the
-  load path isn't wired).
+- ~~Cloud restore covers only profile/entries/paid; water/weight/exercise/league
+  state are never read back on a new device.~~ **FIXED (2026-09-15):** water,
+  weight, exercise and league are now mirrored to `users/{uid}/<collection>` on
+  every write/delete, and `StorageService.syncUserDataFromCloud()` restores
+  them (plus gamification) on sign-in. It only fills stores that are EMPTY
+  locally, so a device with real data is never clobbered by an older cloud
+  copy; failures are swallowed, never thrown. Covered by
+  `test/storage_cloud_test.dart`.
 - Very large screens (home 3046, onboarding 3481, progress 2542 lines) with no
   state-management layer; services are constructed per screen;
   `GamificationController.instance` is a process-global.
