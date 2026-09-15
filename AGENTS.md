@@ -1,27 +1,30 @@
 # AGENTS.md — Project Memory & Handoff
 
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
-**In progress: NONE — waiting on the user.**
+**In progress: the alive widget — BUILT, awaiting install on the Android phone.**
+`7f44d89`. The Android widget is now drawn in Flutter
+(`widgets/cal_widget_view.dart` → `HomeWidget.renderFlutterWidget`) and shows
+calories left + the week chain + "+ Log <meal>"; tapping it opens the app
+straight into the log. Golden-verified (`test/goldens/cal_widget_*.png`), APK
+built (`~/Desktop/CalMatters-0.9.6+10-widget.apk`). **Not yet seen on a real
+home screen — no Android device attached.** iOS shows nothing: there is no
+WidgetKit extension target (and App Groups may need the paid Apple program).
 
-**TOP ITEM (user verdict, 2026-09-16): REVERT the Home redesign.**
-The user's exact words: *"Till here the old home screen was better, just write
-it down in the to-do list please."* The pre-redesign bento Home is preferred
-over the full-width hero + day chain + two-line title.
+**NEXT (when the widget is confirmed on a device): the user-timed nudge.**
+Mock approved 2026-09-16 (sheet `mock_15_widget_and_nudge.png`): one
+notification, only if that meal is still unlogged, inside the user's learned
+window.
 
-- Revert target: `lib/screens/home_screen.dart` at commit **`87dcf45`** (the
-  commit immediately before the redesign `d6c3004`).
-- Keep from later commits: the **Profile-tab inline calorie-goal edit**
-  (`f14fc87` — `_profileRow(..., onTap:, trailing:)` + no floating button) and
-  the dark-mode CTA treatment if it still applies to the old layout.
-- Do NOT revert: Progress, Insights, hub, Shop, League, profile, scan — those
-  passes were not part of this objection.
-- Regenerate goldens after the revert and re-check light + dark + Android width.
+**DONE 2026-09-16: Home revert.** `1b28a84` restored the bento Home the user
+prefers (`87dcf45`), keeping the Profile inline calorie-goal edit and the
+dark-mode inverted CTA.
 
-**Parking Lot (do NOT start while the top item is open):**
-- Alive widget (remaining + chain + one-tap log) — mock drawn, verdict pending.
-- User-timed nudge notification — mock drawn, verdict pending.
+**Parking Lot (do NOT start while something above is open):**
 - Settings / achievements / meal-detail / manual-entry-empty polish passes.
+- iOS widget (needs a WidgetKit target; check App Groups on the free team).
 - Hindi, iOS, pref O(n) rewrite, any new gamification.
+- Stale-widget bitmap: the image refreshes only when the app runs; a
+  background refresh is a real follow-up, not a launch blocker.
 
 **Rules of the ledger:** one item in progress, ever. An item leaves the list only
 when it survives: rendered and looked at, `flutter analyze` clean, `flutter test`
