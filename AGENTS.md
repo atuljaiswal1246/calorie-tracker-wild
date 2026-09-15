@@ -1,5 +1,34 @@
 # AGENTS.md — Project Memory & Handoff
 
+## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
+**In progress: NONE — waiting on the user.**
+
+**TOP ITEM (user verdict, 2026-09-16): REVERT the Home redesign.**
+The user's exact words: *"Till here the old home screen was better, just write
+it down in the to-do list please."* The pre-redesign bento Home is preferred
+over the full-width hero + day chain + two-line title.
+
+- Revert target: `lib/screens/home_screen.dart` at commit **`87dcf45`** (the
+  commit immediately before the redesign `d6c3004`).
+- Keep from later commits: the **Profile-tab inline calorie-goal edit**
+  (`f14fc87` — `_profileRow(..., onTap:, trailing:)` + no floating button) and
+  the dark-mode CTA treatment if it still applies to the old layout.
+- Do NOT revert: Progress, Insights, hub, Shop, League, profile, scan — those
+  passes were not part of this objection.
+- Regenerate goldens after the revert and re-check light + dark + Android width.
+
+**Parking Lot (do NOT start while the top item is open):**
+- Alive widget (remaining + chain + one-tap log) — mock drawn, verdict pending.
+- User-timed nudge notification — mock drawn, verdict pending.
+- Settings / achievements / meal-detail / manual-entry-empty polish passes.
+- Hindi, iOS, pref O(n) rewrite, any new gamification.
+
+**Rules of the ledger:** one item in progress, ever. An item leaves the list only
+when it survives: rendered and looked at, `flutter analyze` clean, `flutter test`
+green, and installed on the user's phone. Everything else is parked, however
+good it sounds.
+
+
 > **START HERE (2026-09-15):** read **`HANDOFF.md`** first — it holds the current
 > snapshot (what is live, what is parked, the ordered plan and who owns each step).
 > This file is the long-lived memory: locked screens, environment, and hard-won rules.
