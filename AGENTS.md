@@ -673,3 +673,49 @@ Hard-won rules (don't regress):
   identical on Google Play and the App Store.
 - `test/screen_preview_test.dart` has `paywall` (iPhone) + `paywall_android`
   goldens, and the Android-size sweep fails on any overflow.
+
+## ✅ FINALIZED — Onboarding screen 5 (Target & pace) — LOCKED
+Locked 2026-09-15. Commits: `c4d4582` (redesign), `f5dbd27` (label overlap),
+`8cb4a38` (hide duplicate Moderate). **Do not change without an explicit new
+request.** `lib/screens/onboarding_flow.dart` (`_TargetPaceStep`,
+`_ProjectionCard`, `_TrendPainter`, `_PacePill`), step index 4, progress **5/6**.
+
+Locked composition:
+1. **Projection card** — a weight-trend curve from *Now X kg* to *Goal Y kg*
+   (animated), a dashed goal line, and the numbers it implies: **kcal/day ·
+   ~timeline · kg/week**. The labels sit clear of the line (the chart reserves
+   26px above and below — otherwise "Now 70 kg" overlaps the curve).
+2. **Target weight** card with the same **drag ruler** as screen 3 (plus the
+   chevron for the precise wheel), clamped so it can never cross the current
+   weight the wrong way (`lose`: 30..weight-1, `gain`: weight+1..200) — that
+   keeps the Continue gate from going stale during a silent drag.
+3. **Pace pills** showing BOTH rate and timeline (Slow 0.1 kg/wk · Moderate
+   0.5 · Fast 0.9). **When the kcal safety floor makes Moderate produce the
+   same plan as Fast (or Slow), the duplicate Moderate pill is HIDDEN** and the
+   selection moves to the pace it matched, so profile + UI stay in sync.
+4. Safety-floor explanation when the floor binds, and the
+   "I don't have a target, just tracking" toggle.
+
+Rules: all numbers come from the **locked Profile maths** (`_planStats`) — never
+invent a pace the plan can't safely deliver. Drags use the silent-callback
+pattern (no whole-screen rebuild). `test/target_pace_test.dart` covers the
+live projection and the hidden-Moderate case.
+
+## ✅ FINALIZED — Onboarding screen 6 (Plan ready) — LOCKED
+Locked 2026-09-15 (commit `2366aa8`). **Do not change without an explicit new
+request.** `_PlanReadyScreen`, `_PlanHero`, `_MacroCol`, `_SummaryRow`,
+`_SparkGlyph`, `_BarsGlyph`, step index 6, progress **6/6**.
+
+Locked composition:
+1. Orange check badge → **"Your plan is ready"** → *"Hi {name} — here's your
+   daily target."*
+2. **White hero card mirroring Home's language**: a big **orange calorie ring**
+   (animated sweep) with the daily kcal inside, then **Protein / Carbs / Fats**
+   columns with brand colours and count-up numbers.
+3. **"Your goal"** row with a mini projection sparkline; **"Workouts"** row with
+   a mini weekly-bars glyph.
+4. *"You can change any of this later in Settings."*
+5. CTA **"Start tracking →"**.
+
+Rule: keep it consistent with Home (ring + macros are the app's own language);
+don't reintroduce the old dark summary card or plain label/value rows.
