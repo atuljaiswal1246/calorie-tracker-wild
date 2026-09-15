@@ -8,24 +8,35 @@ class NotificationService {
 
   static Future<void> init() async {
     if (!_tzInit) {
-      tz_data.initializeTimeZones();
-      _tzInit = true;
+      try {
+        tz_data.initializeTimeZones();
+        _tzInit = true;
+      } catch (_) {
+        // Timezone data unavailable — reminders simply won't be scheduled.
+        return;
+      }
     }
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const darwin = DarwinInitializationSettings();
     const settings = InitializationSettings(android: android, iOS: darwin);
-    await _plugin.initialize(settings: settings);
+    // Never let a notifications-plugin failure take down the app.
+    try {
+      await _plugin.initialize(settings: settings);
+    } catch (_) {}
   }
 
   static Future<void> requestPermissions() async {
-    await _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    await _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+    try {
+      await _plugin.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      await _plugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    } catch (_) {}
   }
 
   /// Water nudges across the day (approx times, staggered).
@@ -40,6 +51,15 @@ class NotificationService {
 
   /// Schedule configured reminders: N water nudges + meal logging prompts.
   static Future<void> scheduleAll({bool water = true, bool meal = true}) async {
+    try {
+      await _scheduleAll(water: water, meal: meal);
+    } catch (_) {}
+  }
+
+  static Future<void> _scheduleAll({
+    required bool water,
+    required bool meal,
+  }) async {
     await _plugin.cancelAll();
 
     if (water) {
@@ -93,13 +113,15 @@ class NotificationService {
     var hour = preferredHour >= 0 ? preferredHour - 1 : 9;
     if (hour < 8) hour = 8;
     if (hour >= 21) hour = 20;
-    await _scheduleOnce(
-      id: id,
-      hour: hour,
-      minute: 0,
-      title: title,
-      body: body,
-    );
+    try {
+      await _scheduleOnce(
+        id: id,
+        hour: hour,
+        minute: 0,
+        title: title,
+        body: body,
+      );
+    } catch (_) {}
   }
 
   /// Show a notification immediately.
@@ -118,12 +140,14 @@ class NotificationService {
       ),
       iOS: DarwinNotificationDetails(),
     );
-    await _plugin.show(
-      id: id,
-      title: title,
-      body: body,
-      notificationDetails: details,
-    );
+    try {
+      await _plugin.show(
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: details,
+      );
+    } catch (_) {}
   }
 
   static Future<void> _scheduleOnce({
@@ -159,7 +183,11 @@ class NotificationService {
     );
   }
 
-  static Future<void> cancelAll() => _plugin.cancelAll();
+  static Future<void> cancelAll() async {
+    try {
+      await _plugin.cancelAll();
+    } catch (_) {}
+  }
 
   /// Re-schedule with the current water+meal settings (after a change).
   static Future<void> resync({required bool water, required bool meal}) =>

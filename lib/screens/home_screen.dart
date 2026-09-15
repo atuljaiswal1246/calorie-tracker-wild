@@ -144,13 +144,22 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       _load();
     };
-    _connectivityStream = Connectivity().onConnectivityChanged;
-    _connectivityStream.listen((results) {
-      final online = results.any((r) => r != ConnectivityResult.none);
-      if (mounted && online != _isOnline) {
-        setState(() => _isOnline = online);
-      }
-    });
+    // Best-effort: if the platform connectivity stream is unavailable (a
+    // plugin failure, or a platform that doesn't implement it) the app must
+    // still work — assume online and move on rather than surfacing an error.
+    try {
+      _connectivityStream = Connectivity().onConnectivityChanged;
+      _connectivityStream.listen(
+        (results) {
+          final online = results.any((r) => r != ConnectivityResult.none);
+          if (mounted && online != _isOnline) {
+            setState(() => _isOnline = online);
+          }
+        },
+        onError: (_) {},
+      );
+    } catch (_) {}
+
     GamificationController.instance?.revision.addListener(_onGamificationChanged);
     AnalyticsService.log('experiment_exposure', {
       'experiment': ExperimentService.streakDisplay,
@@ -578,9 +587,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView(
         padding: EdgeInsets.fromLTRB(20, 20, 20, 150),
         children: [
-          _greeting(profile),
-          SizedBox(height: 14),
-          _header(),
+          _header(profile),
           if (_entries.isEmpty) ...[
             SizedBox(height: 16),
             _firstLogCard(),
@@ -684,21 +691,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Text.rich(
       TextSpan(
         style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
           color: AppColors.muted,
+          letterSpacing: -0.3,
         ),
         children: [
           TextSpan(text: '$_greetingText, '),
           TextSpan(
             text: profile.name.split(' ').first,
             style: TextStyle(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: AppColors.ink,
             ),
           ),
         ],
       ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
@@ -714,124 +724,116 @@ class _HomeScreenState extends State<HomeScreen> {
     _load();
   }
 
-  Widget _header() {
+  /// Home header: the greeting is the page title (the app name lives on the
+  /// welcome screen — repeating it here squeezed the status pills off narrow
+  /// Android phones), with the user's status pills on the right.
+  Widget _header(Profile profile) {
     return Row(
       children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: AppColors.inkButton,
-            borderRadius: BorderRadius.circular(11),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: Image.asset(
-              'assets/icons/app_icon.png',
-              width: 38,
-              height: 38,
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        SizedBox(width: 10),
-        Text(
-          'Cal Matters',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: AppColors.ink,
-            letterSpacing: -0.5,
-          ),
-        ),
-        Spacer(),
-        InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => InsightsScreen(storage: widget.storage),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: EdgeInsets.all(10),
-            constraints: BoxConstraints(minWidth: 44, minHeight: 44),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: AppColors.cardShadow,
-            ),
-            child: Icon(Icons.insights_rounded, size: 17, color: AppColors.ink),
-          ),
-        ),
+        Expanded(child: _greeting(profile)),
+        SizedBox(width: 8),
+        _insightsPill(),
         SizedBox(width: 6),
-        InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => AchievementsScreen(storage: widget.storage),
-              ),
-            );
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: AppColors.cardShadow,
-            ),
-            child: Row(
-              children: [
-                Text('🏆', style: TextStyle(fontSize: 13)),
-                SizedBox(width: 4),
-                Text(
-                  '${AchievementsService(widget.storage).unlockedCount}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        _achievementsPill(),
         SizedBox(width: 6),
-        Semantics(
-          label: '$_displayStreak day streak. Tap for details.',
-          button: true,
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              _showStreakInfo(context);
-            },
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: AppColors.cardShadow,
-              ),
-              child: Row(
-                children: [
-                  Text('🔥', style: TextStyle(fontSize: 13)),
-                  SizedBox(width: 4),
-                  Text(
-                    _streakLabel,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        _streakPill(),
       ],
+    );
+  }
+
+  Widget _insightsPill() {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => InsightsScreen(storage: widget.storage),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: EdgeInsets.all(10),
+        constraints: BoxConstraints(minWidth: 44, minHeight: 44),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Icon(Icons.insights_rounded, size: 17, color: AppColors.ink),
+      ),
+    );
+  }
+
+  Widget _achievementsPill() {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AchievementsScreen(storage: widget.storage),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Row(
+          children: [
+            Icon(Symbols.emoji_events_rounded,
+                size: 15, color: AppColors.accentOrange),
+            SizedBox(width: 4),
+            Text(
+              '${AchievementsService(widget.storage).unlockedCount}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _streakPill() {
+    return Semantics(
+      label: '$_displayStreak day streak. Tap for details.',
+      button: true,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          _showStreakInfo(context);
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: AppColors.cardShadow,
+          ),
+          child: Row(
+            children: [
+              Icon(Symbols.local_fire_department_rounded,
+                  size: 15, color: AppColors.accentOrange),
+              SizedBox(width: 4),
+              Text(
+                _streakLabel,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
