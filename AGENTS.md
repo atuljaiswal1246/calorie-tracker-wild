@@ -429,3 +429,64 @@ reads `git diff` and gates on `flutter analyze` + `flutter test`; (4) commit wit
 Rationale: shipping wireframes/placeholders (e.g. an emoji in a box) is not acceptable;
 design judgment must happen BEFORE implementation, not during it. Image generation is
 available for mocks — use it, then implement.
+
+## ✅ FINALIZED — First screen (locked 2026-09-15, do NOT touch)
+The user signed off on the first screen. **Do not change it** without an explicit new
+request. Commit `f4380c4` (preceded by `4e92a77`, `0e0b227`).
+
+`lib/screens/welcome_screen.dart`:
+- **Brand on top** (app icon + "Cal Matters" + "Track · Eat · Feel Better").
+- **Framed carousel**, capped at **≤50% of screen height** (`MediaQuery.sizeOf().height * 0.5`),
+  white 6px frame + rounded 30 + border + shadow. One unit per slide:
+  image + **its title inside the image at the bottom** (white, centred).
+- 4 slides, each with its own contextual headline + a **Try** button *below* the image
+  (centred in the gap): scan → search → activity → water. Auto-advances every 4s.
+- **Get started** (black CTA) + **Sign in** pinned at the bottom; **no scrolling**.
+- Removed (per user, do not re-add): separate 4-icon benefit row, the sub-headline
+  "Log your meals…", the footer "AI-powered · Terms · Privacy", the corner blobs,
+  and the nutrition overlay card on the hero.
+- Palette = existing theme tokens (`AppColors`), NOT a new brand system.
+
+**Assets** (Leonardo-generated, in `assets/onboarding/`): `food_scan.jpg`,
+`food_palak_paneer.jpg`, `feature_exercise.jpg`, `feature_water.jpg`,
+`avatar_male/female/other.png`, `bowl_illustration.png`, `hero_bowl.jpg`.
+
+## Try-before-you-buy demos (locked with the first screen)
+Each slide's **Try** button opens a demo (no account, no payment):
+- `lib/screens/demo/demo_scan_screen.dart` — **pure simulation**: scan beam →
+  "Analysing…" → result card slides up with a count-up + macro bars and a
+  "Demo result" badge; refresh cycles 5 sample Indian dishes. **No camera, no AI,
+  no cost** (the user explicitly chose a dummy demo over real recognition).
+- `demo_search_screen.dart` — **real** search over the offline Indian DB
+  (`assets/merged_foods.json`, 1,712 items) + animated macro breakdown.
+- `demo_exercise_screen.dart` — live dashboard (steps/ring/week bars grow); "Log a
+  demo workout" bumps today's numbers.
+- `demo_water_screen.dart` — tap droplets, glass fills, celebrates at the goal.
+- Shared shell: `demo/demo_common.dart` (`DemoBadge/Header/Cta/Card`, `MacroBar`,
+  `CountUp`, `RingStat`).
+
+## Self-verification harness (use this — do NOT claim "done" without seeing pixels)
+`test/screen_preview_test.dart` renders the real screens at 1179×2556 (iPhone class)
+with the **real Inter + MaterialIcons fonts and real image assets** and writes PNGs to
+`test/goldens/`; any RenderFlex overflow fails the test. Run:
+```sh
+flutter test --update-goldens test/screen_preview_test.dart   # regenerate
+flutter test                                                   # verify (all must pass)
+```
+Then **open the PNGs and look at them** before reporting. Notes:
+- Load the icon font from the Flutter cache:
+  `/opt/homebrew/Caskroom/flutter/<ver>/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf`.
+- Asset images only paint if `precacheImage` runs inside `tester.runAsync`.
+- Set `fontFamily: 'Inter'` in the test theme — the default test font is far wider and
+  causes false overflows.
+- Widget tests need `AuthService._auth` lazy (done) and, for the scan demo,
+  `enableCamera: false` (the demo is simulated now, so no plugin is involved).
+
+## iOS device workflow (current)
+- Build: `flutter build ios --profile`; install/launch via `xcrun devicectl` (see env
+  section). **The device must be unlocked and awake** or install/launch fails with
+  `Locked` / error 4016 / 10002.
+- Xcode 27.0: the license must be accepted (`sudo xcodebuild -license accept`), and
+  Xcode's "External Agent Access" should be set to **Always** for agent tooling.
+- User pushes commits; brain commits locally only when asked.
+
