@@ -2332,30 +2332,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 _ => '0–2 times / week',
               }),
               Divider(height: 1, color: AppColors.divider),
-              _profileRow('Daily calories', '${profile.calorieGoal} kcal'),
+              _profileRow(
+                'Daily calories',
+                '${profile.calorieGoal} kcal',
+                onTap: () => _showCalorieGoalEdit(profile),
+                trailing: Icons.edit,
+              ),
             ],
           ),
         ),
         SizedBox(height: 12),
 
-        // Edit calorie goal button
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _showCalorieGoalEdit(profile),
-            icon: Icon(Icons.edit, size: 16),
-            label: Text('Edit calorie goal'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.ink,
-              side: BorderSide(color: AppColors.divider),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              padding: EdgeInsets.symmetric(vertical: 12),
-            ),
-          ),
-        ),
-        SizedBox(height: 24),
+        SizedBox(height: 20),
 
         // BMI card
         Container(
@@ -2601,23 +2589,39 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _profileRow(String label, String value) {
-    return Padding(
+  Widget _profileRow(String label, String value,
+      {VoidCallback? onTap, IconData? trailing}) {
+    final row = Padding(
       padding: EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(fontSize: 14, color: AppColors.muted)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.ink,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              if (trailing != null) ...[
+                SizedBox(width: 6),
+                Icon(trailing, size: 13, color: AppColors.muted),
+              ],
+            ],
           ),
         ],
       ),
+    );
+    if (onTap == null) return row;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: row,
     );
   }
 

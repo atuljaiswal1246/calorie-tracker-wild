@@ -844,70 +844,63 @@ class _CaptureScreenState extends State<CaptureScreen> {
                             asset: 'assets/illustrations/scan_food.jpg',
                             size: 190,
                           ),
-                          const SizedBox(height: 20),
-                          Container(
-                            padding: EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.card,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(Icons.lightbulb_outline,
-                                    size: 16, color: AppColors.muted),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Scan ONE food at a time for the best result. '
-                                    'A thali? Scan roti, then sabzi, then the next '
-                                    'item. Vegetable curries are most accurate '
-                                    'when typed instead (see below).',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.muted,
-                                        height: 1.35),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          const SizedBox(height: 22),
+                          // One primary action, then equal secondaries — the
+                          // same pattern as Home's 'Log a meal' card.
+                          _primaryCaptureBtn(
+                            icon: Icons.photo_camera,
+                            label: 'Open camera',
+                            onTap: () => _pickImage(ImageSource.camera),
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
                               Expanded(
                                 child: _outlineBtn(
-                                    icon: Icons.photo_camera,
-                                    label: 'Camera',
-                                    onTap: () => _pickImage(ImageSource.camera)),
-                              ),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: _outlineBtn(
                                     icon: Icons.photo_library,
                                     label: 'Gallery',
-                                    onTap: () => _pickImage(ImageSource.gallery)),
+                                    onTap: () =>
+                                        _pickImage(ImageSource.gallery)),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _outlineBtn(
+                                    icon: Icons.edit_note_rounded,
+                                    label: 'Type it',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ManualEntryScreen(
+                                              storage: widget.storage),
+                                        ),
+                                      ).then((v) {
+                                        if (v == true) {
+                                          Navigator.pop(context, true);
+                                        }
+                                      });
+                                    }),
                               ),
                             ],
                           ),
-                          SizedBox(height: 12),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ManualEntryScreen(
-                                      storage: widget.storage),
+                          const SizedBox(height: 14),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.lightbulb_outline,
+                                  size: 15, color: AppColors.muted),
+                              const SizedBox(width: 7),
+                              Expanded(
+                                child: Text(
+                                  'One food at a time gives the best result — '
+                                  'a thali? Scan the roti, then the sabzi.',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.muted,
+                                      height: 1.35),
                                 ),
-                              ).then((v) {
-                                if (v == true) Navigator.pop(context, true);
-                              });
-                            },
-                            child: Text(
-                              'Type it manually (best for vegetable curries)',
-                              style: TextStyle(
-                                  fontSize: 12.5, color: AppColors.muted),
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -1149,6 +1142,47 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   ),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _primaryCaptureBtn({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+          color: AppColors.dark ? Colors.white : AppColors.inkButton,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon,
+                size: 19,
+                color: AppColors.dark
+                    ? const Color(0xFF1C1C1E)
+                    : Colors.white),
+            SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.dark
+                    ? const Color(0xFF1C1C1E)
+                    : Colors.white,
+                letterSpacing: -0.2,
+              ),
+            ),
           ],
         ),
       ),
