@@ -524,7 +524,7 @@ Process: see `AUDIT_PLAN.md` → "E2E VERIFICATION PLAN".
 ## Findings
 | ID | Severity | Area | Title | Repro | Expected | Actual | Evidence | Status |
 |----|----------|------|-------|-------|----------|--------|----------|--------|
-| E2E-001 | Major | G Security / D Data | Unguarded Firestore write throws `permission-denied` | Fresh run → log a meal (signed in) | Write succeeds or fails silently; no crash | `Unhandled Exception: [cloud_firestore/permission-denied]` in console; local save still succeeds | live log | Fixed (code guarded; `firestore.rules` added — **deploy pending**) |
+| E2E-001 | Major | G Security / D Data | Unguarded Firestore write throws `permission-denied` | Fresh run → log a meal (signed in) | Write succeeds or fails silently; no crash | `Unhandled Exception: [cloud_firestore/permission-denied]` in console; local save still succeeds | live log | Fixed — code guarded; `firestore.rules` **deployed 2026-09-15** (`firebase.json` had no `firestore` target, so the deploy had silently been impossible) |
 | E2E-002 | Minor | A Onboarding | Step 0 (name/DOB/sex) is the slowest question | Walk onboarding | Fast | 18.7 s dwell | funnel event | Fixed — year-first date picker (pending re-measure) |
 | E2E-003 | Minor | A Onboarding | Home does not funnel into the first log | Reach Home | One-tap to log | 29.2 s to first log (via AI scan) | funnel event | Fixed — first-log CTA (only shown for zero-entry users) |
 | E2E-004 | Major | D Data | Calories disagree with macros from the AI (400 vs 425 kcal) | Scan a meal | kcal ≈ 4P+4C+9F | model kcal trusted verbatim | screenshot + code review | Fixed — calories now derived (Atwater) in FoodItem; fallback when no macros |
@@ -562,6 +562,17 @@ DB-backfill quantity bug (E2E-006).
 - `integration_test` suites: not yet built
 
 ## Sign-off
-- [ ] No Blocker / Major open (E2E-001 open)
+- [x] No Blocker / Major open (E2E-001 closed 2026-09-15 — rules deployed)
 - [x] Areas A–J exercised for the onboarding→first-log path
 - [x] Evidence recorded
+
+## Status update (2026-09-15)
+- E2E-001 closed for real: `firestore.rules` deployed; the earlier "deploy pending"
+  was not an oversight — `firebase.json` lacked a `firestore` target entirely.
+- Cloud continuity added (`f97a860`): water/weight/exercise/league now mirror to
+  Firestore and restore on sign-in into empty local stores only.
+- E2E-002 (slow step 0) still not re-measured — the picker changed again since
+  (year-first, 20-year pages), so the 23.2 s after-number is stale.
+- New consequence of the rules: friends/leaderboard (`SocialService`) reads other
+  users' entries and is now denied by design — feature inert until a
+  public-aggregate design is chosen.

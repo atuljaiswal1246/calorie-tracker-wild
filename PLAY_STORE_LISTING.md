@@ -25,7 +25,6 @@ Cal Matters makes tracking calories effortless with AI-powered food recognition.
 - **Weight Tracking:** Log weight with trend visualization
 - **Weekly Insights:** See calorie trends, macro distribution, and logging streaks
 - **Achievements:** Unlock badges for consistent tracking
-- **Groups:** Share progress with friends and family
 
 **Designed for India:**
 - 1,700+ Indian foods in our database
@@ -35,7 +34,7 @@ Cal Matters makes tracking calories effortless with AI-powered food recognition.
 **Premium Experience:**
 - Clean, minimal design
 - No ads, no distractions
-- Your data stays on your device
+- Your logs are private to your account
 
 Download Cal Matters and start your health journey today.
 
@@ -44,7 +43,6 @@ Download Cal Matters and start your health journey today.
 - Barcode scanning
 - Meal plans
 - Fasting tracker
-- Groups for sharing progress
 - Weekly insights and analytics
 - Achievement badges
 - Weight and water tracking
@@ -66,4 +64,3 @@ calorie tracker, nutrition, diet, fitness, weight loss, Indian food, AI food rec
 5. Fasting tracker
 6. Weight tracking with chart
 7. Meal plans
-8. Groups/social

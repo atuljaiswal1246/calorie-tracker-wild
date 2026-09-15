@@ -85,7 +85,10 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
   OpenAI API key).
 - `services/openai_service.dart` — calls OpenAI vision (`gpt-4o-mini`), base64 image,
   JSON-schema prompt, robust JSON extraction (fenced-code + `{...}` fallback).
-- `screens/onboarding_screen.dart` — 8 questions + plan summary + pricing flow.
+- `screens/onboarding_flow.dart` — the 6 onboarding question screens + plan summary.
+- `screens/pricing_screen.dart` — the paywall (`PricingScreen`).
+- `screens/welcome_screen.dart` — first screen (carousel + Try demos).
+- `screens/auth_screen.dart` — sign-up / sign-in (Google, email; Apple parked).
 - `screens/home_screen.dart` — **REDESIGNED (2026-08-23): premium Cal-AI-style home**:
   warm-white bg (`#FAF9F7`), header w/ black app-icon + streak pill (🔥, real streak
   from entries), Sun–Sat week selector (selected=black ring, logged=green, missed=red,
@@ -322,17 +325,28 @@ celebrations; notification-tone A/B (templates tagged playful/supportive/gentle,
 chosen per user via `experiment_service.dart` with exposure logged).
 
 **Still open:** performance profiling; leagues simulate peers locally (no Cloud
-Function); no Firebase Cloud Function for daily state evaluation; the foundation
-audit fixes above are still pending.
+Function); no Firebase Cloud Function for daily state evaluation.
 
 ## Foundation audit (2026-09-14) — schedule before scale/launch
 Feature work can continue on top (the service seams are sound), but these three
 base-layer gaps are the only ones worth scheduling. Ranked, with evidence.
+Status re-checked 2026-09-15.
 
-1. **No Firestore security rules.** No `firestore.rules` anywhere in the repo —
-   cloud data (calories, weight, photos metadata) is protected only by whatever
-   console default is set. FIX: add rules (a user may read/write only their own
-   `users/{uid}/**`) and `firebase deploy --only firestore:rules`.
+1. ~~**No Firestore security rules.**~~ **CLOSED (2026-09-15).** `firestore.rules`
+   (deny-all default; a signed-in user may touch only their own `users/{uid}/**`
+   subtree) is deployed. `firebase.json` had **no `firestore` target**, so
+   `firebase deploy --only firestore:rules` could not run at all until a
+   `"firestore": { "rules": "firestore.rules" }` block was added — worth
+   remembering if the rules are ever edited again. Deployed and confirmed:
+   `✔ firestore: released rules firestore.rules to cloud.firestore`.
+   Known consequence — **resolved 2026-09-15 (user call: hide it)**: the friends /
+   leaderboard feature read **other** users' `users/{uid}/entries`, which these
+   rules deny, so it was inert. The Discover tab and the home friends-strip were
+   removed (nav is now Home · Progress · Scan · Profile; `_navIndex` 2 = profile)
+   and the "Groups" promises were dropped from `PLAY_STORE_LISTING.md`.
+   `lib/screens/discover_screen.dart` and `lib/services/social_service.dart` are
+   kept **dormant and unreferenced** — do NOT re-wire them without a real design
+   (a public weekly-total doc per user is the intended shape). Revisit after launch.
 2. ~~**Cloud writes unguarded + offline persistence off.**~~ **CLOSED
    (2026-09-15):** all Firestore writes now go through the guarded `_cloud()`
    helper (local stays the source of truth), and offline persistence was never
@@ -608,7 +622,7 @@ offered, so this belongs on the **App Store submission checklist** (Play does no
 need it). Decision: ship Play first with Google + email; add Apple during the iOS pass.
 
 ## Paywall redesign (2026-09-15) — approved variant B
-`PricingScreen` (lib/screens/onboarding_screen.dart). The old hero was a grey
+`PricingScreen` (lib/screens/pricing_screen.dart). The old hero was a grey
 `#F7F7F7` block + a fake phone mock + a **150px black gradient with a 34px
 "Cal Matters" wordmark** over it — that combination is what looked washed out
 (and it hid the mock's lower half). Replaced with:
@@ -653,8 +667,9 @@ Locked 2026-09-15 by the user ("that's it, lock it"). Commits: `3bbb413` (redesi
 `fe2f222` (compact), `f056ebe` (filler removed), `00c2a29` (back + bigger hero),
 `2ca5d16` (both plans visible), `1c83f4d` (centred dish).
 **Do not change without an explicit new request.** `PricingScreen` in
-`lib/screens/onboarding_screen.dart` (`_PaywallHero`, `_PaywallMacro`, `_BenefitRow`,
-`_PlanOptionCard`).
+`lib/screens/pricing_screen.dart` (`_PaywallHero`, `_PaywallMacro`, `_BenefitRow`,
+`_PlanOptionCard`). (Extracted out of the legacy `onboarding_screen.dart`, which was
+deleted 2026-09-15 in `92b36dd`.)
 
 Locked composition, top → bottom:
 1. **Back button** (optional `onBack`; shown when provided — the funnel returns to
