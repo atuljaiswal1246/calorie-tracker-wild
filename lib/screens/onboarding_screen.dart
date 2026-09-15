@@ -3397,7 +3397,7 @@ class _PaywallHero extends StatelessWidget {
             Image.asset(
               'assets/onboarding/food_palak_paneer.jpg',
               fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
+              alignment: Alignment.center,
               errorBuilder: (_, __, ___) => ColoredBox(
                 color: const Color(0xFFFBF3E2),
               ),
