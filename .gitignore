@@ -64,3 +64,6 @@ cloudflare_worker/.wrangler/
 # Secrets — never commit
 .env
 .env.*
+
+# Firebase CLI local cache (per-machine deploy manifest)
+.firebase/
