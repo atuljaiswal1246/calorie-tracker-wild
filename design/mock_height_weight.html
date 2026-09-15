@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cal Matters — Height & weight redesign</title>
+<style>
+  :root{
+    --bg:#FAF9F7; --cream:#FBF6EC; --ink:#1C1C1E; --muted:#6E6E73; --faint:#8A8A85;
+    --divider:#ECECE7; --orange:#FF9500; --green:#34C759; --purple:#8B5CF6; --blue:#007AFF;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif;
+    background:#0f1013;color:#fff;padding:30px 20px 60px}
+  h1{font-size:21px;font-weight:800;margin:0 0 4px}
+  .sub{color:#9aa0aa;font-size:13px;margin:0 0 22px}
+  .rail{display:flex;gap:26px;overflow-x:auto;padding-bottom:16px}
+  .label{font-size:12px;color:#c9cdd4;margin:0 0 8px;font-weight:700}
+  .phone{width:340px;height:720px;border-radius:38px;background:var(--bg);position:relative;
+    overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.4);padding:18px 20px 14px;display:flex;flex-direction:column}
+  .top{display:flex;align-items:center;gap:10px}
+  .back{width:34px;height:34px;border-radius:17px;background:rgba(28,28,30,.06);display:grid;place-items:center;font-size:15px;color:var(--ink)}
+  .bar{flex:1;height:5px;background:var(--divider);border-radius:3px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:var(--orange);width:50%}
+  .cnt{font-size:12px;font-weight:700;color:var(--muted)}
+  h2{font-size:29px;line-height:1.14;font-weight:800;color:var(--ink);text-align:center;letter-spacing:-.6px;margin:22px 0 0}
+  .lead{text-align:center;font-size:13.5px;color:var(--muted);margin:10px 0 0}
+
+  .bcard{display:flex;align-items:center;gap:14px;background:var(--card);border:1.2px solid var(--divider);
+    border-radius:18px;padding:12px 14px;margin-top:12px;box-shadow:0 6px 16px rgba(28,28,30,.05)}
+  .bcard.active{border:2px solid var(--orange);box-shadow:0 8px 22px rgba(255,149,0,.18)}
+  .ill{width:64px;height:64px;border-radius:14px;background:var(--cream);overflow:hidden;flex:0 0 auto;
+    display:grid;place-items:center}
+  .ill img{width:100%;height:100%;object-fit:cover;display:block}
+  .meta{flex:1;min-width:0}
+  .meta .k{font-size:12px;color:var(--muted);font-weight:600}
+  .meta .v{font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-.6px;line-height:1.15;margin-top:1px}
+  .units{display:flex;gap:6px;margin-top:7px}
+  .pill{font-size:11px;font-weight:700;color:var(--muted);background:#F1F0EC;border-radius:20px;padding:4px 10px}
+  .pill.on{background:var(--ink);color:#fff}
+  .chev{color:var(--faint);font-size:20px}
+
+  /* ruler strip (drag affordance) placed under the value */
+  .ruler{position:relative;height:26px;margin-top:10px;border-radius:8px;background:var(--cream);overflow:hidden}
+  .ruler .ticks{position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(28,28,30,.18) 0 1px,transparent 1px 9px)}
+  .ruler .center{position:absolute;left:50%;top:-3px;bottom:-3px;width:2.5px;background:var(--orange);transform:translateX(-50%);border-radius:2px}
+
+  .bmi{display:flex;align-items:center;gap:10px;margin-top:16px;background:var(--card);
+    border:1.2px solid var(--divider);border-radius:16px;padding:12px 14px;box-shadow:0 6px 16px rgba(28,28,30,.05)}
+  .bmi .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .bmi .t{font-size:13.5px;font-weight:800;color:var(--ink)}
+  .bmi .s{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .bmi .track{margin-left:auto;width:92px;height:6px;border-radius:4px;
+    background:linear-gradient(90deg,#7FC8F8 0 25%,var(--green) 25% 70%,var(--orange) 70% 88%,#FF6B6B 88% 100%);position:relative}
+  .bmi .mark{position:absolute;top:-3px;width:3px;height:12px;border-radius:2px;background:var(--ink);left:48%}
+
+  .cta{margin-top:auto;height:56px;border-radius:18px;background:var(--ink);color:#fff;display:flex;align-items:center;
+    justify-content:center;gap:8px;font-size:17px;font-weight:700}
+  .note{position:absolute;left:20px;right:20px;bottom:6px;text-align:center;font-size:10.5px;color:var(--faint)}
+</style>
+</head>
+<body>
+  <h1>Height &amp; weight — redesign</h1>
+  <p class="sub">Two illustrated cards with big values + inline unit toggles, a drag ruler, and a live BMI chip that reacts. Tap-only, no typing.</p>
+  <div class="rail">
+    <div>
+      <p class="label">3/6 · Height &amp; weight (proposed)</p>
+      <div class="phone">
+        <div class="top">
+          <div class="back">←</div>
+          <div class="bar"><i></i></div>
+          <div class="cnt">3/6</div>
+        </div>
+
+        <h2>Your height<br>&amp; weight</h2>
+        <div class="lead">Slide or tap — no typing needed.</div>
+
+        <div class="bcard active">
+          <div class="ill"><img src="mocks/body_height.jpg" alt=""></div>
+          <div class="meta">
+            <div class="k">Height</div>
+            <div class="v">5 ft 5 in</div>
+            <div class="units"><span class="pill on">ft / in</span><span class="pill">cm</span></div>
+            <div class="ruler"><div class="ticks"></div><div class="center"></div></div>
+          </div>
+          <div class="chev">⌄</div>
+        </div>
+
+        <div class="bcard">
+          <div class="ill"><img src="mocks/body_weight.jpg" alt=""></div>
+          <div class="meta">
+            <div class="k">Current weight</div>
+            <div class="v">70 kg</div>
+            <div class="units"><span class="pill on">kg</span><span class="pill">lbs</span></div>
+            <div class="ruler"><div class="ticks"></div><div class="center"></div></div>
+          </div>
+          <div class="chev">⌄</div>
+        </div>
+
+        <div class="bmi">
+          <div class="dot"></div>
+          <div>
+            <div class="t">BMI 24.2 · Healthy</div>
+            <div class="s">Updates as you adjust</div>
+          </div>
+          <div class="track"><div class="mark"></div></div>
+        </div>
+
+        <div class="cta">Continue →</div>
+      </div>
+    </div>
+
+    <div>
+      <p class="label">Alternative — one hero illustration, tap the chips</p>
+      <div class="phone">
+        <div class="top">
+          <div class="back">←</div>
+          <div class="bar"><i></i></div>
+          <div class="cnt">3/6</div>
+        </div>
+        <h2>Your height<br>&amp; weight</h2>
+        <div class="lead">Tap either value to adjust.</div>
+
+        <div style="margin-top:16px;border-radius:24px;overflow:hidden;position:relative;height:300px;background:var(--cream);border:1.2px solid var(--divider)">
+          <img src="mocks/body_height.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.9" alt="">
+          <div style="position:absolute;left:14px;right:14px;top:14px;background:rgba(255,255,255,.96);border-radius:16px;padding:12px 14px;display:flex;align-items:center;box-shadow:0 8px 20px rgba(28,28,30,.10)">
+            <div>
+              <div style="font-size:11.5px;color:var(--muted);font-weight:600">Height</div>
+              <div style="font-size:22px;font-weight:800;color:var(--ink)">5 ft 5 in</div>
+            </div>
+            <div style="margin-left:auto;font-size:18px;color:var(--faint)">⌄</div>
+          </div>
+          <div style="position:absolute;left:14px;right:14px;bottom:14px;background:rgba(255,255,255,.96);border-radius:16px;padding:12px 14px;display:flex;align-items:center;box-shadow:0 8px 20px rgba(28,28,30,.10)">
+            <div>
+              <div style="font-size:11.5px;color:var(--muted);font-weight:600">Current weight</div>
+              <div style="font-size:22px;font-weight:800;color:var(--ink)">70 kg</div>
+            </div>
+            <div style="margin-left:auto;font-size:18px;color:var(--faint)">⌄</div>
+          </div>
+        </div>
+
+        <div class="bmi">
+          <div class="dot"></div>
+          <div>
+            <div class="t">BMI 24.2 · Healthy</div>
+            <div class="s">Updates as you adjust</div>
+          </div>
+          <div class="track"><div class="mark"></div></div>
+        </div>
+
+        <div class="cta">Continue →</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

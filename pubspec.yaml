@@ -107,6 +107,8 @@ flutter:
     - assets/onboarding/goal_maintain.jpg
     - assets/onboarding/goal_gain.jpg
     - assets/onboarding/goal_explore.jpg
+    - assets/onboarding/body_height.jpg
+    - assets/onboarding/body_weight.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

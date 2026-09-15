@@ -316,13 +316,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   // ── heights / weights / dob ───────────────────────────────────────────
 
-  static String _formatHeight(double cm) {
-    final totalInches = (cm / 2.54).round();
-    final feet = totalInches ~/ 12;
-    final inches = totalInches % 12;
-    return '$feet ft $inches in';
-  }
-
   static String _formatDob(DateTime d) {
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -506,12 +499,14 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           totalSteps: _questionCount,
           onBack: _back,
           title: 'Your height & weight',
-          subtitle: 'Tap to adjust — no typing needed.',
+          subtitle: 'Slide or tap — no typing needed.',
           canContinue: _canContinue,
           onContinue: _next,
           child: _BodyStep(
-            heightLabel: _formatHeight(_height),
-            weightLabel: '${_weight.round()} kg',
+            heightCm: _height,
+            weightKg: _weight,
+            onHeightCm: (v) => setState(() => _height = v),
+            onWeightKg: (v) => setState(() => _weight = v),
             onHeightTap: _pickHeight,
             onWeightTap: _pickWeight,
           ),
@@ -1221,28 +1216,409 @@ class _AvatarCard extends StatelessWidget {
 
 // ── step 3 · height & weight ──────────────────────────────────────────────
 
-class _BodyStep extends StatelessWidget {
-  final String heightLabel;
-  final String weightLabel;
+class _BodyStep extends StatefulWidget {
+  final double heightCm;
+  final double weightKg;
+  final ValueChanged<double> onHeightCm;
+  final ValueChanged<double> onWeightKg;
   final VoidCallback onHeightTap;
   final VoidCallback onWeightTap;
 
   const _BodyStep({
-    required this.heightLabel,
-    required this.weightLabel,
+    required this.heightCm,
+    required this.weightKg,
+    required this.onHeightCm,
+    required this.onWeightKg,
     required this.onHeightTap,
     required this.onWeightTap,
   });
 
   @override
+  State<_BodyStep> createState() => _BodyStepState();
+}
+
+class _BodyStepState extends State<_BodyStep> {
+  bool _useFeet = true;
+  bool _useLbs = false;
+
+  String get _heightText {
+    if (_useFeet) {
+      final totalInches = (widget.heightCm / 2.54).round();
+      return '${totalInches ~/ 12} ft ${totalInches % 12} in';
+    }
+    return '${widget.heightCm.round()} cm';
+  }
+
+  String get _weightText => _useLbs
+      ? '${(widget.weightKg * 2.20462).round()} lbs'
+      : '${widget.weightKg.round()} kg';
+
+  double get _bmi {
+    final m = widget.heightCm / 100.0;
+    if (m <= 0) return 0;
+    return widget.weightKg / (m * m);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _TapField(label: 'Height', value: heightLabel, onTap: onHeightTap),
-        const SizedBox(height: 10),
-        _TapField(
-            label: 'Current weight', value: weightLabel, onTap: onWeightTap),
+        _BodyCard(
+          asset: 'assets/onboarding/body_height.jpg',
+          label: 'Height',
+          value: _heightText,
+          units: const ['ft / in', 'cm'],
+          activeUnit: _useFeet ? 0 : 1,
+          onUnit: (i) => setState(() => _useFeet = i == 0),
+          ruler: _Ruler(
+            value: widget.heightCm,
+            min: 120,
+            max: 220,
+            onChanged: widget.onHeightCm,
+          ),
+          onTap: widget.onHeightTap,
+        ),
+        const SizedBox(height: 12),
+        _BodyCard(
+          asset: 'assets/onboarding/body_weight.jpg',
+          label: 'Current weight',
+          value: _weightText,
+          units: const ['kg', 'lbs'],
+          activeUnit: _useLbs ? 1 : 0,
+          onUnit: (i) => setState(() => _useLbs = i == 1),
+          ruler: _Ruler(
+            value: widget.weightKg,
+            min: 30,
+            max: 200,
+            onChanged: widget.onWeightKg,
+          ),
+          onTap: widget.onWeightTap,
+        ),
+        const SizedBox(height: 16),
+        _BmiChip(bmi: _bmi),
       ],
+    );
+  }
+}
+
+class _BodyCard extends StatelessWidget {
+  final String asset;
+  final String label;
+  final String value;
+  final List<String> units;
+  final int activeUnit;
+  final ValueChanged<int> onUnit;
+  final Widget ruler;
+  final VoidCallback onTap;
+
+  const _BodyCard({
+    required this.asset,
+    required this.label,
+    required this.value,
+    required this.units,
+    required this.activeUnit,
+    required this.onUnit,
+    required this.ruler,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.divider, width: 1.2),
+        boxShadow: AppColors.cardShadowLight,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFBF3E2),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Image.asset(
+              asset,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.muted)),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 23,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.6,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    for (var i = 0; i < units.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          onUnit(i);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: i == activeUnit
+                                ? AppColors.ink
+                                : AppColors.chipNeutral,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            units[i],
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: i == activeUnit
+                                  ? Colors.white
+                                  : AppColors.muted,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ruler,
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 6, top: 18),
+              child: Icon(Icons.keyboard_arrow_down_rounded,
+                  size: 22, color: AppColors.faint),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A tactile ruler you drag to change the value (tap the chevron for precision).
+class _Ruler extends StatelessWidget {
+  final double value;
+  final double min;
+  final double max;
+  final ValueChanged<double> onChanged;
+
+  const _Ruler({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        // Pixels-per-unit derived from the span so the whole range maps to
+        // ~3 screens of drag; 1 unit per ~5 px feels natural.
+        const pxPerUnit = 5.0;
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onHorizontalDragUpdate: (d) {
+            final next = (value - d.delta.dx / pxPerUnit)
+                .clamp(min, max)
+                .roundToDouble();
+            if (next != value) {
+              HapticFeedback.selectionClick();
+              onChanged(next);
+            }
+          },
+          child: SizedBox(
+            height: 28,
+            width: width,
+            child: CustomPaint(
+              painter: _RulerPainter(
+                value: value,
+                min: min,
+                pxPerUnit: pxPerUnit,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _RulerPainter extends CustomPainter {
+  final double value;
+  final double min;
+  final double pxPerUnit;
+
+  _RulerPainter({
+    required this.value,
+    required this.min,
+    required this.pxPerUnit,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bg = Paint()..color = const Color(0xFFFBF3E2);
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      const Radius.circular(8),
+    );
+    canvas.drawRRect(rrect, bg);
+
+    canvas.save();
+    canvas.clipRRect(rrect);
+
+    final tick = Paint()
+      ..color = const Color(0x2E1C1C1E)
+      ..strokeWidth = 1;
+    const spacing = 9.0;
+    final phase = -((value - min) * pxPerUnit) % spacing;
+    for (var x = phase; x < size.width + spacing; x += spacing) {
+      canvas.drawLine(
+          Offset(x, size.height * 0.22), Offset(x, size.height * 0.78), tick);
+    }
+
+    // Centre indicator
+    final center = Paint()
+      ..color = AppColors.carbs
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(size.width / 2, 2),
+        Offset(size.width / 2, size.height - 2), center);
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_RulerPainter old) =>
+      old.value != value || old.min != min;
+}
+
+/// Live BMI chip — updates as height/weight change, with a position marker.
+class _BmiChip extends StatelessWidget {
+  final double bmi;
+
+  const _BmiChip({required this.bmi});
+
+  (String, Color) get _band {
+    if (bmi <= 0) return ('—', AppColors.muted);
+    if (bmi < 18.5) return ('Below range', const Color(0xFF7FC8F8));
+    if (bmi < 25) return ('Healthy', AppColors.green);
+    if (bmi < 30) return ('Above range', AppColors.carbs);
+    return ('High', const Color(0xFFFF6B6B));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (bandLabel, bandColor) = _band;
+    final marker = ((bmi - 15) / (35 - 15)).clamp(0.0, 1.0);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider, width: 1.2),
+        boxShadow: AppColors.cardShadowLight,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+            decoration:
+                BoxDecoration(color: bandColor, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'BMI ${bmi.toStringAsFixed(1)} · $bandLabel',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text('Updates as you adjust',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      TextStyle(fontSize: 11.5, color: AppColors.muted)),
+            ],
+          ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 86,
+            height: 8,
+            child: LayoutBuilder(
+              builder: (context, c) => Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF7FC8F8),
+                          AppColors.green,
+                          AppColors.carbs,
+                          Color(0xFFFF6B6B),
+                        ],
+                        stops: [0.18, 0.35, 0.70, 0.95],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: (c.maxWidth - 3) * marker,
+                    top: -3,
+                    child: Container(
+                      width: 3,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: AppColors.ink,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

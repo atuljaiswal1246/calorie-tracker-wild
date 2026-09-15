@@ -38,6 +38,8 @@ const _images = [
   'assets/onboarding/goal_maintain.jpg',
   'assets/onboarding/goal_gain.jpg',
   'assets/onboarding/goal_explore.jpg',
+  'assets/onboarding/body_height.jpg',
+  'assets/onboarding/body_weight.jpg',
   'assets/icons/app_icon.png',
 ];
 
