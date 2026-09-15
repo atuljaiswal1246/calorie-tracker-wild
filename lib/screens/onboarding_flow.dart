@@ -505,8 +505,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           child: _BodyStep(
             heightCm: _height,
             weightKg: _weight,
-            onHeightCm: (v) => setState(() => _height = v),
-            onWeightKg: (v) => setState(() => _weight = v),
+            // Silent updates: the ruler rebuilds its own subtree while
+            // dragging, so the whole screen isn't rebuilt per tick.
+            onHeightDrag: (v) => _height = v,
+            onWeightDrag: (v) => _weight = v,
             onHeightTap: _pickHeight,
             onWeightTap: _pickWeight,
           ),
@@ -1219,16 +1221,16 @@ class _AvatarCard extends StatelessWidget {
 class _BodyStep extends StatefulWidget {
   final double heightCm;
   final double weightKg;
-  final ValueChanged<double> onHeightCm;
-  final ValueChanged<double> onWeightKg;
+  final ValueChanged<double> onHeightDrag;
+  final ValueChanged<double> onWeightDrag;
   final VoidCallback onHeightTap;
   final VoidCallback onWeightTap;
 
   const _BodyStep({
     required this.heightCm,
     required this.weightKg,
-    required this.onHeightCm,
-    required this.onWeightKg,
+    required this.onHeightDrag,
+    required this.onWeightDrag,
     required this.onHeightTap,
     required this.onWeightTap,
   });
@@ -1241,22 +1243,48 @@ class _BodyStepState extends State<_BodyStep> {
   bool _useFeet = true;
   bool _useLbs = false;
 
+  // Local copies so a drag rebuilds only this subtree (not the whole flow).
+  late double _h = widget.heightCm;
+  late double _w = widget.weightKg;
+
+  @override
+  void didUpdateWidget(_BodyStep old) {
+    super.didUpdateWidget(old);
+    // Value changed from outside (wheel sheet / draft restore) — re-sync.
+    if (widget.heightCm != old.heightCm && widget.heightCm != _h) {
+      _h = widget.heightCm;
+    }
+    if (widget.weightKg != old.weightKg && widget.weightKg != _w) {
+      _w = widget.weightKg;
+    }
+  }
+
+  void _dragHeight(double v) {
+    setState(() => _h = v);
+    widget.onHeightDrag(v); // silent sync (no parent rebuild)
+  }
+
+  void _dragWeight(double v) {
+    setState(() => _w = v);
+    widget.onWeightDrag(v); // silent sync (no parent rebuild)
+  }
+
   String get _heightText {
     if (_useFeet) {
-      final totalInches = (widget.heightCm / 2.54).round();
+      final totalInches = (_h / 2.54).round();
       return '${totalInches ~/ 12} ft ${totalInches % 12} in';
     }
-    return '${widget.heightCm.round()} cm';
+    return '${_h.round()} cm';
   }
 
   String get _weightText => _useLbs
-      ? '${(widget.weightKg * 2.20462).round()} lbs'
-      : '${widget.weightKg.round()} kg';
+      ? '${(_w * 2.20462).round()} lbs'
+      : '${_w.round()} kg';
 
   double get _bmi {
-    final m = widget.heightCm / 100.0;
+    final m = _h / 100.0;
     if (m <= 0) return 0;
-    return widget.weightKg / (m * m);
+    return _w / (m * m);
   }
 
   @override
@@ -1271,10 +1299,10 @@ class _BodyStepState extends State<_BodyStep> {
           activeUnit: _useFeet ? 0 : 1,
           onUnit: (i) => setState(() => _useFeet = i == 0),
           ruler: _Ruler(
-            value: widget.heightCm,
+            value: _h,
             min: 120,
             max: 220,
-            onChanged: widget.onHeightCm,
+            onChanged: _dragHeight,
           ),
           onTap: widget.onHeightTap,
         ),
@@ -1287,10 +1315,10 @@ class _BodyStepState extends State<_BodyStep> {
           activeUnit: _useLbs ? 1 : 0,
           onUnit: (i) => setState(() => _useLbs = i == 1),
           ruler: _Ruler(
-            value: widget.weightKg,
+            value: _w,
             min: 30,
             max: 200,
-            onChanged: widget.onWeightKg,
+            onChanged: _dragWeight,
           ),
           onTap: widget.onWeightTap,
         ),
@@ -1423,7 +1451,9 @@ class _BodyCard extends StatelessWidget {
 }
 
 /// A tactile ruler you drag to change the value (tap the chevron for precision).
-class _Ruler extends StatelessWidget {
+/// Keeps a FRACTIONAL phase locally, so the ticks scroll continuously instead
+/// of snapping per unit, and reports whole values upward.
+class _Ruler extends StatefulWidget {
   final double value;
   final double min;
   final double max;
@@ -1437,32 +1467,46 @@ class _Ruler extends StatelessWidget {
   });
 
   @override
+  State<_Ruler> createState() => _RulerState();
+}
+
+class _RulerState extends State<_Ruler> {
+  static const double _pxPerUnit = 5.0;
+  late double _phase = widget.value;
+
+  @override
+  void didUpdateWidget(_Ruler old) {
+    super.didUpdateWidget(old);
+    // Jumped from elsewhere (wheel sheet): snap the phase.
+    if (widget.value != old.value && (widget.value - _phase).abs() >= 0.5) {
+      _phase = widget.value;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        // Pixels-per-unit derived from the span so the whole range maps to
-        // ~3 screens of drag; 1 unit per ~5 px feels natural.
-        const pxPerUnit = 5.0;
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onHorizontalDragUpdate: (d) {
-            final next = (value - d.delta.dx / pxPerUnit)
-                .clamp(min, max)
-                .roundToDouble();
-            if (next != value) {
+            final next =
+                (_phase - d.delta.dx / _pxPerUnit).clamp(widget.min, widget.max);
+            setState(() => _phase = next);
+            final rounded = next.roundToDouble();
+            if (rounded != widget.value) {
               HapticFeedback.selectionClick();
-              onChanged(next);
+              widget.onChanged(rounded);
             }
           },
           child: SizedBox(
             height: 28,
-            width: width,
+            width: constraints.maxWidth,
             child: CustomPaint(
               painter: _RulerPainter(
-                value: value,
-                min: min,
-                pxPerUnit: pxPerUnit,
+                value: _phase,
+                min: widget.min,
+                pxPerUnit: _pxPerUnit,
               ),
             ),
           ),
