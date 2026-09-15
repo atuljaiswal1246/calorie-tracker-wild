@@ -370,13 +370,16 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     if (v != null) setState(() => _targetWeight = v.toDouble());
   }
 
-  Map<String, String> _paceDetail(String pace) {
-    final p = _buildProfile().copyWith(pace: pace);
+  /// Live plan numbers for a given target + pace (drives the projection card
+  /// and the pace pills). Uses the LOCKED Profile maths.
+  Map<String, String> _planStats(double target, String pace) {
+    final p = _buildProfile()
+        .copyWith(targetWeightKg: target, pace: pace);
     return {
-      'time': _formatWeeks(p.weeksToGoal),
       'kcal': '${p.calorieGoal}',
+      'time': _formatWeeks(p.weeksToGoal),
       'weekly': p.weeklyChangeKg.abs().toStringAsFixed(1),
-      'totalKg': (_weight - _targetWeight).abs().toStringAsFixed(0),
+      'totalKg': (_weight - target).abs().toStringAsFixed(0),
       'floor': p.floorHit ? '1' : '0',
     };
   }
@@ -541,11 +544,14 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           canContinue: _canContinue,
           onContinue: _next,
           child: _TargetPaceStep(
-            targetLabel: '${_targetWeight.round()} kg',
+            targetWeight: _targetWeight,
+            currentWeight: _weight,
+            // Silent drag sync (no whole-screen rebuild per tick).
+            onTargetDrag: (v) => _targetWeight = v,
             onTargetTap: _pickTargetWeight,
             pace: _pace,
             onPace: (v) => setState(() => _pace = v),
-            detailFor: _paceDetail,
+            statsFor: _planStats,
             noTarget: _noTarget,
             onNoTarget: (v) => setState(() {
               _noTarget = v;
@@ -1720,92 +1726,166 @@ class _ActivityStep extends StatelessWidget {
 
 // ── step 5 · target & pace ────────────────────────────────────────────────
 
-class _TargetPaceStep extends StatelessWidget {
-  final String targetLabel;
+class _TargetPaceStep extends StatefulWidget {
+  final double targetWeight;
+  final double currentWeight;
+  final ValueChanged<double> onTargetDrag;
   final VoidCallback onTargetTap;
   final String? pace;
   final ValueChanged<String> onPace;
-  final Map<String, String> Function(String pace) detailFor;
+  final Map<String, String> Function(double target, String pace) statsFor;
   final bool noTarget;
   final ValueChanged<bool> onNoTarget;
   final bool isLose;
 
   const _TargetPaceStep({
-    required this.targetLabel,
+    required this.targetWeight,
+    required this.currentWeight,
+    required this.onTargetDrag,
     required this.onTargetTap,
     required this.pace,
     required this.onPace,
-    required this.detailFor,
+    required this.statsFor,
     required this.noTarget,
     required this.onNoTarget,
     required this.isLose,
   });
 
   @override
+  State<_TargetPaceStep> createState() => _TargetPaceStepState();
+}
+
+class _TargetPaceStepState extends State<_TargetPaceStep> {
+  static const _paces = [
+    (value: 'slow', name: 'Slow'),
+    (value: 'recommended', name: 'Moderate'),
+    (value: 'fast', name: 'Fast'),
+  ];
+
+  late double _target = widget.targetWeight;
+
+  @override
+  void didUpdateWidget(_TargetPaceStep old) {
+    super.didUpdateWidget(old);
+    if (widget.targetWeight != old.targetWeight &&
+        widget.targetWeight != _target) {
+      _target = widget.targetWeight;
+    }
+  }
+
+  void _dragTarget(double v) {
+    setState(() => _target = v);
+    widget.onTargetDrag(v); // silent sync
+  }
+
+  // Never let the ruler cross the current weight the wrong way — that would
+  // silently invalidate the "Continue" gate.
+  double get _min =>
+      widget.isLose ? 30 : (widget.currentWeight + 1).clamp(30, 200);
+  double get _max =>
+      widget.isLose ? (widget.currentWeight - 1).clamp(30, 200) : 200;
+
+  @override
   Widget build(BuildContext context) {
-    final current = pace ?? 'recommended';
-    final detail = detailFor(current);
-    final action = isLose ? 'lose' : 'gain';
-    final paces = const [
-      (value: 'slow', name: 'Slow'),
-      (value: 'recommended', name: 'Moderate'),
-      (value: 'fast', name: 'Fast'),
-    ];
+    final current = widget.pace ?? 'recommended';
+    final stats = widget.statsFor(_target, current);
 
     return Column(
       children: [
-        if (!noTarget)
-          _TapField(
-              label: 'Target weight', value: targetLabel, onTap: onTargetTap),
-        const SizedBox(height: 14),
-        if (!noTarget)
+        if (!widget.noTarget) ...[
+          _ProjectionCard(
+            stats: stats,
+            minutes: null,
+            currentWeight: widget.currentWeight,
+            targetWeight: _target,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.divider, width: 1.2),
+              boxShadow: AppColors.cardShadowLight,
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Target weight',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.muted)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_target.round()} kg',
+                          style: TextStyle(
+                            fontSize: 23,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: widget.onTargetTap,
+                      child: Icon(Icons.keyboard_arrow_down_rounded,
+                          size: 22, color: AppColors.faint),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _Ruler(
+                  value: _target,
+                  min: _min,
+                  max: _max,
+                  onChanged: _dragTarget,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
-              for (var i = 0; i < paces.length; i++) ...[
+              for (var i = 0; i < _paces.length; i++) ...[
                 if (i > 0) const SizedBox(width: 8),
                 _PacePill(
-                  title: paces[i].name,
-                  sub: '~${detailFor(paces[i].value)['weekly']} kg/wk',
-                  selected: current == paces[i].value,
-                  onTap: () => onPace(paces[i].value),
+                  title: _paces[i].name,
+                  rate: '${widget.statsFor(_target, _paces[i].value)['weekly']} kg/wk',
+                  time: widget.statsFor(_target, _paces[i].value)['time'] ?? '',
+                  selected: current == _paces[i].value,
+                  onTap: () => widget.onPace(_paces[i].value),
                 ),
               ],
             ],
           ),
-        if (!noTarget) const SizedBox(height: 12),
-        if (!noTarget)
-          Text(
-            'You\'ll $action about ${detail['totalKg']} kg in '
-            '${(detail['time'] ?? '').isEmpty ? 'a while' : detail['time']}, '
-            'eating ${detail['kcal']} kcal/day.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12.5,
-              height: 1.4,
-              fontWeight: FontWeight.w600,
-              color: AppColors.muted,
+          if (stats['floor'] == '1') ...[
+            const SizedBox(height: 10),
+            Text(
+              '${stats['kcal']} kcal/day is your safe minimum, so a faster '
+              'pace gives the same plan.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11.5,
+                height: 1.4,
+                color: AppColors.faint,
+              ),
             ),
-          ),
-        if (!noTarget && detail['floor'] == '1') ...[
-          const SizedBox(height: 6),
-          Text(
-            '${detail['kcal']} kcal/day is your safe minimum, so a faster '
-            'pace gives the same plan.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11.5,
-              height: 1.4,
-              color: AppColors.faint,
-            ),
-          ),
+          ],
         ],
         const SizedBox(height: 10),
         GestureDetector(
-          onTap: () => onNoTarget(!noTarget),
+          onTap: () => widget.onNoTarget(!widget.noTarget),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              noTarget
+              widget.noTarget
                   ? 'Set a target weight'
                   : 'I don\'t have a target, just tracking',
               textAlign: TextAlign.center,
@@ -1823,15 +1903,219 @@ class _TargetPaceStep extends StatelessWidget {
   }
 }
 
+/// The plan preview: a weight-trend curve from today to the goal, with the
+/// kcal/day, timeline and weekly rate it implies.
+class _ProjectionCard extends StatelessWidget {
+  final Map<String, String> stats;
+  final Object? minutes;
+  final double currentWeight;
+  final double targetWeight;
+
+  const _ProjectionCard({
+    required this.stats,
+    required this.minutes,
+    required this.currentWeight,
+    required this.targetWeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final time = (stats['time'] ?? '');
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.divider, width: 1.2),
+        boxShadow: AppColors.cardShadowLight,
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: const BoxDecoration(
+                    color: AppColors.green, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 8),
+              Text('Your projected progress',
+                  style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            height: 104,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 900),
+                    curve: Curves.easeOutCubic,
+                    builder: (_, t, __) => CustomPaint(
+                      painter: _TrendPainter(progress: t),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: Text('Now ${currentWeight.round()} kg',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink)),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Text('Goal ${targetWeight.round()} kg',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink)),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Container(height: 1, color: AppColors.divider),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _PlanStat(value: stats['kcal'] ?? '—', label: 'kcal / day'),
+              _PlanStat(
+                  value: time.isEmpty ? 'a while' : '~$time',
+                  label: 'to goal'),
+              _PlanStat(value: stats['weekly'] ?? '0', label: 'kg / week'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanStat extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _PlanStat({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value,
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                  letterSpacing: -0.3)),
+          const SizedBox(height: 1),
+          Text(label,
+              style: TextStyle(fontSize: 10.5, color: AppColors.muted)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Draws the projection curve (today top-left -> goal bottom-right) with a
+/// soft fill, a dashed goal line, and the two end points.
+class _TrendPainter extends CustomPainter {
+  final double progress;
+
+  _TrendPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const left = 6.0;
+    final right = size.width - 6;
+    const top = 14.0;
+    final bottom = size.height - 18;
+    final w = right - left;
+    final h = bottom - top;
+
+    final path = Path()..moveTo(left, top);
+    // A gentle S so the trend reads as a real curve, not a straight ramp.
+    path.cubicTo(left + w * 0.28, top + h * 0.18 * progress,
+        left + w * 0.66, top + h * 0.78 * progress, right, top + h * progress);
+
+    final fill = Path.from(path)
+      ..lineTo(right, bottom)
+      ..lineTo(left, bottom)
+      ..close();
+
+    canvas.drawPath(
+      fill,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.carbs.withValues(alpha: 0.22),
+            AppColors.carbs.withValues(alpha: 0.0),
+          ],
+        ).createShader(Rect.fromLTWH(left, top, w, h)),
+    );
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round
+        ..color = AppColors.carbs,
+    );
+
+    // Dashed goal line
+    final dash = Paint()
+      ..color = AppColors.divider
+      ..strokeWidth = 2;
+    for (var x = left; x < right; x += 10) {
+      canvas.drawLine(Offset(x, bottom), Offset(x + 5, bottom), dash);
+    }
+
+    // End points
+    canvas.drawCircle(
+        Offset(left, top), 5, Paint()..color = Colors.white);
+    canvas.drawCircle(
+      Offset(left, top),
+      5,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..color = AppColors.carbs,
+    );
+    canvas.drawCircle(Offset(right, top + h * progress), 5,
+        Paint()..color = AppColors.carbs);
+  }
+
+  @override
+  bool shouldRepaint(_TrendPainter old) => old.progress != progress;
+}
+
+
 class _PacePill extends StatelessWidget {
   final String title;
-  final String sub;
+  final String rate;
+  final String time;
   final bool selected;
   final VoidCallback onTap;
 
   const _PacePill({
     required this.title,
-    required this.sub,
+    required this.rate,
+    required this.time,
     required this.selected,
     required this.onTap,
   });
@@ -1843,7 +2127,7 @@ class _PacePill extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 4),
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.carbs.withValues(alpha: 0.08)
@@ -1860,14 +2144,25 @@ class _PacePill extends StatelessWidget {
                 title,
                 style: TextStyle(
                   fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
               ),
               const SizedBox(height: 3),
               Text(
-                sub,
+                rate,
+                textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 10.5, color: AppColors.muted),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                time.isEmpty ? '—' : '~$time',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
               ),
             ],
           ),

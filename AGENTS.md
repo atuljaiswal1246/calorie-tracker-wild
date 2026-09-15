@@ -430,6 +430,27 @@ Rationale: shipping wireframes/placeholders (e.g. an emoji in a box) is not acce
 design judgment must happen BEFORE implementation, not during it. Image generation is
 available for mocks — use it, then implement.
 
+## ✅ FINALIZED — Onboarding screen 4 (Activity) — LOCKED
+Locked 2026-09-15 (commit `6a98eb4`). **Do not change without an explicit new request.**
+`lib/screens/onboarding_flow.dart` (`_ActivityStep` + the shared `_IllustCard`), step
+index 3, progress **4/6**.
+
+Locked composition — four illustrated cards in a 2x2 grid (same treatment as screen 1):
+- **No workout** → sofa (*Mostly sitting*) — value `none`
+- **1–2 times a week** → walking (*Light activity*) — value `1to2`
+- **3–5 times a week** → running (*Active*) — value `3to5`
+- **6+ times a week** → dumbbells (*Very active*) — value `6plus`
+- Selected = orange border + glow + check badge. Default selection `3to5`.
+- Assets: `assets/onboarding/act_{none,1to2,3to5,6plus}.jpg`.
+
+**Math note (important):** splitting the old 0–2 bucket into `none` and `1to2` does NOT
+change the calculator — both map to the locked **1.2** multiplier via `Profile`'s default
+branch. `_workoutSummary` gained labels for both. Don't "fix" this into two multipliers.
+
+Shared component: `_IllustCard` + `_IllustData` are used by screens 1 and 4 (2x2,
+image-on-top, label + sub-line, aspect 0.82). Reuse them for any further illustrated
+option grid.
+
 ## ✅ FINALIZED — Onboarding screen 3 (Height & weight) — LOCKED
 Locked 2026-09-15 (commits `352c259`, `79b6b88`, `7231a4e`). **Do not change without an
 explicit new request.** `lib/screens/onboarding_flow.dart` (`_BodyStep`, `_BodyCard`,
