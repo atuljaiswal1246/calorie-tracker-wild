@@ -719,3 +719,28 @@ Locked composition:
 
 Rule: keep it consistent with Home (ring + macros are the app's own language);
 don't reintroduce the old dark summary card or plain label/value rows.
+
+## ✅ FINALIZED — Sign-up screen — LOCKED
+Locked 2026-09-15 (commit `78e53e7`, approved from `design/mock_signup.html` variant A).
+**Do not change without an explicit new request.** `lib/screens/auth_screen.dart`
+(`AuthScreen`, `PlanRecap`, `_RecapCard`).
+
+Locked composition (sign-up variant):
+1. **Brand mark** at the top (app icon + "Cal Matters") — anchors the screen.
+2. **"Save your plan"** + *"Create an account to keep your targets and start
+   logging."* — the account reads as saving the work they just did.
+3. **Recap card** (`PlanRecap`, cream) echoing the plan back:
+   kcal/day · your goal · workouts — filled from the live profile in
+   `onboarding_flow.dart`.
+4. **Sign up with Google** (black, white mono G) · **Continue with email**
+   (white outlined) · **Sign up with Apple** (implemented but hidden — see the
+   Apple section; blocked by Apple's paid program).
+5. **"Already have an account? Sign in"**, then
+   *"By continuing you agree to our Terms of Service and Privacy Policy."*
+6. Sign-in variant: "Welcome back" / "Sign in to continue."
+
+Rules:
+- **Never say "free"** — the app is paid; the user corrected this explicitly.
+- `test/screen_preview_test.dart` has a `signup` golden. The harness must load
+  the **FontAwesome brands** font (family `packages/font_awesome_flutter/
+  FontAwesomeBrands`) or the Google "G" renders as a box.
