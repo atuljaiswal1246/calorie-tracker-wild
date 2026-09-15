@@ -1,5 +1,3 @@
-import '../models/food_entry.dart';
-import '../models/profile.dart';
 import 'openai_service.dart';
 import 'storage_service.dart';
 

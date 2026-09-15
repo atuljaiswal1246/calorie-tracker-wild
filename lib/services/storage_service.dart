@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/body_measurement_entry.dart';

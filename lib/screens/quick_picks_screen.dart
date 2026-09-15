@@ -286,9 +286,6 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
   ];
 
   int get _calories => (widget.food.calories * _grams / 100).round();
-  double get _protein => widget.food.protein * _grams / 100;
-  double get _carbs => widget.food.carbs * _grams / 100;
-  double get _fat => widget.food.fat * _grams / 100;
 
   @override
   Widget build(BuildContext context) {

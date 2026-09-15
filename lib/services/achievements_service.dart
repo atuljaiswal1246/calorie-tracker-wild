@@ -1,4 +1,3 @@
-import '../models/exercise_entry.dart';
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
 import 'gamification_service.dart';

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -1213,7 +1214,6 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
   Widget _batchBody() {
     final total = _batchFiles.length;
-    final done = _batchResults.length + _batchFailed.length;
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -1222,7 +1222,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
         children: [
           Row(
             children: [
-              Text('📸', style: TextStyle(fontSize: 18)),
+              Icon(Symbols.burst_mode_rounded, size: 19, color: AppColors.ink),
               SizedBox(width: 8),
               Expanded(
                 child: Text(

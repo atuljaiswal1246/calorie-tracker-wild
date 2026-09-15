@@ -140,8 +140,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
   double get _totalCarbs => _displayDays.fold(0.0, (s, d) => s + _carbsForDay(d));
   double get _totalFat => _displayDays.fold(0.0, (s, d) => s + _fatForDay(d));
 
-  int get _totalDaysInPeriod => _displayDays.length;
-
   int get _passedDaysInPeriod {
     final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     return _displayDays.where((d) => !d.isAfter(today)).length;
