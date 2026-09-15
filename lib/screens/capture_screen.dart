@@ -279,8 +279,20 @@ class _CaptureScreenState extends State<CaptureScreen> {
     });
 
     try {
-      ({List<FoodItem> items, String? mealType}) result;
-      result = await OpenAIService().analyzeImage(image.path);
+      var result = await OpenAIService().analyzeImage(image.path);
+
+      // The model occasionally returns an empty verdict for a perfectly good
+      // photo, which shows the user "No food detected" and loses the log. Give
+      // it one silent second chance before saying that.
+      // Cost: one extra call ONLY when the first attempt came back empty.
+      if (result.items.isEmpty) {
+        try {
+          final retry = await OpenAIService().analyzeImage(image.path);
+          if (retry.items.isNotEmpty) result = retry;
+        } catch (_) {
+          // Keep the first (empty) result; the outer catch reports real errors.
+        }
+      }
       if (!mounted) return;
 
       // Attach database match for comparison
