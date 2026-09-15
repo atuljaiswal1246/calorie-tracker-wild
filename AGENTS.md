@@ -415,3 +415,17 @@ Recipe: (1) brain writes a precise brief with exact anchors + constraints +
 "run flutter analyze"; (2) `agent_run.sh` runs `opencode run --auto`; (3) brain
 reads `git diff` and gates on `flutter analyze` + `flutter test`; (4) commit with
 "worker-written (model), brain-verified".
+
+## WORKFLOW RULE (locked 2026-09-15) — mock first, then code
+**Never start coding a screen without an approved mock.**
+1. **Design first.** Produce a visual mock (image) of the screen — real assets, real
+   composition, no placeholders/emoji-as-art.
+2. **Show the mock** to the user.
+3. **Get explicit approval.**
+4. **Only then** write the Flutter code, matching the approved mock.
+5. If an asset is missing (photo/illustration), get it first (or ask) — do not
+   substitute a placeholder.
+
+Rationale: shipping wireframes/placeholders (e.g. an emoji in a box) is not acceptable;
+design judgment must happen BEFORE implementation, not during it. Image generation is
+available for mocks — use it, then implement.
