@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:calorie_tracker/screens/demo/demo_exercise_screen.dart';
+import 'package:calorie_tracker/screens/demo/demo_scan_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_search_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_water_screen.dart';
 import 'package:calorie_tracker/screens/onboarding_flow.dart';
@@ -114,8 +115,20 @@ void main() {
     });
   }
 
-  testWidgets('demo search', (tester) async {
+  testWidgets('demo scan', (tester) async {
     _phone(tester);
+    await tester.pumpWidget(_wrap(DemoScanScreen(onGetStarted: () {})));
+    await _precache(tester);
+    await tester.pump(const Duration(milliseconds: 200));
+    await expectLater(find.byType(DemoScanScreen),
+        matchesGoldenFile('goldens/demo_scan_scanning.png'));
+    await tester.pump(const Duration(milliseconds: 1800));
+    await tester.pump(const Duration(milliseconds: 1200));
+    await expectLater(
+        find.byType(DemoScanScreen), matchesGoldenFile('goldens/demo_scan_result.png'));
+  });
+
+  testWidgets('demo search', (tester) async {    _phone(tester);
     await tester.pumpWidget(_wrap(DemoSearchScreen(onGetStarted: () {})));
     await tester.pump(const Duration(milliseconds: 600));
     await expectLater(

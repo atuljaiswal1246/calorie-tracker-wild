@@ -1,54 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../../services/barcode_service.dart';
-import '../../services/food_search_service.dart';
 import '../../theme/app_colors.dart';
 import 'demo_common.dart';
 
-class _ScanResult {
-  final String title;
-  final String subtitle;
-  final String badge;
-  final int kcal;
-  final double protein;
-  final double carbs;
-  final double fat;
-
-  const _ScanResult({
-    required this.title,
-    required this.subtitle,
-    required this.badge,
-    required this.kcal,
-    required this.protein,
-    required this.carbs,
-    required this.fat,
-  });
-
-  factory _ScanResult.fromBarcode(BarcodeResult b) => _ScanResult(
-        title: b.name.isEmpty ? 'Scanned product' : b.name,
-        subtitle: b.brand.isEmpty ? b.servingSize : b.brand,
-        badge: 'Open Food Facts',
-        kcal: b.calories,
-        protein: b.protein,
-        carbs: b.carbs,
-        fat: b.fat,
-      );
-
-  factory _ScanResult.fromDb(FoodDBItem f) => _ScanResult(
-        title: f.name,
-        subtitle: f.nameHindi.isEmpty ? 'per 100 g' : f.nameHindi,
-        badge: 'Indian food DB',
-        kcal: f.calories,
-        protein: f.protein,
-        carbs: f.carbs,
-        fat: f.fat,
-      );
-}
-
-/// Try-before-you-buy demo: point at a barcode, or tap "try a sample" and
-/// watch a real nutrition breakdown slide up. No account needed.
+/// Try-before-you-buy demo: a simulated food scanner. It plays a camera +
+/// scan animation and then reveals a sample dish with its calorie and macro
+/// values. Purely illustrative — no camera, no account, no cost.
 class DemoScanScreen extends StatefulWidget {
   final VoidCallback onGetStarted;
 
@@ -58,90 +18,106 @@ class DemoScanScreen extends StatefulWidget {
   State<DemoScanScreen> createState() => _DemoScanScreenState();
 }
 
+enum _Phase { scanning, analyzing, done }
+
+class _ScanDish {
+  final String name;
+  final String hindi;
+  final int kcal;
+  final double protein;
+  final double carbs;
+  final double fat;
+
+  const _ScanDish(this.name, this.hindi, this.kcal, this.protein, this.carbs,
+      this.fat);
+}
+
 class _DemoScanScreenState extends State<DemoScanScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _line = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1700),
+    duration: const Duration(milliseconds: 1400),
   )..repeat(reverse: true);
 
-  MobileScannerController? _controller;
-  final Set<String> _seen = {};
-  bool _busy = false;
-  _ScanResult? _result;
+  static const _dishes = [
+    _ScanDish('Paneer Butter Masala', 'पनीर बटर मसाला', 320, 12, 14, 22),
+    _ScanDish('Palak Paneer', 'पालक पनीर', 265, 14, 9, 19),
+    _ScanDish('Masala Dosa', 'मसाला डोसा', 387, 8, 58, 13),
+    _ScanDish('Chole Bhature', 'छोले भटूरे', 650, 15, 78, 30),
+    _ScanDish('Dal Makhani', 'दाल मखनी', 380, 13, 32, 22),
+  ];
+
+  int _index = 0;
+  _Phase _phase = _Phase.scanning;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    try {
-      _controller = MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates);
-    } catch (_) {
-      _controller = null;
-    }
+    _run();
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _timer?.cancel();
     _line.dispose();
     super.dispose();
   }
 
-  Future<void> _onDetect(BarcodeCapture capture) async {
-    if (_busy || _result != null) return;
-    final code = capture.barcodes.firstOrNull?.rawValue;
-    if (code == null || !_seen.add(code)) return;
-    _busy = true;
-    final r = await BarcodeService.lookup(code);
-    if (!mounted) return;
-    _busy = false;
-    if (r.result != null) {
-      _reveal(_ScanResult.fromBarcode(r.result!));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No match for that barcode — try a sample.')),
-      );
-    }
+  void _run() {
+    setState(() => _phase = _Phase.scanning);
+    _line.repeat(reverse: true);
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 1700), () {
+      if (!mounted) return;
+      setState(() => _phase = _Phase.analyzing);
+      _line.stop();
+      _timer = Timer(const Duration(milliseconds: 1100), () {
+        if (!mounted) return;
+        HapticFeedback.mediumImpact();
+        setState(() => _phase = _Phase.done);
+      });
+    });
   }
 
-  Future<void> _trySample() async {
-    final list = await FoodSearchService.search('paneer butter masala');
-    final item = list.isNotEmpty
-        ? list.first
-        : (await FoodSearchService.search('dal')).firstOrNull;
-    if (!mounted || item == null) return;
-    _reveal(_ScanResult.fromDb(item));
-  }
-
-  void _reveal(_ScanResult r) {
-    HapticFeedback.mediumImpact();
-    setState(() => _result = r);
+  void _scanAgain() {
+    setState(() => _index = (_index + 1) % _dishes.length);
+    _run();
   }
 
   @override
   Widget build(BuildContext context) {
+    final dish = _dishes[_index];
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Positioned.fill(child: _preview()),
-          // Dim the edges so the viewfinder pops
+          // Stand-in for the camera preview — a real photo of a dish.
           Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    radius: 0.85,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.75),
-                    ],
-                  ),
+            child: Image.asset(
+              'assets/onboarding/food_palak_paneer.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const ColoredBox(
+                color: Color(0xFF17181C),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  radius: 0.9,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.78),
+                  ],
                 ),
               ),
             ),
           ),
-          Positioned.fill(child: _viewfinder()),
+          // Viewfinder + scan beam (only while scanning)
+          if (_phase == _Phase.scanning)
+            Positioned.fill(child: _viewfinder()),
           SafeArea(
             child: Column(
               children: [
@@ -168,101 +144,68 @@ class _DemoScanScreenState extends State<DemoScanScreen>
                   ),
                 ),
                 const Spacer(),
-                if (_result == null) ...[
-                  const Text('Point at a barcode',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 4),
-                  Text('or try a sample below',
-                      style: TextStyle(
-                          color: Colors.white70, fontSize: 12.5)),
-                  const SizedBox(height: 14),
-                  GestureDetector(
-                    onTap: _trySample,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 13),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.auto_awesome_rounded,
-                              size: 18, color: AppColors.carbs),
-                          const SizedBox(width: 8),
-                          Text('Try a sample scan',
-                              style: TextStyle(
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.ink)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                ] else
-                  const SizedBox(height: 20),
+                if (_phase != _Phase.done) _status(dish),
+                if (_phase == _Phase.done)
+                  _ResultCard(
+                    dish: dish,
+                    onScanAgain: _scanAgain,
+                    onGetStarted: widget.onGetStarted,
+                  )
+                else
+                  const SizedBox(height: 32),
               ],
             ),
-          ),
-          // Result card slides up
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 420),
-            curve: Curves.easeOutCubic,
-            left: 0,
-            right: 0,
-            bottom: _result == null ? -420 : 0,
-            child: _result == null
-                ? const SizedBox.shrink()
-                : _ResultCard(
-                    result: _result!,
-                    onClose: () => setState(() => _result = null),
-                    onGetStarted: widget.onGetStarted,
-                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _preview() {
-    final c = _controller;
-    if (c == null) return _fallback();
-    return MobileScanner(
-      controller: c,
-      onDetect: _onDetect,
-      errorBuilder: (_, __, ___) => _fallback(),
-      placeholderBuilder: (_, __) => _fallback(),
-    );
-  }
-
-  Widget _fallback() => const DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF20242B), Color(0xFF101216)],
+  Widget _status(_ScanDish dish) {
+    final scanning = _phase == _Phase.scanning;
+    return Column(
+      children: [
+        if (!scanning)
+          SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: AppColors.carbs,
+            ),
+          ),
+        if (!scanning) const SizedBox(height: 14),
+        Text(
+          scanning ? 'Point at your plate' : 'Analysing "${dish.name}"…',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
           ),
         ),
-      );
+        const SizedBox(height: 6),
+        Text(
+          scanning ? 'Hold steady — detecting your food' : 'Matching Indian foods',
+          style: const TextStyle(color: Colors.white70, fontSize: 12.5),
+        ),
+        const SizedBox(height: 34),
+      ],
+    );
+  }
 
   Widget _viewfinder() {
     return IgnorePointer(
       child: Center(
         child: SizedBox(
-          width: 220,
-          height: 220,
+          width: 230,
+          height: 230,
           child: Stack(
             children: [
               DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.35),
+                      color: Colors.white.withValues(alpha: 0.4),
                       width: 1.5),
                 ),
               ),
@@ -279,7 +222,7 @@ class _DemoScanScreenState extends State<DemoScanScreen>
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.carbs.withValues(alpha: 0.8),
-                          blurRadius: 14,
+                          blurRadius: 16,
                         ),
                       ],
                     ),
@@ -295,23 +238,24 @@ class _DemoScanScreenState extends State<DemoScanScreen>
 }
 
 class _ResultCard extends StatelessWidget {
-  final _ScanResult result;
-  final VoidCallback onClose;
+  final _ScanDish dish;
+  final VoidCallback onScanAgain;
   final VoidCallback onGetStarted;
 
   const _ResultCard({
-    required this.result,
-    required this.onClose,
+    required this.dish,
+    required this.onScanAgain,
     required this.onGetStarted,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       decoration: BoxDecoration(
         color: AppColors.bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.4),
@@ -343,7 +287,7 @@ class _ResultCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(result.title,
+                      Text(dish.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -354,7 +298,7 @@ class _ResultCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Text(result.subtitle,
+                          Text(dish.hindi,
                               style: TextStyle(
                                   fontSize: 12.5, color: AppColors.muted)),
                           const SizedBox(width: 8),
@@ -365,7 +309,7 @@ class _ResultCard extends StatelessWidget {
                               color: AppColors.green.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(result.badge,
+                            child: Text('Demo result',
                                 style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
@@ -377,9 +321,17 @@ class _ResultCard extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: onClose,
-                  child: Icon(Icons.close_rounded,
-                      size: 20, color: AppColors.faint),
+                  onTap: onScanAgain,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.chipNeutral,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.refresh_rounded,
+                        size: 19, color: AppColors.ink),
+                  ),
                 ),
               ],
             ),
@@ -387,7 +339,7 @@ class _ResultCard extends StatelessWidget {
             Row(
               children: [
                 RingStat(
-                  pct: (result.kcal / 600).clamp(0, 1),
+                  pct: (dish.kcal / 600).clamp(0, 1),
                   color: AppColors.green,
                   size: 92,
                   stroke: 8,
@@ -395,7 +347,7 @@ class _ResultCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CountUp(
-                        value: result.kcal,
+                        value: dish.kcal,
                         style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
@@ -413,18 +365,18 @@ class _ResultCard extends StatelessWidget {
                     children: [
                       MacroBar(
                           label: 'Protein',
-                          value: '${result.protein.toStringAsFixed(0)}g',
-                          pct: result.protein / 40,
+                          value: '${dish.protein.toStringAsFixed(0)}g',
+                          pct: dish.protein / 40,
                           color: AppColors.green),
                       MacroBar(
                           label: 'Carbs',
-                          value: '${result.carbs.toStringAsFixed(0)}g',
-                          pct: result.carbs / 80,
+                          value: '${dish.carbs.toStringAsFixed(0)}g',
+                          pct: dish.carbs / 80,
                           color: AppColors.carbs),
                       MacroBar(
                           label: 'Fats',
-                          value: '${result.fat.toStringAsFixed(0)}g',
-                          pct: result.fat / 40,
+                          value: '${dish.fat.toStringAsFixed(0)}g',
+                          pct: dish.fat / 40,
                           color: const Color(0xFF8B5CF6)),
                     ],
                   ),
