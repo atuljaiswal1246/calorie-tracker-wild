@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:calorie_tracker/screens/demo/demo_exercise_screen.dart';
+import 'package:calorie_tracker/screens/demo/demo_search_screen.dart';
+import 'package:calorie_tracker/screens/demo/demo_water_screen.dart';
 import 'package:calorie_tracker/screens/onboarding_flow.dart';
 import 'package:calorie_tracker/screens/welcome_screen.dart';
 import 'package:calorie_tracker/services/auth_service.dart';
@@ -28,6 +31,8 @@ const _images = [
   'assets/onboarding/feature_macros.jpg',
   'assets/onboarding/feature_exercise.jpg',
   'assets/onboarding/feature_water.jpg',
+  'assets/onboarding/food_palak_paneer.jpg',
+  'assets/onboarding/food_scan.jpg',
   'assets/icons/app_icon.png',
 ];
 
@@ -108,4 +113,28 @@ void main() {
           matchesGoldenFile('goldens/onboarding_$step.png'));
     });
   }
+
+  testWidgets('demo search', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(_wrap(DemoSearchScreen(onGetStarted: () {})));
+    await tester.pump(const Duration(milliseconds: 600));
+    await expectLater(
+        find.byType(DemoSearchScreen), matchesGoldenFile('goldens/demo_search.png'));
+  });
+
+  testWidgets('demo exercise', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(_wrap(DemoExerciseScreen(onGetStarted: () {})));
+    await tester.pump(const Duration(milliseconds: 1200));
+    await expectLater(find.byType(DemoExerciseScreen),
+        matchesGoldenFile('goldens/demo_exercise.png'));
+  });
+
+  testWidgets('demo water', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(_wrap(DemoWaterScreen(onGetStarted: () {})));
+    await tester.pump(const Duration(milliseconds: 800));
+    await expectLater(
+        find.byType(DemoWaterScreen), matchesGoldenFile('goldens/demo_water.png'));
+  });
 }

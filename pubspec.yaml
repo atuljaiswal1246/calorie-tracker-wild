@@ -101,6 +101,8 @@ flutter:
     - assets/onboarding/feature_macros.jpg
     - assets/onboarding/feature_exercise.jpg
     - assets/onboarding/feature_water.jpg
+    - assets/onboarding/food_palak_paneer.jpg
+    - assets/onboarding/food_scan.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
