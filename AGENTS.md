@@ -430,6 +430,29 @@ Rationale: shipping wireframes/placeholders (e.g. an emoji in a box) is not acce
 design judgment must happen BEFORE implementation, not during it. Image generation is
 available for mocks — use it, then implement.
 
+## ✅ FINALIZED — Onboarding screen 3 (Height & weight) — LOCKED
+Locked 2026-09-15 (commits `352c259`, `79b6b88`, `7231a4e`). **Do not change without an
+explicit new request.** `lib/screens/onboarding_flow.dart` (`_BodyStep`, `_BodyCard`,
+`_Ruler`, `_BmiChip`), step index 2, progress **3/6**.
+
+Locked composition (Option A — approved from `design/mock_height_weight.html`):
+- Two illustrated cards (`assets/onboarding/body_height.jpg` ruler,
+  `body_weight.jpg` scale) with **big values** + inline unit pills
+  (**ft/in ⇄ cm**, **kg ⇄ lbs**) + a **drag ruler** (36 px tall, ticks scroll under
+  the orange centre line) and a chevron that opens the precise wheel sheet.
+- **Live BMI chip** below: value + band (`Below range / Healthy / Above range / High`),
+  colour dot and a marker on a gradient track. Neutral wording on purpose (Play
+  policy — no medical claims); maths uses only the entered height/weight.
+- Sub-copy: "Slide or tap — no typing needed."
+
+**Drag must stay smooth (do not regress):**
+- The drag updates ONLY the body-step subtree; the flow value is synced with a
+  *silent* callback (`onHeightDrag/onWeightDrag` — no `setState` on the flow), else
+  the whole onboarding screen rebuilds per tick and janks.
+- `_Ruler` keeps a **fractional phase** so ticks scroll continuously; only whole
+  values are reported upward. Haptics fire per unit.
+- `test/body_step_test.dart` covers the unit pills and the drag — keep it green.
+
 ## ✅ FINALIZED — Onboarding screen 2 (You / "First things first.") — LOCKED
 Locked 2026-09-15 by the user (commit `ccbbaa0`). **Do not change without an explicit
 new request.** Implemented in `lib/screens/onboarding_flow.dart` (`_YouStep`), step index 1,

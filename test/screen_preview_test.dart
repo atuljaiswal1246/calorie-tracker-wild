@@ -40,6 +40,10 @@ const _images = [
   'assets/onboarding/goal_explore.jpg',
   'assets/onboarding/body_height.jpg',
   'assets/onboarding/body_weight.jpg',
+  'assets/onboarding/act_none.jpg',
+  'assets/onboarding/act_1to2.jpg',
+  'assets/onboarding/act_3to5.jpg',
+  'assets/onboarding/act_6plus.jpg',
   'assets/icons/app_icon.png',
 ];
 

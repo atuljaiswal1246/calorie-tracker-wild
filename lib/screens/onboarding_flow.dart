@@ -397,6 +397,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   }
 
   static String _workoutSummary(String? v) => switch (v) {
+        'none' => 'No workout',
+        '1to2' => '1–2× / week',
         '0to2' => '0–2× / week',
         '3to5' => '3–5× / week',
         '6plus' => '6+× / week',
@@ -807,13 +809,6 @@ class _Doodle extends StatelessWidget {
 
 // ── step 1 · goal ─────────────────────────────────────────────────────────
 
-class _Choice {
-  final IconData icon;
-  final String label;
-  final String value;
-  const _Choice(this.icon, this.label, this.value);
-}
-
 class _GoalStep extends StatelessWidget {
   final String? selected;
   final ValueChanged<String> onSelect;
@@ -821,25 +816,25 @@ class _GoalStep extends StatelessWidget {
   const _GoalStep({required this.selected, required this.onSelect});
 
   static const _choices = [
-    _GoalChoice(
+    _IllustData(
       asset: 'assets/onboarding/goal_lose.jpg',
       label: 'Lose weight',
       sub: 'Burn more than you eat',
       value: 'lose',
     ),
-    _GoalChoice(
+    _IllustData(
       asset: 'assets/onboarding/goal_maintain.jpg',
       label: 'Maintain weight',
       sub: 'Stay right where you are',
       value: 'maintain',
     ),
-    _GoalChoice(
+    _IllustData(
       asset: 'assets/onboarding/goal_gain.jpg',
       label: 'Gain weight',
       sub: 'Eat more, build up',
       value: 'gain',
     ),
-    _GoalChoice(
+    _IllustData(
       asset: 'assets/onboarding/goal_explore.jpg',
       label: 'Just exploring',
       sub: 'See what the app can do',
@@ -858,7 +853,7 @@ class _GoalStep extends StatelessWidget {
       childAspectRatio: 0.82,
       children: [
         for (final c in _choices)
-          _GoalCard(
+          _IllustCard(
             choice: c,
             selected: selected == c.value,
             onTap: () => onSelect(c.value),
@@ -868,12 +863,12 @@ class _GoalStep extends StatelessWidget {
   }
 }
 
-class _GoalChoice {
+class _IllustData {
   final String asset;
   final String label;
   final String sub;
   final String value;
-  const _GoalChoice({
+  const _IllustData({
     required this.asset,
     required this.label,
     required this.sub,
@@ -881,14 +876,14 @@ class _GoalChoice {
   });
 }
 
-/// Illustrated goal card — image on top, label + outcome line below, with the
-/// same orange selected treatment as the gender cards.
-class _GoalCard extends StatelessWidget {
-  final _GoalChoice choice;
+/// Illustrated option card — image on top, label + sub-line below, with the
+/// orange selected treatment (used by both the goal and activity screens).
+class _IllustCard extends StatelessWidget {
+  final _IllustData choice;
   final bool selected;
   final VoidCallback onTap;
 
-  const _GoalCard({
+  const _IllustCard({
     required this.choice,
     required this.selected,
     required this.onTap,
@@ -944,7 +939,7 @@ class _GoalCard extends StatelessWidget {
                     children: [
                       Text(
                         choice.label,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14.5,
@@ -1676,24 +1671,47 @@ class _ActivityStep extends StatelessWidget {
   const _ActivityStep({required this.selected, required this.onSelect});
 
   static const _choices = [
-    _Choice(Icons.weekend_outlined, '0–2 times a week', '0to2'),
-    _Choice(Icons.directions_walk_rounded, '3–5 times a week', '3to5'),
-    _Choice(Icons.directions_run_rounded, '6+ times a week', '6plus'),
+    _IllustData(
+      asset: 'assets/onboarding/act_none.jpg',
+      label: 'No workout',
+      sub: 'Mostly sitting',
+      value: 'none',
+    ),
+    _IllustData(
+      asset: 'assets/onboarding/act_1to2.jpg',
+      label: '1–2 times a week',
+      sub: 'Light activity',
+      value: '1to2',
+    ),
+    _IllustData(
+      asset: 'assets/onboarding/act_3to5.jpg',
+      label: '3–5 times a week',
+      sub: 'Active',
+      value: '3to5',
+    ),
+    _IllustData(
+      asset: 'assets/onboarding/act_6plus.jpg',
+      label: '6+ times a week',
+      sub: 'Very active',
+      value: '6plus',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 0.82,
       children: [
         for (final c in _choices)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _OptionCard(
-              icon: c.icon,
-              label: c.label,
-              selected: selected == c.value,
-              onTap: () => onSelect(c.value),
-            ),
+          _IllustCard(
+            choice: c,
+            selected: selected == c.value,
+            onTap: () => onSelect(c.value),
           ),
       ],
     );
@@ -1860,83 +1878,6 @@ class _PacePill extends StatelessWidget {
 }
 
 // ── shared option / field widgets ─────────────────────────────────────────
-
-class _OptionCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _OptionCard({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        onTap();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.carbs.withValues(alpha: 0.08)
-              : AppColors.card,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: selected ? AppColors.carbs : AppColors.divider,
-            width: 1.5,
-          ),
-          boxShadow: AppColors.cardShadowLight,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: selected ? AppColors.carbs : AppColors.chipNeutral,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                size: 20,
-                color: selected ? Colors.white : AppColors.muted,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.ink,
-                ),
-              ),
-            ),
-            if (selected)
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: AppColors.carbs,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check, size: 14, color: Colors.white),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _TapField extends StatelessWidget {
   final IconData? icon;
