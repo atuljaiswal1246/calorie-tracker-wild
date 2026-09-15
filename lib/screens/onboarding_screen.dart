@@ -3158,7 +3158,7 @@ class PricingScreenState extends State<PricingScreen> {
                           // Yearly (default selected)
                           _PlanOptionCard(
                             selected: _yearly,
-                            badge: 'BEST VALUE · SAVE $_savingsPercent%',
+                            badge: 'SAVE $_savingsPercent%',
                             left: 'Annual',
                             right: _inr(_yearlyPrice),
                             period: '/ year',
@@ -3166,7 +3166,7 @@ class PricingScreenState extends State<PricingScreen> {
                                 '≈ ${_inr((_yearlyPrice / 12).round())}/month · 3 days free',
                             onTap: () => setState(() => _yearly = true),
                           ),
-                          SizedBox(height: 14),
+                          SizedBox(height: 10),
                           // Monthly
                           _PlanOptionCard(
                             selected: !_yearly,
@@ -3187,6 +3187,24 @@ class PricingScreenState extends State<PricingScreen> {
                                   fontSize: 11.5, color: AppColors.faint),
                             ),
                           ],
+                          SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.lock_outline,
+                                  size: 13, color: AppColors.faint),
+                              SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  Platform.isIOS
+                                      ? 'Secure payment via the App Store · Cancel anytime'
+                                      : 'Secure payment via Google Play · Cancel anytime',
+                                  style: TextStyle(
+                                      fontSize: 11.5, color: AppColors.faint),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -3401,13 +3419,14 @@ class _PaywallHero extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
       child: SizedBox(
-        height: 208,
+        height: 196,
         child: Stack(
           fit: StackFit.expand,
           children: [
             Image.asset(
               'assets/onboarding/food_palak_paneer.jpg',
               fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
               errorBuilder: (_, __, ___) => ColoredBox(
                 color: const Color(0xFFFBF3E2),
               ),
@@ -3457,9 +3476,14 @@ class _PaywallHero extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 7),
-                    _PaywallBar('Protein', '14g', 0.42, AppColors.green),
-                    _PaywallBar('Carbs', '9g', 0.28, AppColors.carbs),
-                    _PaywallBar('Fats', '19g', 0.52, const Color(0xFF8B5CF6)),
+                    Row(
+                      children: [
+                        _PaywallMacro(AppColors.green, 'Protein', '14g'),
+                        _PaywallMacro(AppColors.carbs, 'Carbs', '9g'),
+                        _PaywallMacro(
+                            const Color(0xFF8B5CF6), 'Fats', '19g'),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -3471,49 +3495,35 @@ class _PaywallHero extends StatelessWidget {
   }
 }
 
-class _PaywallBar extends StatelessWidget {
+/// Compact macro chip (dot · label · grams) — keeps the hero card short so
+/// most of the dish stays visible.
+class _PaywallMacro extends StatelessWidget {
+  final Color color;
   final String label;
   final String value;
-  final double pct;
-  final Color color;
 
-  _PaywallBar(this.label, this.value, this.pct, this.color);
+  _PaywallMacro(this.color, this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: 4),
+    return Expanded(
       child: Row(
         children: [
-          SizedBox(
-            width: 44,
-            child: Text(label,
-                style: TextStyle(fontSize: 10, color: AppColors.muted)),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: pct),
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.easeOutCubic,
-                builder: (_, v, __) => LinearProgressIndicator(
-                  value: v,
-                  minHeight: 6,
-                  backgroundColor: color.withValues(alpha: 0.16),
-                  color: color,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 8),
-          SizedBox(
-            width: 30,
+          SizedBox(width: 5),
+          Text(label,
+              style: TextStyle(fontSize: 10, color: AppColors.muted)),
+          SizedBox(width: 3),
+          Flexible(
             child: Text(value,
-                textAlign: TextAlign.right,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.ink)),
           ),
         ],
@@ -3583,7 +3593,7 @@ class _PlanOptionCard extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: Duration(milliseconds: 150),
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -3595,33 +3605,31 @@ class _PlanOptionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (badge != null) ...[
-              Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(badge!,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600)),
-              ),
-              SizedBox(height: 10),
-            ],
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(left,
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black)),
-                ),
-                SizedBox(width: 12),
+                Text(left,
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black)),
+                if (badge != null) ...[
+                  SizedBox(width: 8),
+                  Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(badge!,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3)),
+                  ),
+                ],
+                Spacer(),
                 Text.rich(
                   TextSpan(
                     text: right,
@@ -3660,10 +3668,10 @@ class _PlanOptionCard extends StatelessWidget {
               ],
             ),
             if (sub != null) ...[
-              SizedBox(height: 6),
+              SizedBox(height: 4),
               Text(sub!,
                   style: TextStyle(
-                      fontSize: 12, color: Colors.black54)),
+                      fontSize: 11.5, color: Colors.black54)),
             ],
           ],
         ),
