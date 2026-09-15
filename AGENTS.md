@@ -569,7 +569,39 @@ Each slide's **Try** button opens a demo (no account, no payment):
 - Shared shell: `demo/demo_common.dart` (`DemoBadge/Header/Cta/Card`, `MacroBar`,
   `CountUp`, `RingStat`).
 
-## Self-verification harness (use this — do NOT claim "done" without seeing pixels)
+## Main-screen golden harness (2026-09-16) — the eyes for non-locked screens
+`test/app_screens_preview_test.dart` renders the **real** Home (all tabs),
+Progress, Profile, first-run Home/Progress, dark mode, and Insights, History,
+Achievements, the gamification hub, Shop, League, Settings, Quick picks, manual
+entry and Capture — at iPhone **and** Android widths, with real Inter /
+MaterialIcons / **MaterialSymbols** / Apple-emoji fonts, real asset images,
+seeded entries/water/weight and the gamification controller live. Any
+RenderFlex overflow fails the test.
+```sh
+flutter test --update-goldens test/app_screens_preview_test.dart   # regenerate
+flutter test                                                       # verify
+```
+Then open `test/goldens/app_*.png` and look. Notes learned the hard way:
+- The golden PNGs are 3× (e.g. 1179×12600 for a "tall" full-page capture);
+  crop with PIL before eyeballing details — low-res whole-page views lie
+  (several "bugs" I thought I saw were just downscaling).
+- Material Symbols are a **package font**: register them as
+  `packages/material_symbols_icons/MaterialSymbolsRounded`, and **await** the
+  `FontLoader.load()` futures or the icons render as tofu squares.
+- Mirror `main.dart`'s theme exactly (family on **every** textTheme entry):
+  a bare `DropdownButton.style` otherwise falls back to the test font and
+  renders text as solid black boxes — that is a harness artefact, not a bug.
+- Plugins must be stubbed (`connectivity_plus` method + event channels) and
+  `AuthService` subclassed (`_FakeAuth`) — the screens must tolerate their
+  absence; that tolerance is part of what the harness asserts.
+
+**Illustration family (2026-09-16):** `assets/illustrations/*.jpg` are
+Leonardo-generated flat art (cream/sage/coral, matched to `assets/onboarding/`),
+512px JPEG, used via `widgets/empty_illustration.dart` for empty states. The
+Leonardo key is NOT in the repo; the helper lives in the session temp dir and
+**must call the API with `curl`** (urllib gets a Cloudflare 403).
+
+
 `test/screen_preview_test.dart` renders the real screens at 1179×2556 (iPhone class)
 with the **real Inter + MaterialIcons fonts and real image assets** and writes PNGs to
 `test/goldens/`; any RenderFlex overflow fails the test. Run:

@@ -240,7 +240,14 @@ List<FoodEntry> _entries() {
   ];
 }
 
-Future<SharedPreferences> _seed({bool withEntries = true}) async {  SharedPreferences.setMockInitialValues({
+Future<SharedPreferences> _seed({bool withEntries = true}) async {
+  // Pin today's quest board: the real one is regenerated from a random pool,
+  // which made the Home goldens differ on every run.
+  final now = DateTime.now();
+  final dayKey = '${now.year.toString().padLeft(4, '0')}-'
+      '${now.month.toString().padLeft(2, '0')}-'
+      '${now.day.toString().padLeft(2, '0')}';
+  SharedPreferences.setMockInitialValues({
     'user_profile': jsonEncode(_profile().toJson()),
     // Treat the harness user as a paying subscriber so Home renders its
     // real content instead of the trial-ended gate.
@@ -251,6 +258,15 @@ Future<SharedPreferences> _seed({bool withEntries = true}) async {  SharedPrefer
     'water_entries': jsonEncode([
       {'date': DateTime.now().toIso8601String(), 'ml': 1200}
     ]),
+    'daily_quests': jsonEncode({
+      'day': dayKey,
+      'previousIds': <String>[],
+      'quests': [
+        {'id': 'water_goal', 'current': 0, 'completed': false, 'claimed': false},
+        {'id': 'photo_scan', 'current': 0, 'completed': false, 'claimed': false},
+        {'id': 'all_three_meals', 'current': 0, 'completed': false, 'claimed': false},
+      ],
+    }),
   });
   final prefs = await SharedPreferences.getInstance();
   return prefs;
