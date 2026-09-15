@@ -430,8 +430,37 @@ Rationale: shipping wireframes/placeholders (e.g. an emoji in a box) is not acce
 design judgment must happen BEFORE implementation, not during it. Image generation is
 available for mocks — use it, then implement.
 
-## ✅ FINALIZED — First screen (locked 2026-09-15, do NOT touch)
-The user signed off on the first screen. **Do not change it** without an explicit new
+## ✅ FINALIZED — Onboarding screen 2 (You / "First things first.") — LOCKED
+Locked 2026-09-15 by the user (commit `ccbbaa0`). **Do not change without an explicit
+new request.** Implemented in `lib/screens/onboarding_flow.dart` (`_YouStep`), step index 1,
+progress **2/6**.
+
+Locked composition:
+- Doodle "///" + left-aligned "First things first." + sub-copy.
+- **Name** field (person icon), **Date of birth** tap-field (calendar icon + chevron).
+- **Male / Female / Other** avatar cards (Leonardo art in `assets/onboarding/avatar_*.png`);
+  selected = orange border + check badge.
+- "Better choices. Healthier you." + `bowl_illustration.png` on the right.
+- Black **Continue** (disabled until name + DOB + sex are set).
+- Screen fits without scrolling.
+
+**DOB picker (locked behaviour)** — `lib/widgets/date_picker_3step.dart`, 3 steps
+year → month → day, opened via `showDatePicker3Step`:
+- Year step shows **20 years per screen, 4 per row** (starts **1990–2009**), with
+  ‹ › chevrons that page by 20 years, clamped to first/last year.
+- The sheet **hugs its content** (grid is `shrinkWrap` inside a `Flexible`); the day
+  step still scrolls. Never let it sit at 72% with empty space again.
+- Do NOT go back to a single long year grid, and do NOT drop to 10-per-screen
+  (user found it too small).
+
+Accepted as-is by the user (do NOT "fix" unprompted): the "Other" avatar reads feminine,
+there is generous empty space below the illustration, and the bowl illustration carries
+its own cream background block.
+
+> NOTE: onboarding **screen 1 (Goal, 1/6) is NOT locked** — the user intends to
+> rework it. Don't assume it's frozen.
+
+## ✅ FINALIZED — First screen (locked 2026-09-15, do NOT touch)The user signed off on the first screen. **Do not change it** without an explicit new
 request. Commit `f4380c4` (preceded by `4e92a77`, `0e0b227`).
 
 `lib/screens/welcome_screen.dart`:
