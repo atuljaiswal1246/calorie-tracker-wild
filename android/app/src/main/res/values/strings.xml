@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cal Matters</string>
+    <string name="widget_description">Calories left today, this week at a glance, and a one-tap shortcut to log your meal.</string>
+</resources>

@@ -8,7 +8,10 @@ import '../theme/app_colors.dart';
 
 /// Weekly league leaderboard (plan §4.6). Ranked by Cal Points earned Mon–Sun.
 class LeagueScreen extends StatefulWidget {
-  const LeagueScreen({super.key});
+  /// [now] is only for tests — the countdown is otherwise clock-dependent and
+  /// would make the golden flaky.
+  final DateTime? now;
+  const LeagueScreen({super.key, this.now});
 
   @override
   State<LeagueScreen> createState() => _LeagueScreenState();
@@ -52,7 +55,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
   }
 
   String _countdown() {
-    final now = DateTime.now();
+    final now = widget.now ?? DateTime.now();
     final end = DateTime(
       now.year,
       now.month,

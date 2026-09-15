@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -81,6 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _stepsToday = 0;
   StepsSource _stepsSource = StepsSource.manual;
   StreamSubscription<int>? _activitySub;
+  StreamSubscription<Uri?>? _widgetSub;
   bool _enablingSteps = false;
 
   GamificationController? get _gami => GamificationController.instance;
@@ -161,6 +163,21 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {}
 
     GamificationController.instance?.revision.addListener(_onGamificationChanged);
+    // The home-screen widget opens the app straight into logging a meal.
+    try {
+      _widgetSub = HomeWidget.widgetClicked.listen(
+        (uri) {
+          if (mounted && uri != null) _openLogFromWidget();
+        },
+        onError: (_) {}, // plugin unavailable — never break Home for it
+      );
+    } catch (_) {}
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final uri = await HomeWidget.initiallyLaunchedFromHomeWidget();
+        if (mounted && uri != null) _openLogFromWidget();
+      } catch (_) {}
+    });
     AnalyticsService.log('experiment_exposure', {
       'experiment': ExperimentService.streakDisplay,
       'variant': ExperimentService.streakDisplayVariant(),
@@ -189,6 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
     GamificationController.instance?.revision
         .removeListener(_onGamificationChanged);
     _activitySub?.cancel();
+    _widgetSub?.cancel();
     _activity.dispose();
     _billing?.dispose();
     _weekScrollController.dispose();
@@ -325,6 +343,18 @@ class _HomeScreenState extends State<HomeScreen> {
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   // ---- Actions ----
+
+  /// Straight into the log surface — the widget's promise is one tap.
+  void _openLogFromWidget() {
+    if (!mounted) return;
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+          builder: (_) => CaptureScreen(storage: widget.storage),
+        ))
+        .then((saved) {
+      if (saved == true) _load();
+    });
+  }
 
   Future<void> _openCapture() async {
     final source = await showModalBottomSheet<ImageSource>(

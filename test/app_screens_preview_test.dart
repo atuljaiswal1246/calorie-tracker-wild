@@ -314,6 +314,15 @@ void _mockPlugins() {
     const EventChannel('dev.fluttercommunity.plus/connectivity_status'),
     MockStreamHandler.inline(onListen: (args, sink) => sink.success(['wifi'])),
   );
+  // home_widget powers the home-screen widget; absent in tests.
+  messenger.setMockMethodCallHandler(
+    const MethodChannel('home_widget'),
+    (call) async => null,
+  );
+  messenger.setMockStreamHandler(
+    const EventChannel('home_widget/updates'),
+    MockStreamHandler.inline(onListen: (args, sink) {}),
+  );
 }
 
 void main() {
@@ -444,7 +453,7 @@ void main() {
       'achievements': AchievementsScreen(storage: storage),
       'hub': const GamificationHubScreen(),
       'shop': const ShopScreen(),
-      'league': const LeagueScreen(),
+      'league': LeagueScreen(now: DateTime(2026, 9, 16, 12)),
       'settings': SettingsScreen(
         storage: storage,
         onResetGoals: () {},
