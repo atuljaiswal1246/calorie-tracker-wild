@@ -42,24 +42,28 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     (
       asset: 'assets/onboarding/food_scan.jpg',
       title: 'Scan any food.\nKnow your calories.',
+      demoLabel: 'Try the food scanner',
       icon: Icons.qr_code_scanner_rounded,
       color: AppColors.green,
     ),
     (
       asset: 'assets/onboarding/food_palak_paneer.jpg',
       title: 'See your energy\nand macros clearly.',
+      demoLabel: 'Try food search',
       icon: Icons.donut_large_rounded,
       color: AppColors.carbs,
     ),
     (
       asset: 'assets/onboarding/feature_exercise.jpg',
       title: 'Log your workouts.\nStay consistent.',
+      demoLabel: 'Try activity tracking',
       icon: Icons.fitness_center_rounded,
       color: Color(0xFF8B5CF6),
     ),
     (
       asset: 'assets/onboarding/feature_water.jpg',
       title: 'Stay hydrated.\nFeel your best.',
+      demoLabel: 'Try the water tracker',
       icon: Icons.water_drop_rounded,
       color: AppColors.water,
     ),
@@ -138,6 +142,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 Expanded(
                   child: Column(
                     children: [
+                      const Spacer(),
+                      // Demo launcher — below the image, using the space
+                      _TryButton(
+                        label: _slides[_slide].demoLabel,
+                        icon: _slides[_slide].icon,
+                        color: _slides[_slide].color,
+                        onTap: () => _openDemo(_slide),
+                      ),
                       const Spacer(),
                       _SpringButton(
                           label: 'Get started', onTap: _start, arrow: true),
@@ -223,42 +235,30 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
             ),
-            // One unit: title inside the image + its demo icon
+            // Title inside the image, at the bottom
             Positioned(
-              left: 16,
-              right: 16,
-              bottom: 16,
+              left: 18,
+              right: 18,
+              bottom: 18,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 260),
-                child: Row(
+                child: Text(
+                  _slides[_slide].title,
                   key: ValueKey(_slide),
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _slides[_slide].title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          height: 1.15,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 23,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 10,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    _DemoIconButton(
-                      icon: _slides[_slide].icon,
-                      color: _slides[_slide].color,
-                      onTap: () => _openDemo(_slide),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -307,13 +307,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 }
 
-/// The demo launcher shown on each slide — a tappable icon with a "Try" hint.
-class _DemoIconButton extends StatelessWidget {
+/// The demo launcher shown below the image — a clear secondary button.
+class _TryButton extends StatelessWidget {
+  final String label;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
-  const _DemoIconButton({
+  const _TryButton({
+    required this.label,
     required this.icon,
     required this.color,
     required this.onTap,
@@ -323,41 +325,40 @@ class _DemoIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+      child: Container(
+        height: 58,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: color.withValues(alpha: 0.45), width: 1.5),
+          boxShadow: AppColors.cardShadowLight,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Icon(icon, size: 18, color: color),
             ),
-            child: Icon(icon, size: 23, color: color),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'Try',
-            style: TextStyle(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 6,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+            Icon(Icons.play_circle_fill_rounded, size: 24, color: color),
+          ],
+        ),
       ),
     );
   }
