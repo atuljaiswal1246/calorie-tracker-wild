@@ -385,6 +385,21 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     };
   }
 
+  /// Short goal phrase for the sign-up recap card.
+  String _goalShort() {
+    final diff = (_weight - _targetWeight).abs().toStringAsFixed(0);
+    switch (_goal) {
+      case 'gain':
+        return 'Gain $diff kg';
+      case 'maintain':
+        return 'Maintain';
+      case 'exploring':
+        return 'Exploring';
+      default:
+        return 'Lose $diff kg';
+    }
+  }
+
   String _goalSummary() {
     final diff = (_weight - _targetWeight).abs().toStringAsFixed(0);
     final time = _formatWeeks(_buildProfile().weeksToGoal);
@@ -439,6 +454,11 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       return AuthScreen(
         auth: widget.auth,
         isSignUp: true,
+        recap: PlanRecap(
+          kcal: '${_buildProfile().calorieGoal}',
+          goal: _goalShort(),
+          workouts: _workoutSummary(_workoutFreq).replaceAll(' / week', ''),
+        ),
         onAuthenticated: () async {
           final uid = widget.auth.currentUser?.uid;
           if (uid != null) widget.storage.setUserId(uid);

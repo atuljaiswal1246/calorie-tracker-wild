@@ -2,16 +2,32 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../config/features.dart';
 import '../services/auth_service.dart';
 import '../services/funnel.dart';
 
 enum _AuthMode { signIn, signUp }
+
+/// The plan the guest just built, shown back to them on the sign-up screen so
+/// the account feels like it is *saving their work* rather than a toll gate.
+class PlanRecap {
+  final String kcal;
+  final String goal;
+  final String workouts;
+
+  const PlanRecap({
+    required this.kcal,
+    required this.goal,
+    required this.workouts,
+  });
+}
 
 class AuthScreen extends StatefulWidget {
   final AuthService auth;
   final VoidCallback onAuthenticated;
   final VoidCallback onBack;
   final bool isSignUp;
+  final PlanRecap? recap;
 
   AuthScreen({
     super.key,
@@ -19,6 +35,7 @@ class AuthScreen extends StatefulWidget {
     required this.onAuthenticated,
     required this.onBack,
     this.isSignUp = false,
+    this.recap,
   });
 
   @override
@@ -159,6 +176,15 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  /// Dormant until [Features.appleSignIn] is enabled (needs the Apple
+  /// developer Service ID + client secret and a sign_in_with_apple dependency).
+  Future<void> _signInWithApple() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sign in with Apple is coming soon.')),
+    );
+  }
+
   void _toggleMode() {
     setState(() {
       _mode = _mode == _AuthMode.signIn
@@ -193,11 +219,40 @@ class _AuthScreenState extends State<AuthScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Brand mark, so the screen belongs to the app they just
+                  // spent six steps in.
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(11),
+                        child: Image.asset(
+                          'assets/icons/app_icon.png',
+                          width: 38,
+                          height: 38,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(Icons.eco_rounded,
+                              size: 32, color: Colors.black),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Cal Matters',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 26),
                   Text(
-                    isSignUp ? 'Sign up' : 'Sign in',
+                    isSignUp ? 'Save your plan' : 'Welcome back',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 38,
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
                       letterSpacing: -0.5,
@@ -206,13 +261,19 @@ class _AuthScreenState extends State<AuthScreen> {
                   SizedBox(height: 8),
                   Text(
                     isSignUp
-                        ? 'Track your meals and reach your goals.'
-                        : 'Welcome back, sign in to continue.',
+                        ? 'Create an account to keep your targets and start logging.'
+                        : 'Sign in to continue.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 15, color: Colors.black54),
+                        fontSize: 14.5,
+                        height: 1.4,
+                        color: Colors.black54),
                   ),
-                  SizedBox(height: 32),
+                  if (isSignUp && widget.recap != null) ...[
+                    SizedBox(height: 20),
+                    _RecapCard(recap: widget.recap!),
+                  ],
+                  SizedBox(height: 28),
                   if (!_showEmailForm) ...[
                     // Primary: Google (black fill, white logo + text)
                     SizedBox(
@@ -236,6 +297,30 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                     ),
+                    if (Features.appleSignIn) ...[
+                      SizedBox(height: 14),
+                      SizedBox(
+                        height: 54,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: _loading ? null : _signInWithApple,
+                          icon: FaIcon(FontAwesomeIcons.apple, size: 23),
+                          label: Text(
+                            isSignUp
+                                ? 'Sign up with Apple'
+                                : 'Sign in with Apple',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
                     SizedBox(height: 14),
                     // Secondary: Continue with email (white fill)
                     SizedBox(
@@ -403,6 +488,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 18),
+                  Text(
+                    'By continuing you agree to our Terms of Service and '
+                    'Privacy Policy.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 11, height: 1.5, color: Colors.black38),
+                  ),
                 ],
               ),
             ),
@@ -418,4 +511,67 @@ class _GoogleIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return FaIcon(FontAwesomeIcons.google, size: 20, color: Colors.white);
   }
+}
+
+/// The guest's plan, echoed back on the sign-up screen.
+class _RecapCard extends StatelessWidget {
+  final PlanRecap recap;
+
+  const _RecapCard({required this.recap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFBF3E2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF0E4CD), width: 1.2),
+      ),
+      child: Row(
+        children: [
+          _cell(recap.kcal, 'kcal / day'),
+          _divider(),
+          _cell(recap.goal, 'your goal'),
+          _divider(),
+          _cell(recap.workouts, 'workouts / week'),
+        ],
+      ),
+    );
+  }
+
+  Widget _cell(String value, String label) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+              letterSpacing: -0.2,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 10.5, color: Colors.black54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider() => Container(
+        width: 1,
+        height: 30,
+        color: Colors.black.withValues(alpha: 0.08),
+      );
 }

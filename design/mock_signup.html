@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cal Matters — Sign up redesign</title>
+<style>
+  :root{
+    --bg:#FAF9F7; --cream:#FBF6EC; --ink:#1C1C1E; --muted:#6E6E73; --faint:#8A8A85;
+    --divider:#ECECE7; --orange:#FF9500; --green:#34C759; --purple:#8B5CF6;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif;
+    background:#0f1013;color:#fff;padding:30px 20px 60px}
+  h1{font-size:21px;font-weight:800;margin:0 0 4px}
+  .sub{color:#9aa0aa;font-size:13px;margin:0 0 22px}
+  .rail{display:flex;gap:26px;overflow-x:auto;padding-bottom:16px}
+  .label{font-size:12px;color:#c9cdd4;margin:0 0 8px;font-weight:700}
+  .phone{width:340px;height:730px;border-radius:38px;background:var(--bg);position:relative;
+    overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.4);padding:16px 20px 14px;display:flex;flex-direction:column}
+  .back{width:36px;height:36px;border-radius:18px;display:grid;place-items:center;font-size:19px;color:var(--ink)}
+  .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:34px}
+  .brand img{width:38px;height:38px;border-radius:11px}
+  .brand .nm{font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+  h2{font-size:29px;font-weight:800;color:var(--ink);text-align:center;letter-spacing:-.6px;margin:26px 0 0}
+  .lead{text-align:center;font-size:13.5px;color:var(--muted);line-height:1.4;margin:10px 24px 0}
+
+  .recap{background:var(--cream);border:1.2px solid #F0E4CD;border-radius:16px;padding:12px 10px;margin-top:18px;display:flex}
+  .rc{flex:1;text-align:center}
+  .rc .v{font-size:14.5px;font-weight:800;color:var(--ink)}
+  .rc .k{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .rc + .rc{border-left:1px solid rgba(28,28,30,.08)}
+
+  .btns{margin-top:18px}
+  .btn{height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;
+    font-size:16.5px;font-weight:700;margin-top:10px}
+  .btn.dark{background:var(--ink);color:#fff}
+  .btn.light{background:var(--card);color:var(--ink);border:1.4px solid var(--divider)}
+  .btn.apple{background:var(--ink);color:#fff}
+  .gicon{width:20px;height:20px;border-radius:10px;background:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;color:#1C1C1E}
+  .aicon{font-size:18px;line-height:1}
+
+  .signin{text-align:center;font-size:13px;color:var(--muted);margin-top:16px}
+  .signin b{color:var(--ink);text-decoration:underline}
+  .legal{text-align:center;font-size:11px;color:var(--faint);margin-top:auto;line-height:1.5}
+  .legal u{color:var(--muted)}
+</style>
+</head>
+<body>
+  <h1>Sign up — redesign</h1>
+  <p class="sub">Reframes the screen as "save the plan you just built", fills the dead space with what's at stake, adds Apple (App Store 4.8) and the legal line.</p>
+  <div class="rail">
+
+    <!-- A: recommended -->
+    <div>
+      <p class="label">A · Save-your-plan (recommended)</p>
+      <div class="phone">
+        <div class="back">←</div>
+
+        <div class="brand">
+          <img src="../assets/icons/app_icon.png" alt="">
+          <span class="nm">Cal Matters</span>
+        </div>
+        <h2>Save your plan</h2>
+        <div class="lead">Create an account to keep your targets and start logging.</div>
+
+        <div class="recap">
+          <div class="rc"><div class="v">1,817</div><div class="k">kcal / day</div></div>
+          <div class="rc"><div class="v">Lose 5 kg</div><div class="k">~2 months</div></div>
+          <div class="rc"><div class="v">3–5×</div><div class="k">workouts / week</div></div>
+        </div>
+
+        <div class="btns">
+          <div class="btn dark"><span class="gicon">G</span> Sign up with Google</div>
+          <div class="btn apple"><svg class="aicon" width="23" height="23" viewBox="0 0 24 24" fill="#fff" style="transform:translateY(-1px)"><path d="M17.05 12.54c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.97 1.47 2.05 2.52 2.01 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.99 2.44-1.96.77-1.12 1.09-2.21 1.11-2.27-.02-.01-2.13-.82-2.15-3.17z"/><path d="M15.34 6.19c.55-.67.92-1.6.82-2.53-.79.03-1.75.53-2.32 1.19-.51.59-.96 1.54-.84 2.45.88.07 1.79-.45 2.34-1.11z"/></svg> Sign up with Apple</div>
+          <div class="btn light"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1C1E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7.5l8.5 5.5 8.5-5.5"/></svg>&nbsp; Continue with email</div>
+        </div>
+
+        <div class="signin">Already have an account? <b>Sign in</b></div>
+        <div class="legal">By continuing you agree to our<br><u>Terms of Service</u> and <u>Privacy Policy</u></div>
+      </div>
+    </div>
+
+    <!-- B: lighter -->
+    <div>
+      <p class="label">B · Lighter (no recap card)</p>
+      <div class="phone">
+        <div class="back">←</div>
+
+        <div class="brand">
+          <img src="../assets/icons/app_icon.png" alt="">
+          <span class="nm">Cal Matters</span>
+        </div>
+        <h2>Save your plan</h2>
+        <div class="lead">Create an account to keep your targets and start logging.</div>
+
+        <div class="btns" style="margin-top:26px">
+          <div class="btn dark"><span class="gicon">G</span> Sign up with Google</div>
+          <div class="btn apple"><svg class="aicon" width="23" height="23" viewBox="0 0 24 24" fill="#fff" style="transform:translateY(-1px)"><path d="M17.05 12.54c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1.01 7.99.67.97 1.47 2.05 2.52 2.01 1.01-.04 1.39-.65 2.61-.65 1.22 0 1.56.65 2.63.63 1.09-.02 1.78-.99 2.44-1.96.77-1.12 1.09-2.21 1.11-2.27-.02-.01-2.13-.82-2.15-3.17z"/><path d="M15.34 6.19c.55-.67.92-1.6.82-2.53-.79.03-1.75.53-2.32 1.19-.51.59-.96 1.54-.84 2.45.88.07 1.79-.45 2.34-1.11z"/></svg> Sign up with Apple</div>
+          <div class="btn light"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1C1E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7.5l8.5 5.5 8.5-5.5"/></svg>&nbsp; Continue with email</div>
+        </div>
+
+        <div class="signin">Already have an account? <b>Sign in</b></div>
+        <div class="legal">By continuing you agree to our<br><u>Terms of Service</u> and <u>Privacy Policy</u></div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

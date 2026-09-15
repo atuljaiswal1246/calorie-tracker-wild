@@ -8,4 +8,10 @@ class Features {
   /// In-app Asha AI chat + her hooks (quest, points, shop voices). Parked while
   /// the core food-logging loop is perfected; the weekly summary is unaffected.
   static const bool asha = false;
+
+  /// "Sign in with Apple" button. Design is approved (see
+  /// design/mock_signup.html); it is hidden until wired, because Apple needs a
+  /// Service ID + client secret configured in the Apple developer account.
+  /// Required on the App Store (guideline 4.8) once Google sign-in is offered.
+  static const bool appleSignIn = false;
 }

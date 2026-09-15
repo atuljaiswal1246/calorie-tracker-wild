@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:calorie_tracker/screens/auth_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_exercise_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_scan_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_search_screen.dart';
@@ -47,13 +48,19 @@ const _images = [
   'assets/icons/app_icon.png',
 ];
 
+const _faBrands =
+    '/Users/neharohilla/.pub-cache/hosted/pub.dev/font_awesome_flutter-11.0.0/lib/fonts/Font-Awesome-7-Brands-Regular-400.otf';
+
 Future<void> _loadFonts() async {
   final inter = FontLoader('Inter')
     ..addFont(rootBundle.load('assets/fonts/Inter.ttf'));
   final icons = FontLoader('MaterialIcons');
-  final bytes = await File(_materialIcons).readAsBytes();
-  icons.addFont(Future.value(ByteData.view(bytes.buffer)));
-  await Future.wait([inter.load(), icons.load()]);
+  icons.addFont(Future.value(
+      ByteData.view((await File(_materialIcons).readAsBytes()).buffer)));
+  final brands = FontLoader('packages/font_awesome_flutter/FontAwesomeBrands');
+  brands.addFont(Future.value(
+      ByteData.view((await File(_faBrands).readAsBytes()).buffer)));
+  await Future.wait([inter.load(), icons.load(), brands.load()]);
 }
 
 Widget _wrap(Widget child) => MaterialApp(
@@ -142,6 +149,21 @@ void main() {
     await tester.pump(const Duration(milliseconds: 450));
     await expectLater(
         find.byType(MaterialApp), matchesGoldenFile('goldens/dob_picker.png'));
+  });
+
+  testWidgets('signup', (tester) async {
+    _phone(tester);
+    await tester.pumpWidget(_wrap(AuthScreen(
+      auth: AuthService(),
+      isSignUp: true,
+      recap: const PlanRecap(
+          kcal: '1945', goal: 'Lose 5 kg', workouts: '3–5×'),
+      onAuthenticated: () {},
+      onBack: () {},
+    )));
+    await _precache(tester);
+    await expectLater(
+        find.byType(AuthScreen), matchesGoldenFile('goldens/signup.png'));
   });
 
   testWidgets('demo scan', (tester) async {
