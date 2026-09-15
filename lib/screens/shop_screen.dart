@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../models/shop.dart';
 import '../services/gamification_controller.dart';
@@ -102,7 +103,8 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
       child: Row(
         children: [
-          Text('🪙', style: TextStyle(fontSize: 26)),
+          Icon(Symbols.monetization_on_rounded,
+              size: 28, color: AppColors.gold),
           SizedBox(width: 12),
           // Expanded: the subtitle used to run under the freezes chip and
           // overflow the row on 360dp phones.
@@ -130,7 +132,10 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
           ),
           SizedBox(width: 10),
-          Text('❄️ ${gami.freezes}',
+          Icon(Symbols.ac_unit_rounded,
+              size: 15, color: AppColors.water),
+          SizedBox(width: 4),
+          Text('${gami.freezes}',
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -139,6 +144,24 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
     );
   }
+
+  /// Catalogue icons are drawn as Material Symbols rather than the emoji the
+  /// catalogue stores, so the shop matches the rest of the app.
+  IconData _itemIcon(ShopItem item) => switch (item.id) {
+        'streak_freeze' => Symbols.ac_unit_rounded,
+        'double_points' => Symbols.auto_awesome_rounded,
+        'frame_bronze' || 'frame_silver' || 'frame_gold' ||
+        'frame_seasonal' =>
+          Symbols.workspace_premium_rounded,
+        'theme_midnight' => Symbols.dark_mode_rounded,
+        'theme_forest' => Symbols.forest_rounded,
+        'asha_coach' => Symbols.psychology_rounded,
+        'asha_friend' => Symbols.chat_bubble_rounded,
+        'meal_plan_week' => Symbols.restaurant_menu_rounded,
+        'macro_targets' => Symbols.tune_rounded,
+        'badge_slot' => Symbols.military_tech_rounded,
+        _ => Symbols.redeem_rounded,
+      };
 
   List<Widget> _section(
       String title, ShopItemType type, GamificationController gami) {
@@ -173,7 +196,8 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
       child: Row(
         children: [
-          Text(item.emoji, style: TextStyle(fontSize: 24)),
+          Icon(_itemIcon(item),
+              size: 26, color: AppColors.ink),
           SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -228,9 +252,18 @@ class _ShopScreenState extends State<ShopScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text('🪙 ${item.cost}',
-                  style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w700)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Symbols.monetization_on_rounded,
+                      size: 14,
+                      color: affordable ? Colors.white : AppColors.muted),
+                  SizedBox(width: 4),
+                  Text('${item.cost}',
+                      style: TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w700)),
+                ],
+              ),
             ),
         ],
       ),
