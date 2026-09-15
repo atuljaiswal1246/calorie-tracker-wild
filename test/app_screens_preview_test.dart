@@ -204,7 +204,7 @@ List<FoodEntry> _entries() {
       id: 'e1',
       dateTime: at(0, 8, 30),
       mealType: 'breakfast',
-      imagePath: 'assets/onboarding/food_palak_paneer.jpg',
+      imagePath: '',
       items: [
         _item('Poha', 270, 5, 48, 6),
         _item('Masala Chai', 90, 2, 12, 3),
@@ -214,7 +214,7 @@ List<FoodEntry> _entries() {
       id: 'e2',
       dateTime: at(0, 13, 15),
       mealType: 'lunch',
-      imagePath: 'assets/onboarding/food_palak_paneer.jpg',
+      imagePath: '',
       items: [
         _item('Palak Paneer', 265, 14, 9, 19),
         _item('Roti', 104, 3, 20, 2),
