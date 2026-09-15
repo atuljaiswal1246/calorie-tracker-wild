@@ -26,7 +26,6 @@ import '../services/funnel.dart';
 import '../services/gamification_controller.dart';
 import '../services/notification_coordinator.dart';
 import '../services/notification_service.dart';
-import '../services/social_service.dart';
 import '../services/storage_service.dart';
 import '../services/widget_service.dart';
 import '../services/weekly_summary_service.dart';
@@ -37,7 +36,6 @@ import 'barcode_scanner_screen.dart';
 import 'gamification_hub_screen.dart';
 import 'insights_screen.dart';
 import 'capture_screen.dart';
-import 'discover_screen.dart';
 import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
@@ -72,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _waterMl = 0;
   int _waterGoalMl = 2500;
   DateTime _selected = DateTime.now();
-  int _navIndex = 0; // 0 home, 1 progress, 2 groups, 3 profile
+  int _navIndex = 0; // 0 home, 1 progress, 2 profile
   late final ScrollController _weekScrollController;
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
@@ -83,7 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _stepsToday = 0;
   StepsSource _stepsSource = StepsSource.manual;
   StreamSubscription<int>? _activitySub;
-  late Future<List<({String uid, String name, int kcal})>> _boardFuture;
   bool _enablingSteps = false;
 
   GamificationController? get _gami => GamificationController.instance;
@@ -195,7 +192,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _waterMl = widget.storage.waterMlForDay(DateTime.now());
     _waterGoalMl = widget.storage.waterGoalMl;
     _profilePhotoPath = widget.storage.photoPath;
-    _boardFuture = SocialService(widget.storage).weeklyLeaderboard();
     setState(() {});
     WidgetService.push(widget.storage);
   }
@@ -473,8 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Positioned.fill(
               child: switch (_navIndex) {
                 1 => _progressPage(),
-                2 => _groupsPage(),
-                3 => _profilePage(profile),
+                2 => _profilePage(profile),
                 _ => _homePage(profile),
               },
             ),
@@ -667,8 +662,6 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 22),
           _whatsCooking(),
           SizedBox(height: 22),
-          _friendsStrip(),
-          SizedBox(height: 14),
           _bodyStrip(),
           SizedBox(height: 14),
           _weeklyTeaser(),
@@ -1897,61 +1890,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'snack';
   }
 
-  /// Friends strip — who's leading this week, one tap to Discover.
-  Widget _friendsStrip() {
-    return FutureBuilder<List<({String uid, String name, int kcal})>>(
-      future: _boardFuture,
-      builder: (context, snapshot) {
-        final board =
-            snapshot.data ?? <({String uid, String name, int kcal})>[(uid: '', name: 'You', kcal: _calories(_selected))];
-        final top = board.take(3).toList();
-        final lead = top.isEmpty ? '' : top.first.name;
-        final leadKcal = top.isEmpty ? 0 : top.first.kcal;
-        return InkWell(
-          onTap: () => setState(() => _navIndex = 2),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: AppColors.cardShadow,
-            ),
-            child: Row(
-              children: [
-                Text('🫶', style: TextStyle(fontSize: 15)),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _navIndex == 0
-                        ? '$lead ${lead == 'You' ? 'lead' : 'leads'} with $leadKcal kcal — want in?'
-                        : 'Friends → Discover',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ),
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  SizedBox(
-                    width: 13,
-                    height: 13,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1.8,
-                      color: AppColors.muted,
-                    ),
-                  ),
-                Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   /// Body story — weight/waist trendline nudge.
   Widget _bodyStrip() {
     final weights = widget.storage.weightEntries;
@@ -2290,8 +2228,6 @@ class _HomeScreenState extends State<HomeScreen> {
   // ================= Placeholder tabs =================
 
   Widget _progressPage() => ProgressScreen(storage: widget.storage);
-
-  Widget _groupsPage() => DiscoverScreen(storage: widget.storage);
 
   Widget _profilePage(Profile profile) {
     final bmi = profile.weightKg / ((profile.heightCm / 100) * (profile.heightCm / 100));

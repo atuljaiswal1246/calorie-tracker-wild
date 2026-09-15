@@ -77,21 +77,12 @@ class FloatingNav extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: _NavItem(
-              index: 2,
-              icon: Icons.explore,
-              label: 'Discover',
-              active: currentIndex == 2,
-              onTap: () => onTap(2),
-            ),
-          ),
-          Expanded(
             child: _NavAvatar(
-              index: 3,
-              active: currentIndex == 3,
+              index: 2,
+              active: currentIndex == 2,
               initials: avatarInitials,
               photoPath: avatarPhotoPath,
-              onTap: () => onTap(3),
+              onTap: () => onTap(2),
             ),
           ),
         ],
