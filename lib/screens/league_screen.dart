@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../models/league.dart';
 import '../services/gamification_controller.dart';
@@ -106,7 +107,8 @@ class _LeagueScreenState extends State<LeagueScreen> {
       ),
       child: Column(
         children: [
-          Text(tier.emoji, style: TextStyle(fontSize: 32)),
+          Icon(Symbols.eco_rounded,
+              size: 34, color: AppColors.green),
           SizedBox(height: 6),
           Text(
             '${tier.name} League',
@@ -125,11 +127,13 @@ class _LeagueScreenState extends State<LeagueScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _pill('Top ${tier.promote}', 'promote', AppColors.green),
-              _pill('${state.weeklyPoints}', 'your points', AppColors.ink),
+              // label first, then the value — 'Top 20' is a threshold, not a
+              // score, so it must not read like the points number next to it.
+              _pill('Top ${tier.promote}', 'Promote', AppColors.green),
+              _pill('${state.weeklyPoints}', 'Your points', AppColors.ink),
               _pill(
                 'Bottom ${tier.demote}',
-                'demote',
+                'Demote',
                 tier.demote == 0 ? AppColors.faint : AppColors.missedRed,
               ),
             ],
@@ -143,6 +147,17 @@ class _LeagueScreenState extends State<LeagueScreen> {
     return Column(
       children: [
         Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.muted,
+          ),
+        ),
+        SizedBox(height: 2),
+        Text(
           value,
           style: TextStyle(
             fontSize: 15,
@@ -150,7 +165,6 @@ class _LeagueScreenState extends State<LeagueScreen> {
             color: color,
           ),
         ),
-        Text(label, style: TextStyle(fontSize: 10, color: AppColors.muted)),
       ],
     );
   }
@@ -161,9 +175,9 @@ class _LeagueScreenState extends State<LeagueScreen> {
         ? AppColors.green
         : (result == 'demote' ? AppColors.missedRed : AppColors.muted);
     final text = result == 'promote'
-        ? 'You were promoted to ${LeagueService.tierFor(state.tier).name}! 🎉'
+        ? 'You were promoted to ${LeagueService.tierFor(state.tier).name}!'
         : (result == 'demote'
-              ? "You'll bounce back — a fresh week starts now 💪"
+              ? "You'll bounce back — a fresh week starts now."
               : 'Last week you finished #${state.lastPosition}.');
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
