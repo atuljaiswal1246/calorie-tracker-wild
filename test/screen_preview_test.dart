@@ -115,6 +115,25 @@ void main() {
     });
   }
 
+  testWidgets('dob picker', (tester) async {
+    _phone(tester);
+    final prefs = await SharedPreferences.getInstance();
+    final storage = StorageService(prefs);
+    await tester.pumpWidget(_wrap(OnboardingFlow(
+      storage: storage,
+      auth: AuthService(),
+      onComplete: () {},
+      onBack: () {},
+      startAtStep: 1,
+    )));
+    await _precache(tester);
+    await tester.tap(find.text('Date of birth'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 450));
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/dob_picker.png'));
+  });
+
   testWidgets('demo scan', (tester) async {
     _phone(tester);
     await tester.pumpWidget(_wrap(DemoScanScreen(onGetStarted: () {})));
