@@ -1838,20 +1838,28 @@ class _HomeScreenState extends State<HomeScreen> {
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.inkButton,
+          // Inverted in dark mode: the grey inkButton loses the primary
+          // action against a dark card.
+          color: AppColors.dark ? Colors.white : AppColors.inkButton,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: Colors.white),
+            Icon(icon,
+                size: 18,
+                color: AppColors.dark
+                    ? const Color(0xFF1C1C1E)
+                    : Colors.white),
             SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: AppColors.dark
+                    ? const Color(0xFF1C1C1E)
+                    : Colors.white,
                 letterSpacing: -0.2,
               ),
             ),
