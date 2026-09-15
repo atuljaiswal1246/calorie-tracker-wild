@@ -1881,6 +1881,45 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final goal = profile.calorieGoal;
     final passedGoal = goal * _passedDaysInPeriod;
 
+    // With nothing logged, three cards of zeros read as broken (and the
+    // "remaining" figure looked like a phantom budget). Say so plainly.
+    if (_totalCalories == 0) {
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 22),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.restaurant_rounded, size: 26, color: AppColors.faint),
+            SizedBox(height: 10),
+            Text(
+              'Nothing logged yet',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Your averages, target days and macros appear here once you log '
+              'your first meal.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.4,
+                color: AppColors.muted,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Row(
       children: [
         _statCard(

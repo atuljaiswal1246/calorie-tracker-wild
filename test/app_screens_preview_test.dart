@@ -17,6 +17,7 @@ import 'package:calorie_tracker/screens/settings_screen.dart';
 import 'package:calorie_tracker/screens/shop_screen.dart';
 import 'package:calorie_tracker/services/auth_service.dart';
 import 'package:calorie_tracker/services/funnel.dart';
+import 'package:calorie_tracker/services/gamification_controller.dart';
 import 'package:calorie_tracker/services/storage_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -195,8 +196,7 @@ List<FoodEntry> _entries() {
   ];
 }
 
-Future<SharedPreferences> _seed({bool withEntries = true}) async {
-  SharedPreferences.setMockInitialValues({
+Future<SharedPreferences> _seed({bool withEntries = true}) async {  SharedPreferences.setMockInitialValues({
     'user_profile': jsonEncode(_profile().toJson()),
     // Treat the harness user as a paying subscriber so Home renders its
     // real content instead of the trial-ended gate.
@@ -210,6 +210,16 @@ Future<SharedPreferences> _seed({bool withEntries = true}) async {
   });
   final prefs = await SharedPreferences.getInstance();
   return prefs;
+}
+
+/// Seeded storage with the gamification controller live, so quests, the hub,
+/// the shop and the league render their real content instead of an off-state.
+Future<StorageService> _storage({bool withEntries = true}) async {
+  final prefs = await _seed(withEntries: withEntries);
+  final storage = StorageService(prefs);
+  final gami = GamificationController(storage);
+  await gami.init();
+  return storage;
 }
 
 Future<void> _shot(
@@ -258,8 +268,7 @@ void main() {
   });
 
   testWidgets('home (seeded)', (tester) async {
-    final prefs = await _seed();
-    final storage = StorageService(prefs);
+    final storage = await _storage();
     await _shot(
       tester,
       HomeScreen(
@@ -273,8 +282,7 @@ void main() {
   });
 
   testWidgets('home full page', (tester) async {
-    final prefs = await _seed();
-    final storage = StorageService(prefs);
+    final storage = await _storage();
     _tallPhone(tester);
     await tester.pumpWidget(_wrap(HomeScreen(
       storage: storage,
@@ -289,8 +297,7 @@ void main() {
   });
 
   testWidgets('progress and profile tabs (full page)', (tester) async {
-    final prefs = await _seed();
-    final storage = StorageService(prefs);
+    final storage = await _storage();
     _tallPhone(tester);
     await tester.pumpWidget(_wrap(HomeScreen(
       storage: storage,
@@ -310,8 +317,7 @@ void main() {
   });
 
   testWidgets('home full page (android width)', (tester) async {
-    final prefs = await _seed();
-    final storage = StorageService(prefs);
+    final storage = await _storage();
     _tallAndroid(tester);
     await tester.pumpWidget(_wrap(HomeScreen(
       storage: storage,
@@ -325,9 +331,27 @@ void main() {
         matchesGoldenFile('goldens/app_home_full_android.png'));
   });
 
+  testWidgets('first run: empty home and progress', (tester) async {
+    final storage = await _storage(withEntries: false);
+    _tallPhone(tester);
+    await tester.pumpWidget(_wrap(HomeScreen(
+      storage: storage,
+      auth: _FakeAuth(),
+      onSignedOut: () {},
+      onResetGoals: () {},
+    )));
+    await _precache(tester);
+    await tester.pump(const Duration(milliseconds: 600));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/app_first_run_home.png'));
+    await tester.tap(find.byIcon(Icons.bar_chart_rounded));
+    await tester.pump(const Duration(milliseconds: 800));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/app_first_run_progress.png'));
+  });
+
   testWidgets('secondary screens render (full page)', (tester) async {
-    final prefs = await _seed();
-    final storage = StorageService(prefs);
+    final storage = await _storage();
     final screens = <String, Widget>{
       'insights': InsightsScreen(storage: storage),
       'history': AllEntriesScreen(storage: storage),

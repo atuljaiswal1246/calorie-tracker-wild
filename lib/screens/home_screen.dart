@@ -1274,78 +1274,66 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.muted,
               ),
             ),
-            SizedBox(height: 12),
-            Row(
-              children: [
-                SizedBox(
-                  width: 92,
-                  height: 92,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CircularProgressIndicator(
-                        value: progress,
-                        strokeWidth: 9,
-                        backgroundColor: AppColors.track,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.ink),
-                      ),
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('🔥', style: TextStyle(fontSize: 17)),
-                            SizedBox(height: 2),
-                            Text(
-                              '$_streak',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.ink,
-                              ),
+            SizedBox(height: 10),
+            // The ring carries the calorie total (the app's own language — the
+            // plan screen does the same). The old side-by-side number wrapped
+            // onto two lines on every phone ("10" / "86").
+            Center(
+              child: SizedBox(
+                width: 108,
+                height: 108,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 10,
+                      backgroundColor: AppColors.track,
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(AppColors.ink),
+                      strokeCap: StrokeCap.round,
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(18),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '$logged',
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.ink,
+                              letterSpacing: -1,
+                              fontFeatures: [
+                                FontFeature.tabularFigures()
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '$logged',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                          letterSpacing: -1,
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                      Text(
-                        '/ $goal kcal',
-                        style: TextStyle(fontSize: 13, color: AppColors.muted),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        '$_streak-day streak',
-                        style: TextStyle(fontSize: 11.5, color: AppColors.muted),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
+            ),
+            SizedBox(height: 8),
+            Center(
+              child: Text(
+                'of $goal kcal',
+                style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+              ),
             ),
             SizedBox(height: 12),
             Text(
-              'Carbs ${_carbs(_selected).round()}g · '
-              'Fat ${_fat(_selected).round()}g · '
-              'Fiber ${_on(_selected).fold(0.0, (s, e) => s + e.totalFiber).round()}g',
+              'C ${_carbs(_selected).round()}g · '
+              'F ${_fat(_selected).round()}g · '
+              'Fib ${_on(_selected).fold(0.0, (s, e) => s + e.totalFiber).round()}g',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 11.5, color: AppColors.muted),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 10),
             Row(
               children: [
                 _macroPill(
@@ -1401,19 +1389,38 @@ class _HomeScreenState extends State<HomeScreen> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 7),
+          padding: EdgeInsets.symmetric(vertical: 6, horizontal: 4),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+              SizedBox(height: 1),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1944,6 +1951,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final line = cached != null && cached.isNotEmpty
         ? (cached.length > 110 ? cached.substring(0, 110) : cached)
         : null;
+    // Nothing to review on a fresh account — don't advertise an empty screen.
+    if (line == null && _entries.isEmpty) return const SizedBox.shrink();
     return InkWell(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
@@ -1970,11 +1979,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Row(
           children: [
-            Text('💬', style: TextStyle(fontSize: 15)),
+            Icon(Symbols.insights_rounded,
+                size: 17, color: AppColors.accentOrange),
             SizedBox(width: 8),
             Expanded(
               child: Text(
-                line != null ? '"$line…"' : 'Your week in Asha\'s words — read it',
+                line != null ? '"$line…"' : 'Your week in review — read it',
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
