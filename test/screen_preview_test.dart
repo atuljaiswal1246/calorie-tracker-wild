@@ -24,6 +24,10 @@ const _images = [
   'assets/onboarding/avatar_female.png',
   'assets/onboarding/avatar_other.png',
   'assets/onboarding/bowl_illustration.png',
+  'assets/onboarding/feature_scan.jpg',
+  'assets/onboarding/feature_macros.jpg',
+  'assets/onboarding/feature_exercise.jpg',
+  'assets/onboarding/feature_water.jpg',
   'assets/icons/app_icon.png',
 ];
 
@@ -77,8 +81,14 @@ void main() {
       onSignIn: () {},
     )));
     await _precache(tester);
-    await expectLater(
-        find.byType(WelcomeScreen), matchesGoldenFile('goldens/welcome.png'));
+    for (var i = 0; i < 4; i++) {
+      if (i > 0) {
+        await tester.drag(find.byType(PageView), const Offset(-400, 0));
+        await tester.pumpAndSettle();
+      }
+      await expectLater(find.byType(WelcomeScreen),
+          matchesGoldenFile('goldens/welcome_$i.png'));
+    }
   });
 
   for (var step = 0; step < 7; step++) {

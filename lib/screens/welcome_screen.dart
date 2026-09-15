@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/app_colors.dart';
+import '../widgets/pagination_dots.dart';
 
-/// First screen — polished hero: brand + tagline, a real food photo with a
-/// nutrition overlay, a benefit row, and one CTA. (Designed to match the
-/// approved mockup.)
+/// First screen — a feature carousel (scan · macros · workouts · water) with
+/// the brand and one CTA below it. Fits a single viewport, no scrolling.
 class WelcomeScreen extends StatefulWidget {
   final VoidCallback onGetStarted;
   final VoidCallback onSignIn;
@@ -27,8 +29,37 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     duration: const Duration(milliseconds: 900),
   )..forward();
 
+  final PageController _pages = PageController();
+  Timer? _auto;
+  int _slide = 0;
+
+  static const _slides = [
+    (asset: 'assets/onboarding/feature_scan.jpg', caption: 'Scan any food'),
+    (asset: 'assets/onboarding/feature_macros.jpg', caption: 'Energy & macros'),
+    (
+      asset: 'assets/onboarding/feature_exercise.jpg',
+      caption: 'Track your workouts'
+    ),
+    (asset: 'assets/onboarding/feature_water.jpg', caption: 'Stay hydrated'),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _auto = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || !_pages.hasClients) return;
+      _pages.animateToPage(
+        (_slide + 1) % _slides.length,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
   @override
   void dispose() {
+    _auto?.cancel();
+    _pages.dispose();
     _c.dispose();
     super.dispose();
   }
@@ -43,109 +74,147 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
-        child: Stack(
-          children: [
-            _cornerShapes(),
-            FadeTransition(
-              opacity: _c,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _brand(),
-                    const SizedBox(height: 14),
-                    // Flexible hero — absorbs whatever height is left so the
-                    // whole screen always fits without scrolling.
-                    Expanded(child: _hero()),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Track your calories,\nlive a healthier you.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.ink,
-                        fontSize: 27,
-                        height: 1.13,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.6,
+        child: FadeTransition(
+          opacity: _c,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _carousel()),
+                const SizedBox(height: 10),
+                PaginationDots(count: _slides.length, current: _slide),
+                const SizedBox(height: 12),
+                _brand(),
+                const SizedBox(height: 16),
+                _benefits(),
+                const SizedBox(height: 18),
+                _SpringButton(
+                    label: 'Get started', onTap: _start, arrow: true),
+                const SizedBox(height: 12),
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Already have an account? ',
+                          style: TextStyle(
+                              color: AppColors.muted, fontSize: 13)),
+                      GestureDetector(
+                        onTap: widget.onSignIn,
+                        child: Text('Sign in',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.underline,
+                            )),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Log your meals, see your nutrition, and reach your goals — one bite at a time.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.muted,
-                        height: 1.35,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _benefits(),
-                    const SizedBox(height: 16),
-                    _SpringButton(
-                        label: 'Get started', onTap: _start, arrow: true),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('Already have an account? ',
-                              style: TextStyle(
-                                  color: AppColors.muted, fontSize: 13)),
-                          GestureDetector(
-                            onTap: widget.onSignIn,
-                            child: Text('Sign in',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.ink,
-                                  fontWeight: FontWeight.w700,
-                                  decoration: TextDecoration.underline,
-                                )),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'AI-powered  ·  Your data stays private  ·  Terms  ·  Privacy',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 10.5, color: AppColors.faint),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 4),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _cornerShapes() {
-    return IgnorePointer(
+  Widget _carousel() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(26),
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned(
-            left: -60,
-            bottom: -70,
-            child: _blob(200, const Color(0xFFF6E9CC)),
+          PageView.builder(
+            controller: _pages,
+            itemCount: _slides.length,
+            onPageChanged: (i) => setState(() => _slide = i),
+            itemBuilder: (_, i) => Image.asset(
+              _slides[i].asset,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => DecoratedBox(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFF3E7D3), Color(0xFFE4D2B4)],
+                  ),
+                ),
+              ),
+            ),
           ),
+          // Bottom scrim so the headline sits legibly on any image
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.center,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.3, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.66),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Per-slide caption
           Positioned(
-            right: -50,
-            bottom: -90,
-            child: _blob(220, const Color(0xFFF0E1BF)),
+            left: 16,
+            top: 16,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: Container(
+                key: ValueKey(_slide),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.94),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  _slides[_slide].caption,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Headline — bottom of the image
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            child: Text(
+              'Track your calories,\nlive a healthier you.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 26,
+                height: 1.13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.6,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
-
-  Widget _blob(double d, Color c) => Container(
-        width: d,
-        height: d,
-        decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-      );
 
   Widget _brand() {
     return Column(
@@ -181,174 +250,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           'Track  ·  Eat  ·  Feel Better',
           style: TextStyle(fontSize: 13, color: AppColors.muted),
         ),
-      ],
-    );
-  }
-
-  Widget _hero() {
-    return ExcludeSemantics(
-      child: AspectRatio(
-        aspectRatio: 1.02,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(26),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Image.asset(
-                'assets/onboarding/hero_bowl.jpg',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => DecoratedBox(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFFF3E7D3), Color(0xFFE4D2B4)],
-                    ),
-                  ),
-                ),
-              ),
-              // Nutrition overlay card
-              Positioned(top: 14, right: 14, child: _nutritionCard()),
-              // Legibility scrim for the handwritten accent
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.center,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.28),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Handwritten accent
-              Positioned(
-                right: 16,
-                bottom: 14,
-                child: Transform.rotate(
-                  angle: -0.05,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('Good food.',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.45),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          )),
-                      Text('Real progress.',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.45),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          )),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _nutritionCard() {
-    return Container(
-      width: 172,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 52,
-            height: 52,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 52,
-                  height: 52,
-                  child: CircularProgressIndicator(
-                    value: 0.62,
-                    strokeWidth: 5,
-                    backgroundColor: AppColors.green.withValues(alpha: 0.18),
-                    valueColor:
-                        AlwaysStoppedAnimation(AppColors.green),
-                  ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('420',
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink)),
-                    Text('kcal',
-                        style: TextStyle(
-                            fontSize: 9, color: AppColors.muted)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _macroDot(AppColors.green, 'Protein', '18g'),
-                const SizedBox(height: 6),
-                _macroDot(AppColors.carbs, 'Carbs', '52g'),
-                const SizedBox(height: 6),
-                _macroDot(const Color(0xFF8B5CF6), 'Fats', '14g'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _macroDot(Color c, String k, String v) {
-    return Row(
-      children: [
-        Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
-        const SizedBox(width: 6),
-        Text(k, style: TextStyle(fontSize: 11, color: AppColors.muted)),
-        const Spacer(),
-        Text(v,
-            style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink)),
       ],
     );
   }
