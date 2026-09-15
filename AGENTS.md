@@ -1,5 +1,9 @@
 # AGENTS.md — Project Memory & Handoff
 
+> **START HERE (2026-09-15):** read **`HANDOFF.md`** first — it holds the current
+> snapshot (what is live, what is parked, the ordered plan and who owns each step).
+> This file is the long-lived memory: locked screens, environment, and hard-won rules.
+
 Read this first before doing any work in this project. It records everything done in the
 previous session so a fresh chat can continue seamlessly.
 
@@ -149,6 +153,8 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
 - From now on: **NO changes to logic or options** — only visual/UI improvements.
 
 ## Next Steps (in order)
+> **Stale — superseded 2026-09-15.** The live plan is in `HANDOFF.md` §3 ("Plan
+> forward"), with an owner and a status for every step. Kept only as history.
 1. **User tests the MVP on a real Android device** (`flutter run` or install the debug APK):
    - Enter OpenAI API key in Settings.
    - Test onboarding -> home -> log a meal (camera + gallery) -> AI breakdown -> history.
