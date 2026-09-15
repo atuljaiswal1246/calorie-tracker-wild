@@ -135,7 +135,7 @@ harness there. Read `README.md` in that folder first.
   (`test/storage_entries_test.dart`).
 - **One icon language** on Home/Progress/Insights: functional emoji replaced
   with Material Symbols (decorative level emoji left alone).
-- **Analyzer cleanup**: 166 → 155 issues (unused imports, dead getters, a dead
+- **Analyzer cleanup**: 166 → 156 issues (unused imports, dead getters, a dead
   local). The remaining `social_service.dart` warning is a dormant file.
 - **Fresh artifacts at the end:** `~/Desktop/CalMatters-0.9.6+10.aab` and the
   same build installed/running on the iPhone. `flutter test`: **180 pass**.
