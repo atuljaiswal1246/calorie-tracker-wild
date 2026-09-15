@@ -34,13 +34,22 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   int _slide = 0;
 
   static const _slides = [
-    (asset: 'assets/onboarding/feature_scan.jpg', caption: 'Scan any food'),
-    (asset: 'assets/onboarding/feature_macros.jpg', caption: 'Energy & macros'),
+    (
+      asset: 'assets/onboarding/feature_scan.jpg',
+      title: 'Scan any food.\nKnow your calories.'
+    ),
+    (
+      asset: 'assets/onboarding/feature_macros.jpg',
+      title: 'See your energy\nand macros clearly.'
+    ),
     (
       asset: 'assets/onboarding/feature_exercise.jpg',
-      caption: 'Track your workouts'
+      title: 'Log your workouts.\nStay consistent.'
     ),
-    (asset: 'assets/onboarding/feature_water.jpg', caption: 'Stay hydrated'),
+    (
+      asset: 'assets/onboarding/feature_water.jpg',
+      title: 'Stay hydrated.\nFeel your best.'
+    ),
   ];
 
   @override
@@ -163,51 +172,30 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ),
             ),
           ),
-          // Per-slide caption
-          Positioned(
-            left: 16,
-            top: 16,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: Container(
-                key: ValueKey(_slide),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.94),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _slides[_slide].caption,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Headline — bottom of the image
+          // Per-slide headline — each image gets its own line
           Positioned(
             left: 20,
             right: 20,
             bottom: 20,
-            child: Text(
-              'Track your calories,\nlive a healthier you.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                height: 1.13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.6,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    blurRadius: 10,
-                  ),
-                ],
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 260),
+              child: Text(
+                _slides[_slide].title,
+                key: ValueKey(_slide),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  height: 1.13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.6,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
