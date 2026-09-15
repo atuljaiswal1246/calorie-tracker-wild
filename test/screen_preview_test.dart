@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:calorie_tracker/models/profile.dart';
 import 'package:calorie_tracker/screens/auth_screen.dart';
-import 'package:calorie_tracker/screens/onboarding_screen.dart' show PricingScreen;
+import 'package:calorie_tracker/screens/pricing_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_exercise_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_scan_screen.dart';
 import 'package:calorie_tracker/screens/demo/demo_search_screen.dart';

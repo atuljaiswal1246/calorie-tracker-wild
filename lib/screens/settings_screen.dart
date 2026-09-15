@@ -8,7 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
-import 'onboarding_screen.dart' show PricingScreen;
+import 'pricing_screen.dart';
 import '../theme/app_colors.dart';
 
 /// Dedicated Settings screen: reminders (proper switches), data export,

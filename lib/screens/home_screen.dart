@@ -41,7 +41,7 @@ import 'discover_screen.dart';
 import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
 import 'macro_breakdown_screen.dart';
-import 'onboarding_screen.dart';
+import 'pricing_screen.dart';
 import 'progress_screen.dart';
 import 'all_entries_screen.dart';
 import 'asha_screen.dart';

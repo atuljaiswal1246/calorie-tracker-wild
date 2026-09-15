@@ -12,7 +12,7 @@ import '../widgets/animated_stats.dart';
 import '../widgets/app_image.dart';
 import '../widgets/date_picker_3step.dart';
 import 'auth_screen.dart';
-import 'onboarding_screen.dart' show PricingScreen;
+import 'pricing_screen.dart';
 
 /// The redesigned onboarding journey — six screens, one question each:
 ///   1 · Goal  2 · You  3 · Height & weight  4 · Activity  5 · Target & pace
