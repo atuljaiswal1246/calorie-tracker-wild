@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/cupertino.dart' show CupertinoDatePicker, CupertinoDatePickerMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -3057,9 +3055,7 @@ class PricingScreenState extends State<PricingScreen> {
     if (product == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(Platform.isIOS
-              ? 'Purchases aren\'t available yet on this device.'
-              : 'Products unavailable — set them up in Play Console.'),
+          content: Text('Purchases aren\'t available right now.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -3179,9 +3175,7 @@ class PricingScreenState extends State<PricingScreen> {
                           if (_products.isEmpty && !_processing) ...[
                             SizedBox(height: 12),
                             Text(
-                              Platform.isIOS
-                                  ? 'Purchases open at launch on the App Store.'
-                                  : 'Purchases open at launch on Google Play.',
+                              'Purchases open at launch.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 11.5, color: AppColors.faint),
@@ -3196,9 +3190,7 @@ class PricingScreenState extends State<PricingScreen> {
                               SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  Platform.isIOS
-                                      ? 'Secure payment via the App Store · Cancel anytime'
-                                      : 'Secure payment via Google Play · Cancel anytime',
+                                  'Secure payment · Cancel anytime',
                                   style: TextStyle(
                                       fontSize: 11.5, color: AppColors.faint),
                                 ),

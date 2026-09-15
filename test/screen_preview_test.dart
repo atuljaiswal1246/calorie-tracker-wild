@@ -77,6 +77,14 @@ void _phone(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
+/// Typical Android phone (1080x2400 @3x = 360x800 logical) — narrower than an
+/// iPhone, so it's the stricter layout test.
+void _android(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1080, 2400);
+  tester.view.devicePixelRatio = 3.0;
+  addTearDown(tester.view.reset);
+}
+
 /// Decode the real asset images so they actually paint in the golden.
 Future<void> _precache(WidgetTester tester) async {
   final ctx = tester.element(find.byType(MaterialApp));
@@ -190,6 +198,89 @@ void main() {
     await _precache(tester);
     await expectLater(
         find.byType(PricingScreen), matchesGoldenFile('goldens/paywall.png'));
+  });
+
+  testWidgets('paywall (android size)', (tester) async {
+    _android(tester);
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final storage = StorageService(prefs);
+    await storage.saveProfile(Profile(
+      name: 'Atul',
+      age: 25,
+      sex: 'male',
+      weightKg: 70,
+      heightCm: 165,
+      activityLevel: 'sedentary',
+      workoutFreq: '3to5',
+      goal: 'lose',
+      pace: 'recommended',
+      targetWeightKg: 65,
+    ));
+    await tester.pumpWidget(
+        _wrap(PricingScreen(storage: storage, onPaid: () {})));
+    await _precache(tester);
+    await expectLater(find.byType(PricingScreen),
+        matchesGoldenFile('goldens/paywall_android.png'));
+  });
+
+  // Every screen must lay out on a narrow Android phone without overflowing
+  // (an overflow throws, so simply rendering them is the assertion).
+  testWidgets('android size: all screens render without overflow',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final storage = StorageService(prefs);
+    await storage.saveProfile(Profile(
+      name: 'Atul',
+      age: 25,
+      sex: 'male',
+      weightKg: 70,
+      heightCm: 165,
+      activityLevel: 'sedentary',
+      workoutFreq: '3to5',
+      goal: 'lose',
+      pace: 'recommended',
+      targetWeightKg: 65,
+    ));
+
+    final screens = <String, Widget>{
+      'welcome': WelcomeScreen(onGetStarted: () {}, onSignIn: () {}),
+      'signup': AuthScreen(
+        auth: AuthService(),
+        isSignUp: true,
+        recap: const PlanRecap(
+            kcal: '1945', goal: 'Lose 5 kg', workouts: '3–5×'),
+        onAuthenticated: () {},
+        onBack: () {},
+      ),
+      'paywall': PricingScreen(storage: storage, onPaid: () {}),
+      'demo_search': DemoSearchScreen(onGetStarted: () {}),
+      'demo_exercise': DemoExerciseScreen(onGetStarted: () {}),
+      'demo_water': DemoWaterScreen(onGetStarted: () {}),
+    };
+    for (final entry in screens.entries) {
+      _android(tester);
+      await tester.pumpWidget(_wrap(entry.value));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(tester.takeException(), isNull,
+          reason: '${entry.key} overflowed on Android size');
+    }
+
+    // Onboarding steps at Android size.
+    for (var step = 0; step < 7; step++) {
+      _android(tester);
+      await tester.pumpWidget(_wrap(OnboardingFlow(
+        storage: storage,
+        auth: AuthService(),
+        onComplete: () {},
+        onBack: () {},
+        startAtStep: step == 0 ? null : step,
+      )));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.takeException(), isNull,
+          reason: 'onboarding step $step overflowed on Android size');
+    }
   });
 
   testWidgets('demo scan', (tester) async {
