@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +27,6 @@ void main() async {
   final storage = await StorageService.init();
   AnalyticsService.init(storage);
   SoundService.init(storage);
-  await SoundService.prepareIosNotificationSound();
   ExperimentService.init(storage);
   Funnel.appOpen();
   final gamification = GamificationController(storage);
@@ -48,10 +49,20 @@ void main() async {
     }
   };
 
-  // What the water widget's one-tap button runs, without opening the app.
-  await HomeWidget.registerInteractivityCallback(widgetInteractivityCallback);
+  // Optional extras. NOTHING here may block or break startup — an awaited
+  // plugin call before runApp is exactly how you get a white screen.
+  unawaited(SoundService.prepareIosNotificationSound()); // iOS chime for alerts
+  unawaited(_registerWidgetCallback()); // the widget's background tap
 
   runApp(CalorieApp(storage: storage, auth: AuthService()));
+}
+
+Future<void> _registerWidgetCallback() async {
+  try {
+    await HomeWidget.registerInteractivityCallback(widgetInteractivityCallback);
+  } catch (e) {
+    debugPrint('widget callback registration failed: $e');
+  }
 }
 
 class CalorieApp extends StatefulWidget {
