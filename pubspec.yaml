@@ -99,6 +99,7 @@ flutter:
     - assets/icons/app_icon.png
     # Approved sound identity (2026-09-16). See AGENTS.md "Sound" — the
     # notification one also lives in android/app/src/main/res/raw/.
+    - assets/sounds/cal_notify.wav
     - assets/sounds/cal_pip.wav
     - assets/sounds/cal_success.wav
     - assets/illustrations/empty_meals.jpg

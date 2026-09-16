@@ -2,6 +2,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'sound_service.dart';
+
 class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static bool _tzInit = false;
@@ -140,7 +142,10 @@ class NotificationService {
         sound: RawResourceAndroidNotificationSound('cal_notify'),
         playSound: true,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentSound: true,
+        sound: SoundService.notificationSoundName,
+      ),
     );
     try {
       await _plugin.show(
@@ -169,7 +174,10 @@ class NotificationService {
         sound: RawResourceAndroidNotificationSound('cal_notify'),
         playSound: true,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentSound: true,
+        sound: SoundService.notificationSoundName,
+      ),
     );
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(
@@ -214,7 +222,10 @@ class NotificationService {
         sound: RawResourceAndroidNotificationSound('cal_notify'),
         playSound: true,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentSound: true,
+        sound: SoundService.notificationSoundName,
+      ),
     );
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(

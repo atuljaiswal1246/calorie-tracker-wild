@@ -25,6 +25,7 @@ void main() async {
   final storage = await StorageService.init();
   AnalyticsService.init(storage);
   SoundService.init(storage);
+  await SoundService.prepareIosNotificationSound();
   ExperimentService.init(storage);
   Funnel.appOpen();
   final gamification = GamificationController(storage);

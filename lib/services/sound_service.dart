@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 
 import 'storage_service.dart';
 
@@ -18,6 +22,26 @@ class SoundService {
 
   /// Called once from main().
   static void init(StorageService storage) => _storage = storage;
+
+  /// iOS local notifications can play a sound from `<container>/Library/Sounds`,
+  /// so the notification chime is copied there at startup. (Android plays it
+  /// straight from `res/raw` via the channel.) Doing it this way avoids adding
+  /// a resource to the Xcode target by hand.
+  static const notificationSoundName = 'cal_notify.wav';
+
+  static Future<void> prepareIosNotificationSound() async {
+    if (!Platform.isIOS) return;
+    try {
+      final docs = await getApplicationDocumentsDirectory();
+      final dir = Directory('${docs.parent.path}/Library/Sounds');
+      if (!dir.existsSync()) dir.createSync(recursive: true);
+      final target = File('${dir.path}/$notificationSoundName');
+      final bytes = await rootBundle.load('assets/sounds/$notificationSoundName');
+      await target.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
+    } catch (e) {
+      debugPrint('iOS notification sound copy failed: $e');
+    }
+  }
 
   static bool get enabled => _storage?.soundsEnabled ?? true;
 
