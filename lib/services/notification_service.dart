@@ -132,11 +132,13 @@ class NotificationService {
   }) async {
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
-        'reminders',
+        'reminders_chime',
         'Reminders',
         channelDescription: 'App reminders',
         importance: Importance.high,
         priority: Priority.high,
+        sound: RawResourceAndroidNotificationSound('cal_notify'),
+        playSound: true,
       ),
       iOS: DarwinNotificationDetails(),
     );
@@ -159,11 +161,13 @@ class NotificationService {
   }) async {
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
-        'reminders',
+        'reminders_chime',
         'Reminders',
         channelDescription: 'App reminders',
         importance: Importance.high,
         priority: Priority.high,
+        sound: RawResourceAndroidNotificationSound('cal_notify'),
+        playSound: true,
       ),
       iOS: DarwinNotificationDetails(),
     );
@@ -202,11 +206,13 @@ class NotificationService {
   }) async {
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
-        'reminders',
+        'reminders_chime',
         'Reminders',
         channelDescription: 'App reminders',
         importance: Importance.high,
         priority: Priority.high,
+        sound: RawResourceAndroidNotificationSound('cal_notify'),
+        playSound: true,
       ),
       iOS: DarwinNotificationDetails(),
     );

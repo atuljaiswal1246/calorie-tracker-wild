@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'gamification_service.dart';
 import '../widgets/celebration_overlay.dart';
 import 'gamification_controller.dart';
+import 'sound_service.dart';
 
 /// How a reward moment should be presented.
 class CelebrationPresentation {
@@ -77,6 +78,7 @@ class CelebrationService {
     final p = describe(event);
     if (p.fullScreen) {
       HapticFeedback.heavyImpact();
+      SoundService.success();
       CelebrationOverlay.show(
         context,
         emoji: p.emoji,

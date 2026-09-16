@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../services/notification_service.dart';
+import '../services/sound_service.dart';
 import '../services/storage_service.dart';
 import 'pricing_screen.dart';
 import '../theme/app_colors.dart';
@@ -34,6 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _water = true;
   bool _meal = false;
   bool _dark = false;
+  bool _sounds = true;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _water = widget.storage.remindersEnabled;
     _meal = widget.storage.mealRemindersEnabled;
     _dark = AppColors.dark;
+    _sounds = widget.storage.soundsEnabled;
   }
 
   Future<void> _toggleDark(bool enabled) async {
@@ -48,6 +51,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _dark = enabled);
     AppColors.darkNotifier.value = enabled;
     await widget.storage.saveDarkMode(enabled);
+  }
+
+  Future<void> _toggleSounds(bool on) async {
+    HapticFeedback.selectionClick();
+    setState(() => _sounds = on);
+    await widget.storage.setSoundsEnabled(on);
+    // Play it once so the choice is audible, not just a label.
+    if (on) SoundService.pip();
   }
 
   Future<void> _toggleWater(bool enabled) async {
@@ -239,6 +250,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : 'Off',
                       value: _dark,
                       onChanged: _toggleDark,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: _SwitchRow(
+                      icon: Icons.volume_up_outlined,
+                      iconColor: AppColors.accentOrange,
+                      label: 'Sounds',
+                      subtitle: _sounds
+                          ? 'A small sound when you log'
+                          : 'Off',
+                      value: _sounds,
+                      onChanged: _toggleSounds,
                     ),
                   ),
                   SizedBox(height: 20),

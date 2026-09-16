@@ -11,6 +11,7 @@ import '../services/food_search_service.dart';
 import '../services/notification_service.dart';
 import '../services/openai_service.dart';
 import '../services/storage_service.dart';
+import '../services/sound_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/empty_illustration.dart';
 import 'manual_entry_screen.dart';
@@ -136,6 +137,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
       await widget.storage.addEntry(entry);
     }
     HapticFeedback.lightImpact();
+    SoundService.pip();
     if (!mounted) return;
     await _showLoggedDialog();
   }
@@ -404,6 +406,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
     await widget.storage.addEntry(entry);
     HapticFeedback.lightImpact();
+    SoundService.pip();
+    SoundService.pip();
     if (!mounted) return;
 
     // First meal ever logged (or the one re-prompt ~4 meals later):

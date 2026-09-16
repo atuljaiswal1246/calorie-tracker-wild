@@ -14,6 +14,7 @@ import 'services/experiment_service.dart';
 import 'services/funnel.dart';
 import 'services/gamification_controller.dart';
 import 'services/notification_service.dart';
+import 'services/sound_service.dart';
 import 'services/storage_service.dart';
 import 'services/widget_service.dart';
 import 'theme/app_colors.dart';
@@ -23,6 +24,7 @@ void main() async {
   await Firebase.initializeApp();
   final storage = await StorageService.init();
   AnalyticsService.init(storage);
+  SoundService.init(storage);
   ExperimentService.init(storage);
   Funnel.appOpen();
   final gamification = GamificationController(storage);

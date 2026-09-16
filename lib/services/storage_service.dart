@@ -873,6 +873,14 @@ class StorageService {
 
   // ---- Reminders ----
 
+  static const _soundsKey = 'sounds_enabled';
+
+  /// Sound effects (in-app). On by default; the user can turn it off.
+  bool get soundsEnabled => _prefs.getBool(_soundsKey) ?? true;
+  Future<void> setSoundsEnabled(bool on) async {
+    await _prefs.setBool(_soundsKey, on);
+  }
+
   static const _remindersKey = 'reminders_enabled';
   static const _mealRemindersKey = 'meal_reminders_enabled';
 

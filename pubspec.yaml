@@ -56,6 +56,7 @@ dependencies:
   flutter_local_notifications: ^22.3.0
   timezone: ^0.11.1
   share_plus: ^13.3.0
+  audioplayers: ^6.1.0
   encrypt: ^5.0.3
   in_app_purchase: ^3.3.0
   in_app_purchase_android: ^0.5.2
@@ -96,6 +97,10 @@ flutter:
     - assets/merged_foods.json
     - assets/quick_picks.json
     - assets/icons/app_icon.png
+    # Approved sound identity (2026-09-16). See AGENTS.md "Sound" — the
+    # notification one also lives in android/app/src/main/res/raw/.
+    - assets/sounds/cal_pip.wav
+    - assets/sounds/cal_success.wav
     - assets/illustrations/empty_meals.jpg
     - assets/illustrations/empty_progress.jpg
     - assets/illustrations/scan_food.jpg

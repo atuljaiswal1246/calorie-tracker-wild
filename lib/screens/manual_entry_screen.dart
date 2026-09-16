@@ -5,6 +5,7 @@ import '../models/food_entry.dart';
 import '../services/food_search_service.dart';
 import '../services/openai_service.dart';
 import '../services/storage_service.dart';
+import '../services/sound_service.dart';
 import '../theme/app_colors.dart';
 
 class ManualEntryScreen extends StatefulWidget {
@@ -186,6 +187,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       'fat': food.fat,
     });
     HapticFeedback.lightImpact();
+    SoundService.pip();
 
     if (!mounted) return;
     final logAnother = await _showLogAnotherDialog();

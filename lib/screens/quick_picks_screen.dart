@@ -5,6 +5,7 @@ import '../models/food_entry.dart';
 import '../services/food_search_service.dart';
 import '../services/quick_pick_service.dart';
 import '../services/storage_service.dart';
+import '../services/sound_service.dart';
 import '../theme/app_colors.dart';
 
 /// One-tap logging of popular Indian dishes (Poha, Idli, Dal, Bhindi…).
@@ -117,6 +118,7 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
     });
     if (!mounted) return;
     HapticFeedback.lightImpact();
+    SoundService.pip();
     // Close the bottom sheet with success.
     Navigator.of(context).pop(true);
   }
