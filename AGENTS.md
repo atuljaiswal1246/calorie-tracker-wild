@@ -1,33 +1,36 @@
 # AGENTS.md — Project Memory & Handoff
 
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
-**In progress: the alive widget — BUILT + DATA-DRIVEN, awaiting install on the Android phone.**
-`c092c7d` (state engine) on top of `7f44d89`/`607c8b1`. The Android widget is
-drawn in Flutter and pre-rendered **one bitmap per state**, with the slice of the
-day each state covers stored alongside. `services/widget_state.dart` builds those
-windows from **the user's own data** — the median hour they log each meal over
-their last 30 days (fallbacks until there is history); a meal whose usual time
-passed >2h ago counts as skipped, so skipping breakfast doesn't mean being
-nagged all day. Five moods: calm / due / last call / done / over.
-`CalWidgetProvider.kt` picks by the clock on Android's own ~30-minute schedule,
-**so the widget changes through the day without the app being opened.**
-Golden-verified (`test/goldens/cal_widget_*.png`), 5 unit tests
-(`test/widget_state_test.dart`), APK built
-(`~/Desktop/CalMatters-0.9.6+10-widget.apk`). **Not yet seen on a real home
+**In progress: the alive widget — TRIGGER-FIRST + DATA-DRIVEN, awaiting the Android phone.**
+`a6ac903` on top of `c092c7d`/`7f44d89`/`607c8b1`. The widget's only job is to
+bring the user into the app, so it carries only what causes the tap:
+- The **meal is the hero** and the only action ("Lunch?" / "+ Log lunch"); the
+  calorie ring, macros, water and steps were deleted as information, not triggers.
+- The **streak is the stake**, showing "at risk" only when it is true.
+- **Day done goes quiet** (no button); **day 0 never scores** (no "0-day streak",
+  no red squares before the user's first entry).
+- A meal time is quoted only once **>=3 of the user's own logs** back it;
+  otherwise the copy is an invitation ("Takes about five seconds.").
+- **Tap attribution**: the deep link carries `state` + `mood`, logged as
+  `widget_tap`, so taps-per-trigger can be measured and losers deleted.
+Engine: `services/widget_state.dart` (windows from the median hour the user logs
+each meal over 30 days; a meal >2h past its usual time counts as skipped).
+Android picks the pre-rendered state by the clock on its own ~30min schedule, so
+it changes through the day with the app closed. 5+9 unit tests, 4 widget goldens,
+APK at `~/Desktop/CalMatters-0.9.6+10-widget.apk`. **Never seen on a real home
 screen — no Android device attached.**
 
-Accurate limitation: the **mood** changes on schedule, but the **numbers** in each
-bitmap are as of the last time the app ran. Only a background redraw (WorkManager
-+ headless render) fixes that; parked.
+Accurate limitation: the **mood** changes on schedule; the **numbers** baked into
+each bitmap are as of the last app run. A background redraw (WorkManager +
+headless render) is the fix; parked.
 
-**Still open on the widget:** a separate SMALL size (the 2x2 "logged today?" one)
-— only the medium is built. iOS shows nothing (no WidgetKit extension; App Groups
-may need the paid Apple program).
+**Still open on the widget:** the small 2x2 size ("logged today?"); iOS shows
+nothing (no WidgetKit extension; App Groups may need the paid Apple program).
 
-**NEXT (when the widget is confirmed on a device): the user-timed nudge.**
-Mock approved 2026-09-16 (sheet `mock_15_widget_and_nudge.png`): one
+**NEXT: verify on the Android phone, then the user-timed nudge** — one
 notification, only if that meal is still unlogged, inside the user's learned
-window. Same data engine as the widget.
+window (mock approved, `mock_15_widget_and_nudge.png`), driven by the same state
+engine.
 
 **DONE 2026-09-16: Home revert.** `1b28a84` restored the bento Home the user
 prefers (`87dcf45`), keeping the Profile inline calorie-goal edit and the
