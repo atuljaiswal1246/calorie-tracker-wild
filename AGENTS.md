@@ -1,19 +1,33 @@
 # AGENTS.md — Project Memory & Handoff
 
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
-**In progress: the alive widget — BUILT, awaiting install on the Android phone.**
-`7f44d89`. The Android widget is now drawn in Flutter
-(`widgets/cal_widget_view.dart` → `HomeWidget.renderFlutterWidget`) and shows
-calories left + the week chain + "+ Log <meal>"; tapping it opens the app
-straight into the log. Golden-verified (`test/goldens/cal_widget_*.png`), APK
-built (`~/Desktop/CalMatters-0.9.6+10-widget.apk`). **Not yet seen on a real
-home screen — no Android device attached.** iOS shows nothing: there is no
-WidgetKit extension target (and App Groups may need the paid Apple program).
+**In progress: the alive widget — BUILT + DATA-DRIVEN, awaiting install on the Android phone.**
+`c092c7d` (state engine) on top of `7f44d89`/`607c8b1`. The Android widget is
+drawn in Flutter and pre-rendered **one bitmap per state**, with the slice of the
+day each state covers stored alongside. `services/widget_state.dart` builds those
+windows from **the user's own data** — the median hour they log each meal over
+their last 30 days (fallbacks until there is history); a meal whose usual time
+passed >2h ago counts as skipped, so skipping breakfast doesn't mean being
+nagged all day. Five moods: calm / due / last call / done / over.
+`CalWidgetProvider.kt` picks by the clock on Android's own ~30-minute schedule,
+**so the widget changes through the day without the app being opened.**
+Golden-verified (`test/goldens/cal_widget_*.png`), 5 unit tests
+(`test/widget_state_test.dart`), APK built
+(`~/Desktop/CalMatters-0.9.6+10-widget.apk`). **Not yet seen on a real home
+screen — no Android device attached.**
+
+Accurate limitation: the **mood** changes on schedule, but the **numbers** in each
+bitmap are as of the last time the app ran. Only a background redraw (WorkManager
++ headless render) fixes that; parked.
+
+**Still open on the widget:** a separate SMALL size (the 2x2 "logged today?" one)
+— only the medium is built. iOS shows nothing (no WidgetKit extension; App Groups
+may need the paid Apple program).
 
 **NEXT (when the widget is confirmed on a device): the user-timed nudge.**
 Mock approved 2026-09-16 (sheet `mock_15_widget_and_nudge.png`): one
 notification, only if that meal is still unlogged, inside the user's learned
-window.
+window. Same data engine as the widget.
 
 **DONE 2026-09-16: Home revert.** `1b28a84` restored the bento Home the user
 prefers (`87dcf45`), keeping the Profile inline calorie-goal edit and the
@@ -21,15 +35,15 @@ dark-mode inverted CTA.
 
 **Parking Lot (do NOT start while something above is open):**
 - Settings / achievements / meal-detail / manual-entry-empty polish passes.
+- Small widget size; background redraw (WorkManager).
 - iOS widget (needs a WidgetKit target; check App Groups on the free team).
 - Hindi, iOS, pref O(n) rewrite, any new gamification.
-- Stale-widget bitmap: the image refreshes only when the app runs; a
-  background refresh is a real follow-up, not a launch blocker.
 
 **Rules of the ledger:** one item in progress, ever. An item leaves the list only
 when it survives: rendered and looked at, `flutter analyze` clean, `flutter test`
 green, and installed on the user's phone. Everything else is parked, however
 good it sounds.
+
 
 
 > **START HERE (2026-09-15):** read **`HANDOFF.md`** first — it holds the current
