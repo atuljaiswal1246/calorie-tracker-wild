@@ -1,58 +1,34 @@
 # AGENTS.md — Project Memory & Handoff
 
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
-**In progress: ALL THREE WIDGETS BUILT — awaiting the Android phone.**
-`e05b13c` (water + ring) on top of `a6ac903` (trigger) / `c092c7d` / `7f44d89`.
-The user is deliberately building a gallery: people add whichever suits them, and
-the choice is the research.
+**In progress: WIDGETS — device-tested 2026-09-16, two bugs fixed, water pulled.**
+`8034675` on top of `e05b13c`. Tested on the user's iQOO (Android 15). The
+device found three things that no test or golden could:
 
-| Widget | State | How it is drawn |
-|---|---|---|
-| **Ring** (`CalRingWidgetProvider`) | BUILT | Flutter bitmap, two sizes. Status only — calories taken in the ring, colour by state (black/amber/green/red), 2x2 key legend. No prompt, no action, by design. |
-| **Trigger** (`CalWidgetProvider`) | BUILT | Flutter bitmaps, one per state; native picks by clock. Meal is the hero, streak is the stake, day-done goes quiet, tap attribution via `?state=&mood=`. |
-| **Water** (`CalWaterWidgetProvider`) | BUILT | **Native** (number + bar + button). One tap = 250 ml with no app open via `HomeWidgetBackgroundIntent` → `widgetInteractivityCallback` → the same `StorageService.addWater` the in-app card uses. Goal-reached hides the button; zeroes itself when the stored day is not today (midnight reset). Small + wide. |
+1. **Widget updates went nowhere (FIXED).** `WidgetService` pushed to
+   `com.calorietracker.calorie_tracker.*` — the old scaffold package — while the
+   applicationId is `com.neharohilla.calorietracker`. `HomeWidget.updateWidget`
+   silently updated a non-existent provider, so **no widget ever received real
+   data**; they showed their placeholder layouts. Names now derive from the real
+   applicationId. (The preview images in the launcher are static drawables, so
+   they looked correct while the live widgets were empty — that is what hid it.)
+2. **Dark mode (FIXED).** The water widget's text colours were hardcoded for a
+   light card; on a phone in dark mode the card flipped dark and "1.2 L" became
+   invisible. Colours moved to `@color/widget_text` + `values-night/colors.xml`.
+3. **The water widget's one-tap does not work on a real device (PULLED).** The
+   background worker never runs and no water is logged, even when the broadcast
+   is sent straight to the receiver. It is removed from the manifest for 0.9.6
+   rather than shipping a dead button. NEXT ATTEMPT: the tap opens the app via
+   deep link and logs on open — reliable everywhere, still one tap, and it drops
+   the background isolate/WorkManager entirely (Vivo-style OEM restrictions
+   make that path unreliable).
 
-**The one honest caveat:** water is instant and never stale; ring and trigger are
-pre-rendered, so their NUMBERS are as of the last app run (the trigger's MOOD
-still changes on schedule). Background redraw (WorkManager + headless render)
-would fix that; parked.
+**Shipping in 0.9.6:** ring widget + meal widget (interaction verified: tap opens
+the app; data path now correct), undo-delete, the UI pass. **Not shipping:** the
+water widget, and the nudge.
 
-**Verified statically (in the release APK, via aapt2):** all three widget
-providers registered, all four layouts + the two preview drawables + the three
-widget-info XMLs compiled in, and `HomeWidgetBackgroundReceiver` declared.
-
-**HARD-WON RULE — home_widget ships an EMPTY AndroidManifest.** The receiver that
-runs a widget tap in the background must be declared in the APP's manifest, or
-the tap is a silent no-op (this was caught only by dumping the built APK):
-```xml
-<receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
-          android:exported="false">
-  <intent-filter>
-    <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
-  </intent-filter>
-</receiver>
-```
-
-**Unverified:** none of the three has been seen on a real home screen — no Android
-device attached. 199 tests, 10 widget goldens, APK at
-`~/Desktop/CalMatters-0.9.6+10-widget.apk`.
-
-**ON-DEVICE CHECKLIST (do this the moment the phone is plugged in — 5 minutes):**
-1. `adb devices` → confirm the serial, then `adb install -r ~/Desktop/CalMatters-0.9.6+10-widget.apk`.
-2. Long-press the home screen → Widgets → **Cal Matters** → confirm THREE entries
-   appear with previews ("Cal Matters", "— Ring", "— Water").
-3. Add each; confirm the preview shows (not a blank box).
-4. Water widget: tap **+ 1 glass** with the app CLOSED → reopen the app → the water
-   card must show +250 ml. This is the background-callback test, the riskiest piece.
-5. Water widget: check it zeroes after midnight (or set the device clock forward).
-6. Trigger widget: log lunch → the widget should move to the next state.
-7. Ring widget: log a meal → numbers update on next app open (expected: pre-rendered).
-8. Tap each widget's body → the app must open on the right surface.
-
-**NEXT: verify on the Android phone, then the user-timed nudge** — one
-notification, only if that meal is still unlogged, inside the user's learned
-window (mock approved, `mock_15_widget_and_nudge.png`), driven by the same state
-engine.
+**Unverified:** the ring/meal widgets' live NUMBERS on a device were not
+confirmed before upload — the tester note asks specifically for that.
 
 **DONE 2026-09-16: Home revert.** `1b28a84` restored the bento Home the user
 prefers (`87dcf45`), keeping the Profile inline calorie-goal edit and the
