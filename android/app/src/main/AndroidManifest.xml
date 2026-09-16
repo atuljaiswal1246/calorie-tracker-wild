@@ -35,17 +35,9 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/ring_widget_info" />
         </receiver>
-        <receiver
-            android:name=".CalWaterWidgetProvider"
-            android:exported="true"
-            android:label="Cal Matters — Water">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/water_widget_info" />
-        </receiver>
+        <!-- WATER WIDGET PULLED from 0.9.6: its one-tap background action does
+             not run on a real device (verified on the iQOO, Android 15). It
+             returns once the tap is redesigned to open the app directly. -->
         <receiver
             android:name=".CalWidgetProvider"
             android:exported="true"

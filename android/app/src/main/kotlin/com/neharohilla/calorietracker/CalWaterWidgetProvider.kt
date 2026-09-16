@@ -7,7 +7,6 @@ import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetBackgroundIntent
-import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -61,13 +60,10 @@ class CalWaterWidgetProvider : HomeWidgetProvider() {
       )
       views.setOnClickPendingIntent(R.id.water_add, addIntent)
 
-      // Tapping the rest of the widget opens the app on the water card.
-      val openIntent = HomeWidgetLaunchIntent.getActivity(
-          context,
-          MainActivity::class.java,
-          Uri.parse("calmatters://water-open"),
-      )
-      views.setOnClickPendingIntent(R.id.water_root, openIntent)
+      // Deliberately NO click on the root: when the root is clickable, most
+      // launchers swallow the child's click and the "+ 1 glass" button does
+      // nothing (found on a real device — the root opened the app instead).
+      // The button is the only target, which is also what this widget is for.
 
       appWidgetManager.updateAppWidget(id, views)
     }

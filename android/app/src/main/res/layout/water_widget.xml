@@ -11,8 +11,8 @@
         android:id="@+id/water_amount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1.2 L"
-        android:textColor="#1C1C1E"
+        android:text="0.0 L"
+        android:textColor="@color/widget_text"
         android:textSize="26sp"
         android:textStyle="bold" />
 
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="1dp"
         android:text="of 2.5 L"
-        android:textColor="#6E6E73"
+        android:textColor="@color/widget_muted"
         android:textSize="12sp" />
 
     <ProgressBar
@@ -32,7 +32,7 @@
         android:layout_height="8dp"
         android:layout_marginTop="10dp"
         android:max="100"
-        android:progress="48" />
+        android:progress="0" />
 
     <TextView
         android:id="@+id/water_add"

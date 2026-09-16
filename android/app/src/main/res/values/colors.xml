@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget text colours. The night variants live in values-night/ so the
+         water widget stays readable when the phone is in dark mode (the card
+         background flips in drawable-night/). -->
+    <color name="widget_text">#FF1C1C1E</color>
+    <color name="widget_muted">#FF6E6E73</color>
+</resources>

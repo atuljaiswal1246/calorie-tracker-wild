@@ -19,12 +19,13 @@ import 'widget_state.dart';
 /// RemoteViews can lay out. iOS needs a WidgetKit extension target before it
 /// can show anything; until then this is Android-only.
 class WidgetService {
-  static const _androidName =
-      'com.calorietracker.calorie_tracker.CalWidgetProvider';
-  static const _waterAndroidName =
-      'com.calorietracker.calorie_tracker.CalWaterWidgetProvider';
-  static const _ringAndroidName =
-      'com.calorietracker.calorie_tracker.CalRingWidgetProvider';
+  // MUST match the applicationId + class in AndroidManifest, or
+  // HomeWidget.updateWidget() silently updates nothing and the widget sits on
+  // its placeholder layout forever. (Found on a real device.)
+  static const _pkg = 'com.neharohilla.calorietracker';
+  static const _androidName = '$_pkg.CalWidgetProvider';
+  static const _waterAndroidName = '$_pkg.CalWaterWidgetProvider';
+  static const _ringAndroidName = '$_pkg.CalRingWidgetProvider';
   static Future<void> push(StorageService storage) async {
     if (!Platform.isAndroid) return;
     try {
