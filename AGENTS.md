@@ -17,9 +17,37 @@ pre-rendered, so their NUMBERS are as of the last app run (the trigger's MOOD
 still changes on schedule). Background redraw (WorkManager + headless render)
 would fix that; parked.
 
+**Verified statically (in the release APK, via aapt2):** all three widget
+providers registered, all four layouts + the two preview drawables + the three
+widget-info XMLs compiled in, and `HomeWidgetBackgroundReceiver` declared.
+
+**HARD-WON RULE — home_widget ships an EMPTY AndroidManifest.** The receiver that
+runs a widget tap in the background must be declared in the APP's manifest, or
+the tap is a silent no-op (this was caught only by dumping the built APK):
+```xml
+<receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+          android:exported="false">
+  <intent-filter>
+    <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+  </intent-filter>
+</receiver>
+```
+
 **Unverified:** none of the three has been seen on a real home screen — no Android
-device attached. The riskiest unknown is the water widget's background callback.
-195 tests, 10 widget goldens, APK at `~/Desktop/CalMatters-0.9.6+10-widget.apk`.
+device attached. 199 tests, 10 widget goldens, APK at
+`~/Desktop/CalMatters-0.9.6+10-widget.apk`.
+
+**ON-DEVICE CHECKLIST (do this the moment the phone is plugged in — 5 minutes):**
+1. `adb devices` → confirm the serial, then `adb install -r ~/Desktop/CalMatters-0.9.6+10-widget.apk`.
+2. Long-press the home screen → Widgets → **Cal Matters** → confirm THREE entries
+   appear with previews ("Cal Matters", "— Ring", "— Water").
+3. Add each; confirm the preview shows (not a blank box).
+4. Water widget: tap **+ 1 glass** with the app CLOSED → reopen the app → the water
+   card must show +250 ml. This is the background-callback test, the riskiest piece.
+5. Water widget: check it zeroes after midnight (or set the device clock forward).
+6. Trigger widget: log lunch → the widget should move to the next state.
+7. Ring widget: log a meal → numbers update on next app open (expected: pre-rendered).
+8. Tap each widget's body → the app must open on the right surface.
 
 **NEXT: verify on the Android phone, then the user-timed nudge** — one
 notification, only if that meal is still unlogged, inside the user's learned

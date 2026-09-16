@@ -14,6 +14,16 @@
         android:label="Cal Matters"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- home_widget ships an EMPTY manifest, so the receiver that runs
+             widget taps in the background has to be declared here. Without it
+             the water widget's "+ 1 glass" is a silent no-op. -->
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+            </intent-filter>
+        </receiver>
         <receiver
             android:name=".CalRingWidgetProvider"
             android:exported="true"
