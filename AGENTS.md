@@ -1,31 +1,25 @@
 # AGENTS.md — Project Memory & Handoff
 
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
-**In progress: the alive widget — TRIGGER-FIRST + DATA-DRIVEN, awaiting the Android phone.**
-`a6ac903` on top of `c092c7d`/`7f44d89`/`607c8b1`. The widget's only job is to
-bring the user into the app, so it carries only what causes the tap:
-- The **meal is the hero** and the only action ("Lunch?" / "+ Log lunch"); the
-  calorie ring, macros, water and steps were deleted as information, not triggers.
-- The **streak is the stake**, showing "at risk" only when it is true.
-- **Day done goes quiet** (no button); **day 0 never scores** (no "0-day streak",
-  no red squares before the user's first entry).
-- A meal time is quoted only once **>=3 of the user's own logs** back it;
-  otherwise the copy is an invitation ("Takes about five seconds.").
-- **Tap attribution**: the deep link carries `state` + `mood`, logged as
-  `widget_tap`, so taps-per-trigger can be measured and losers deleted.
-Engine: `services/widget_state.dart` (windows from the median hour the user logs
-each meal over 30 days; a meal >2h past its usual time counts as skipped).
-Android picks the pre-rendered state by the clock on its own ~30min schedule, so
-it changes through the day with the app closed. 5+9 unit tests, 4 widget goldens,
-APK at `~/Desktop/CalMatters-0.9.6+10-widget.apk`. **Never seen on a real home
-screen — no Android device attached.**
+**In progress: ALL THREE WIDGETS BUILT — awaiting the Android phone.**
+`e05b13c` (water + ring) on top of `a6ac903` (trigger) / `c092c7d` / `7f44d89`.
+The user is deliberately building a gallery: people add whichever suits them, and
+the choice is the research.
 
-Accurate limitation: the **mood** changes on schedule; the **numbers** baked into
-each bitmap are as of the last app run. A background redraw (WorkManager +
-headless render) is the fix; parked.
+| Widget | State | How it is drawn |
+|---|---|---|
+| **Ring** (`CalRingWidgetProvider`) | BUILT | Flutter bitmap, two sizes. Status only — calories taken in the ring, colour by state (black/amber/green/red), 2x2 key legend. No prompt, no action, by design. |
+| **Trigger** (`CalWidgetProvider`) | BUILT | Flutter bitmaps, one per state; native picks by clock. Meal is the hero, streak is the stake, day-done goes quiet, tap attribution via `?state=&mood=`. |
+| **Water** (`CalWaterWidgetProvider`) | BUILT | **Native** (number + bar + button). One tap = 250 ml with no app open via `HomeWidgetBackgroundIntent` → `widgetInteractivityCallback` → the same `StorageService.addWater` the in-app card uses. Goal-reached hides the button; zeroes itself when the stored day is not today (midnight reset). Small + wide. |
 
-**Still open on the widget:** the small 2x2 size ("logged today?"); iOS shows
-nothing (no WidgetKit extension; App Groups may need the paid Apple program).
+**The one honest caveat:** water is instant and never stale; ring and trigger are
+pre-rendered, so their NUMBERS are as of the last app run (the trigger's MOOD
+still changes on schedule). Background redraw (WorkManager + headless render)
+would fix that; parked.
+
+**Unverified:** none of the three has been seen on a real home screen — no Android
+device attached. The riskiest unknown is the water widget's background callback.
+195 tests, 10 widget goldens, APK at `~/Desktop/CalMatters-0.9.6+10-widget.apk`.
 
 **NEXT: verify on the Android phone, then the user-timed nudge** — one
 notification, only if that meal is still unlogged, inside the user's learned
