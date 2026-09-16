@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       _widgetSub = HomeWidget.widgetClicked.listen(
         (uri) {
-          if (mounted && uri != null) _openLogFromWidget();
+          if (mounted && uri != null) _openLogFromWidget(uri);
         },
         onError: (_) {}, // plugin unavailable — never break Home for it
       );
@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final uri = await HomeWidget.initiallyLaunchedFromHomeWidget();
-        if (mounted && uri != null) _openLogFromWidget();
+        if (mounted && uri != null) _openLogFromWidget(uri);
       } catch (_) {}
     });
     AnalyticsService.log('experiment_exposure', {
@@ -345,8 +345,18 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---- Actions ----
 
   /// Straight into the log surface — the widget's promise is one tap.
-  void _openLogFromWidget() {
+  ///
+  /// The widget's deep link carries which state was on screen, so we can
+  /// measure taps-per-trigger and delete the states that do not earn theirs.
+  void _openLogFromWidget([Uri? uri]) {
     if (!mounted) return;
+    final mood = uri?.queryParameters['mood'];
+    if (mood != null && mood.isNotEmpty) {
+      AnalyticsService.log('widget_tap', {
+        'state': uri?.queryParameters['state'] ?? '',
+        'mood': mood,
+      });
+    }
     Navigator.of(context)
         .push(MaterialPageRoute(
           builder: (_) => CaptureScreen(storage: widget.storage),

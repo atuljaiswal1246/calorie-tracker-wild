@@ -39,11 +39,11 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_wrap(const CalWidgetView(
-      line: 'You usually log lunch around 1pm',
-      caption: '12-day streak · 995 left',
+      hero: 'Lunch?',
+      subline: 'You usually log around 1:30pm.',
+      pill: '+ Log lunch',
       remaining: 995,
-      consumed: 1086,
-      goal: 2081,
+      streak: 12,
       mood: WidgetMood.due,
       week: [
         WidgetDay.empty,
@@ -66,11 +66,12 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_wrap(const CalWidgetView(
-      line: 'Dinner is the last call',
-      caption: '12-day streak · 640 left',
+      hero: "Dinner's the last call",
+      subline: 'Still unlogged at 9:40pm.',
+      pill: '+ Log dinner',
       remaining: 640,
-      consumed: 1441,
-      goal: 2081,
+      streak: 12,
+      streakAtRisk: true,
       dark: true,
       mood: WidgetMood.lastCall,
       week: [
@@ -94,11 +95,11 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_wrap(const CalWidgetView(
-      line: 'Today · 12-day streak',
-      caption: '0 of 2081 kcal',
+      hero: 'Breakfast?',
+      subline: 'Takes about five seconds.',
+      pill: '+ Log breakfast',
       remaining: 2081,
-      consumed: 0,
-      goal: 2081,
+      streak: 0,
       mood: WidgetMood.calm,
       week: [
         WidgetDay.onTarget,
@@ -121,11 +122,11 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_wrap(const CalWidgetView(
-      line: 'Over by 129 kcal',
-      caption: '12-day streak',
+      hero: 'Over by 129 kcal',
+      subline: '2210 of 2081 kcal.',
+      pill: null,
       remaining: 0,
-      consumed: 2210,
-      goal: 2081,
+      streak: 12,
       mood: WidgetMood.over,
       week: [
         WidgetDay.onTarget,

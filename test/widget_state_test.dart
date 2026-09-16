@@ -48,20 +48,25 @@ void main() {
     }
     // Breakfast is already in today, so lunch is the pending meal.
     await s.addEntry(_meal('b', DateTime(2026, 9, 16, 8), 'breakfast', 300));
-    final states = CalCalWidgetStates.build(s, DateTime(2026, 9, 16, 9));
+    final states = CalWidgetStates.build(s, DateTime(2026, 9, 16, 9));
     final due = states.firstWhere((x) => x.mood == WidgetMood.due);
-    expect(due.line, contains('2:30pm'),
+    expect(due.context, contains('2:30pm'),
         reason: 'the widget must learn this user\'s own lunchtime');
+    expect(due.learnedTime, isTrue);
+    expect(due.hero, 'Lunch?');
+    expect(due.pill, '+ Log lunch');
     final calm = states.firstWhere((x) => x.mood == WidgetMood.calm);
     expect(calm.endMinute, 13 * 60 + 30);
   });
 
   test('falls back to sensible times until there is history', () async {
     final s = await _storage();
-    final states = CalCalWidgetStates.build(s, DateTime(2026, 9, 16, 6));
+    final states = CalWidgetStates.build(s, DateTime(2026, 9, 16, 6));
     final due = states.firstWhere((x) => x.mood == WidgetMood.due);
-    expect(due.line, contains('8am'),
-        reason: 'breakfast is the first thing due');
+    expect(due.hero, 'Breakfast?');
+    expect(due.learnedTime, isFalse,
+        reason: 'without history we must not claim to know their time');
+    expect(due.context, 'Takes about five seconds.');
   });
 
   test('logging every meal leaves one relaxed state for the rest of the day',
@@ -71,26 +76,28 @@ void main() {
     for (final (i, m) in ['breakfast', 'lunch', 'dinner'].indexed) {
       await s.addEntry(_meal('m$i', DateTime(day.year, day.month, day.day, 8 + i * 4), m, 200));
     }
-    final states = CalCalWidgetStates.build(s, DateTime(2026, 9, 16, 20));
+    final states = CalWidgetStates.build(s, DateTime(2026, 9, 16, 20));
     expect(states, hasLength(1));
     expect(states.single.mood, WidgetMood.done);
+    expect(states.single.pill, isNull, reason: 'a closed day goes quiet');
   });
 
   test('going over budget overrides everything', () async {
     final s = await _storage();
     await s.addEntry(
         _meal('big', DateTime(2026, 9, 16, 12), 'lunch', 5000));
-    final states = CalCalWidgetStates.build(s, DateTime(2026, 9, 16, 14));
+    final states = CalWidgetStates.build(s, DateTime(2026, 9, 16, 14));
     expect(states.single.mood, WidgetMood.over);
-    expect(states.single.line, contains('Over by'));
+    expect(states.single.hero, contains('Over by'));
+    expect(states.single.pill, isNull);
   });
 
   test('pick() chooses the window covering the minute', () async {
     final s = await _storage();
-    final states = CalCalWidgetStates.build(s, DateTime(2026, 9, 16, 6));
-    final morning = CalCalWidgetStates.pick(states, 6 * 60);
-    final afternoon = CalCalWidgetStates.pick(states, 13 * 60);
-    final night = CalCalWidgetStates.pick(states, 22 * 60);
+    final states = CalWidgetStates.build(s, DateTime(2026, 9, 16, 6));
+    final morning = CalWidgetStates.pick(states, 6 * 60);
+    final afternoon = CalWidgetStates.pick(states, 13 * 60);
+    final night = CalWidgetStates.pick(states, 22 * 60);
     expect(morning.mood, WidgetMood.calm);
     expect(afternoon.mood, WidgetMood.due);
     expect(night.mood, WidgetMood.lastCall);

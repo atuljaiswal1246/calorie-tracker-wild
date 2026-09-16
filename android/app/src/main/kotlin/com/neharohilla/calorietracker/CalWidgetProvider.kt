@@ -35,11 +35,13 @@ class CalWidgetProvider : HomeWidgetProvider() {
         if (path != null) Uri.parse(path) else null,
     )
 
-    // One tap anywhere -> straight into logging a meal.
+    // One tap anywhere -> straight into logging a meal. The state and mood
+    // ride along so we can measure which trigger actually caused the tap.
+    val mood = widgetData.getString("state_mood_$index", "")
     val launchIntent = HomeWidgetLaunchIntent.getActivity(
         context,
         MainActivity::class.java,
-        Uri.parse("calmatters://log"),
+        Uri.parse("calmatters://log?state=$index&mood=$mood"),
     )
     views.setOnClickPendingIntent(R.id.widget_root, launchIntent)
 

@@ -2,34 +2,28 @@ import 'package:flutter/material.dart';
 
 import '../services/widget_state.dart';
 
-/// How a single day in the widget's week chain is doing.
-enum WidgetDay { future, empty, logged, onTarget }
-
 /// The Cal Matters home-screen widget, drawn in Flutter.
 ///
 /// Rendered off-screen to a PNG by `HomeWidget.renderFlutterWidget` and shown
-/// on Android, so the widget matches the app's design exactly instead of being
-/// limited to what RemoteViews can lay out.
+/// on Android, so it matches the app's design exactly instead of being limited
+/// to what RemoteViews can lay out.
 ///
-/// The look is data-driven: [CalWidgetView.fromState] takes one of the states
-/// built by `CalCalWidgetStates.build` — the mood line, ring colour, streak and
-/// button label all come from the user's own data and the time of day.
+/// It is built as a *trigger*: the meal is the hero, the streak is the stake,
+/// calories are demoted, and there is exactly one action. The states and their
+/// windows come from `CalWidgetStates.build`.
 ///
 /// Deliberately avoids Material/Theme so it can render without an app shell.
 class CalWidgetView extends StatelessWidget {
-  /// The mood line: "Today · 12-day streak", "You usually log lunch around
-  /// 1:30pm", "Dinner is the last call", "Logged — day's on track".
-  final String line;
-
-  /// Secondary line: "1,086 of 2,081 kcal" or "12-day streak · 640 left".
-  final String caption;
-
+  final String hero;
+  final String subline;
+  final String? pill;
   final int remaining;
-  final int consumed;
-  final int goal;
+  final int streak;
+  final bool streakAtRisk;
   final List<WidgetDay> week;
   final String mealLabel;
   final WidgetMood mood;
+  final bool learnedTime;
 
   /// Follows the system theme: the widget sits on the OS home screen, whose
   /// context is the system, not the app's own dark toggle.
@@ -40,29 +34,34 @@ class CalWidgetView extends StatelessWidget {
 
   const CalWidgetView({
     super.key,
-    required this.line,
-    required this.caption,
+    required this.hero,
+    required this.subline,
+    required this.pill,
     required this.remaining,
-    required this.consumed,
-    required this.goal,
+    required this.streak,
     required this.week,
     required this.mealLabel,
     required this.mood,
+    this.streakAtRisk = false,
+    this.learnedTime = false,
     this.dark = false,
     this.width = 340,
     this.height = 168,
   });
 
-  factory CalWidgetView.fromState(CalWidgetState state, {bool dark = false}) =>
+  factory CalWidgetView.fromState(CalWidgetState state,
+          {bool dark = false}) =>
       CalWidgetView(
-        line: state.line,
-        caption: state.caption,
+        hero: state.hero,
+        subline: state.context,
+        pill: state.pill,
         remaining: state.remaining,
-        consumed: state.consumed,
-        goal: state.goal,
+        streak: state.streak,
+        streakAtRisk: state.streakAtRisk,
         week: state.week,
         mealLabel: state.mealLabel,
         mood: state.mood,
+        learnedTime: state.learnedTime,
         dark: dark,
       );
 
@@ -70,20 +69,24 @@ class CalWidgetView extends StatelessWidget {
   Color get _ink => dark ? const Color(0xFFF2F2F4) : const Color(0xFF1C1C1E);
   Color get _muted => dark ? const Color(0xFF9A9AA2) : const Color(0xFF6E6E73);
   Color get _track => dark ? const Color(0xFF2C2D31) : const Color(0xFFEFEFEA);
-  Color get _pillInk => dark ? const Color(0xFF1C1C1E) : const Color(0xFFFFFFFF);
 
   static const _green = Color(0xFF34C759);
   static const _orange = Color(0xFFFF9500);
   static const _red = Color(0xFFFF3B30);
 
-  /// The mood owns the colour — this is what changes through the day.
-  Color get _moodColor => switch (mood) {
-        WidgetMood.over => _red,
+  Color get _accent => switch (mood) {
+        WidgetMood.over || WidgetMood.lastCall => _red,
         WidgetMood.done => _green,
         WidgetMood.due => _orange,
-        WidgetMood.lastCall => _red,
         WidgetMood.calm => _ink,
       };
+
+  /// Text on the accent pill — the calm accent is light in dark mode.
+  Color get _onAccent {
+    final a = _accent;
+    final luma = (a.r * 0.299 + a.g * 0.587 + a.b * 0.114);
+    return luma > 0.6 ? const Color(0xFF1C1C1E) : const Color(0xFFFFFFFF);
+  }
 
   Color _dayColor(WidgetDay d) => switch (d) {
         WidgetDay.future => _track,
@@ -94,8 +97,6 @@ class CalWidgetView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = goal > 0 ? (consumed / goal).clamp(0.0, 1.0) : 0.0;
-
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Container(
@@ -105,120 +106,132 @@ class CalWidgetView extends StatelessWidget {
           color: _card,
           borderRadius: BorderRadius.circular(26),
         ),
-        padding: EdgeInsets.fromLTRB(14, 12, 14, 12),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 100,
-              height: 100,
-              child: CustomPaint(
-                painter: _Ring(
-                  progress: progress,
-                  color: _moodColor,
-                  track: _track,
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            '$remaining',
-                            style: TextStyle(
-                              fontSize: 30,
-                              height: 1.0,
-                              fontWeight: FontWeight.w800,
-                              color: _ink,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        'left',
-                        style: TextStyle(
-                          fontSize: 10,
-                          height: 1.2,
-                          fontWeight: FontWeight.w600,
-                          color: _muted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: 14),
+            // ---- the trigger + the one action ----
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Two lines only, whatever the state — no extra badges.
-                  SizedBox(
-                    height: 34,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        line,
-                        maxLines: 2,
-                        style: TextStyle(
-                          fontSize: 15,
-                          height: 1.15,
-                          fontWeight: FontWeight.w800,
-                          color: _moodColor,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
+                  Text(
+                    hero,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 21,
+                      height: 1.12,
+                      fontWeight: FontWeight.w800,
+                      color: _accent,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    caption,
+                    subline,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: _muted),
+                    style: TextStyle(fontSize: 11.5, color: _muted),
                   ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      for (var i = 0; i < week.length; i++) ...[
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: _dayColor(week[i]),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
+                  const SizedBox(height: 10),
+                  if (pill != null)
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: _accent,
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: Text(
+                        pill!,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          color: _onAccent,
                         ),
-                        if (i < week.length - 1) SizedBox(width: 4),
-                      ],
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: _moodColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '+ Log $mealLabel',
+                      ),
+                    )
+                  else
+                    Text(
+                      'Nothing to log.',
                       style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: mood == WidgetMood.calm ? _pillInk : _pillInk,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _muted,
                       ),
                     ),
-                  ),
                 ],
               ),
+            ),
+            const SizedBox(width: 10),
+            // ---- the stake, and what's left (demoted) ----
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (streak > 0) ...[
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _Flame(
+                          color: streakAtRisk ? _red : _orange,
+                          size: 15),
+                      const SizedBox(width: 3),
+                      Text(
+                        '$streak',
+                        style: TextStyle(
+                          fontSize: 20,
+                          height: 1.0,
+                          fontWeight: FontWeight.w800,
+                          color: _ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    streakAtRisk ? 'at risk' : 'days',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: streakAtRisk ? _red : _muted,
+                    ),
+                  ),
+                ] else
+                  Text(
+                    'Start your\nstreak',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: 11,
+                      height: 1.25,
+                      fontWeight: FontWeight.w700,
+                      color: _muted,
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                Text(
+                  '$remaining left',
+                  style: TextStyle(fontSize: 11, color: _muted),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var i = 0; i < week.length; i++) ...[
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: _dayColor(week[i]),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      if (i < week.length - 1) const SizedBox(width: 3),
+                    ],
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -227,44 +240,48 @@ class CalWidgetView extends StatelessWidget {
   }
 }
 
-class _Ring extends CustomPainter {
-  final double progress;
+/// A small flame, drawn rather than a font glyph so it renders anywhere.
+class _Flame extends StatelessWidget {
   final Color color;
-  final Color track;
-  _Ring({required this.progress, required this.color, required this.track});
+  final double size;
+  const _Flame({required this.color, this.size = 16});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(painter: _FlamePainter(color)),
+    );
+  }
+}
+
+class _FlamePainter extends CustomPainter {
+  final Color color;
+  _FlamePainter(this.color);
 
   @override
   void paint(Canvas canvas, Size size) {
-    const stroke = 10.0;
-    final rect = Offset.zero & size;
-    final centre = rect.center;
-    final radius = (size.shortestSide - stroke) / 2;
+    final w = size.width;
+    final h = size.height;
+    final p = Path()
+      ..moveTo(w * 0.5, 0)
+      ..cubicTo(w * 0.95, h * 0.35, w * 0.85, h * 0.72, w * 0.5, h)
+      ..cubicTo(w * 0.15, h * 0.72, w * 0.05, h * 0.35, w * 0.5, 0)
+      ..close();
+    canvas.drawPath(p, Paint()..color = color);
 
-    final trackPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..color = track;
-    canvas.drawCircle(centre, radius, trackPaint);
-
-    if (progress > 0) {
-      final arc = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = stroke
-        ..strokeCap = StrokeCap.round
-        ..color = color;
-      canvas.drawArc(
-        Rect.fromCircle(center: centre, radius: radius),
-        -1.5708,
-        6.28318 * progress,
-        false,
-        arc,
-      );
-    }
+    final inner = Path()
+      ..moveTo(w * 0.5, h * 0.38)
+      ..cubicTo(w * 0.72, h * 0.6, w * 0.68, h * 0.82, w * 0.5, h * 0.94)
+      ..cubicTo(w * 0.32, h * 0.82, w * 0.28, h * 0.6, w * 0.5, h * 0.38)
+      ..close();
+    canvas.drawPath(
+      inner,
+      Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: 0.85),
+    );
   }
 
   @override
-  bool shouldRepaint(_Ring old) =>
-      old.progress != progress ||
-      old.color != color ||
-      old.track != track;
+  bool shouldRepaint(_FlamePainter old) => old.color != color;
 }

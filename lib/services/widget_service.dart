@@ -46,7 +46,7 @@ class WidgetService {
         return WidgetDay.empty;
       });
 
-      final states = CalCalWidgetStates.build(storage, now);
+      final states = CalWidgetStates.build(storage, now);
       final dark = PlatformDispatcher.instance.platformBrightness ==
           Brightness.dark;
 
@@ -66,10 +66,15 @@ class WidgetService {
           'start': states[i].startMinute,
           'end': states[i].endMinute,
         });
+        // The native side echoes this back in the deep link, so a tap can be
+        // attributed to the state that caused it.
+        await HomeWidget.saveWidgetData<String>(
+            'state_mood_$i', states[i].mood.name);
       }
 
       await HomeWidget.saveWidgetData<int>('state_count', windows.length);
-      await HomeWidget.saveWidgetData<String>('state_windows', jsonEncode(windows));
+      await HomeWidget.saveWidgetData<String>(
+          'state_windows', jsonEncode(windows));
       await HomeWidget.saveWidgetData<int>('remaining', remaining);
       await HomeWidget.saveWidgetData<int>('streak', streakOf(states));
       await HomeWidget.updateWidget(androidName: _androidName);
