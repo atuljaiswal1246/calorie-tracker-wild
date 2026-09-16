@@ -37,6 +37,16 @@ prefers (`87dcf45`), keeping the Profile inline calorie-goal edit and the
 dark-mode inverted CTA.
 
 **Parking Lot (do NOT start while something above is open):**
+- **WATER WIDGET (new item, mock approved 2026-09-16, `mock_19_water_widget.png`).**
+  Separate from the calorie widget — do not merge them. Pure action: tap = +1 glass
+  (250 ml) with no app open, via a background interactivity callback that writes the
+  entry and redraws. Drawn **natively** (fill + bar), so unlike the calorie widget it
+  is instant and never stale. Sizes: small 2x2 and wide 4x1; goal-reached goes quiet;
+  resets at midnight; long-press opens the water card. MUST reuse the same water rules
+  as the in-app card (daily reset, goal, undo). Needs the Android device to verify the
+  background callback. Open question for the user: single 250 ml per tap vs +250/+500.
+- Haptics: widget tap vibration (needs the Android device) and a "vibrate on actions"
+  setting — the app already uses haptics widely but has no toggle.
 - Settings / achievements / meal-detail / manual-entry-empty polish passes.
 - Small widget size; background redraw (WorkManager).
 - iOS widget (needs a WidgetKit target; check App Groups on the free team).
