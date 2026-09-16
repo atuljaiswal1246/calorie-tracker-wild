@@ -36,8 +36,22 @@ engine.
 prefers (`87dcf45`), keeping the Profile inline calorie-goal edit and the
 dark-mode inverted CTA.
 
+**WIDGET GALLERY — the user's stated strategy (2026-09-16).** They are building
+several widgets on purpose: *"I want to give option to users to add which they
+like."* So there are THREE separate widgets, never merged — each with one job:
+| Widget | Job | Mock |
+|---|---|---|
+| **Ring** | Status at a glance: calories taken, progress in the ring, colour by state (black on track / amber halfway / green on target / red over). Nothing else, no logging prompt. | `mock_21_ring_widget.png` |
+| **Trigger** | Bring them in: the meal + one tap to log. BUILT (`a6ac903`). | `mock_18_widget_as_trigger.png` |
+| **Water** | One tap logs a glass (250 ml), no app open. | `mock_19_water_widget.png` |
+The chooser itself matters: `mock_22_widget_gallery.png`. **The choice is the
+research** — adds-per-widget and taps-per-widget become free product data; the
+winner becomes the default and the losers get cut by data, not opinion. They must
+share ONE data layer (same water rules, same streak, same state engine) so a new
+widget is a layout, not a new system.
+
 **Parking Lot (do NOT start while something above is open):**
-- **WATER WIDGET (new item, mock approved 2026-09-16, `mock_19_water_widget.png`).**
+- **WATER WIDGET (mock approved 2026-09-16, `mock_19_water_widget.png`).**
   Separate from the calorie widget — do not merge them. Pure action: tap = +1 glass
   (250 ml) with no app open, via a background interactivity callback that writes the
   entry and redraws. Drawn **natively** (fill + bar), so unlike the calorie widget it
