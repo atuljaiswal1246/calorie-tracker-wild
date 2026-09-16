@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:ui' show PlatformDispatcher;
 
@@ -7,6 +8,7 @@ import 'package:home_widget/home_widget.dart';
 
 import '../widgets/cal_widget_view.dart';
 import 'storage_service.dart';
+import 'widget_state.dart';
 
 /// Pushes today's state to the home-screen widget.
 ///
@@ -44,33 +46,41 @@ class WidgetService {
         return WidgetDay.empty;
       });
 
-      final view = CalWidgetView(
-        remaining: remaining,
-        consumed: consumed,
-        goal: goal,
-        week: week,
-        mealLabel: mealLabelFor(now),
-        // Widgets live on the OS home screen, so they follow the system
-        // theme rather than the app's own dark toggle.
-        dark: PlatformDispatcher.instance.platformBrightness ==
-            Brightness.dark,
-      );
+      final states = CalCalWidgetStates.build(storage, now);
+      final dark = PlatformDispatcher.instance.platformBrightness ==
+          Brightness.dark;
 
+      // Pre-render one bitmap per state and remember the slice of the day each
+      // belongs to. The native side then has to do nothing but compare the
+      // clock to those windows — so the widget changes through the day without
+      // the app being open.
+      final windows = <Map<String, int>>[];
+      for (var i = 0; i < states.length && i < 8; i++) {
+        await HomeWidget.renderFlutterWidget(
+          CalWidgetView.fromState(states[i], dark: dark),
+          key: 'widget_image_$i',
+          logicalSize: const Size(340, 168),
+          pixelRatio: 2.5,
+        );
+        windows.add({
+          'start': states[i].startMinute,
+          'end': states[i].endMinute,
+        });
+      }
+
+      await HomeWidget.saveWidgetData<int>('state_count', windows.length);
+      await HomeWidget.saveWidgetData<String>('state_windows', jsonEncode(windows));
       await HomeWidget.saveWidgetData<int>('remaining', remaining);
-      await HomeWidget.saveWidgetData<int>('consumed', consumed);
-      await HomeWidget.saveWidgetData<int>('goal', goal);
-      await HomeWidget.renderFlutterWidget(
-        view,
-        key: _imageKey,
-        logicalSize: Size(view.width, view.height),
-        pixelRatio: 2.5,
-      );
+      await HomeWidget.saveWidgetData<int>('streak', streakOf(states));
       await HomeWidget.updateWidget(androidName: _androidName);
     } catch (e) {
       // Widget is best-effort — never break the app for it.
       debugPrint('Widget push failed: $e');
     }
   }
+
+  static int streakOf(List<CalWidgetState> states) =>
+      states.isEmpty ? 0 : states.first.streak;
 
   /// The meal the user is most likely to be logging right now.
   static String mealLabelFor(DateTime now) {

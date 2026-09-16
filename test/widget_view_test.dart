@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:calorie_tracker/services/widget_state.dart';
 import 'package:calorie_tracker/widgets/cal_widget_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,9 +39,12 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_wrap(const CalWidgetView(
+      line: 'You usually log lunch around 1pm',
+      caption: '12-day streak · 995 left',
       remaining: 995,
       consumed: 1086,
       goal: 2081,
+      mood: WidgetMood.due,
       week: [
         WidgetDay.empty,
         WidgetDay.logged,
@@ -62,10 +66,13 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_wrap(const CalWidgetView(
+      line: 'Dinner is the last call',
+      caption: '12-day streak · 640 left',
       remaining: 640,
       consumed: 1441,
       goal: 2081,
       dark: true,
+      mood: WidgetMood.lastCall,
       week: [
         WidgetDay.onTarget,
         WidgetDay.onTarget,
@@ -82,14 +89,44 @@ void main() {
         matchesGoldenFile('goldens/cal_widget_dark.png'));
   });
 
+  testWidgets('widget view: calm morning', (tester) async {
+    tester.view.physicalSize = const Size(1200, 700);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_wrap(const CalWidgetView(
+      line: 'Today · 12-day streak',
+      caption: '0 of 2081 kcal',
+      remaining: 2081,
+      consumed: 0,
+      goal: 2081,
+      mood: WidgetMood.calm,
+      week: [
+        WidgetDay.onTarget,
+        WidgetDay.onTarget,
+        WidgetDay.logged,
+        WidgetDay.future,
+        WidgetDay.future,
+        WidgetDay.future,
+        WidgetDay.future,
+      ],
+      mealLabel: 'breakfast',
+    )));
+    await tester.pumpAndSettle();
+    await expectLater(find.byType(CalWidgetView),
+        matchesGoldenFile('goldens/cal_widget_calm.png'));
+  });
+
   testWidgets('widget view: over budget', (tester) async {
     tester.view.physicalSize = const Size(1200, 700);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_wrap(const CalWidgetView(
+      line: 'Over by 129 kcal',
+      caption: '12-day streak',
       remaining: 0,
       consumed: 2210,
       goal: 2081,
+      mood: WidgetMood.over,
       week: [
         WidgetDay.onTarget,
         WidgetDay.onTarget,
