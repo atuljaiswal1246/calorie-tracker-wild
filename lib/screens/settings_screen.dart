@@ -53,6 +53,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await widget.storage.saveDarkMode(enabled);
   }
 
+  /// Fires a real notification immediately so the chime can be heard without
+  /// waiting for a scheduled slot.
+  Future<void> _testNotificationSound() async {
+    HapticFeedback.selectionClick();
+    await NotificationService.requestPermissions();
+    await NotificationService.showNow(
+      title: 'Cal Matters',
+      body: 'This is how a reminder will sound.',
+      id: 9100,
+    );
+  }
+
   Future<void> _toggleSounds(bool on) async {
     HapticFeedback.selectionClick();
     setState(() => _sounds = on);
@@ -267,6 +279,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : 'Off',
                       value: _sounds,
                       onChanged: _toggleSounds,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: _TapRow(
+                      icon: Icons.notifications_active_outlined,
+                      iconColor: AppColors.accentOrange,
+                      label: 'Test notification sound',
+                      subtitle: 'Hear the reminder chime now',
+                      onTap: _testNotificationSound,
                     ),
                   ),
                   SizedBox(height: 20),
