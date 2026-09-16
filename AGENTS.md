@@ -337,8 +337,11 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
 - Version currently `0.9.0+3` (pubspec.yaml). Bump versionCode above installed builds
   before `adb install -r` (downgrade errors otherwise); signature of release differs
   from debug so a debug build must be fully uninstalled first.
-- Signing: `android/app/release-key.jks` (storePassword/keyPassword calorietracker123,
-  alias calorie_tracker) — DO NOT commit these credentials anywhere public.
+- Signing: `android/app/release-key.jks`, with its passwords/alias in the
+  gitignored `android/key.properties`. `app/build.gradle.kts` reads that file —
+  no credentials are hardcoded in the repo, and none should ever be added back.
+  The keystore itself is gitignored too. Back it up somewhere safe: losing it
+  means this Play listing can never be updated again.
 - Release APK to share with testers: `build/app/outputs/flutter-apk/app-release.apk`
   (~77MB); Play upload format = AAB: `build/app/outputs/bundle/release/app-release.aab`
   (~66MB). Copy to ~/Desktop as CalMatters-<ver>.apk/.aab for sharing.

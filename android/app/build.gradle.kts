@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -28,10 +31,17 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("release-key.jks")
-            storePassword = "calorietracker123"
-            keyAlias = "calorie_tracker"
-            keyPassword = "calorietracker123"
+            // Read from the gitignored android/key.properties so the keystore
+            // and its passwords are never in the repository.
+            val propsFile = rootProject.file("key.properties")
+            val props = Properties()
+            if (propsFile.exists()) {
+                props.load(FileInputStream(propsFile))
+            }
+            storeFile = file(props.getProperty("storeFile") ?: "release-key.jks")
+            storePassword = props.getProperty("storePassword")
+            keyAlias = props.getProperty("keyAlias")
+            keyPassword = props.getProperty("keyPassword")
         }
     }
 
