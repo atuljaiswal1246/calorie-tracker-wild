@@ -15,6 +15,28 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <receiver
+            android:name=".CalRingWidgetProvider"
+            android:exported="true"
+            android:label="Cal Matters — Ring">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/ring_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".CalWaterWidgetProvider"
+            android:exported="true"
+            android:label="Cal Matters — Water">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/water_widget_info" />
+        </receiver>
+        <receiver
             android:name=".CalWidgetProvider"
             android:exported="true"
             android:label="Cal Matters">

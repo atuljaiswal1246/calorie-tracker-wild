@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/water_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="16dp"
+    android:background="@drawable/widget_bg">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/water_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.2 L"
+            android:textColor="#1C1C1E"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/water_goal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="of 2.5 L"
+            android:textColor="#6E6E73"
+            android:textSize="12sp" />
+
+        <ProgressBar
+            android:id="@+id/water_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progress="48" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/water_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:background="@drawable/water_add_bg"
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
+        android:paddingTop="11dp"
+        android:paddingBottom="11dp"
+        android:text="+ 1 glass"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/water_done"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:text="Goal reached"
+        android:textColor="#34C759"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+</LinearLayout>

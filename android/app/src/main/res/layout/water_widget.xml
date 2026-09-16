@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/water_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/widget_bg">
+
+    <TextView
+        android:id="@+id/water_amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1.2 L"
+        android:textColor="#1C1C1E"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/water_goal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="1dp"
+        android:text="of 2.5 L"
+        android:textColor="#6E6E73"
+        android:textSize="12sp" />
+
+    <ProgressBar
+        android:id="@+id/water_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="10dp"
+        android:max="100"
+        android:progress="48" />
+
+    <TextView
+        android:id="@+id/water_add"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/water_add_bg"
+        android:gravity="center"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp"
+        android:text="+ 1 glass"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/water_done"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:text="Goal reached"
+        android:textColor="#34C759"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+</LinearLayout>

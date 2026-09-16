@@ -107,7 +107,14 @@ class StorageService {
   DocumentReference? _profileRef() {
     final uid = _userId;
     if (uid == null) return null;
-    return FirebaseFirestore.instance.collection('users').doc(uid);
+    // Also null when Firebase isn't available at all — e.g. the widget's
+    // background callback, which runs without the app's Firebase. Local stays
+    // the source of truth, so "no cloud" is a safe answer, never a crash.
+    try {
+      return FirebaseFirestore.instance.collection('users').doc(uid);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// yyyyMMdd key for the per-day cloud docs (water / weight).

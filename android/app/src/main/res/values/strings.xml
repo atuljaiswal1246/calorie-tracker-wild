@@ -2,4 +2,6 @@
 <resources>
     <string name="app_name">Cal Matters</string>
     <string name="widget_description">Calories left today, this week at a glance, and a one-tap shortcut to log your meal.</string>
+    <string name="water_widget_description">One tap logs a glass of water — 250 ml. No need to open the app.</string>
+    <string name="ring_widget_description">Calories taken today, drawn as the ring. Colour shows how the day is going.</string>
 </resources>

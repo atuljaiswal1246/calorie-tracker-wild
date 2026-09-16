@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'models/profile.dart';
@@ -36,8 +37,16 @@ void main() async {
   final previousListener = storage.activityListener;
   storage.activityListener = (activity) {
     previousListener?.call(activity);
-    WidgetService.push(storage);
+    if (activity == StorageActivity.waterLogged) {
+      WidgetService.pushWater(storage);
+    } else {
+      WidgetService.push(storage);
+      WidgetService.pushRing(storage);
+    }
   };
+
+  // What the water widget's one-tap button runs, without opening the app.
+  await HomeWidget.registerInteractivityCallback(widgetInteractivityCallback);
 
   runApp(CalorieApp(storage: storage, auth: AuthService()));
 }
@@ -70,7 +79,11 @@ class _CalorieAppState extends State<CalorieApp> {
     super.initState();
     // Opening the app always refreshes the widget (and thus the day's state).
     _lifecycle = AppLifecycleListener(
-      onResume: () => WidgetService.push(widget.storage),
+      onResume: () {
+        WidgetService.push(widget.storage);
+        WidgetService.pushRing(widget.storage);
+        WidgetService.pushWater(widget.storage);
+      },
     );
     _init();
   }
