@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
@@ -10,7 +11,13 @@
             <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"/>
         </intent>
     </queries>
-    <application
+        <!-- This app has no ads and does not use the advertising ID. Firebase
+         Analytics pulls the permission in transitively, which would force a
+         Play "uses advertising ID" declaration we cannot honestly make. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
+
+<application
         android:label="Cal Matters"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
