@@ -184,7 +184,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
               ? "You'll bounce back — a fresh week starts now."
               : 'Last week you finished #${state.lastPosition}.');
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
       decoration: BoxDecoration(
         color: AppColors.cardAlt,
         borderRadius: BorderRadius.circular(14),
@@ -213,7 +213,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
           '${r.points} points',
       child: Container(
         margin: EdgeInsets.only(bottom: 6),
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
         decoration: BoxDecoration(
           color: r.isYou ? AppColors.cardSelected : AppColors.card,
           borderRadius: BorderRadius.circular(14),

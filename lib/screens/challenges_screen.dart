@@ -147,7 +147,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(AppSpace.sm),
                     decoration: BoxDecoration(
                       color: AppColors.card,
                       borderRadius: BorderRadius.circular(12),
@@ -185,10 +185,10 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     final isComplete = c.current >= c.target;
     return Container(
       margin: EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         boxShadow: AppColors.cardShadow,
       ),
       child: Row(

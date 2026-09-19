@@ -171,7 +171,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(AppSpace.lg),
                 decoration: BoxDecoration(
                   color: AppColors.inkButton,
                   borderRadius: BorderRadius.circular(20),
@@ -229,10 +229,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpace.lg),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -319,7 +319,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       height: 34,
                       decoration: BoxDecoration(
                         color: Color(0xFFF1F1F1),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
                       ),
                       child: Icon(Icons.remove, size: 18),
                     ),
@@ -347,7 +347,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       height: 34,
                       decoration: BoxDecoration(
                         color: Color(0xFFF1F1F1),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
                       ),
                       child: Icon(Icons.add, size: 18),
                     ),
@@ -363,7 +363,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   Widget _macroTag(String label, String value, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: AppSpace.xs),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),

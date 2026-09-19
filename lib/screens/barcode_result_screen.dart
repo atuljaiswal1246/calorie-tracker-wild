@@ -85,7 +85,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -108,7 +108,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: AppSpace.md),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text('Scan another', style: TextStyle(fontWeight: FontWeight.w700)),
@@ -155,7 +155,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(AppSpace.sm),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -189,7 +189,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppRadius.sheet),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -203,7 +203,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 children: [
                   if (_r.imageUrl.isNotEmpty) ...[
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.card),
                       child: Image.network(
                         _r.imageUrl,
                         height: 140,
@@ -234,7 +234,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                   ],
                   SizedBox(height: 4),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: 3),
                     decoration: BoxDecoration(
                       color: Color(0xFFF1F0EC),
                       borderRadius: BorderRadius.circular(6),
@@ -302,7 +302,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(bottom: 6, left: 4),
+                        padding: EdgeInsets.only(bottom: 6, left: AppSpace.xs),
                         child: Text(
                           'kcal',
                           style: TextStyle(
@@ -443,7 +443,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
           final result = await showDialog<double>(
             context: context,
             builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
               title: Text('Enter amount (g)'),
               content: TextField(
                 controller: controller,
@@ -473,10 +473,10 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
         }
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.sm),
         decoration: BoxDecoration(
           color: selected ? AppColors.ink : Color(0xFFF1F0EC),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
         child: Text(
           label,

@@ -154,10 +154,10 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
                   const SizedBox(height: 8),
                   for (final w in _workouts)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: AppSpace.sm),
                       child: DemoCard(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
+                            horizontal: 14, vertical: AppSpace.md),
                         child: Row(
                           children: [
                             Container(
@@ -166,7 +166,7 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
                               decoration: BoxDecoration(
                                 color:
                                     AppColors.carbs.withValues(alpha: 0.14),
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(AppRadius.pill),
                               ),
                               child: Icon(Icons.fitness_center_rounded,
                                   size: 17, color: AppColors.carbs),
@@ -194,7 +194,7 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: AppColors.chipNeutral,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.card),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,

@@ -56,7 +56,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -71,7 +71,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: AppSpace.md),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text('Log another', style: TextStyle(fontWeight: FontWeight.w700)),
@@ -415,7 +415,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
             Padding(
               padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: AppSpace.lg),
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(14),
@@ -570,7 +570,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   GestureDetector(
                     onTap: _showCustomFoodEntry,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 10),
                       decoration: BoxDecoration(
                         color: AppColors.card,
                         borderRadius: BorderRadius.circular(12),
@@ -708,7 +708,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(AppSpace.lg),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
@@ -723,7 +723,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                         color: AppColors.ink)),
                 SizedBox(height: 12),
                 ...items.map((item) => Padding(
-                      padding: EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.only(bottom: AppSpace.md),
                       child: Row(
                         children: [
                           Expanded(
@@ -760,7 +760,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                       ),
                     )),
                 Container(
-                  padding: EdgeInsets.only(top: 12),
+                  padding: EdgeInsets.only(top: AppSpace.md),
                   decoration: BoxDecoration(
                     border: Border(
                         top: BorderSide(color: AppColors.track)),
@@ -795,7 +795,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.inkButton,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                 ),
               ),
               child: Text('Log this meal',
@@ -833,7 +833,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                     backgroundColor: AppColors.errorRed,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(AppRadius.pill)),
                   ),
                   child: Text('Retry'),
                 ),
@@ -884,7 +884,7 @@ class _FoodResultTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
         margin: EdgeInsets.only(bottom: 6),
         decoration: BoxDecoration(
           color: AppColors.card,
@@ -980,7 +980,7 @@ class _QuickFoodTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
         margin: EdgeInsets.only(bottom: 6),
         decoration: BoxDecoration(
           color: AppColors.card,
@@ -1156,7 +1156,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
 
           // Meal type
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: AppSpace.lg),
             decoration: BoxDecoration(
               color: AppColors.bg,
               borderRadius: BorderRadius.circular(14),
@@ -1215,10 +1215,10 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
     return GestureDetector(
       onTap: () => setState(() => _quantity = grams),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.sm),
         decoration: BoxDecoration(
           color: selected ? AppColors.ink : AppColors.bg,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
         child: Text(
           label,
@@ -1235,7 +1235,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
   Widget _macroCard(Color color, String label, String value) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.symmetric(vertical: AppSpace.md),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
@@ -1374,10 +1374,10 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
     return GestureDetector(
       onTap: () => setState(() => _quantity = grams),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.sm),
         decoration: BoxDecoration(
           color: selected ? AppColors.ink : AppColors.bg,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
         child: Text(label,
             style: TextStyle(
@@ -1488,7 +1488,7 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
             SizedBox(height: 16),
 
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: AppSpace.lg),
               decoration: BoxDecoration(
                 color: AppColors.bg,
                 borderRadius: BorderRadius.circular(14),

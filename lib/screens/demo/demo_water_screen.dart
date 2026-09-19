@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_tokens.dart';
 import 'demo_common.dart';
 
 /// Try-before-you-buy demo: tap droplets and watch the glass fill in real time.
@@ -93,7 +94,7 @@ class _DemoWaterScreenState extends State<DemoWaterScreen> {
                                       ? AppColors.water
                                       : AppColors.water
                                           .withValues(alpha: 0.14),
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(AppRadius.pill),
                                 ),
                                 child: Icon(
                                   Icons.water_drop_rounded,
@@ -115,7 +116,7 @@ class _DemoWaterScreenState extends State<DemoWaterScreen> {
                     opacity: done ? 1 : 0,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
+                          horizontal: 14, vertical: AppSpace.sm),
                       decoration: BoxDecoration(
                         color: AppColors.green.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(20),

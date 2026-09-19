@@ -193,7 +193,7 @@ class _ShopScreenState extends State<ShopScreen> {
       padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
       ),
       child: Row(
         children: [
@@ -232,7 +232,7 @@ class _ShopScreenState extends State<ShopScreen> {
                     onPressed: () => _equip(item),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.ink,
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.sm),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -248,7 +248,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 backgroundColor:
                     affordable ? AppColors.inkButton : AppColors.cardAlt,
                 foregroundColor: affordable ? Colors.white : AppColors.muted,
-                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.sm),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

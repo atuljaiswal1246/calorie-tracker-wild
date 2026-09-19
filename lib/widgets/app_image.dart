@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// Shows an asset image if it exists; otherwise a labeled placeholder naming
 /// the expected file, so missing art is obvious and easy to drop in later.
@@ -58,7 +59,7 @@ class AppImage extends StatelessWidget {
           Icon(Icons.image_outlined, size: 18, color: AppColors.faint),
           const SizedBox(height: 4),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.xs),
             child: Text(
               name,
               textAlign: TextAlign.center,

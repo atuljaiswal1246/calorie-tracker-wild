@@ -231,7 +231,7 @@ SPEAK STYLE:
                         if (_sending) _TypingBubble(),
                         if (_error != null)
                           Padding(
-                            padding: EdgeInsets.all(8),
+                            padding: EdgeInsets.all(AppSpace.sm),
                             child: Text(
                               _error!,
                               style: TextStyle(
@@ -280,7 +280,7 @@ SPEAK STYLE:
               padding: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppColors.card,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.card),
               ),
               child: Column(
                 children: [
@@ -322,10 +322,10 @@ SPEAK STYLE:
       height: 46,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 6),
         itemCount: _hints.length,
         itemBuilder: (context, i) => Padding(
-          padding: EdgeInsets.only(right: 8),
+          padding: EdgeInsets.only(right: AppSpace.sm),
           child: ActionChip(
             label: Text(
               _hints[i],
@@ -349,7 +349,7 @@ SPEAK STYLE:
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: EdgeInsets.only(bottom: 8),
+        margin: EdgeInsets.only(bottom: AppSpace.sm),
         padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: BoxConstraints(maxWidth: 300),
         decoration: BoxDecoration(
@@ -392,9 +392,9 @@ SPEAK STYLE:
                     filled: true,
                     fillColor: AppColors.bg,
                     contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                        horizontal: AppSpace.lg, vertical: AppSpace.md),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(AppRadius.sheet),
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -443,11 +443,11 @@ class _TypingBubble extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: EdgeInsets.only(bottom: 8),
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        margin: EdgeInsets.only(bottom: AppSpace.sm),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.card),
         ),
         child: SizedBox(
           width: 24,

@@ -228,7 +228,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
   Widget _periodToggle() {
     final labels = ['Week', 'Month', 'Custom'];
     return Container(
-      padding: EdgeInsets.all(4),
+      padding: EdgeInsets.all(AppSpace.xs),
       decoration: BoxDecoration(
         color: AppColors.cardAlt,
         borderRadius: BorderRadius.circular(14),
@@ -271,7 +271,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
     final isCurrentWeek = _isSameDay(_selectedWeekStart, currentWeekStart);
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -288,7 +288,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: _canGoBackWeek ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.chevron_left, color: _canGoBackWeek ? AppColors.ink : AppColors.muted.withValues(alpha: 0.4), size: 20),
             ),
@@ -318,7 +318,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: isCurrentWeek ? AppColors.cardSelected.withValues(alpha: 0.5) : AppColors.cardSelected,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.chevron_right, color: isCurrentWeek ? AppColors.muted.withValues(alpha: 0.4) : AppColors.ink, size: 20),
             ),
@@ -334,7 +334,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
     final isCurrentMonth = _selectedMonth.year == now.year && _selectedMonth.month == now.month;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -351,7 +351,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: _canGoBackMonth ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.chevron_left, color: _canGoBackMonth ? AppColors.ink : AppColors.muted.withValues(alpha: 0.4), size: 20),
             ),
@@ -381,7 +381,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               padding: EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: isCurrentMonth ? AppColors.cardSelected.withValues(alpha: 0.5) : AppColors.cardSelected,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.chevron_right, color: isCurrentMonth ? AppColors.muted.withValues(alpha: 0.4) : AppColors.ink, size: 20),
             ),
@@ -429,7 +429,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
         }
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(20),

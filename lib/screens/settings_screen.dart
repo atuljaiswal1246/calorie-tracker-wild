@@ -269,7 +269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.card,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.card),
                     ),
                     child: _SwitchRow(
                       icon: Icons.volume_up_outlined,
@@ -286,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.card,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.card),
                     ),
                     child: _TapRow(
                       icon: Icons.notifications_active_outlined,
@@ -415,7 +415,7 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(left: 4, bottom: 10),
+      padding: EdgeInsets.only(left: AppSpace.xs, bottom: 10),
       child: Text(
         text,
         style: TextStyle(
@@ -449,7 +449,7 @@ class _SwitchRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: AppSpace.lg),
       child: Row(
         children: [
           _RowIcon(icon: icon, color: iconColor),
@@ -514,7 +514,7 @@ class _TapRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: AppSpace.lg),
         child: Row(
           children: [
             _RowIcon(icon: icon, color: iconColor),

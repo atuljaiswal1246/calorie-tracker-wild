@@ -204,7 +204,7 @@ class _DemoScanScreenState extends State<DemoScanScreen>
             children: [
               DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(AppRadius.sheet),
                   border: Border.all(
                       color: Colors.white.withValues(alpha: 0.4),
                       width: 1.5),
@@ -252,7 +252,7 @@ class _ResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12),
+      margin: const EdgeInsets.symmetric(horizontal: AppSpace.md),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       decoration: BoxDecoration(
         color: AppColors.bg,
@@ -305,7 +305,7 @@ class _ResultCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                                horizontal: AppSpace.sm, vertical: 3),
                             decoration: BoxDecoration(
                               color: AppColors.green.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(20),
