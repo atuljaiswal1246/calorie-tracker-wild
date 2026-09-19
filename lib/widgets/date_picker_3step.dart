@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,7 +14,7 @@ Future<DateTime?> showDatePicker3Step(
   int? lastYear,
   int? firstYear,
 }) {
-  final now = DateTime.now();
+  final now = clock.now();
   return showModalBottomSheet<DateTime>(
     context: context,
     isScrollControlled: true,

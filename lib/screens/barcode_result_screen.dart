@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
 import '../models/food_entry.dart';
@@ -40,7 +41,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
   }
 
   void _detectMealType() {
-    final hour = DateTime.now().hour;
+    final hour = clock.now().hour;
     if (hour < 11) {
       _mealType = 'breakfast';
     } else if (hour < 15) {
@@ -54,8 +55,8 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
 
   Future<void> _log() async {
     final entry = FoodEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      dateTime: DateTime.now(),
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      dateTime: clock.now(),
       mealType: _mealType,
       items: [
         FoodItem(

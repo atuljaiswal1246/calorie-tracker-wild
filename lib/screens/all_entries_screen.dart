@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -20,15 +21,15 @@ class AllEntriesScreen extends StatefulWidget {
 class _AllEntriesScreenState extends State<AllEntriesScreen> {
   List<FoodEntry> _allEntries = [];
   int _periodIndex = 0; // 0=week, 1=month, 2=custom
-  DateTime _selectedWeekStart = DateTime.now();
-  DateTime _selectedMonth = DateTime.now();
+  DateTime _selectedWeekStart = clock.now();
+  DateTime _selectedMonth = clock.now();
   DateTime? _customStart;
   DateTime? _customEnd;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
+    final now = clock.now();
     _selectedWeekStart = now.subtract(Duration(days: now.weekday % 7));
     _load();
   }
@@ -39,7 +40,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
   }
 
   List<FoodEntry> get _filteredEntries {
-    final now = DateTime.now();
+    final now = clock.now();
     final today = DateTime(now.year, now.month, now.day);
     final earliest = _earliestDate;
     List<DateTime> days;
@@ -266,7 +267,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
   Widget _weekNavigator() {
     final end = _selectedWeekStart.add(Duration(days: 6));
     final label = '${DateFormat('MMM d').format(_selectedWeekStart)} – ${DateFormat('MMM d').format(end)}';
-    final now = DateTime.now();
+    final now = clock.now();
     final currentWeekStart = now.subtract(Duration(days: now.weekday % 7));
     final isCurrentWeek = _isSameDay(_selectedWeekStart, currentWeekStart);
 
@@ -330,7 +331,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
 
   Widget _monthNavigator() {
     final label = DateFormat('MMMM yyyy').format(_selectedMonth);
-    final now = DateTime.now();
+    final now = clock.now();
     final isCurrentMonth = _selectedMonth.year == now.year && _selectedMonth.month == now.month;
 
     return Container(
@@ -399,7 +400,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
 
     return GestureDetector(
       onTap: () async {
-        final now = DateTime.now();
+        final now = clock.now();
         final picked = await showDateRangePicker(
           context: context,
           firstDate: DateTime(2024),

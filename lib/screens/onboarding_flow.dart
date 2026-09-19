@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -83,7 +84,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   int? _carbsOverride;
   int? _fatOverride;
 
-  DateTime _stepStartedAt = DateTime.now();
+  DateTime _stepStartedAt = clock.now();
 
   @override
   void initState() {
@@ -100,7 +101,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       _restoreFromDraft(widget.storage.onboardingDraft);
       _step = widget.startAtStep!.clamp(0, _planStep);
     }
-    _stepStartedAt = DateTime.now();
+    _stepStartedAt = clock.now();
     Funnel.onboardingStart(_step);
     if (_step == _pricingStep) Funnel.paywallView();
   }
@@ -126,8 +127,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _logStep(int step) {
     Funnel.stepComplete(step, _stepName(step),
-        DateTime.now().difference(_stepStartedAt).inMilliseconds);
-    _stepStartedAt = DateTime.now();
+        clock.now().difference(_stepStartedAt).inMilliseconds);
+    _stepStartedAt = clock.now();
   }
 
   void _restoreFromSavedProfile() {
@@ -336,8 +337,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     final picked = await showDatePicker3Step(
       context,
       initial: _dob,
-      firstYear: DateTime.now().year - 100,
-      lastYear: DateTime.now().year,
+      firstYear: clock.now().year - 100,
+      lastYear: clock.now().year,
     );
     if (picked != null) setState(() => _dob = picked);
   }
