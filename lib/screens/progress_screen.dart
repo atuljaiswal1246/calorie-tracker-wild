@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter/services.dart';
@@ -28,8 +29,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
   List<FoodEntry> _entries = [];
   List<WeightEntry> _weightEntries = [];
   List<BodyMeasurementEntry> _bodyEntries = [];
-  DateTime _selectedWeekStart = DateTime.now();
-  DateTime _selectedMonth = DateTime.now();
+  DateTime _selectedWeekStart = clock.now();
+  DateTime _selectedMonth = clock.now();
   int _periodIndex = 0; // 0=week, 1=month, 2=custom
   DateTime? _customStart;
   DateTime? _customEnd;
@@ -41,7 +42,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     super.initState();
     _load();
     // Default to start of current week (Sunday)
-    final now = DateTime.now();
+    final now = clock.now();
     _selectedWeekStart = now.subtract(Duration(days: now.weekday % 7));
   }
 
@@ -73,7 +74,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   int get _streak {
     var streak = 0;
-    var day = DateTime.now();
+    var day = clock.now();
     if (_caloriesForDay(day) == 0) {
       day = day.subtract(Duration(days: 1));
     }
@@ -91,7 +92,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   List<DateTime> _computeDisplayDays() {
     final earliest = _earliestDate;
-    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final today = DateTime(clock.now().year, clock.now().month, clock.now().day);
     if (_periodIndex == 2 && _customStart != null && _customEnd != null) {
       var start = _customStart!;
       if (earliest != null && start.isBefore(earliest)) {
@@ -142,7 +143,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   double get _totalFat => _displayDays.fold(0.0, (s, d) => s + _fatForDay(d));
 
   int get _passedDaysInPeriod {
-    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final today = DateTime(clock.now().year, clock.now().month, clock.now().day);
     return _displayDays.where((d) => !d.isAfter(today)).length;
   }
 
@@ -1106,7 +1107,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         : (_profile?.weightKg ?? 60).toStringAsFixed(1);
     final controller = TextEditingController(text: current);
     final hasTodayEntry = _weightEntries.isNotEmpty &&
-        _isSameDay(_weightEntries.last.date, DateTime.now());
+        _isSameDay(_weightEntries.last.date, clock.now());
 
     showModalBottomSheet(
       context: context,
@@ -1132,7 +1133,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ),
             SizedBox(height: 4),
             Text(
-              DateFormat('EEEE, MMM d').format(DateTime.now()),
+              DateFormat('EEEE, MMM d').format(clock.now()),
               style: TextStyle(
                 fontSize: AppType.body,
                 color: AppColors.muted,
@@ -1204,7 +1205,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 height: 54,
                 child: OutlinedButton(
                   onPressed: () async {
-                    await widget.storage.deleteWeightEntry(DateTime.now());
+                    await widget.storage.deleteWeightEntry(clock.now());
                     if (ctx.mounted) Navigator.pop(ctx);
                     _load();
                   },
@@ -1509,7 +1510,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   DateTime get _currentWeekStart {
-    final now = DateTime.now();
+    final now = clock.now();
     return now.subtract(Duration(days: now.weekday % 7));
   }
 
@@ -1538,7 +1539,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   Widget _monthNavigator() {
     final label = DateFormat('MMMM yyyy').format(_selectedMonth);
-    final now = DateTime.now();
+    final now = clock.now();
     final isCurrentMonth = _selectedMonth.year == now.year && _selectedMonth.month == now.month;
 
     return Semantics(
@@ -1621,7 +1622,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       button: true,
       child: InkWell(
       onTap: () async {
-        final now = DateTime.now();
+        final now = clock.now();
         final picked = await showDateRangePicker(
           context: context,
           firstDate: DateTime(2024),
@@ -1769,8 +1770,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
         final cal = _caloriesForDay(day);
         final ratio = maxCal > 0 ? cal / maxCal : 0.0;
         final hitTarget = cal >= goal * 0.8;
-        final isToday = _isSameDay(day, DateTime.now());
-        final isFuture = day.isAfter(DateTime.now());
+        final isToday = _isSameDay(day, clock.now());
+        final isFuture = day.isAfter(clock.now());
 
         Color barColor;
         if (isFuture || cal == 0) {
@@ -1834,7 +1835,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         final cal = _caloriesForDay(day);
         final ratio = maxCal > 0 ? cal / maxCal : 0.0;
         final hitTarget = cal >= goal * 0.8;
-        final isToday = _isSameDay(day, DateTime.now());
+        final isToday = _isSameDay(day, clock.now());
 
         Color barColor;
         if (cal == 0) {
@@ -2133,8 +2134,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Widget _dayRow(DateTime day, Profile profile) {
     final cal = _caloriesForDay(day);
     final goal = profile.calorieGoal;
-    final isToday = _isSameDay(day, DateTime.now());
-    final isFuture = day.isAfter(DateTime.now());
+    final isToday = _isSameDay(day, clock.now());
+    final isFuture = day.isAfter(clock.now());
     final hitTarget = cal >= goal * 0.8;
     final entries = _entriesForDay(day);
 
@@ -2457,8 +2458,8 @@ class _BodyLogSheetState extends State<_BodyLogSheet> {
 
   void _save() {
     final entry = BodyMeasurementEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      date: DateTime.now(),
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      date: clock.now(),
       waist: _parse(_waist),
       chest: _parse(_chest),
       hips: _parse(_hips),

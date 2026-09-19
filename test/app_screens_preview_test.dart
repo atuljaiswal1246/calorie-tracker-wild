@@ -20,6 +20,7 @@ import 'package:calorie_tracker/services/funnel.dart';
 import 'package:calorie_tracker/services/gamification_controller.dart';
 import 'package:calorie_tracker/services/storage_service.dart';
 import 'package:calorie_tracker/theme/app_colors.dart';
+import 'package:clock/clock.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,6 +31,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Profile tab. Renders with realistic seeded data so layout regressions are
 /// caught without a device. Run:
 ///   flutter test --update-goldens test/app_screens_preview_test.dart
+///
+/// The wall clock is pinned so goldens are stable: the app reads time via
+/// `clock.now()`, and every test runs inside `withClock(Clock.fixed(...))`.
+final _pinnedNow = DateTime(2026, 9, 16, 10, 0);
 const _materialIcons =
     '/opt/homebrew/Caskroom/flutter/3.47.1/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf';
 
@@ -196,7 +201,7 @@ FoodItem _item(String name, int kcal, double p, double c, double f) => FoodItem(
     );
 
 List<FoodEntry> _entries() {
-  final now = DateTime.now();
+  final now = _pinnedNow;
   DateTime at(int daysAgo, int h, int m) =>
       DateTime(now.year, now.month, now.day - daysAgo, h, m);
   return [
@@ -242,7 +247,11 @@ List<FoodEntry> _entries() {
 
 Future<SharedPreferences> _seed({bool withEntries = true}) async {
   // Pin today's quest board: the real one is regenerated from a random pool,
-  // which made the Home goldens differ on every run.
+  // which made the Home goldens differ on every run. NOTE: the board's day
+  // must stay on the REAL today, not _pinnedNow: GamificationController.init()
+  // (lib/services, out of scope for the clock migration) still reads
+  // DateTime.now(), so a pinned day would look stale to it and it would
+  // regenerate a RANDOM board on every run. Meals/water below stay pinned.
   final now = DateTime.now();
   final dayKey = '${now.year.toString().padLeft(4, '0')}-'
       '${now.month.toString().padLeft(2, '0')}-'
@@ -256,7 +265,7 @@ Future<SharedPreferences> _seed({bool withEntries = true}) async {
       'food_entries': jsonEncode(_entries().map((e) => e.toJson()).toList()),
     'water_goal_ml': 2500,
     'water_entries': jsonEncode([
-      {'date': DateTime.now().toIso8601String(), 'ml': 1200}
+      {'date': _pinnedNow.toIso8601String(), 'ml': 1200}
     ]),
     'daily_quests': jsonEncode({
       'day': dayKey,
@@ -337,6 +346,7 @@ void main() {
   });
 
   testWidgets('home (seeded)', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
     final storage = await _storage();
     await _shot(
       tester,
@@ -348,9 +358,11 @@ void main() {
       ),
       'app_home',
     );
+    });
   });
 
   testWidgets('home full page', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
     final storage = await _storage();
     _tallPhone(tester);
     await tester.pumpWidget(_wrap(HomeScreen(
@@ -363,9 +375,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await expectLater(
         find.byType(MaterialApp), matchesGoldenFile('goldens/app_home_full.png'));
+    });
   });
 
   testWidgets('progress and profile tabs (full page)', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
     final storage = await _storage();
     _tallPhone(tester);
     await tester.pumpWidget(_wrap(HomeScreen(
@@ -383,9 +397,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/app_profile_full.png'));
+    });
   });
 
   testWidgets('home full page (android width)', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
     final storage = await _storage();
     _tallAndroid(tester);
     await tester.pumpWidget(_wrap(HomeScreen(
@@ -398,9 +414,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/app_home_full_android.png'));
+    });
   });
 
   testWidgets('first run: empty home and progress', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
     final storage = await _storage(withEntries: false);
     _tallPhone(tester);
     await tester.pumpWidget(_wrap(HomeScreen(
@@ -422,9 +440,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/app_first_run_insights.png'));
+    });
   });
 
   testWidgets('dark mode: home and progress', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
     AppColors.darkNotifier.value = true;
     addTearDown(() => AppColors.darkNotifier.value = false);
     final storage = await _storage();
@@ -443,9 +463,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/app_progress_dark.png'));
+    });
   });
 
   testWidgets('secondary screens render (full page)', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
     final storage = await _storage();
     final screens = <String, Widget>{
       'insights': InsightsScreen(storage: storage),
@@ -485,9 +507,11 @@ void main() {
       expect(ex, isNull,
           reason: '${entry.key} overflowed at Android width');
     }
+    });
   });
 
   testWidgets('home and tabs overflow-free at Android width', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
     final storage = await _storage();
     for (final tab in [
       Icons.home_rounded,
@@ -506,5 +530,6 @@ void main() {
       expect(tester.takeException(), isNull,
           reason: 'Home tab $tab overflowed at Android width');
     }
+    });
   });
 }

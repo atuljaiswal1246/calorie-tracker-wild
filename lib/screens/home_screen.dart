@@ -7,6 +7,7 @@ import 'package:home_widget/home_widget.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:clock/clock.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -71,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<FoodEntry> _entries = [];
   int _waterMl = 0;
   int _waterGoalMl = 2500;
-  DateTime _selected = DateTime.now();
+  DateTime _selected = clock.now();
   int _navIndex = 0; // 0 home, 1 progress, 2 profile
   late final ScrollController _weekScrollController;
   bool _isOnline = true;
@@ -217,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _load() {
     _profile = widget.storage.profile;
     _entries = widget.storage.entries;
-    _waterMl = widget.storage.waterMlForDay(DateTime.now());
+    _waterMl = widget.storage.waterMlForDay(clock.now());
     _waterGoalMl = widget.storage.waterGoalMl;
     _profilePhotoPath = widget.storage.photoPath;
     setState(() {});
@@ -287,7 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final appDir = await getApplicationDocumentsDirectory();
       final fileName =
-          'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          'avatar_${clock.now().millisecondsSinceEpoch}.jpg';
       final dest = '${appDir.path}/$fileName';
       final saved = await File(picked.path).copy(dest);
       await widget.storage.savePhotoPath(saved.path);
@@ -316,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int get _streak {
     var streak = 0;
-    var day = DateTime.now();
+    var day = clock.now();
 
     if (_calories(day) == 0) {
       day = day.subtract(Duration(days: 1));
@@ -741,7 +742,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String get _greetingText {
-    final hour = DateTime.now().hour;
+    final hour = clock.now().hour;
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
     if (hour < 21) return 'Good evening';
@@ -1049,7 +1050,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _weekSelector({required int calorieGoal}) {
-    final today = DateTime.now();
+    final today = clock.now();
     final dates = List<DateTime>.generate(
       60,
       (i) => DateTime(today.year, today.month, today.day)
@@ -1224,7 +1225,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Asha concierge card — time-aware openers, tap straight into chat.
   Widget _ashaConcierge() {
-    final h = DateTime.now().hour;
+    final h = clock.now().hour;
     final opener = h < 11
         ? 'Subah-subah! What\'s on the plate today?'
         : h < 16
@@ -1955,8 +1956,8 @@ class _HomeScreenState extends State<HomeScreen> {
       quantity: 1,
     );
     final entry = FoodEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      dateTime: DateTime.now(),
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      dateTime: clock.now(),
       mealType: _autoMeal(),
       items: [item],
       imagePath: '',
@@ -1967,7 +1968,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _autoMeal() {
-    final h = DateTime.now().hour;
+    final h = clock.now().hour;
     if (h < 11) return 'breakfast';
     if (h < 16) return 'lunch';
     if (h < 21) return 'dinner';
@@ -2220,7 +2221,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() {
         _stepsSource = source;
-        _stepsToday = widget.storage.getStepsFor(DateTime.now());
+        _stepsToday = widget.storage.getStepsFor(clock.now());
       });
       if (source == StepsSource.manual) {
         ScaffoldMessenger.of(context).showSnackBar(
