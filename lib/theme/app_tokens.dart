@@ -63,4 +63,7 @@ class AppRadius {
 
   /// Pill (stadium).
   static const double full = 999;
+
+  /// Tiny indicators: progress bars, dots.
+  static const double bar = 4;
 }
