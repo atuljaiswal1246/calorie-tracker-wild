@@ -233,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         title: const Text('Your streak'),
         content: Text(
           '$_displayStreak day streak — keep the fire alive.\n\n'
@@ -256,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
       ),
       builder: (ctx) => SafeArea(
         top: false,
@@ -373,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
@@ -391,12 +391,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: InkWell(
                       onTap: () => Navigator.pop(ctx, ImageSource.camera),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(AppRadius.card),
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: 20),
                         decoration: BoxDecoration(
                           color: AppColors.bg,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(AppRadius.card),
                         ),
                         child: Column(
                           children: [
@@ -412,12 +412,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: InkWell(
                       onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(AppRadius.card),
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: 20),
                         decoration: BoxDecoration(
                           color: AppColors.bg,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(AppRadius.card),
                         ),
                         child: Column(
                           children: [
@@ -660,7 +660,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.warningBg,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Row(
                 children: [
@@ -812,13 +812,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         padding: EdgeInsets.all(10),
         constraints: BoxConstraints(minWidth: 44, minHeight: 44),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           boxShadow: AppColors.cardShadow,
         ),
         child: Icon(Icons.insights_rounded, size: 17, color: AppColors.ink),
@@ -835,12 +835,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           boxShadow: AppColors.cardShadow,
         ),
         child: Row(
@@ -871,12 +871,12 @@ class _HomeScreenState extends State<HomeScreen> {
           HapticFeedback.lightImpact();
           _showStreakInfo(context);
         },
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             boxShadow: AppColors.cardShadow,
           ),
           child: Row(
@@ -910,12 +910,12 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(builder: (_) => const GamificationHubScreen()),
         );
       },
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         padding: EdgeInsets.all(AppSpace.lg),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
@@ -1021,7 +1021,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 5),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppRadius.bar),
                   child: LinearProgressIndicator(
                     value: q.progress,
                     minHeight: 5,
@@ -1061,7 +1061,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: EdgeInsets.symmetric(horizontal: AppSpace.xs, vertical: AppSpace.sm),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadius.sheet),
         boxShadow: AppColors.cardShadow,
       ),
       child: SizedBox(
@@ -1107,13 +1107,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: EdgeInsets.symmetric(horizontal: AppSpace.xs),
                 child: InkWell(
                   onTap: () => setState(() => _selected = day),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
                   child: Container(
                     width: 52,
                     padding: EdgeInsets.symmetric(vertical: AppSpace.xs),
                     decoration: BoxDecoration(
                       color: isSelected ? AppColors.cardSelected : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -1175,12 +1175,12 @@ class _HomeScreenState extends State<HomeScreen> {
         HapticFeedback.lightImpact();
         _openCapture();
       },
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         padding: EdgeInsets.all(AppSpace.lg),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           boxShadow: AppColors.cardShadow,
         ),
         child: Row(
@@ -1190,7 +1190,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 46,
               decoration: BoxDecoration(
                 color: AppColors.cardAlt,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppRadius.card),
               ),
               child: Icon(Icons.camera_alt_rounded,
                   size: 22, color: AppColors.ink),
@@ -1241,7 +1241,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(14),
@@ -1251,7 +1251,7 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.card),
         ),
         child: Row(
           children: [
@@ -1260,7 +1260,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 42,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.auto_awesome, size: 21, color: Colors.white),
             ),
@@ -1577,7 +1577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.green.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                     child: Text(
                       'Track',
@@ -1611,13 +1611,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (_stepsEnabled && _stepsSource != StepsSource.healthConnect)
                   InkWell(
                     onTap: _manualStepsDialog,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                     child: Container(
                       padding:
                           EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
                       decoration: BoxDecoration(
                         color: AppColors.bg,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
                       ),
                       child: Text(
                         '+ Add',
@@ -1632,12 +1632,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(width: 6),
                 InkWell(
                   onTap: () => _addExerciseSheet(),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
                     decoration: BoxDecoration(
                       color: AppColors.bg,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                     child: Text(
                       '🏃 + Exercise',
@@ -1711,7 +1711,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
       ),
       builder: (ctx) => SafeArea(
         top: false,
@@ -1755,12 +1755,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Expanded(
       child: InkWell(
         onTap: () => Navigator.pop(context, ml),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 13),
           decoration: BoxDecoration(
             color: AppColors.chipBlue,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Text(
             '+${ml}ml',
@@ -1783,7 +1783,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -1834,7 +1834,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               InkWell(
                 onTap: _openManualEntry,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
                 child: Text(
                   'Add manually',
                   style: TextStyle(
@@ -1847,7 +1847,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(width: 16),
               InkWell(
                 onTap: _openBarcodeScanner,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
                 child: Text(
                   'Barcode scan',
                   style: TextStyle(
@@ -1906,7 +1906,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.pill),
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
@@ -1915,7 +1915,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: primary
               ? (AppColors.dark ? Colors.white : AppColors.inkButton)
               : AppColors.bg,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
         child: Column(
           children: [
@@ -2103,7 +2103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadius.pill),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
                 child: Text(
@@ -2242,7 +2242,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final val = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         title: Text('Add steps'),
         content: TextField(
           controller: ctrl,
@@ -2273,7 +2273,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       backgroundColor: AppColors.bg,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
       ),
       isScrollControlled: true,
       builder: (ctx) => _ExerciseSheet(activity: _activity),
@@ -2411,7 +2411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       SizedBox(width: 8),
                       InkWell(
                         onTap: () => _showNameEdit(profile),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
                         child: Container(
                           padding: EdgeInsets.all(10),
                           constraints: BoxConstraints(minWidth: 44, minHeight: 44),
@@ -2446,7 +2446,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: AppSpace.xs),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             boxShadow: AppColors.cardShadow,
           ),
           child: Column(
@@ -2494,7 +2494,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.all(AppSpace.lg),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             boxShadow: AppColors.cardShadow,
           ),
           child: Row(
@@ -2504,7 +2504,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 48,
                 decoration: BoxDecoration(
                   color: bmiColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                 ),
                 child: Icon(Icons.monitor_weight_outlined, size: 24, color: bmiColor),
               ),
@@ -2567,7 +2567,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: EdgeInsets.all(AppSpace.lg),
             decoration: BoxDecoration(
               color: AppColors.card,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppRadius.card),
               boxShadow: AppColors.cardShadow,
             ),
             child: Column(
@@ -2645,12 +2645,12 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             if (mounted) _load();
           },
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 14),
             decoration: BoxDecoration(
               color: AppColors.card,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppRadius.card),
               boxShadow: AppColors.cardShadow,
             ),
             child: Row(
@@ -2660,7 +2660,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 38,
                   decoration: BoxDecoration(
                     color: AppColors.ink.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Icon(Icons.settings_outlined,
                       size: 20, color: AppColors.ink),
@@ -2691,7 +2691,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         title: Text(
           'Edit calorie goal',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
@@ -2764,7 +2764,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (onTap == null) return row;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppRadius.pill),
       child: row,
     );
   }
@@ -2774,7 +2774,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         title: Text(
           'Edit name',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
@@ -3068,7 +3068,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                             horizontal: 14, vertical: 11),
                         decoration: BoxDecoration(
                           color: active ? AppColors.inkButton : AppColors.card,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
                         child: Row(
                           children: [
@@ -3149,7 +3149,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                       backgroundColor: AppColors.inkButton,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(AppRadius.pill)),
                     ),
                     onPressed: () async {
                       final entry =

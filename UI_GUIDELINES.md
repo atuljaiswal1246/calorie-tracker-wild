@@ -60,7 +60,7 @@ Rule: gaps come from this set.
 
 ## 4. Radii
 
-Rule: no new radii.
+Rule: pick from these five; do not invent a new radius.
 
 | Token (`AppRadius`) | Value | Use |
 |---|---|---|
@@ -68,6 +68,7 @@ Rule: no new radii.
 | `card` | 16 | Cards |
 | `sheet` | 24 | Sheets / major cards |
 | `full` | 999 | Pill (stadium) |
+| `bar` | 4 | Tiny indicators (progress bars, dots) |
 
 ## 5. House rules
 
