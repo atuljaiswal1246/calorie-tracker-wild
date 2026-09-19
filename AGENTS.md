@@ -114,7 +114,13 @@ TMPDIR="$PWD/.agent-logs" ~/Desktop/Jarvis/scripts/agent_run.sh \
 **Verification (the brain's job, never optional):**
 1. Read `git -C <worktree> status/diff` yourself. Never trust a self-report.
 2. `flutter analyze` — expect 0 errors and no change to the 160-item baseline.
-3. `flutter test` — and for a refactor that claims to be invisible, prove it:
+3. `flutter test` — the WHOLE suite, not one harness. A change to a shared
+   widget or a token moves goldens owned by several test files (the type snap
+   moved `ring_widget_*`, `cal_widget_*`, `demo_*` and `dob_picker` as well as
+   the app screens); scoping regeneration to one file left `main` red. When a
+   change can alter rendering, regenerate ALL goldens and confirm the changed
+   set is exactly the expected one — and that no locked-screen golden moved.
+   For a refactor that claims to be invisible, prove it:
    **A/B the goldens at the same fixed clock** (stash the change, regenerate,
    restore, regenerate, compare bytes). Note: the harness is clock-pinned now
    (`withClock(Clock.fixed(2026-09-16 10:00))`), so a plain golden run is
