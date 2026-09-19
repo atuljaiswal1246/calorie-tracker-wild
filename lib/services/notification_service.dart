@@ -126,6 +126,48 @@ class NotificationService {
     } catch (_) {}
   }
 
+  /// Schedule a one-off nudge [inMinutes] from now. Returns false (and schedules
+  /// nothing) if that would fall outside 08:00-20:00.
+  static Future<bool> scheduleMealNudge({
+    required int inMinutes,
+    required String title,
+    required String body,
+    int id = 9002,
+  }) async {
+    try {
+      final now = tz.TZDateTime.now(tz.local);
+      final scheduled = now.add(Duration(minutes: inMinutes));
+      final minutesOfDay = scheduled.hour * 60 + scheduled.minute;
+      if (minutesOfDay < 8 * 60 || minutesOfDay > 20 * 60) return false;
+      const details = NotificationDetails(
+        android: AndroidNotificationDetails(
+          'reminders_chime',
+          'Reminders',
+          channelDescription: 'App reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+          sound: RawResourceAndroidNotificationSound('cal_notify'),
+          playSound: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentSound: true,
+          sound: SoundService.notificationSoundName,
+        ),
+      );
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduled,
+        notificationDetails: details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Show a notification immediately.
   static Future<void> showNow({
     required String title,

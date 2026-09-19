@@ -777,6 +777,17 @@ class StorageService {
     await _prefs.setString(_notifKey, jsonEncode(state));
   }
 
+  // ---- Meal nudge dedupe (one per meal per day) ----
+
+  static const _mealNudgeKey = 'meal_nudge_sent';
+
+  /// Raw "yyyyMMdd|meal" of the last meal nudge scheduled, or null.
+  String? get mealNudgeSentRaw => _prefs.getString(_mealNudgeKey);
+
+  Future<void> saveMealNudgeSent(String raw) async {
+    await _prefs.setString(_mealNudgeKey, raw);
+  }
+
   // ---- Analytics (bounded local event log) ----
 
   static const _analyticsKey = 'analytics_events';
