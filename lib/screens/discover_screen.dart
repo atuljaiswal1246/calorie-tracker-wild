@@ -7,6 +7,7 @@ import '../services/achievements_service.dart';
 import '../services/social_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import 'achievements_screen.dart';
 import 'asha_screen.dart';
 import 'challenges_screen.dart';
@@ -121,7 +122,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         children: [
           Row(
             children: [
-              const Text('🤝', style: TextStyle(fontSize: 15)),
+              const Text('🤝', style: TextStyle(fontSize: AppType.bodyStrong)),
               const SizedBox(width: 7),
               Text(
                 'Friends',
@@ -175,7 +176,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   decoration: InputDecoration(
                     hintText: 'Friend\'s code',
                     hintStyle: TextStyle(
-                        fontSize: 13, color: AppColors.muted),
+                        fontSize: AppType.body, color: AppColors.muted),
                     filled: true,
                     fillColor: AppColors.bg,
                     contentPadding: const EdgeInsets.symmetric(
@@ -301,7 +302,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         SizedBox(height: 6),
         Text(
           'Explore tips, challenges, and meal ideas',
-          style: TextStyle(fontSize: 13, color: AppColors.muted),
+          style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
         ),
         SizedBox(height: 20),
 
@@ -539,7 +540,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                       ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class ChallengesScreen extends StatefulWidget {
   final StorageService storage;
@@ -170,7 +171,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
             SizedBox(height: 8),
             Text(
               '$completed of ${_challenges.length} completed',
-              style: TextStyle(fontSize: 13, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
             ),
             SizedBox(height: 24),
             ..._challenges.map((c) => _challengeCard(c)),
@@ -209,7 +210,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                 Text(
                   c.title,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
                     decoration: isComplete ? TextDecoration.lineThrough : null,

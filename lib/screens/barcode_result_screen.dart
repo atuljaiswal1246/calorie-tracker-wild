@@ -4,6 +4,7 @@ import '../models/food_entry.dart';
 import '../services/barcode_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import 'barcode_scanner_screen.dart';
 
 class BarcodeResultScreen extends StatefulWidget {
@@ -92,12 +93,12 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
               SizedBox(height: 10),
               Text(
                 'Logged!',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
+                style: TextStyle(fontSize: AppType.title, fontWeight: FontWeight.w800, color: AppColors.ink),
               ),
               SizedBox(height: 8),
               Text(
                 'Added to your day.',
-                style: TextStyle(fontSize: 13, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
               SizedBox(height: 20),
               SizedBox(
@@ -351,7 +352,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                         child: Text(
                           type[0].toUpperCase() + type.substring(1),
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w600,
                             color: selected ? Colors.white : AppColors.ink,
                           ),
@@ -387,7 +388,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                     ),
                     child: Text('Log this meal',
                         style: TextStyle(
-                            fontSize: 17,
+                            fontSize: AppType.title,
                             fontWeight: FontWeight.w600,
                             letterSpacing: -0.5)),
                   ),
@@ -413,7 +414,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
             Text(
               value,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w700,
                 color: color,
               ),
@@ -480,7 +481,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: AppType.body,
             fontWeight: FontWeight.w600,
             color: selected ? Colors.white : AppColors.ink,
           ),

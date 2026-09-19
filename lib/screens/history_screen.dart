@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import '../widgets/widgets.dart';
 import 'meal_detail_screen.dart';
 
@@ -68,7 +69,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Text(
                     '${_entries.length} meals',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       color: AppColors.muted,
                       fontWeight: FontWeight.w500,
                     ),

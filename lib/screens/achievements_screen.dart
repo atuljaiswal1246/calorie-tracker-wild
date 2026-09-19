@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class AchievementsScreen extends StatefulWidget {
   final StorageService storage;
@@ -128,7 +129,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             Text(
               category,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
               ),
@@ -192,7 +193,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           Text(
             achievement.emoji,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: AppType.hero,
               color: unlocked ? null : Colors.grey.withValues(alpha: 0.4),
             ),
           ),

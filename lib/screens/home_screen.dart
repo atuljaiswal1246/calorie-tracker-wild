@@ -31,6 +31,7 @@ import '../services/storage_service.dart';
 import '../services/widget_service.dart';
 import '../services/weekly_summary_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import '../widgets/widgets.dart';
 import 'achievements_screen.dart';
 import 'barcode_scanner_screen.dart';
@@ -381,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 'Log a meal',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.ink),
+                style: TextStyle(fontSize: AppType.title, fontWeight: FontWeight.w700, color: AppColors.ink),
               ),
               SizedBox(height: 16),
               Row(
@@ -599,7 +600,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             'Unlock unlimited food analysis and all features with a subscription.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: AppColors.muted, height: 1.5),
+            style: TextStyle(fontSize: AppType.bodyStrong, color: AppColors.muted, height: 1.5),
           ),
           SizedBox(height: 28),
           SizedBox(
@@ -615,7 +616,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text(
                 'Unlock — ₹100/mo or ₹1,000/yr',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.5,
                 ),
@@ -668,7 +669,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'You\'re offline. AI features unavailable.',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppType.body,
                         fontWeight: FontWeight.w600,
                         color: AppColors.ink,
                       ),
@@ -849,7 +850,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               '${AchievementsService(widget.storage).unlockedCount}',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
@@ -885,7 +886,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 _streakLabel,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
@@ -926,7 +927,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                    "Today's quests",
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
                   ),
@@ -935,7 +936,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   '${gami.questsCompleted}/${quests.length}',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                   ),
@@ -1010,7 +1011,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   q.template.title,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w600,
                     color: q.completed ? AppColors.muted : AppColors.ink,
                     decoration:
@@ -1122,7 +1123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Text(
                               day.isAfter(today) ? '—' : DateFormat('E').format(day),
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: AppType.micro,
                                 height: 1.2,
                                 color: textColor,
                                 fontWeight: FontWeight.w500,
@@ -1201,7 +1202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Log your first meal',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: AppType.bodyStrong,
                       fontWeight: FontWeight.w800,
                       color: AppColors.ink,
                     ),
@@ -1270,7 +1271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Asha',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: AppType.bodyStrong,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                       letterSpacing: -0.3,
@@ -1391,7 +1392,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'Fib ${_on(_selected).fold(0.0, (s, e) => s + e.totalFiber).round()}g',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11.5, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
             ),
             SizedBox(height: 10),
             Row(
@@ -1721,7 +1722,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Add water',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                   letterSpacing: -0.4,
@@ -1764,7 +1765,7 @@ class _HomeScreenState extends State<HomeScreen> {
             '+${ml}ml',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: AppType.body,
               fontWeight: FontWeight.w700,
               color: AppColors.water,
             ),
@@ -1794,7 +1795,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'What\'s cooking?',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: AppType.bodyStrong,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                   letterSpacing: -0.3,
@@ -1881,7 +1882,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       '${f['name']} · ${f['calories']} kcal',
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: AppType.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.ink,
                       ),
@@ -2107,7 +2108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   'View all',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w600,
                     color: AppColors.muted,
                   ),
@@ -2380,7 +2381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     : Text(
                         _initials,
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: AppType.headline,
                           fontWeight: FontWeight.w800,
                           color: AppColors.ink,
                         ),
@@ -2421,7 +2422,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(height: 3),
                   Text(
                     '${profile.calorieGoal} kcal/day goal',
-                    style: TextStyle(fontSize: 13, color: AppColors.muted),
+                    style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
                   ),
                   if (_signedInEmail != null) ...[
                     SizedBox(height: 3),
@@ -2514,7 +2515,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       'BMI',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppType.body,
                         fontWeight: FontWeight.w600,
                         color: AppColors.muted,
                       ),
@@ -2525,7 +2526,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           bmi.toStringAsFixed(1),
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: AppType.headline,
                             fontWeight: FontWeight.w800,
                             color: bmiColor,
                           ),
@@ -2554,7 +2555,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             'Weight history',
             style: TextStyle(
-              fontSize: 17,
+              fontSize: AppType.title,
               fontWeight: FontWeight.w800,
               color: AppColors.ink,
               letterSpacing: -0.3,
@@ -2587,7 +2588,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           '${e.date.day}/${e.date.month}',
-                          style: TextStyle(fontSize: 13, color: AppColors.muted),
+                          style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
                         ),
                         SizedBox(width: 12),
                         Text(
@@ -2668,7 +2669,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     'Settings',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: AppType.bodyStrong,
                       fontWeight: FontWeight.w600,
                       color: AppColors.ink,
                     ),
@@ -3096,7 +3097,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
               Text(
                 'Duration',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w700,
                   color: AppColors.muted,
                 ),
@@ -3119,7 +3120,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                         child: Text(
                           '$m min',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w600,
                             color: active ? Colors.white : AppColors.ink,
                           ),

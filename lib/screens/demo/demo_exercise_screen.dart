@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_tokens.dart';
 import 'demo_common.dart';
 
 /// Try-before-you-buy demo: a live activity dashboard. Tap "Log a workout"
@@ -78,13 +79,13 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
                                 key: ValueKey(_kcal),
                                 value: _kcal,
                                 style: TextStyle(
-                                    fontSize: 22,
+                                    fontSize: AppType.headline,
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.ink),
                               ),
                               Text('kcal',
                                   style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: AppType.micro,
                                       color: AppColors.muted)),
                             ],
                           ),

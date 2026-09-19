@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class HighProteinMealsScreen extends StatelessWidget {
   HighProteinMealsScreen({super.key});
@@ -42,7 +43,7 @@ class HighProteinMealsScreen extends StatelessWidget {
             SizedBox(height: 8),
             Text(
               'Indian meals ranked by protein content',
-              style: TextStyle(fontSize: 13, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
             ),
             SizedBox(height: 24),
 
@@ -97,7 +98,7 @@ class HighProteinMealsScreen extends StatelessWidget {
                 child: Text(
                   meal.name,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
                   ),
@@ -112,7 +113,7 @@ class HighProteinMealsScreen extends StatelessWidget {
                 child: Text(
                   '${meal.protein}g',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w700,
                     color: AppColors.protein,
                   ),
@@ -149,7 +150,7 @@ class HighProteinMealsScreen extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color),
+        style: TextStyle(fontSize: AppType.micro, fontWeight: FontWeight.w600, color: color),
       ),
     );
   }

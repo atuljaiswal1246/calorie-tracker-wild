@@ -9,6 +9,7 @@ import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
 import '../services/weekly_summary_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import '../widgets/empty_illustration.dart';
 import 'achievements_screen.dart';
 
@@ -275,7 +276,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   Text(
                     '$_currentStreak',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
@@ -315,7 +316,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   Text(
                     '$unlocked/${all.length}',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
@@ -357,7 +358,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               Text(
                 'Log at least one meal every day to keep your streak alive.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
               SizedBox(height: 20),
               SizedBox(
@@ -494,7 +495,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 child: Text(
                   'Your week in review',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
                     letterSpacing: -0.2,
@@ -504,7 +505,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               Text(
                 range,
                 style: TextStyle(
-                  fontSize: 11.5,
+                  fontSize: AppType.small,
                   color: AppColors.muted,
                   fontWeight: FontWeight.w600,
                 ),
@@ -527,7 +528,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 Text(
                   'Reading your week…',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     color: AppColors.muted,
                     fontWeight: FontWeight.w600,
                   ),
@@ -572,7 +573,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 label: Text(
                   'Generate my week',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -596,7 +597,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 Text(
                   'Regenerate',
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                   ),
@@ -710,7 +711,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   child: Text(
                     'Goal: $goal',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: AppType.micro,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -998,7 +999,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: AppType.micro,
               fontWeight: FontWeight.w500,
               color: AppColors.muted,
             ),

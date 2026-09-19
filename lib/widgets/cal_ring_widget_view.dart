@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../theme/app_tokens.dart';
 
 /// The ring widget: calories taken, drawn as the app's own ring.
 ///
@@ -179,7 +180,7 @@ class CalRingWidgetView extends StatelessWidget {
                 ),
                 Text(
                   'of $goal',
-                  style: TextStyle(fontSize: 10, color: _muted),
+                  style: TextStyle(fontSize: AppType.micro, color: _muted),
                 ),
               ],
             ),

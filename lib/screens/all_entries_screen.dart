@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import '../widgets/widgets.dart';
 import 'meal_detail_screen.dart';
 
@@ -150,7 +151,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                   Text(
                     '${entries.length} meals',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       color: AppColors.muted,
                       fontWeight: FontWeight.w500,
                     ),
@@ -248,7 +249,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                   child: Text(
                     labels[i],
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w700,
                       color: active ? Colors.white : AppColors.muted,
                     ),
@@ -297,7 +298,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: AppType.bodyStrong,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
@@ -360,7 +361,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: AppType.bodyStrong,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
@@ -442,7 +443,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: AppType.bodyStrong,
                 fontWeight: hasRange ? FontWeight.w700 : FontWeight.w500,
                 color: hasRange ? AppColors.ink : AppColors.muted,
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import 'ring_widget.dart';
 
 /// Small macro card (protein / carbs / fat / fiber / sugar / sodium).
@@ -76,7 +77,7 @@ class MacroCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: AppType.micro,
                   color: AppColors.muted,
                   fontWeight: FontWeight.w500,
                 ),

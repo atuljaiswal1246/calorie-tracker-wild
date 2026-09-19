@@ -11,6 +11,7 @@ import '../services/sound_service.dart';
 import '../services/storage_service.dart';
 import 'pricing_screen.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// Dedicated Settings screen: reminders (proper switches), data export,
 /// account actions (reset goals, sign out) and app info. Pulled out of the
@@ -194,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Text(
                     'Settings',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: AppType.headline,
                       fontWeight: FontWeight.w800,
                       color: AppColors.ink,
                       letterSpacing: -0.5,
@@ -418,7 +419,7 @@ class _SectionLabel extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: AppType.body,
           fontWeight: FontWeight.w700,
           color: AppColors.muted,
           letterSpacing: 0.2,
@@ -462,7 +463,7 @@ class _SwitchRow extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: AppType.bodyStrong,
                       fontWeight: FontWeight.w600,
                       color: AppColors.ink,
                     ),
@@ -527,7 +528,7 @@ class _TapRow extends StatelessWidget {
                     Text(
                       label,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w600,
                         color: labelColor ?? AppColors.ink,
                       ),

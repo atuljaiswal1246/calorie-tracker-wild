@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/food_entry.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 enum MacroType { calories, protein, carbs, fat, fiber, sugar, sodium }
 
@@ -188,7 +189,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                   child: Text(
                     'Micronutrient gaps',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w700,
                       color: Colors.grey,
                       letterSpacing: 0.2,
@@ -338,7 +339,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                               Text(
                                 _unit == 'kcal' ? '${val.toStringAsFixed(0)}$_unit' : '${val.toStringAsFixed(1)}$_unit',
                                 style: TextStyle(
-                                  fontSize: 15,
+                                  fontSize: AppType.bodyStrong,
                                   fontWeight: FontWeight.w700,
                                   color: color,
                                 ),
@@ -397,7 +398,7 @@ class MacroBreakdownScreen extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w600,
                 color: AppColors.ink,
               ),

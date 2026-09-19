@@ -13,6 +13,7 @@ import '../services/openai_service.dart';
 import '../services/storage_service.dart';
 import '../services/sound_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import '../widgets/empty_illustration.dart';
 import 'manual_entry_screen.dart';
 
@@ -170,7 +171,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               Text(
                 'Logged!',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
@@ -178,7 +179,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               SizedBox(height: 8),
               Text(
                 'Added to your day.',
-                style: TextStyle(fontSize: 13, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
               SizedBox(height: 20),
               SizedBox(
@@ -433,7 +434,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               Text(
                 'Logged!',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
@@ -441,7 +442,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               SizedBox(height: 8),
               Text(
                 'Added to your day.',
-                style: TextStyle(fontSize: 13, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
               SizedBox(height: 20),
               SizedBox(
@@ -563,12 +564,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
               SizedBox(height: 10),
               Text(
                 'Discard this meal?',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
+                style: TextStyle(fontSize: AppType.title, fontWeight: FontWeight.w800, color: AppColors.ink),
               ),
               SizedBox(height: 8),
               Text(
                 'Your analysis will be lost.',
-                style: TextStyle(fontSize: 13, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
               SizedBox(height: 20),
               SizedBox(
@@ -631,7 +632,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       color: AppColors.ink)),
               SizedBox(height: 4),
               Text('Adjust and save. Quantity edits apply per serving.',
-                  style: TextStyle(fontSize: 13, color: AppColors.muted)),
+                  style: TextStyle(fontSize: AppType.body, color: AppColors.muted)),
               SizedBox(height: 20),
               _editField('Calories (kcal)', ctrlCal, isNumber: true),
               SizedBox(height: 12),
@@ -712,7 +713,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
       children: [
         Text(label,
             style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w600,
                 color: AppColors.muted)),
         SizedBox(height: 6),
@@ -763,7 +764,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       'Nutrition',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontSize: 17,
+                          fontSize: AppType.title,
                           fontWeight: FontWeight.w700,
                           color: AppColors.ink),
                     ),
@@ -1136,7 +1137,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                             ),
                             child: Text('Log this meal',
                                 style: TextStyle(
-                                    fontSize: 17,
+                                    fontSize: AppType.title,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: -0.5)),
                           ),
@@ -1179,7 +1180,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w700,
                 color: AppColors.dark
                     ? const Color(0xFF1C1C1E)
@@ -1214,7 +1215,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
             SizedBox(width: 8),
             Text(label,
                 style: TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                    fontSize: AppType.bodyStrong, fontWeight: FontWeight.w600, color: AppColors.ink)),
           ],
         ),
       ),
@@ -1237,7 +1238,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w600,
                 color: selected ? Colors.white : AppColors.muted,
               ),
@@ -1277,7 +1278,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 Text(
                   '$_batchIndex / $total',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w600,
                     color: AppColors.muted,
                   ),
@@ -1367,7 +1368,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                 ...items.take(3).map((i) => Text(
                                       '• ${i.name} — ${i.calories} kcal',
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: AppType.body,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.ink,
                                         height: 1.4,
@@ -1430,7 +1431,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
             Text(
               'Meal type (applies to all):',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w700,
                 color: AppColors.muted,
               ),
@@ -1464,7 +1465,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   '${_batchResults.length == 1 ? '' : 's'}'
                   ' (${_batchResults.values.fold(0, (s, list) => s + list.fold(0, (a, i) => a + i.calories))} kcal)',
                   style: TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w700),
+                      fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -1535,7 +1536,7 @@ class _FoodItemCardState extends State<_FoodItemCard> {
               Expanded(
                 child: Text(item.name,
                     style: TextStyle(
-                        fontSize: 17,
+                        fontSize: AppType.title,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink)),
               ),
@@ -1601,14 +1602,14 @@ class _FoodItemCardState extends State<_FoodItemCard> {
                 Text(
                   '${_intuitiveServing(item.servingSizeGrams)} · ${item.servingSizeGrams.round()}g',
                   style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w500,
                       color: AppColors.muted),
                 ),
               Spacer(),
               Text('${item.calories} kcal',
                   style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink)),
             ],
@@ -1657,7 +1658,7 @@ class _FoodItemCardState extends State<_FoodItemCard> {
       ),
       child: Text(text,
           style: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+              fontSize: AppType.body, fontWeight: FontWeight.w600, color: color)),
     );
   }
 
