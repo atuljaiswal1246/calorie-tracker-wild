@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter/services.dart';
@@ -98,7 +99,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   // ---- Last 7 days data ----
 
   List<DateTime> get _last7Days {
-    final today = DateTime.now();
+    final today = clock.now();
     return List.generate(7, (i) => today.subtract(Duration(days: 6 - i)));
   }
 
@@ -124,7 +125,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   int get _totalDaysLogged {
     final earliest = _earliestDate;
     if (earliest == null) return 0;
-    final today = DateTime.now();
+    final today = clock.now();
     final days = today.difference(earliest).inDays + 1;
     int logged = 0;
     for (int i = 0; i < days; i++) {
@@ -135,7 +136,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   int get _currentStreak {
-    final today = DateTime.now();
+    final today = clock.now();
     int streak = 0;
     var day = DateTime(today.year, today.month, today.day);
     // If today has no entries, start counting from yesterday
@@ -152,7 +153,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   int get _longestStreak {
     final earliest = _earliestDate;
     if (earliest == null) return 0;
-    final today = DateTime.now();
+    final today = clock.now();
     int longest = 0;
     int current = 0;
     final days = today.difference(earliest).inDays + 1;
@@ -470,10 +471,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
   /// AI-written weekly review (Asha) — cached per week, regenerable.
   Widget _aiSummaryCard() {
-    final range = DateFormat('MMM d').format(DateTime.now()
+    final range = DateFormat('MMM d').format(clock.now()
             .subtract(Duration(days: 6))) +
         ' – ' +
-        DateFormat('MMM d').format(DateTime.now());
+        DateFormat('MMM d').format(clock.now());
 
     return Container(
       padding: EdgeInsets.all(16),
@@ -737,7 +738,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         final cal = cals[i];
         final ratio = maxCal > 0 ? cal / maxCal : 0.0;
         final hitTarget = cal >= goal * 0.8;
-        final isToday = _isSameDay(days[i], DateTime.now());
+        final isToday = _isSameDay(days[i], clock.now());
 
         Color barColor;
         if (cal == 0) {
