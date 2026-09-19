@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_tokens.dart';
 export '../../widgets/animated_stats.dart';
 
 /// Small "DEMO" pill shown on every try-before-you-buy screen.
@@ -121,7 +122,7 @@ class DemoCard extends StatelessWidget {
   const DemoCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(16),
+    this.padding = const EdgeInsets.all(AppSpace.lg),
   });
 
   @override

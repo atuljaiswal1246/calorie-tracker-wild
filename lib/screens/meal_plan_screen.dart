@@ -69,7 +69,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
             ),
             style: TextButton.styleFrom(
               foregroundColor: _ink,
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: AppSpace.lg),
             ),
           ),
         ],
@@ -149,8 +149,8 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
         );
       },
       child: Container(
-        margin: EdgeInsets.only(bottom: 12),
-        padding: EdgeInsets.all(16),
+        margin: EdgeInsets.only(bottom: AppSpace.md),
+        padding: EdgeInsets.all(AppSpace.lg),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -164,7 +164,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.card),
               ),
               child: Text(plan.emoji, style: TextStyle(fontSize: 26)),
             ),
@@ -195,7 +195,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: 3),
                         decoration: BoxDecoration(
                           color: color.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
@@ -262,8 +262,8 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
 
   Widget _planCard(MealPlan plan) {
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: AppSpace.md),
+      padding: EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -292,7 +292,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
           SizedBox(height: 8),
           // Items list
           ...plan.items.map((item) => Padding(
-                padding: EdgeInsets.only(bottom: 4),
+                padding: EdgeInsets.only(bottom: AppSpace.xs),
                 child: Row(
                   children: [
                     Text(
@@ -341,10 +341,10 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               GestureDetector(
                 onTap: () => _logPlan(context, plan),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.sm),
                   decoration: BoxDecoration(
                     color: _ink,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Text(
                     'Log',
@@ -365,7 +365,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
 
   Widget _macroPill(String text, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(6),
@@ -771,7 +771,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
         children: [
           // Plan summary
           Container(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(AppSpace.lg),
             decoration: BoxDecoration(
               color: _accent.withOpacity(0.08),
               borderRadius: BorderRadius.circular(20),
@@ -815,7 +815,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               children: plan.days.map((d) {
                 final selected = d.day == _selectedDay;
                 return Padding(
-                  padding: EdgeInsets.only(right: 8),
+                  padding: EdgeInsets.only(right: AppSpace.sm),
                   child: GestureDetector(
                     onTap: () => setState(() => _selectedDay = d.day),
                     child: Container(
@@ -904,7 +904,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
     };
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: AppSpace.md),
       padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -921,7 +921,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                 height: 36,
                 decoration: BoxDecoration(
                   color: _accent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Icon(icon, size: 18, color: _accent),
               ),
@@ -995,10 +995,10 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               GestureDetector(
                 onTap: () => _logMeal(meal),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.sm),
                   decoration: BoxDecoration(
                     color: _ink,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Text(
                     'Log',
@@ -1019,7 +1019,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
 
   Widget _miniPill(String text, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(6),

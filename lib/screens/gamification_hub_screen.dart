@@ -174,7 +174,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
   Widget _statChip(IconData icon, Color color, String value, String label) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.symmetric(vertical: AppSpace.md),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
@@ -227,7 +227,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
         padding: EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.card),
         ),
         child: Row(
           children: [

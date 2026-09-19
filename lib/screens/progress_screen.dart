@@ -203,7 +203,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         SizedBox(height: 12),
         if (_displayDays.isEmpty)
           Container(
-            padding: EdgeInsets.all(24),
+            padding: EdgeInsets.all(AppSpace.xl),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
@@ -332,7 +332,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -367,7 +367,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: AppSpace.md),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -387,7 +387,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final latest = entries.isNotEmpty ? entries.first : null; // sorted desc
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -409,14 +409,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
               InkWell(
                 onTap: () => _showLogBodySheet(context),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
                 child: Container(
                   padding:
                       EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   constraints: BoxConstraints(minHeight: 44),
                   decoration: BoxDecoration(
                     color: AppColors.inkButton,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -440,7 +440,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           SizedBox(height: 12),
           if (latest == null)
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.symmetric(vertical: AppSpace.sm),
               child: Text(
                 'Track waist, hips, arms — the scale can lie, numbers don\'t.',
                 style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
@@ -563,7 +563,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final completed = isFasting && elapsedH >= goalHours;
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -591,7 +591,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
               if (isFasting)
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: 3),
                   decoration: BoxDecoration(
                     color: completed
                         ? AppColors.green.withValues(alpha: 0.12)
@@ -626,7 +626,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(bottom: 4, left: 6),
+                  padding: EdgeInsets.only(bottom: AppSpace.xs, left: 6),
                   child: Text(
                     'elapsed',
                     style: TextStyle(
@@ -691,7 +691,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.sm),
                       constraints: BoxConstraints(minHeight: 36),
                       decoration: BoxDecoration(
                         color: AppColors.undoRed,
@@ -715,7 +715,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   onTap: () => _showFastingGoalSheet(context),
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.all(AppSpace.md),
                     constraints: BoxConstraints(minWidth: 44, minHeight: 44),
                     decoration: BoxDecoration(
                       color: AppColors.chipNeutral,
@@ -788,13 +788,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
         HapticFeedback.lightImpact();
         setState(() {});
       },
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(AppRadius.pill),
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 10),
         constraints: BoxConstraints(minHeight: 44),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.inkButton : AppColors.chipNeutral,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
         child: Center(
           child: Text(
@@ -860,11 +860,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                   borderSide: BorderSide(color: Color(0xFFE5E5EA)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                   borderSide: BorderSide(color: AppColors.ink, width: 2),
                 ),
               ),
@@ -914,7 +914,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.sheet),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -936,13 +936,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 button: true,
                 child: InkWell(
                 onTap: () => _showLogWeightSheet(context),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   constraints: BoxConstraints(minHeight: 44),
                   decoration: BoxDecoration(
                     color: AppColors.inkButton,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -979,7 +979,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(bottom: 6, left: 4),
+                padding: EdgeInsets.only(bottom: 6, left: AppSpace.xs),
                 child: Text(
                   'kg',
                   style: TextStyle(
@@ -992,8 +992,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
               SizedBox(width: 12),
               if (change != 0)
                 Container(
-                  margin: EdgeInsets.only(bottom: 8),
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  margin: EdgeInsets.only(bottom: AppSpace.sm),
+                  padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
                   decoration: BoxDecoration(
                     color: _weightChangeColor(change, goal).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
@@ -1160,11 +1160,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                   borderSide: BorderSide(color: AppColors.divider),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                   borderSide: BorderSide(
                       color: AppColors.ink, width: 2),
                 ),
@@ -1291,11 +1291,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   color: AppColors.muted,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                   borderSide: BorderSide(color: AppColors.divider),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                   borderSide: BorderSide(
                       color: AppColors.ink, width: 2),
                 ),
@@ -1324,7 +1324,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4),
+                  padding: EdgeInsets.symmetric(vertical: AppSpace.xs),
                   child: Text(
                     'Reset to auto-calculated',
                     style: TextStyle(
@@ -1396,7 +1396,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: 'Select time period',
       child: Container(
-      padding: EdgeInsets.all(4),
+      padding: EdgeInsets.all(AppSpace.xs),
       decoration: BoxDecoration(
         color: AppColors.cardAlt,
         borderRadius: BorderRadius.circular(14),
@@ -1411,7 +1411,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               }),
               borderRadius: BorderRadius.circular(11),
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(vertical: AppSpace.md),
                 decoration: BoxDecoration(
                   color: active ? AppColors.inkButton : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
@@ -1443,7 +1443,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: 'Navigate weeks',
       child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1456,13 +1456,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
             onTap: _canGoBackWeek ? () => setState(() {
               _selectedWeekStart = _selectedWeekStart.subtract(Duration(days: 7));
             }) : null,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             child: Container(
               padding: EdgeInsets.all(10),
               constraints: BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
                 color: _canGoBackWeek ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.chevron_left, color: _canGoBackWeek ? AppColors.ink : AppColors.muted.withValues(alpha: 0.4), size: 20),
             ),
@@ -1492,13 +1492,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
             onTap: isCurrentWeek ? null : () => setState(() {
               _selectedWeekStart = _selectedWeekStart.add(Duration(days: 7));
             }),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             child: Container(
               padding: EdgeInsets.all(10),
               constraints: BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
                 color: isCurrentWeek ? AppColors.cardSelected.withValues(alpha:0.5) : AppColors.cardSelected,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.chevron_right, color: isCurrentWeek ? AppColors.muted.withValues(alpha:0.4) : AppColors.ink, size: 20),
             ),
@@ -1545,7 +1545,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Semantics(
       label: 'Navigate months',
       child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1558,13 +1558,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
             onTap: _canGoBackMonth ? () => setState(() {
               _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
             }) : null,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             child: Container(
               padding: EdgeInsets.all(10),
               constraints: BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
                 color: _canGoBackMonth ? AppColors.cardSelected : AppColors.cardSelected.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.chevron_left, color: _canGoBackMonth ? AppColors.ink : AppColors.muted.withValues(alpha: 0.4), size: 20),
             ),
@@ -1594,13 +1594,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
             onTap: isCurrentMonth ? null : () => setState(() {
               _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
             }),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             child: Container(
               padding: EdgeInsets.all(10),
               constraints: BoxConstraints(minWidth: 44, minHeight: 44),
               decoration: BoxDecoration(
                 color: isCurrentMonth ? AppColors.cardSelected.withValues(alpha:0.5) : AppColors.cardSelected,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.chevron_right, color: isCurrentMonth ? AppColors.muted.withValues(alpha:0.4) : AppColors.ink, size: 20),
             ),
@@ -1656,7 +1656,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
@@ -1704,7 +1704,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             onTap: () => _showEditCalorieGoalSheet(context),
             borderRadius: BorderRadius.circular(8),
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.sm),
               decoration: BoxDecoration(
                 color: AppColors.inkButton,
                 borderRadius: BorderRadius.circular(8),
@@ -1743,7 +1743,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.sheet),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -1786,7 +1786,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: AppSpace.xs),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -1891,7 +1891,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
     if (_totalCalories == 0) {
       return Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 22),
+        padding: EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 22),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(20),
@@ -2052,7 +2052,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.sheet),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -2161,7 +2161,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         boxShadow: AppColors.cardShadow,
       ),
       child: Row(
@@ -2490,7 +2490,7 @@ class _BodyLogSheetState extends State<_BodyLogSheet> {
               filled: true,
               fillColor: AppColors.bg,
               contentPadding:
-                  EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,

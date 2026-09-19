@@ -233,7 +233,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Container(
-            padding: EdgeInsets.all(8),
+            padding: EdgeInsets.all(AppSpace.sm),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(12),
@@ -340,7 +340,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -426,7 +426,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
@@ -477,7 +477,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         DateFormat('MMM d').format(clock.now());
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -567,7 +567,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 8),
+                      horizontal: 14, vertical: AppSpace.sm),
                 ),
                 onPressed: _generateSummary,
                 icon: Icon(Icons.auto_awesome, size: 16),
@@ -686,7 +686,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
@@ -704,7 +704,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.inkButton,
                     borderRadius: BorderRadius.circular(6),
@@ -759,7 +759,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: AppSpace.xs),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -823,7 +823,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
@@ -922,7 +922,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
@@ -975,10 +975,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
   Widget _streakBox(IconData icon, String value, String label, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      padding: EdgeInsets.symmetric(vertical: 14, horizontal: AppSpace.sm),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
       ),
       child: Column(
         children: [
@@ -1028,7 +1028,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
@@ -1077,7 +1077,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

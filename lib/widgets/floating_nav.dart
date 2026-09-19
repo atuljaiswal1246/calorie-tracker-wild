@@ -26,7 +26,7 @@ class FloatingNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 64,
-      margin: EdgeInsets.symmetric(horizontal: 4),
+      margin: EdgeInsets.symmetric(horizontal: AppSpace.xs),
       padding: EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
@@ -119,7 +119,7 @@ class _NavItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              padding: EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: 5),
               decoration: BoxDecoration(
                 color: active ? AppColors.cardHover : Colors.transparent,
                 borderRadius: BorderRadius.circular(14),

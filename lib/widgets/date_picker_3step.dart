@@ -223,7 +223,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
     if (_step == 1) {
       return GridView.count(
         shrinkWrap: true,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpace.lg),
         crossAxisCount: 3,
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
@@ -236,7 +236,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
     }
     return GridView.count(
       shrinkWrap: true,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpace.lg),
       crossAxisCount: 5,
       mainAxisSpacing: 10,
       crossAxisSpacing: 10,

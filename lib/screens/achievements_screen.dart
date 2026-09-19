@@ -42,7 +42,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(AppSpace.sm),
                     decoration: BoxDecoration(
                       color: AppColors.card,
                       borderRadius: BorderRadius.circular(12),
@@ -68,7 +68,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppColors.card,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppRadius.sheet),
                 boxShadow: AppColors.cardShadowLight,
               ),
               child: Column(

@@ -91,7 +91,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
                   color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                   border: Border.all(color: AppColors.divider, width: 1.5),
                 ),
                 child: Row(
@@ -195,7 +195,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
           onTap: () => _showDetail(f),
           child: DemoCard(
             padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                const EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
             child: Row(
               children: [
                 Expanded(
@@ -322,7 +322,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
             ),
             const SizedBox(height: 14),
             DemoCard(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.sm),
               child: Column(
                 children: [
                   _kv('Fiber', '${f.fiber.toStringAsFixed(1)} g'),

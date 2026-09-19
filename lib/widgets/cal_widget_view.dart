@@ -140,7 +140,7 @@ class CalWidgetView extends StatelessWidget {
                   if (pill != null)
                     Container(
                       padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                          const EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: 9),
                       decoration: BoxDecoration(
                         color: _accent,
                         borderRadius: BorderRadius.circular(22),

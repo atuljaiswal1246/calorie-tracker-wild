@@ -162,7 +162,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -189,7 +189,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: AppSpace.md),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -425,7 +425,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -452,7 +452,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.inkButton,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: AppSpace.md),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -556,7 +556,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpace.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -579,7 +579,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.missedRed,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: AppSpace.md),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text('Discard', style: TextStyle(fontWeight: FontWeight.w700)),
@@ -726,7 +726,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.ink),
           decoration: InputDecoration(
             contentPadding:
-                EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
             filled: true,
             fillColor: AppColors.bg,
             border: OutlineInputBorder(
@@ -821,7 +821,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: AppColors.warningBg,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
                         child: Row(
                           children: [
@@ -943,7 +943,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                       foregroundColor: AppColors.missedRed,
                                       side: BorderSide(color: AppColors.missedRed),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10)),
+                                          borderRadius: BorderRadius.circular(AppRadius.pill)),
                                     ),
                                     child: Text('Enter manually'),
                                   ),
@@ -956,7 +956,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                       backgroundColor: AppColors.missedRed,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10)),
+                                          borderRadius: BorderRadius.circular(AppRadius.pill)),
                                     ),
                                     child: Text('Retry'),
                                   ),
@@ -1002,7 +1002,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       // gets far better macros.
                       if (_hasGenericVegCurry) ...[
                         Container(
-                          padding: EdgeInsets.all(12),
+                          padding: EdgeInsets.all(AppSpace.md),
                           decoration: BoxDecoration(
                             color: Color(0xFFFFF7E6),
                             borderRadius: BorderRadius.circular(12),
@@ -1056,7 +1056,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                         color: Color(0xFFE6C567)),
                                     shape: RoundedRectangleBorder(
                                       borderRadius:
-                                          BorderRadius.circular(10),
+                                          BorderRadius.circular(AppRadius.pill),
                                     ),
                                   ),
                                   child: Text(
@@ -1227,12 +1227,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
     return Expanded(
       child: InkWell(
         onTap: () => setState(() => _mealType = value),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected ? AppColors.ink : AppColors.card,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Center(
             child: Text(
@@ -1314,11 +1314,11 @@ class _CaptureScreenState extends State<CaptureScreen> {
           ],
           if (_batchFailed.isNotEmpty)
             Container(
-              margin: EdgeInsets.only(bottom: 12),
+              margin: EdgeInsets.only(bottom: AppSpace.md),
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppColors.warningBg,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Row(
                 children: [
@@ -1342,7 +1342,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
             return Padding(
               padding: EdgeInsets.only(bottom: 10),
               child: Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(AppSpace.md),
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(14),
@@ -1351,7 +1351,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                       child: Image.file(
                         file,
                         width: 58,
@@ -1521,8 +1521,8 @@ class _FoodItemCardState extends State<_FoodItemCard> {
     final hasSecondary = item.fiber > 0 || item.sugar > 0 || item.sodium > 0;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: AppSpace.lg),
+      padding: EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -1574,7 +1574,7 @@ class _FoodItemCardState extends State<_FoodItemCard> {
                           : null,
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      padding: EdgeInsets.symmetric(horizontal: AppSpace.md),
                       child: Text('${item.quantity.round()}',
                           style: TextStyle(
                               fontSize: 16,

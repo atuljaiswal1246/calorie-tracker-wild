@@ -35,7 +35,7 @@ class MacroCard extends StatelessWidget {
         label: '$label: ${value.toStringAsFixed(0)} of ${target.toStringAsFixed(0)}$unit',
         button: true,
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: AppSpace.md),
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(20),

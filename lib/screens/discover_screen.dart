@@ -111,7 +111,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget _friendsCard() {
     final svc = SocialService(widget.storage);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
@@ -194,7 +194,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   backgroundColor: AppColors.inkButton,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
+                      horizontal: AppSpace.lg, vertical: AppSpace.md),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
@@ -221,7 +221,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               final medal =
                   i == 0 ? '🥇' : i == 1 ? '🥈' : i == 2 ? '🥉' : '';
               return Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: AppSpace.sm),
                 child: Row(
                   children: [
                     if (medal.isNotEmpty)
@@ -332,7 +332,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   height: 52,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.card),
                   ),
                   child: Icon(Icons.auto_awesome,
                       size: 26, color: Colors.white),
@@ -463,7 +463,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
@@ -511,12 +511,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           HapticFeedback.lightImpact();
           onTap();
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         child: Container(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(AppSpace.lg),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             boxShadow: AppColors.cardShadow,
           ),
           child: Row(

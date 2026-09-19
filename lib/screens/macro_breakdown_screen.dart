@@ -155,7 +155,7 @@ class MacroBreakdownScreen extends StatelessWidget {
               children: [
                 // Summary bar
                 Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(AppSpace.lg),
                   decoration: BoxDecoration(
                     color: Colors.black,
                     borderRadius: BorderRadius.circular(20),
@@ -185,7 +185,7 @@ class MacroBreakdownScreen extends StatelessWidget {
 
                 // ---- Micronutrient gaps ----
                 Padding(
-                  padding: EdgeInsets.only(left: 4, bottom: 10),
+                  padding: EdgeInsets.only(left: AppSpace.xs, bottom: 10),
                   child: Text(
                     'Micronutrient gaps',
                     style: TextStyle(
@@ -200,7 +200,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.card,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.card),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.04),
@@ -245,7 +245,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                       padding: EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.card,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.card),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.04),
@@ -259,7 +259,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                           // Thumbnail
                           if (entry.imagePath.isNotEmpty && File(entry.imagePath).existsSync())
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(AppRadius.pill),
                               child: Image.file(
                                 File(entry.imagePath),
                                 width: 44,
@@ -273,7 +273,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                               height: 44,
                               decoration: BoxDecoration(
                                 color: color.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(AppRadius.pill),
                               ),
                               child: Icon(Icons.restaurant, color: color, size: 20),
                             ),

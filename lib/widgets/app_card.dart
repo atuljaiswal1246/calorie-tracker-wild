@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// Standard card container used across the app.
 class AppCard extends StatelessWidget {
@@ -27,7 +28,7 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = Container(
       margin: margin,
-      padding: padding ?? EdgeInsets.all(16),
+      padding: padding ?? EdgeInsets.all(AppSpace.lg),
       decoration: BoxDecoration(
         color: color ?? AppColors.card,
         borderRadius: BorderRadius.circular(borderRadius),

@@ -165,7 +165,7 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
                       size: 20, color: AppColors.muted),
                   filled: true,
                   fillColor: AppColors.card,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(vertical: AppSpace.md),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
@@ -239,7 +239,7 @@ class _PickTile extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: AppColors.chipBlue,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Icon(Icons.restaurant,
                   size: 17, color: AppColors.ink),
@@ -322,7 +322,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                     child: GestureDetector(
                       onTap: () => setState(() => _grams = g),
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(vertical: AppSpace.md),
                         margin: EdgeInsets.only(right: 6),
                         decoration: BoxDecoration(
                           color: _grams == g
@@ -368,7 +368,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                     decoration: InputDecoration(
                       hintText: 'g',
                       contentPadding:
-                          EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          EdgeInsets.symmetric(vertical: AppSpace.md, horizontal: AppSpace.sm),
                       border: OutlineInputBorder(),
                       isDense: true,
                     ),
@@ -428,7 +428,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
           padding: EdgeInsets.symmetric(vertical: 9),
           decoration: BoxDecoration(
             color: selected ? AppColors.ink : Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             border:
                 Border.all(color: selected ? AppColors.ink : Colors.black12),
           ),
