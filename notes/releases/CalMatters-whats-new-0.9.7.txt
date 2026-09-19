@@ -1,0 +1,5 @@
+A smarter reminder: Cal Matters now learns when you usually log each meal and nudges you only if you haven't logged it — once per meal, never at night.
+
+Also sharper throughout: more consistent spacing and corners across every screen, tied to one design system.
+
+If something looks off, tell us — this is a test build.
