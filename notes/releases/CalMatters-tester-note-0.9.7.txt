@@ -1,0 +1,27 @@
+Cal Matters 0.9.7 — test build
+
+INSTALL FIRST (important)
+Uninstall any existing Cal Matters first (Play Store version or an older APK).
+This build is signed with our own key, so Android will refuse to install it over
+the Play version — "App not installed". Uninstall, then install this APK.
+
+WHAT TO TRY (all new since 0.9.6)
+
+1. WIDGETS — long-press your home screen -> Widgets -> search "Cal Matters".
+   You should see TWO:
+     - Ring: calories taken today, with the progress ring.
+     - Meal: your next meal, with one tap to log it.
+   Please check the NUMBERS are real (the ring should match what you've logged,
+   not a made-up figure). If they look wrong or never update, tell me.
+
+2. SOUND — Settings (the gear icon) -> "Test notification sound". It will ask for
+   permission the first time; then it plays straight away. Also listen for a small
+   sound when you log a meal. If you hear nothing, check the phone isn't on silent.
+
+3. THE NUDGE — around the time you normally log a meal, if you haven't logged it
+   yet, you should get ONE notification like "Lunch? You usually log around
+   1:30pm". It should never fire twice for the same meal, and never at night.
+
+4. Undo — deleting a meal now offers "Undo" for a few seconds.
+
+Anything broken or ugly: screenshot it and send it over. Thank you!

@@ -74,3 +74,6 @@ cloudflare_worker/.wrangler/
 
 # Generated golden-test failure dumps
 test/failures/
+
+# Test APKs shared out of band (too big for the repo)
+notes/releases/*.apk
