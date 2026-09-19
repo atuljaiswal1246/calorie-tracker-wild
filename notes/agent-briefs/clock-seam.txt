@@ -1,0 +1,51 @@
+TASK — Cal Matters (Flutter): make the golden harness independent of the wall clock.
+
+You are in an isolated git worktree. This is the fix for a real, repeatedly-hit
+defect: the test harness renders screens whose text depends on the current time, so
+the committed golden images go red on their own whenever the hour or the date rolls
+over ("Good morning" becomes "Good night"; the week strip's dates move). It just
+happened again and cost a false failure. Fix the seam, do not paper over it.
+
+`package:clock` is the standard Dart way to do this: the app calls `clock.now()`
+instead of `DateTime.now()`, and a test wraps its work in
+`withClock(Clock.fixed(<time>), () { ... })`. In production the global clock IS real
+time, so runtime behaviour is unchanged.
+
+WHAT TO DO
+1. Add `clock: ^1.1.1` to `dependencies:` in pubspec.yaml (keep the file otherwise
+   untouched, keep alphabetical/adjacent ordering sane).
+2. In these three files, replace `DateTime.now()` with `clock.now()`:
+     lib/screens/home_screen.dart
+     lib/screens/insights_screen.dart
+     lib/screens/progress_screen.dart
+   Add `import 'package:clock/clock.dart';` to each. Change nothing else in them -
+   no logic, no formatting, no widget changes. This must be a pure substitution.
+   Note: `progress_screen.dart` has ~19 sites; some are inside helper methods - all
+   of them get the same treatment.
+3. In `test/app_screens_preview_test.dart`, pin the clock for every test so the
+   rendered date is fixed and the goldens are stable:
+   - Use a single named constant for the pinned moment, e.g.
+     `final _pinnedNow = DateTime(2026, 9, 16, 10, 0);`
+   - Wrap the body of each test (or wrap the `_shot` helper's work) in
+     `withClock(Clock.fixed(_pinnedNow), () async { ... })` so the app's `clock.now()`
+     sees 2026-09-16 10:00.
+   - The seeded entries in `_seed()` must be dated relative to `_pinnedNow`, not
+     `DateTime.now()`, so "today's meals" land on the pinned day.
+4. Regenerate the goldens ONCE so they match the pinned moment:
+     flutter test --update-goldens test/app_screens_preview_test.dart
+   then verify they are now stable:
+     flutter test test/app_screens_preview_test.dart      -> must pass
+   Run that verify command TWICE to prove it is not a one-off.
+5. Run `flutter analyze` and report the error count.
+
+FORBIDDEN: any file not listed; the locked screens (welcome_screen.dart,
+onboarding_flow.dart, auth_screen.dart, pricing_screen.dart); changing any runtime
+behaviour; changing storage keys; adding any dependency other than `clock`.
+
+REPORT BACK with:
+  - the files changed
+  - how many `DateTime.now()` -> `clock.now()` replacements in each of the three files
+  - the exact epoch/time you pinned
+  - `flutter analyze` error count
+  - the result line of the verify command, run twice
+  - anything that looked wrong but was out of scope (report, do not fix)

@@ -1,0 +1,56 @@
+TASK — Cal Matters (Flutter): adopt the new type tokens WITHOUT changing a single pixel.
+
+You are in an isolated git worktree of the Cal Matters app. This is a mechanical
+refactor. Its value is that it is provably invisible: every replacement uses the
+SAME numeric value, so the golden screenshots must come out byte-identical.
+
+WHAT EXISTS
+`lib/theme/app_tokens.dart` defines the design tokens:
+  AppType.micro = 10, small = 11.5, body = 13, bodyStrong = 15, title = 17,
+  headline = 22, hero = 28
+  AppSpace.xs 4, sm 8, md 12, lg 16, xl 24        (do NOT use these in this task)
+  AppRadius.pill 10, card 16, sheet 24, full 999  (do NOT use these in this task)
+
+WHAT TO DO (type only)
+In `lib/screens/**` and `lib/widgets/**`, replace a hardcoded font size with its
+token ONLY when the number is EXACTLY equal. This exact mapping, nothing else:
+  fontSize: 10   -> AppType.micro
+  fontSize: 11.5 -> AppType.small
+  fontSize: 13   -> AppType.body
+  fontSize: 15   -> AppType.bodyStrong
+  fontSize: 17   -> AppType.title
+  fontSize: 22   -> AppType.headline
+  fontSize: 28   -> AppType.hero
+Leave every other size exactly as it is (12, 12.5, 11, 10.5, 13.5, 14.5, 23, 26,
+30 ... are NOT tokens yet - do not snap them, do not touch them).
+Add the import `import '../theme/app_tokens.dart';` (or the correct relative path
+for the file) once per file that needs it. Keep the surrounding code and
+formatting untouched. Do not rename widgets, do not move code, do not reformat.
+
+FORBIDDEN - do not open, let alone edit:
+  lib/screens/welcome_screen.dart      (locked: the user signed off on it)
+  lib/screens/onboarding_flow.dart     (locked)
+  lib/screens/auth_screen.dart         (locked)
+  lib/screens/pricing_screen.dart      (locked)
+  test/**  and  pubspec.yaml
+
+THE PROOF (this is the important part)
+Run, in this order:
+  flutter pub get
+  flutter analyze                      -> report the error count
+  flutter test test/app_screens_preview_test.dart
+The golden images MUST pass unchanged. They are the proof that this refactor is
+invisible. If ANY golden differs:
+  1. that comparison failing means a value was not identical (or nothing changed at
+     all - an identical font size cannot move a pixel);
+  2. you MUST NOT run --update-goldens. Never regenerate a golden to make a test pass;
+  3. find and revert your own mistake, then run it again.
+If the goldens still fail after that, stop and report it instead of forcing it.
+
+REPORT BACK with:
+  - files changed, and how many replacements in each
+  - total replacements
+  - `flutter analyze` error count
+  - the exact result line from `flutter test test/app_screens_preview_test.dart`
+    (passed / how many failed)
+  - anything you saw that looked wrong but was out of scope (report, do not fix)

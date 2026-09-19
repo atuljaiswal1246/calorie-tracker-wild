@@ -67,3 +67,7 @@ cloudflare_worker/.wrangler/
 
 # Firebase CLI local cache (per-machine deploy manifest)
 .firebase/
+
+# Agent worktrees and harness logs (in-repo so nothing is scattered outside)
+.worktrees/
+.agent-logs/

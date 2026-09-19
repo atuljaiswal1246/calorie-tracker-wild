@@ -1,0 +1,14 @@
+Hi! New build (0.9.6) is on the testing link — please update when you get a chance.
+
+Two things to try, both new:
+
+1) WIDGETS — long-press your home screen → Widgets → search "Cal Matters". You should see TWO:
+   - Ring: calories taken today, drawn as the ring.
+   - Meal: your next meal with one tap to log it.
+   Please check the NUMBERS look right (the ring should match what you've logged, not a made-up figure).
+
+2) SOUNDS — Settings (the gear) → "Test notification sound" plays the reminder chime straight away (it will ask permission the first time). Also listen for a small sound when you log a meal. If you hear nothing, tell me — and check the phone isn't on silent.
+
+Also worth a look: deleting a meal now offers Undo.
+
+Anything broken, screenshot it and send it over. Thank you!

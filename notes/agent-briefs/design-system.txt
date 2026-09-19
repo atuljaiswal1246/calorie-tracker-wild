@@ -1,0 +1,62 @@
+TASK — Cal Matters (Flutter, Android-first): write down the design system we actually ship.
+
+You are working in an isolated git worktree of the Cal Matters app. Two files only.
+Do NOT touch any screen, widget, or test. Do NOT add dependencies. Do NOT refactor
+existing code. This task creates documentation and tokens, nothing else.
+
+WHY (the defect being fixed)
+`UI_GUIDELINES.md` calls itself "the source of truth" but describes a design the app
+abandoned: white #FFFFFF background, #F7F7F7 panels, black accents, and the line
+"Never use the old orange/deep-purple theme." The shipping app is warm cream with an
+orange accent, and the screens the user personally signed off (welcome, onboarding
+1-6, sign-up, paywall) all follow that. A stale source of truth is worse than none:
+it is why screens have drifted (35 distinct font sizes, 20 distinct corner radii).
+
+TASK 1 — rewrite `UI_GUIDELINES.md` to describe what ships.
+Read `lib/theme/app_colors.dart` first: it holds the real palette and is the reference.
+The document must be short, factual and specific. Required sections:
+1. **Palette** — a table of the actual tokens (read them from app_colors.dart):
+   background, card, ink, muted, faint, the orange accent, the macro colours,
+   and the semantic ones (green / missed / warning). State the rule plainly:
+   cream background, near-black ink, ONE accent (orange); macro colours are the
+   only other hues allowed. Say dark mode is handled by the same tokens.
+2. **Type scale** — exactly these seven steps, all of which already appear in the
+   signed-off screens, with the use for each:
+     10 micro (pills, labels) · 11.5 small (captions) · 13 body (default) ·
+     15 bodyStrong (emphasis) · 17 title (card titles) · 22 headline (screen
+     titles) · 28 hero (big numbers)
+   Rule: pick from these seven; do not invent a new size.
+3. **Spacing** — 4, 8, 12, 16, 24. Rule: gaps come from this set.
+4. **Radii** — 10 (pills/chips), 16 (cards), 24 (sheets/major cards), 999 (pill).
+   Rule: no new radii.
+5. **The house rules**, taken from the signed-off screens (keep them short):
+   one dominant idea per screen; big left-aligned type with negative letter
+   spacing; one primary CTA, full width, black (white in dark mode); real
+   illustrations, never emoji-as-art; no filler copy; on stat tiles put the
+   label first then the value; Material Symbols for functional icons.
+6. **What is locked**: the welcome/get-started screen, onboarding 1-6, sign-up
+   and the paywall must not be changed without an explicit new request.
+Delete anything in the old document that contradicts the above. No aspirational
+or generic statements - every claim must be checkable against the app.
+
+TASK 2 — add `lib/theme/app_tokens.dart`.
+A single small token file with three groups, as documented constants, each with a
+one-line comment explaining its rule:
+  - `AppType`: micro 10, small 11.5, body 13, bodyStrong 15, title 17,
+    headline 22, hero 28  (double values, named).
+  - `AppSpace`: xs 4, sm 8, md 12, lg 16, xl 24  (double).
+  - `AppRadius`: pill 10, card 16, sheet 24, full 999  (double).
+Use a `class AppType { AppType._(); ... }` private-constructor pattern like
+`app_colors.dart` does. Do not add colours here - they already live in
+`app_colors.dart`. Do not import Flutter unless needed.
+
+VERIFY (must do before you report)
+  cd <this worktree> && flutter pub get && flutter analyze
+Report the analyze result (error count) honestly. If analyze has pre-existing
+info/warnings that is fine - report the error count only.
+
+REPORT BACK with:
+  - the two files changed/created (exact paths)
+  - the exact final content of the type/space/radius values you wrote
+  - the `flutter analyze` error count
+  - anything you found wrong or out of scope (report it, do not fix it)

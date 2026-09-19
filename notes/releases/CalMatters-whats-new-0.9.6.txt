@@ -1,0 +1,7 @@
+Home-screen widgets — add whichever suits you:
+- Ring: calories taken today, drawn as the ring.
+- Meal: your next meal with one tap to log it.
+
+New sounds: a warmer reminder chime, plus a small sound when you log. Toggle them in Settings.
+
+Also: undo after deleting a meal, clearer empty states, faster screens.

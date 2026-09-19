@@ -48,6 +48,24 @@ winner becomes the default and the losers get cut by data, not opinion. They mus
 share ONE data layer (same water rules, same streak, same state engine) so a new
 widget is a layout, not a new system.
 
+**SOUND — approved 2026-09-16 (all three candidates chosen).** Files are in the
+repo (unwired, so 0.9.6 is untouched):
+| File | Use |
+|---|---|
+| `android/app/src/main/res/raw/cal_notify.wav` | the notification sound (0.9s warm chime) |
+| `assets/sounds/cal_pip.wav` | in-app confirmation: meal logged, water added (0.18s) |
+| `assets/sounds/cal_success.wav` | streak milestone / goal reached (0.72s, two rising notes) |
+They were synthesised with Python (no licence, nothing to pay). Mechanics to
+remember:
+- **Android notification channels are immutable.** The current channel is
+  `reminders`; changing its sound requires a NEW channel id, or existing installs
+  keep the system default. Do it with the sound change, in one go.
+- **Widgets cannot play sound** — a widget is views on the launcher. The sound
+  comes from the app when the tap opens it (that is what Duolingo does).
+- iOS needs its own copy in the runner bundle (aiff/wav/caf) — later.
+- Pair it with a "sounds" toggle in Settings: sound is the fastest way to feel
+  alive and the fastest way to annoy.
+
 **Parking Lot (do NOT start while something above is open):**
 - **WATER WIDGET (mock approved 2026-09-16, `mock_19_water_widget.png`).**
   Separate from the calorie widget — do not merge them. Pure action: tap = +1 glass
@@ -68,6 +86,47 @@ widget is a layout, not a new system.
 when it survives: rendered and looked at, `flutter analyze` clean, `flutter test`
 green, and installed on the user's phone. Everything else is parked, however
 good it sounds.
+
+
+## Agent delegation — brain + muscles (locked 2026-09-19)
+The user's method, learned from their `Jarvis` project and used here from now on.
+**The brain (this session) plans, briefs, verifies and owns the outcome. It does
+not do the implementable work itself when a muscle can.** Muscles execute exactly
+what the brief says and report; they never decide.
+
+**Dispatch:**
+```
+TMPDIR="$PWD/.agent-logs" ~/Desktop/Jarvis/scripts/agent_run.sh \
+  --dir "$PWD/.worktrees/<task>" --model opencode-go/muse-spark-1.3-contributor \
+  --auto --task "@notes/agent-briefs/<task>.txt"
+```
+- **Abuse rule (KB-06):** NEVER hand-roll HTTP to `opencode.ai/zen|go` — that is
+  what triggers the abuse filter's 429s. The CLI/serve is the validated client
+  (the harness also unsets `OPENCODE_API_KEY` so it cannot shadow `auth.json`).
+- **One agent per directory.** Work in an isolated worktree under `.worktrees/`;
+  never point two agents at the same tree. Logs land in `.agent-logs/` (gitignored).
+- **Probe first:** `opencode run -m <model> "reply with three words"` before a real
+  run. Paid `opencode-go/muse-spark-1.3-contributor` buys quota, not quality.
+- **Briefs live in `notes/agent-briefs/`** (versioned): goal, exact files, exact
+  values, what is FORBIDDEN (locked screens, tests, deps), and the verification
+  command. A vague brief is the brain's failure, not the muscle's.
+
+**Verification (the brain's job, never optional):**
+1. Read `git -C <worktree> status/diff` yourself. Never trust a self-report.
+2. `flutter analyze` — expect 0 errors and no change to the 160-item baseline.
+3. `flutter test` — and for a refactor that claims to be invisible, prove it:
+   **A/B the goldens at the same fixed clock** (stash the change, regenerate,
+   restore, regenerate, compare bytes). Note: the harness is clock-pinned now
+   (`withClock(Clock.fixed(2026-09-16 10:00))`), so a plain golden run is
+   trustworthy again.
+4. Merge only the intended files (e.g. never the clock-shifted goldens) and
+   commit with `Worker-written (<model>), brain-verified`.
+
+**Files stay in the Cal Matters folder.** Briefs in `notes/agent-briefs/`, release
+artefacts and notes in `notes/releases/`, mocks and review sheets in `design/`,
+throwaway agent trees in `.worktrees/`, logs in `.agent-logs/`. Nothing of ours
+goes on the Desktop or in system temp. (Exception, by design: the keystore backup
+must stay OUT of the repo — it is a secret.)
 
 
 
