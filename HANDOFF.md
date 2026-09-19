@@ -151,6 +151,7 @@ device test is the next real gate. See `§2b` and the Desktop review folder.
 
 | # | Step | Owner | Notes |
 |---|------|-------|-------|
+| 0 | **⚠️ REVERT THE TEST PAYWALL BYPASS before production** — `Features.bypassPaywall` is TRUE for closed testing so testers are never stuck on a payment screen; Settings shows a "TEST BUILD" banner while it is. Flip it false, rebuild, and confirm the paywall returns | assistant (before production) | See AGENTS.md |
 | 1 | Update the **Play Console listing text** to match `PLAY_STORE_LISTING.md` (drop the Groups line, fix the "data stays on your device" claim) | **user** | The repo doc is fixed; the Console copy is a separate edit nobody has done yet |
 | 2 | Watch the **Data safety review** result (Publishing overview / Inbox) | user | Submitted 2026-09-15 |
 | 3 | Finish closed testing (day 14), request **production access**, then move to open testing | user | Google decides; keep testers opted in |

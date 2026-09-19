@@ -88,6 +88,23 @@ green, and installed on the user's phone. Everything else is parked, however
 good it sounds.
 
 
+## ⚠️ TEST BUILD — PAYWALL BYPASSED (2026-09-19) — MUST be reverted before production
+`Features.bypassPaywall = true` (`lib/config/features.dart`), honoured inside
+`StorageService.isPaidOrSandbox` — the single gate the whole funnel uses. While it
+is true the funnel goes straight to Home after sign-up and Home never shows the
+trial-ended overlay, so **closed testers are never stuck on a payment screen**.
+`PricingScreen` and `billing_service.dart` are untouched and merely unreachable.
+
+**Guardrail:** while the flag is true, Settings shows an amber
+"TEST BUILD — payment is bypassed" banner as the first thing on the screen. If that
+banner is ever seen in a production build, the flag was not flipped.
+
+**Before the production release:** set `bypassPaywall = false`, rebuild, and confirm
+(a) the paywall appears after sign-up for a non-paying account and (b) the Settings
+banner is gone. `tools/mark_paid.py <email>` marks an individual tester paid instead
+(dev route; the product route is a real purchase).
+
+
 ## Agent delegation — brain + muscles (locked 2026-09-19)
 The user's method, learned from their `Jarvis` project and used here from now on.
 **The brain (this session) plans, briefs, verifies and owns the outcome. It does
