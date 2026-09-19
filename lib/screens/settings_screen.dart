@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../services/notification_service.dart';
 import '../services/sound_service.dart';
 import '../services/storage_service.dart';
+import '../config/features.dart';
 import 'pricing_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
@@ -211,6 +212,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [
+                  // TESTING ONLY banner — visible guardrail while bypassPaywall
+                  // is true. Must not render at all when the flag is false.
+                  if (Features.bypassPaywall)
+                    Container(
+                      margin: EdgeInsets.only(bottom: 16),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.warningBg,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: AppColors.warningOrange, width: 1.5),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded,
+                              color: AppColors.warningOrange, size: 22),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'TEST BUILD — payment is bypassed',
+                              style: TextStyle(
+                                fontSize: AppType.bodyStrong,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   // ------- Reminders -------
                   _SectionLabel('Reminders'),
                   Container(

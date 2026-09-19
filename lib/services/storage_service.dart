@@ -10,6 +10,7 @@ import '../models/food_entry.dart';
 import '../models/exercise_entry.dart';
 import '../models/gamification_state.dart';
 import '../models/profile.dart';
+import '../config/features.dart';
 
 /// EMail address that bypasses the paywall — SANDBOX ONLY (iOS dev builds).
 /// Used because iOS has no Play Billing; without this the app is unusable on
@@ -964,6 +965,8 @@ class StorageService {
   /// the flow short-circuits to the real gate, so no user can bypass the
   /// paywall in a shipping build.
   bool isPaidOrSandbox({String? authEmail}) {
+    // TESTING ONLY: paywall bypass — the funnel's existing calls see "paid".
+    if (Features.bypassPaywall) return true;
     // Release builds always follow the real gate — no sandbox, ever.
     if (kReleaseMode) return isPaid;
     if (!Platform.isIOS) return isPaid;

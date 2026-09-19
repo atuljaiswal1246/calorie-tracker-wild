@@ -23,4 +23,14 @@ class Features {
   /// Firebase's Apple provider is already enabled; the native flow needs no
   /// Services ID or client secret. Required on the App Store (4.8).
   static const bool appleSignIn = false;
+
+  /// TESTING ONLY. While true the paywall is unreachable: the funnel goes
+  /// straight to Home after sign-up and Home never shows the trial-ended
+  /// gate. PricingScreen and the billing code are untouched - simply not
+  /// reached.
+  ///
+  /// MUST be false before a production release. While it is true the app
+  /// shows a visible "TEST BUILD" banner in Settings, so it cannot ship
+  /// unnoticed.
+  static const bool bypassPaywall = true;
 }

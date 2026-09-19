@@ -1639,13 +1639,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: AppColors.bg,
                       borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
-                    child: Text(
-                      '🏃 + Exercise',
-                      style: TextStyle(
-                        fontSize: AppType.micro,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Symbols.directions_run_rounded,
+                          size: 13,
+                          color: AppColors.ink,
+                        ),
+                        SizedBox(width: 3),
+                        Text(
+                          '+ Exercise',
+                          style: TextStyle(
+                            fontSize: AppType.micro,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
