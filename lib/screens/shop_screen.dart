@@ -5,6 +5,7 @@ import '../models/shop.dart';
 import '../services/gamification_controller.dart';
 import '../services/shop_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// NutriCoins shop (plan §4.4). Spend coins earned from quests, streaks and
 /// leagues on freezes and cosmetics.
@@ -174,7 +175,7 @@ class _ShopScreenState extends State<ShopScreen> {
         child: Text(
           title,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: AppType.bodyStrong,
             fontWeight: FontWeight.w800,
             color: AppColors.ink,
           ),

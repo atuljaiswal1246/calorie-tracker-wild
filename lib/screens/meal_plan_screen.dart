@@ -5,6 +5,7 @@ import '../data/prebuilt_plans.dart';
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class MealPlanScreen extends StatefulWidget {
   final StorageService storage;
@@ -48,7 +49,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
         title: Text(
           'Meal Plans',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppType.headline,
             fontWeight: FontWeight.w800,
             color: _ink,
             letterSpacing: -0.5,
@@ -94,7 +95,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
           SizedBox(height: 4),
           Text(
             '7-day Indian menus for your goal',
-            style: TextStyle(fontSize: 13, color: _muted),
+            style: TextStyle(fontSize: AppType.body, color: _muted),
           ),
           SizedBox(height: 14),
           ...prebuiltPlans.map((p) => _prebuiltCard(p)),
@@ -175,7 +176,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   Text(
                     plan.title,
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF1C1C1E),
                     ),
@@ -277,7 +278,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 child: Text(
                   plan.name,
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: AppType.title,
                     fontWeight: FontWeight.w700,
                     color: _ink,
                   ),
@@ -297,7 +298,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                     Text(
                       '${item.quantity.toInt()}x',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppType.body,
                         fontWeight: FontWeight.w600,
                         color: _muted,
                       ),
@@ -317,7 +318,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                     Text(
                       '${item.calories} kcal',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppType.body,
                         fontWeight: FontWeight.w600,
                         color: _ink,
                       ),
@@ -348,7 +349,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   child: Text(
                     'Log',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -417,7 +418,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
             SizedBox(height: 6),
             Text(
               '${plan.items.length} items',
-              style: TextStyle(fontSize: 13, color: _muted),
+              style: TextStyle(fontSize: AppType.body, color: _muted),
             ),
             SizedBox(height: 20),
             SizedBox(
@@ -433,7 +434,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 child: Text(
                   'Rename plan',
                   style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.5),
                 ),
@@ -457,7 +458,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 child: Text(
                   'Delete plan',
                   style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.5),
                 ),
@@ -499,7 +500,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               autofocus: true,
               textCapitalization: TextCapitalization.words,
               style: TextStyle(
-                fontSize: 17,
+                fontSize: AppType.title,
                 fontWeight: FontWeight.w600,
                 color: _ink,
               ),
@@ -540,7 +541,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 child: Text(
                   'Save',
                   style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.5),
                 ),
@@ -593,7 +594,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
               SizedBox(height: 4),
               Text(
                 'Choose which meals to include',
-                style: TextStyle(fontSize: 13, color: _muted),
+                style: TextStyle(fontSize: AppType.body, color: _muted),
               ),
               SizedBox(height: 12),
               ConstrainedBox(
@@ -626,7 +627,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                                     '${e.items.length > 1 ? ' +${e.items.length - 1}' : ''}'
                                     ' · ${e.totalCalories} kcal',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: AppType.body,
                                   fontWeight: FontWeight.w500,
                                   color: _ink,
                                 ),
@@ -646,7 +647,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 controller: nameController,
                 textCapitalization: TextCapitalization.words,
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w600,
                   color: _ink,
                 ),
@@ -693,7 +694,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   child: Text(
                     'Save plan',
                     style: TextStyle(
-                        fontSize: 17,
+                        fontSize: AppType.title,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.5),
                   ),
@@ -754,7 +755,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
         title: Text(
           plan.title,
           style: TextStyle(
-            fontSize: 22,
+            fontSize: AppType.headline,
             fontWeight: FontWeight.w800,
             color: _ink,
             letterSpacing: -0.5,
@@ -786,7 +787,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                       Text(
                         '${plan.approxKcal} kcal/day · 7 days',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: AppType.bodyStrong,
                           fontWeight: FontWeight.w700,
                           color: _ink,
                         ),
@@ -877,7 +878,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               child: Text(
                 'Log full day',
                 style: TextStyle(
-                    fontSize: 17,
+                    fontSize: AppType.title,
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.5),
               ),
@@ -929,7 +930,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w700,
                     color: _ink,
                   ),
@@ -938,7 +939,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
               Text(
                 '${meal.totalCalories} kcal',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF8E8E93),
                 ),
@@ -1002,7 +1003,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                   child: Text(
                     'Log',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),

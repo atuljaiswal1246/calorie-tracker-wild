@@ -6,6 +6,7 @@ import '../services/barcode_service.dart';
 import '../services/storage_service.dart';
 import 'barcode_result_screen.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
   final StorageService storage;
@@ -222,7 +223,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         'Point camera at barcode',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: AppType.bodyStrong,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -243,7 +244,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                           'Scan again',
                           style: TextStyle(
                             color: Colors.white70,
-                            fontSize: 13,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -262,7 +263,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                           'Enter code manually',
                           style: TextStyle(
                             color: Colors.white70,
-                            fontSize: 13,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

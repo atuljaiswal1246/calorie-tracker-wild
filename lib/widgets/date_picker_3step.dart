@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// A 3-step date picker: **year → month → day**.
 /// Better than a wheel for birth dates: you pick the year first (fast),
@@ -133,7 +134,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
                     child: Text(
                       _title(),
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: AppType.title,
                         fontWeight: FontWeight.w800,
                         color: AppColors.ink,
                       ),
@@ -168,7 +169,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
               '$_pageStart – $_pageEnd',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
                 letterSpacing: -0.2,

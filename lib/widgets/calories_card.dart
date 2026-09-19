@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import 'ring_widget.dart';
 
 /// Big calories card with a large progress ring.
@@ -79,7 +80,7 @@ class CaloriesCard extends StatelessWidget {
                     Text(
                       over ? 'Calories over target' : 'Calories eaten',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppType.body,
                         color: over ? AppColors.missedRed : AppColors.muted,
                         fontWeight: FontWeight.w500,
                       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/widget_state.dart';
+import '../theme/app_tokens.dart';
 
 /// The Cal Matters home-screen widget, drawn in Flutter.
 ///
@@ -133,7 +134,7 @@ class CalWidgetView extends StatelessWidget {
                     subline,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11.5, color: _muted),
+                    style: TextStyle(fontSize: AppType.small, color: _muted),
                   ),
                   const SizedBox(height: 10),
                   if (pill != null)

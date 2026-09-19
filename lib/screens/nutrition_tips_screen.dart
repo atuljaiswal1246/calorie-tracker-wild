@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class NutritionTipsScreen extends StatelessWidget {
   NutritionTipsScreen({super.key});
@@ -42,7 +43,7 @@ class NutritionTipsScreen extends StatelessWidget {
             SizedBox(height: 8),
             Text(
               'Smart eating advice for Indian food',
-              style: TextStyle(fontSize: 13, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
             ),
             SizedBox(height: 24),
 
@@ -97,7 +98,7 @@ class NutritionTipsScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(tip.emoji, style: TextStyle(fontSize: 28)),
+          Text(tip.emoji, style: TextStyle(fontSize: AppType.hero)),
           SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -106,7 +107,7 @@ class NutritionTipsScreen extends StatelessWidget {
                 Text(
                   tip.title,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
                   ),
@@ -115,7 +116,7 @@ class NutritionTipsScreen extends StatelessWidget {
                 Text(
                   tip.body,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     color: AppColors.muted,
                     height: 1.4,
                   ),

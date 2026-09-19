@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_tokens.dart';
 import 'demo_common.dart';
 
 /// Try-before-you-buy demo: a simulated food scanner. It plays a camera +
@@ -311,7 +312,7 @@ class _ResultCard extends StatelessWidget {
                             ),
                             child: Text('Demo result',
                                 style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: AppType.micro,
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.green)),
                           ),
@@ -355,7 +356,7 @@ class _ResultCard extends StatelessWidget {
                       ),
                       Text('kcal',
                           style: TextStyle(
-                              fontSize: 10, color: AppColors.muted)),
+                              fontSize: AppType.micro, color: AppColors.muted)),
                     ],
                   ),
                 ),

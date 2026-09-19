@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import 'empty_illustration.dart';
 
 /// Empty state shown when no meals have been logged.
@@ -29,7 +30,7 @@ class EmptyCard extends StatelessWidget {
           Text(
             'No meals logged yet',
             style: TextStyle(
-              fontSize: 15,
+              fontSize: AppType.bodyStrong,
               fontWeight: FontWeight.w700,
               color: AppColors.ink,
             ),
@@ -37,7 +38,7 @@ class EmptyCard extends StatelessWidget {
           SizedBox(height: 4),
           Text(
             'Scan your first meal to get started',
-            style: TextStyle(fontSize: 13, color: AppColors.muted),
+            style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
           ),
           if (onScanTap != null) ...[
             SizedBox(height: 16),
@@ -62,7 +63,7 @@ class EmptyCard extends StatelessWidget {
                       Text(
                         'Scan a meal',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppType.body,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),

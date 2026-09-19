@@ -5,6 +5,7 @@ import '../models/league.dart';
 import '../services/gamification_controller.dart';
 import '../services/league_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// Weekly league leaderboard (plan §4.6). Ranked by Cal Points earned Mon–Sun.
 class LeagueScreen extends StatefulWidget {
@@ -154,7 +155,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: AppType.micro,
             fontWeight: FontWeight.w700,
             color: AppColors.muted,
           ),
@@ -163,7 +164,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: AppType.bodyStrong,
             fontWeight: FontWeight.w800,
             color: color,
           ),
@@ -191,7 +192,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: AppType.body,
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -245,7 +246,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
             Text(
               '${r.points} pts',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w700,
                 color: AppColors.muted,
               ),

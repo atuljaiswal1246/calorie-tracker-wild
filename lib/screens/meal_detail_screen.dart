@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../models/food_entry.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final FoodEntry entry;
@@ -182,7 +183,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       'Total',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 15,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -259,7 +260,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 Text(
                   '${item.calories} kcal',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
                   ),
@@ -301,7 +302,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 children: [
                   Text(
                     'Servings',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: AppType.body, color: Colors.grey),
                   ),
                   Spacer(),
                   InkWell(
@@ -329,7 +330,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     child: Text(
                       item.quantity.toStringAsFixed(1),
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

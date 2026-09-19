@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../models/quest.dart';
 import '../services/gamification_controller.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import 'league_screen.dart';
 import 'shop_screen.dart';
 
@@ -126,7 +127,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                   ),
                   Text(
                     '${gami.calPoints} Cal Points',
-                    style: TextStyle(fontSize: 13, color: AppColors.muted),
+                    style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
                   ),
                 ],
               ),
@@ -205,7 +206,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
             Text(
               value,
               style: TextStyle(
-                fontSize: 17,
+                fontSize: AppType.title,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
               ),
@@ -280,7 +281,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
             Text(
               '+${q.calPoints}',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w800,
                 color: q.completed ? AppColors.green : AppColors.muted,
               ),

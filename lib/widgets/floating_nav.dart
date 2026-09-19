@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// Floating pill-shaped bottom navigation bar.
 class FloatingNav extends StatelessWidget {
@@ -133,7 +134,7 @@ class _NavItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: AppType.micro,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 color: active ? AppColors.ink : AppColors.faint,
               ),
@@ -202,7 +203,7 @@ class _NavAvatar extends StatelessWidget {
             Text(
               'Profile',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: AppType.micro,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 color: active ? AppColors.ink : AppColors.faint,
               ),

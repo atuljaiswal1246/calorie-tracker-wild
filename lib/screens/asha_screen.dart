@@ -8,6 +8,7 @@ import '../services/gamification_controller.dart';
 import '../services/openai_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// Asha — AI nutrition assistant (our own "Ria").
 /// Knows the user's goal + today's logged food, gives Indian-food-aware
@@ -308,7 +309,7 @@ SPEAK STYLE:
               'advice is yours, not copy-paste luck.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 13, color: AppColors.muted, height: 1.5),
+                  fontSize: AppType.body, color: AppColors.muted, height: 1.5),
             ),
           ],
         ),

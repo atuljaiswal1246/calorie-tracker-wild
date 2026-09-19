@@ -10,6 +10,7 @@ import '../models/profile.dart';
 import '../services/achievements_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import '../widgets/empty_illustration.dart';
 import 'achievements_screen.dart';
 
@@ -267,7 +268,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   Text(
                     '$_streak',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
@@ -307,7 +308,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   Text(
                     '$unlocked/${all.length}',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
@@ -340,7 +341,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               Text(
                 streak > 0 ? '$streak day streak' : 'No active streak',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w800,
                   color: streak > 0 ? AppColors.ink : AppColors.muted,
                 ),
@@ -352,7 +353,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     : 'Log any meal today to start a streak.\nKeep logging daily to build it up.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppType.body,
                   color: AppColors.muted,
                   height: 1.4,
                 ),
@@ -441,7 +442,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 'Track waist, hips, arms — the scale can lie, numbers don\'t.',
-                style: TextStyle(fontSize: 13, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
             )
           else ...[
@@ -476,7 +477,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               child: Text(
                 '${DateFormat('d MMM').format(latest.date)} · '
                 '${entries.length} log${entries.length == 1 ? '' : 's'}',
-                style: TextStyle(fontSize: 11.5, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
               ),
             ),
           ],
@@ -494,12 +495,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final down = delta != null && delta < 0;
     return Column(
       children: [
-        Text(emoji, style: TextStyle(fontSize: 15)),
+        Text(emoji, style: TextStyle(fontSize: AppType.bodyStrong)),
         SizedBox(height: 3),
         Text(
           value.toStringAsFixed(1),
           style: TextStyle(
-            fontSize: 15,
+            fontSize: AppType.bodyStrong,
             fontWeight: FontWeight.w800,
             color: AppColors.ink,
             fontFeatures: [ui.FontFeature.tabularFigures()],
@@ -628,7 +629,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   child: Text(
                     'elapsed',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w500,
                       color: AppColors.muted,
                     ),
@@ -699,7 +700,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         child: Text(
                           'End fast',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w600,
                             color: AppColors.missedRed,
                           ),
@@ -798,7 +799,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: AppType.body,
               fontWeight: FontWeight.w600,
               color: isSelected ? Colors.white : AppColors.ink,
             ),
@@ -838,7 +839,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             SizedBox(height: 4),
             Text(
               'Set your fasting duration in hours',
-              style: TextStyle(fontSize: 13, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
             ),
             SizedBox(height: 20),
             TextField(
@@ -887,7 +888,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 child: Text(
                   'Save',
                   style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.5),
                 ),
@@ -1008,7 +1009,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       Text(
                         '${change.abs().toStringAsFixed(1)} kg',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppType.body,
                           fontWeight: FontWeight.w700,
                           color: _weightChangeColor(change, goal),
                           fontFeatures: [ui.FontFeature.tabularFigures()],
@@ -1028,7 +1029,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 Text(
                   'Target: ${target.toStringAsFixed(1)} kg',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w500,
                     color: AppColors.muted,
                     fontFeatures: [ui.FontFeature.tabularFigures()],
@@ -1038,7 +1039,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 Text(
                   '${(latest - target).abs().toStringAsFixed(1)} kg to go',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w600,
                     color: latest == target ? AppColors.green : AppColors.ink,
                     fontFeatures: [ui.FontFeature.tabularFigures()],
@@ -1133,7 +1134,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Text(
               DateFormat('EEEE, MMM d').format(DateTime.now()),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 color: AppColors.muted,
               ),
             ),
@@ -1190,7 +1191,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 child: Text(
                   'Save',
                   style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.5),
                 ),
@@ -1217,7 +1218,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   child: Text(
                     "Delete today's entry",
                     style: TextStyle(
-                        fontSize: 15,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -1264,7 +1265,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ? 'Custom goal set'
                   : 'Auto-calculated: $currentGoal kcal',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppType.body,
                 color: AppColors.muted,
               ),
             ),
@@ -1368,7 +1369,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 child: Text(
                   'Save',
                   style: TextStyle(
-                      fontSize: 17,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.5),
                 ),
@@ -1418,7 +1419,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   child: Text(
                     labels[i],
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w700,
                       color: active ? Colors.white : AppColors.muted,
                     ),
@@ -1470,7 +1471,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: AppType.bodyStrong,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
@@ -1572,7 +1573,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: AppType.bodyStrong,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
@@ -1672,7 +1673,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: AppType.bodyStrong,
                 fontWeight: hasRange ? FontWeight.w700 : FontWeight.w500,
                 color: hasRange ? AppColors.ink : AppColors.muted,
               ),
@@ -1794,7 +1795,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     child: Text(
                       '$cal',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: AppType.micro,
                         fontWeight: FontWeight.w600,
                         color: barColor,
                         fontFeatures: [ui.FontFeature.tabularFigures()],
@@ -2542,7 +2543,7 @@ class _BodyLogSheetState extends State<_BodyLogSheet> {
                   child: Text(
                     'Save',
                     style:
-                        TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                        TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),

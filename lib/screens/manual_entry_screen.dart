@@ -7,6 +7,7 @@ import '../services/openai_service.dart';
 import '../services/storage_service.dart';
 import '../services/sound_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class ManualEntryScreen extends StatefulWidget {
   final StorageService storage;
@@ -61,7 +62,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
             children: [
               Text('✅', style: TextStyle(fontSize: 32)),
               SizedBox(height: 10),
-              Text('Logged!', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+              Text('Logged!', style: TextStyle(fontSize: AppType.title, fontWeight: FontWeight.w800, color: AppColors.ink)),
               SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -364,7 +365,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                       'Add food manually',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: AppType.title,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                       ),
@@ -428,7 +429,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   // Merge onto the theme's title style so the family (Inter)
                   // survives — a bare TextStyle drops it.
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: 15,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w600,
                         color: AppColors.ink,
                       ),
@@ -515,7 +516,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
           if (favs.isNotEmpty) ...[
             Text('Favorites',
                 style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                     letterSpacing: 0.5)),
@@ -534,7 +535,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
           if (recent.isNotEmpty) ...[
             Text('Recently logged',
                 style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                     letterSpacing: 0.5)),
@@ -558,12 +559,12 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   SizedBox(height: 12),
                   Text(
                     'Search for a food to get started',
-                    style: TextStyle(fontSize: 15, color: AppColors.muted),
+                    style: TextStyle(fontSize: AppType.bodyStrong, color: AppColors.muted),
                   ),
                   SizedBox(height: 4),
                   Text(
                     'Type a food name above',
-                    style: TextStyle(fontSize: 13, color: AppColors.muted),
+                    style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
                   ),
                   SizedBox(height: 24),
                   GestureDetector(
@@ -581,7 +582,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                           SizedBox(width: 6),
                           Text(
                             'Enter food manually',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+                            style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600, color: AppColors.ink),
                           ),
                         ],
                       ),
@@ -717,7 +718,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
               children: [
                 Text('Detected foods',
                     style: TextStyle(
-                        fontSize: 15,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink)),
                 SizedBox(height: 12),
@@ -731,7 +732,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                               children: [
                                 Text(item.name,
                                     style: TextStyle(
-                                        fontSize: 15,
+                                        fontSize: AppType.bodyStrong,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.ink)),
                                 SizedBox(height: 3),
@@ -752,7 +753,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                           ),
                           Text('${item.calories} kcal',
                               style: TextStyle(
-                                  fontSize: 15,
+                                  fontSize: AppType.bodyStrong,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.ink)),
                         ],
@@ -770,12 +771,12 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                       Text('Total',
                           style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              fontSize: 15,
+                              fontSize: AppType.bodyStrong,
                               color: AppColors.ink)),
                       Text(
                         '${items.fold<int>(0, (s, i) => s + i.calories)} kcal',
                         style: TextStyle(
-                            fontSize: 17,
+                            fontSize: AppType.title,
                             fontWeight: FontWeight.w800,
                             color: AppColors.ink),
                       ),
@@ -897,7 +898,7 @@ class _FoodResultTile extends StatelessWidget {
                 children: [
                   Text(food.name,
                       style: TextStyle(
-                          fontSize: 15,
+                          fontSize: AppType.bodyStrong,
                           fontWeight: FontWeight.w600,
                           color: AppColors.ink)),
                   SizedBox(height: 3),
@@ -993,7 +994,7 @@ class _QuickFoodTile extends StatelessWidget {
                 children: [
                   Text(name,
                       style: TextStyle(
-                          fontSize: 15,
+                          fontSize: AppType.bodyStrong,
                           fontWeight: FontWeight.w600,
                           color: AppColors.ink)),
                   SizedBox(height: 3),
@@ -1149,7 +1150,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
           Center(
             child: Text('$cal kcal',
                 style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                    fontSize: AppType.headline, fontWeight: FontWeight.w800, color: AppColors.ink)),
           ),
           SizedBox(height: 16),
 
@@ -1167,7 +1168,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
               dropdownColor: AppColors.card,
               borderRadius: BorderRadius.circular(14),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w600,
                     color: AppColors.ink,
                   ),
@@ -1222,7 +1223,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: AppType.body,
             fontWeight: FontWeight.w600,
             color: selected ? Colors.white : AppColors.ink,
           ),
@@ -1347,7 +1348,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
           SizedBox(height: 12),
           Center(
             child: Text('$cal kcal',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                style: TextStyle(fontSize: AppType.headline, fontWeight: FontWeight.w800, color: AppColors.ink)),
           ),
           SizedBox(height: 16),
           SizedBox(
@@ -1380,7 +1381,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
         ),
         child: Text(label,
             style: TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600,
+                fontSize: AppType.body, fontWeight: FontWeight.w600,
                 color: selected ? Colors.white : AppColors.ink)),
       ),
     );
@@ -1396,7 +1397,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
         ),
         child: Column(
           children: [
-            Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: color)),
+            Text(value, style: TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700, color: color)),
             SizedBox(height: 2),
             Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: color.withValues(alpha: 0.7))),
           ],
@@ -1499,7 +1500,7 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
                 dropdownColor: AppColors.card,
                 borderRadius: BorderRadius.circular(14),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontSize: 15,
+                      fontSize: AppType.bodyStrong,
                       fontWeight: FontWeight.w600,
                       color: AppColors.ink,
                     ),
@@ -1553,12 +1554,12 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted)),
+        Text(label, style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600, color: AppColors.muted)),
         SizedBox(height: 6),
         TextField(
           controller: ctrl,
           keyboardType: keyboardType,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
+          style: TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w600, color: AppColors.ink),
           decoration: InputDecoration(
             hintText: hint,
             filled: true,

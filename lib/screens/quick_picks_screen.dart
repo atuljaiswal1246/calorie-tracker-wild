@@ -7,6 +7,7 @@ import '../services/quick_pick_service.dart';
 import '../services/storage_service.dart';
 import '../services/sound_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// One-tap logging of popular Indian dishes (Poha, Idli, Dal, Bhindi…).
 /// Every pick resolves to an exact DB entry, so macros are precise without
@@ -248,7 +249,7 @@ class _PickTile extends StatelessWidget {
               child: Text(
                 pick.label,
                 style: TextStyle(
-                    fontSize: 15,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w600,
                     color: AppColors.ink),
               ),
@@ -338,7 +339,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                             Text(
                               label,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: AppType.body,
                                 fontWeight: FontWeight.w700,
                                 color: _grams == g
                                     ? Colors.white

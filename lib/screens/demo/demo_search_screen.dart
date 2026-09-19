@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/food_search_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_tokens.dart';
 import 'demo_common.dart';
 
 /// Try-before-you-buy demo: search the real, offline Indian food database and
@@ -109,7 +110,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                         decoration: InputDecoration(
                           hintText: 'Try "paneer" or "dal"',
                           hintStyle: TextStyle(
-                              fontSize: 15, color: AppColors.faint),
+                              fontSize: AppType.bodyStrong, color: AppColors.faint),
                           border: InputBorder.none,
                           contentPadding:
                               const EdgeInsets.symmetric(vertical: 15),
@@ -212,14 +213,14 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                         const SizedBox(height: 2),
                         Text(f.nameHindi,
                             style: TextStyle(
-                                fontSize: 11.5, color: AppColors.muted)),
+                                fontSize: AppType.small, color: AppColors.muted)),
                       ],
                     ],
                   ),
                 ),
                 Text('${f.calories}',
                     style: TextStyle(
-                        fontSize: 15,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w800,
                         color: AppColors.ink)),
                 const SizedBox(width: 3),
@@ -270,7 +271,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                     letterSpacing: -0.4)),
             if (f.nameHindi.isNotEmpty)
               Text(f.nameHindi,
-                  style: TextStyle(fontSize: 13, color: AppColors.muted)),
+                  style: TextStyle(fontSize: AppType.body, color: AppColors.muted)),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -291,7 +292,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                       ),
                       Text('kcal',
                           style: TextStyle(
-                              fontSize: 10, color: AppColors.muted)),
+                              fontSize: AppType.micro, color: AppColors.muted)),
                     ],
                   ),
                 ),
@@ -349,11 +350,11 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(k, style: TextStyle(fontSize: 13, color: AppColors.muted)),
+          Text(k, style: TextStyle(fontSize: AppType.body, color: AppColors.muted)),
           const Spacer(),
           Text(v,
               style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink)),
         ],
