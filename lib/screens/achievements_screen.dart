@@ -85,7 +85,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   SizedBox(height: 4),
                   Text(
                     'badges unlocked',
-                    style: TextStyle(fontSize: 14, color: AppColors.muted),
+                    style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
                   ),
                   SizedBox(height: 16),
                   ClipRRect(
@@ -138,7 +138,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             Text(
               '$done/${items.length}',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppType.small,
                 fontWeight: FontWeight.w700,
                 color: AppColors.muted,
               ),
@@ -202,7 +202,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             achievement.title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 10.5,
+              fontSize: AppType.micro,
               fontWeight: FontWeight.w700,
               color: unlocked ? AppColors.ink : AppColors.muted.withValues(alpha: 0.5),
             ),
@@ -214,7 +214,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             achievement.description,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: AppType.micro,
               color: unlocked ? AppColors.muted : AppColors.muted.withValues(alpha: 0.4),
             ),
             maxLines: 2,

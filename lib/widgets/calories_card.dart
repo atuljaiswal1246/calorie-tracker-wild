@@ -68,7 +68,7 @@ class CaloriesCard extends StatelessWidget {
                         Text(
                           '/$goal',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: AppType.bodyStrong,
                             fontWeight: FontWeight.w600,
                             color: AppColors.muted,
                             fontFeatures: [FontFeature.tabularFigures()],

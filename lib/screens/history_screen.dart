@@ -60,7 +60,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: Text(
                       'History',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: AppType.title,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                       ),
@@ -92,7 +92,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           Text(
                             'No meals logged yet',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: AppType.bodyStrong,
                               color: AppColors.muted,
                               fontWeight: FontWeight.w500,
                             ),

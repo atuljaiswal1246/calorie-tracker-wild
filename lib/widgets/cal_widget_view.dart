@@ -122,7 +122,7 @@ class CalWidgetView extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 21,
+                      fontSize: AppType.headline,
                       height: 1.12,
                       fontWeight: FontWeight.w800,
                       color: _accent,
@@ -148,7 +148,7 @@ class CalWidgetView extends StatelessWidget {
                       child: Text(
                         pill!,
                         style: TextStyle(
-                          fontSize: 13.5,
+                          fontSize: AppType.body,
                           fontWeight: FontWeight.w800,
                           color: _onAccent,
                         ),
@@ -158,7 +158,7 @@ class CalWidgetView extends StatelessWidget {
                     Text(
                       'Nothing to log.',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppType.small,
                         fontWeight: FontWeight.w600,
                         color: _muted,
                       ),
@@ -194,7 +194,7 @@ class CalWidgetView extends StatelessWidget {
                   Text(
                     streakAtRisk ? 'at risk' : 'days',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: AppType.small,
                       fontWeight: FontWeight.w600,
                       color: streakAtRisk ? _red : _muted,
                     ),
@@ -204,7 +204,7 @@ class CalWidgetView extends StatelessWidget {
                     'Start your\nstreak',
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: AppType.small,
                       height: 1.25,
                       fontWeight: FontWeight.w700,
                       color: _muted,
@@ -213,7 +213,7 @@ class CalWidgetView extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   '$remaining left',
-                  style: TextStyle(fontSize: 11, color: _muted),
+                  style: TextStyle(fontSize: AppType.small, color: _muted),
                 ),
                 const SizedBox(height: 8),
                 Row(

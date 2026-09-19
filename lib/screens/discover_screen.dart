@@ -127,7 +127,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               Text(
                 'Friends',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: AppType.bodyStrong,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                   letterSpacing: -0.3,
@@ -142,7 +142,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 child: Text(
                   'Your code: ${svc.myCode?.substring(0, 8) ?? '—'}',
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w600,
                     color: AppColors.muted,
                   ),
@@ -172,7 +172,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               Expanded(
                 child: TextField(
                   controller: _friendCtrl,
-                  style: const TextStyle(fontSize: 14),
+                  style: const TextStyle(fontSize: AppType.body),
                   decoration: InputDecoration(
                     hintText: 'Friend\'s code',
                     hintStyle: TextStyle(
@@ -209,7 +209,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             Text(
               'This week (kcal logged)',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppType.small,
                 fontWeight: FontWeight.w700,
                 color: AppColors.muted,
               ),
@@ -225,7 +225,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 child: Row(
                   children: [
                     if (medal.isNotEmpty)
-                      Text(medal, style: const TextStyle(fontSize: 16))
+                      Text(medal, style: const TextStyle(fontSize: AppType.bodyStrong))
                     else
                       const SizedBox(width: 20),
                     const SizedBox(width: 8),
@@ -235,7 +235,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13.5,
+                          fontSize: AppType.body,
                           fontWeight: FontWeight.w600,
                           color: AppColors.ink,
                         ),
@@ -244,7 +244,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     Text(
                       '${row.kcal} kcal',
                       style: TextStyle(
-                        fontSize: 13.5,
+                        fontSize: AppType.body,
                         fontWeight: FontWeight.w700,
                         color: i == 0 ? AppColors.green : AppColors.muted,
                       ),
@@ -267,7 +267,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             const SizedBox(height: 10),
             Text(
               'No friends yet — add a code, or share yours!',
-              style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
             ),
           ],
           if (_boardLoading) ...[
@@ -345,7 +345,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       Text(
                         'Ask Asha',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: AppType.title,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                           letterSpacing: -0.4,
@@ -356,7 +356,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         'Your AI nutrition assistant. Knows your goal, '
                         'reads today\'s log, answers in seconds.',
                         style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: AppType.body,
                           color: Colors.white70,
                           height: 1.4,
                         ),
@@ -479,14 +479,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 Text(
                   '$value',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: AppType.title,
                     fontWeight: FontWeight.w800,
                     color: color,
                   ),
                 ),
                 Text(
                   label,
-                  style: TextStyle(fontSize: 11, color: AppColors.muted),
+                  style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
                 ),
               ],
             ),
@@ -548,7 +548,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 12, color: AppColors.muted),
+                      style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
                     ),
                   ],
                 ),

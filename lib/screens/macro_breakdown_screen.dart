@@ -123,7 +123,7 @@ class MacroBreakdownScreen extends StatelessWidget {
           '$_title Breakdown',
           style: TextStyle(
             color: AppColors.ink,
-            fontSize: 18,
+            fontSize: AppType.title,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -142,7 +142,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                   Text(
                     'No $_title logged yet',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: AppType.bodyStrong,
                       color: Colors.grey[500],
                       fontWeight: FontWeight.w500,
                     ),
@@ -292,7 +292,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: 14,
+                                          fontSize: AppType.body,
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.ink,
                                         ),
@@ -308,7 +308,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                                         child: Text(
                                           'x${g.count}',
                                           style: TextStyle(
-                                            fontSize: 11,
+                                            fontSize: AppType.small,
                                             fontWeight: FontWeight.w700,
                                             color: color,
                                           ),
@@ -348,7 +348,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                               Text(
                                 '${(pct * 100).toStringAsFixed(0)}%',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: AppType.small,
                                   color: Colors.grey[400],
                                 ),
                               ),
@@ -391,7 +391,7 @@ class MacroBreakdownScreen extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       child: Row(
         children: [
-          Text(emoji, style: TextStyle(fontSize: 16)),
+          Text(emoji, style: TextStyle(fontSize: AppType.bodyStrong)),
           SizedBox(width: 10),
           SizedBox(
             width: 86,
@@ -427,7 +427,7 @@ class MacroBreakdownScreen extends StatelessWidget {
                   : 'No data',
               textAlign: TextAlign.right,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppType.small,
                 fontWeight: FontWeight.w600,
                 color: hasData ? color : Colors.grey,
               ),
@@ -444,7 +444,7 @@ class MacroBreakdownScreen extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: AppType.title,
             fontWeight: FontWeight.w700,
             color: color,
           ),
@@ -453,7 +453,7 @@ class MacroBreakdownScreen extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: AppType.small,
             color: color.withOpacity(0.7),
           ),
         ),

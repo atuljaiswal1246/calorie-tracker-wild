@@ -211,7 +211,7 @@ SPEAK STYLE:
                       Text(
                         'Your nutrition assistant',
                         style: TextStyle(
-                            fontSize: 12, color: AppColors.muted),
+                            fontSize: AppType.small, color: AppColors.muted),
                       ),
                     ],
                   ),
@@ -235,7 +235,7 @@ SPEAK STYLE:
                             child: Text(
                               _error!,
                               style: TextStyle(
-                                  fontSize: 12, color: AppColors.missedRed),
+                                  fontSize: AppType.small, color: AppColors.missedRed),
                             ),
                           ),
                       ],
@@ -287,14 +287,14 @@ SPEAK STYLE:
                   Text(
                     'Wait, first this —',
                     style: TextStyle(
-                        fontSize: 12, color: AppColors.muted),
+                        fontSize: AppType.small, color: AppColors.muted),
                   ),
                   SizedBox(height: 6),
                   Text(
                     _currentPrompt,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                       height: 1.4,
@@ -330,7 +330,7 @@ SPEAK STYLE:
             label: Text(
               _hints[i],
               style: TextStyle(
-                  fontSize: 12, color: AppColors.ink),
+                  fontSize: AppType.small, color: AppColors.ink),
             ),
             backgroundColor: AppColors.card,
             side: BorderSide.none,
@@ -364,7 +364,7 @@ SPEAK STYLE:
         child: Text(
           m.text,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppType.body,
             height: 1.4,
             color: isUser ? Colors.white : AppColors.ink,
           ),

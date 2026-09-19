@@ -82,7 +82,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                 _dbSize == null
                     ? 'Search thousands of Indian foods — works offline.'
                     : '$_dbSize Indian foods · works offline, no account needed.',
-                style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
             ),
             Padding(
@@ -104,7 +104,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                         controller: _controller,
                         autofocus: true,
                         style: TextStyle(
-                            fontSize: 16,
+                            fontSize: AppType.bodyStrong,
                             fontWeight: FontWeight.w600,
                             color: AppColors.ink),
                         decoration: InputDecoration(
@@ -149,7 +149,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
         children: [
           Text('Popular searches',
               style: TextStyle(
-                  fontSize: 12.5,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w700,
                   color: AppColors.muted)),
           const SizedBox(height: 10),
@@ -169,7 +169,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                     ),
                     child: Text(s,
                         style: TextStyle(
-                            fontSize: 13.5,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w600,
                             color: AppColors.ink)),
                   ),
@@ -206,7 +206,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              fontSize: 14.5,
+                              fontSize: AppType.bodyStrong,
                               fontWeight: FontWeight.w700,
                               color: AppColors.ink)),
                       if (f.nameHindi.isNotEmpty) ...[
@@ -226,7 +226,7 @@ class _DemoSearchScreenState extends State<DemoSearchScreen> {
                 const SizedBox(width: 3),
                 Text('kcal',
                     style:
-                        TextStyle(fontSize: 10.5, color: AppColors.muted)),
+                        TextStyle(fontSize: AppType.micro, color: AppColors.muted)),
                 const SizedBox(width: 6),
                 Icon(Icons.chevron_right_rounded,
                     size: 20, color: AppColors.faint),

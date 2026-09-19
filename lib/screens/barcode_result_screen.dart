@@ -217,7 +217,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                   Text(
                     _r.name,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
@@ -227,7 +227,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                     Text(
                       _r.brand,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: AppType.body,
                         color: AppColors.muted,
                       ),
                     ),
@@ -242,7 +242,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                     child: Text(
                       _r.barcode,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppType.small,
                         fontFamily: 'monospace',
                         color: AppColors.muted,
                       ),
@@ -256,7 +256,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       Text(
                         'Amount',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: AppType.body,
                           fontWeight: FontWeight.w600,
                           color: AppColors.ink,
                         ),
@@ -265,7 +265,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                       Text(
                         '${_quantity.round()}g',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: AppType.bodyStrong,
                           fontWeight: FontWeight.w700,
                           color: AppColors.ink,
                         ),
@@ -306,7 +306,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                         child: Text(
                           'kcal',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w600,
                             color: AppColors.muted,
                           ),
@@ -423,7 +423,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: AppType.small,
                 fontWeight: FontWeight.w600,
                 color: color.withOpacity(0.7),
               ),
@@ -449,7 +449,7 @@ class _BarcodeResultScreenState extends State<BarcodeResultScreen> {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 autofocus: true,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: AppType.title, fontWeight: FontWeight.w700),
                 decoration: InputDecoration(
                   suffixText: 'g',
                   border: OutlineInputBorder(),

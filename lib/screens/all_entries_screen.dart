@@ -142,7 +142,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                     child: Text(
                       'All Meals',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: AppType.title,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                       ),
@@ -188,7 +188,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
                           Text(
                             'No meals logged $periodLabel',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: AppType.bodyStrong,
                               color: AppColors.muted,
                               fontWeight: FontWeight.w500,
                             ),
@@ -306,7 +306,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               if (isCurrentWeek)
                 Text(
                   'This week',
-                  style: TextStyle(fontSize: 11, color: AppColors.muted, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: AppType.small, color: AppColors.muted, fontWeight: FontWeight.w500),
                 ),
             ],
           ),
@@ -369,7 +369,7 @@ class _AllEntriesScreenState extends State<AllEntriesScreen> {
               if (isCurrentMonth)
                 Text(
                   'This month',
-                  style: TextStyle(fontSize: 11, color: AppColors.muted, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: AppType.small, color: AppColors.muted, fontWeight: FontWeight.w500),
                 ),
             ],
           ),

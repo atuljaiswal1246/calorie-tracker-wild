@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// A full-screen celebration for big reward moments (level-up, streak
 /// milestone). Tap anywhere or wait ~2.4s to dismiss.
@@ -152,7 +153,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
             Text(
               widget.subtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
             ),
           ],
         ),

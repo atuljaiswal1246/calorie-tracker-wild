@@ -19,7 +19,7 @@ class DemoBadge extends StatelessWidget {
       child: const Text(
         'DEMO',
         style: TextStyle(
-          fontSize: 10.5,
+          fontSize: AppType.micro,
           fontWeight: FontWeight.w800,
           letterSpacing: 1,
           color: AppColors.carbs,
@@ -98,7 +98,7 @@ class DemoCta extends StatelessWidget {
                 Text(
                   label,
                   style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: AppType.bodyStrong,
                       fontWeight: FontWeight.w700,
                       color: Colors.white),
                 ),
@@ -164,7 +164,7 @@ class MacroBar extends StatelessWidget {
           SizedBox(
             width: 62,
             child: Text(label,
-                style: TextStyle(fontSize: 12, color: AppColors.muted)),
+                style: TextStyle(fontSize: AppType.small, color: AppColors.muted)),
           ),
           Expanded(
             child: ClipRRect(
@@ -189,7 +189,7 @@ class MacroBar extends StatelessWidget {
               value,
               textAlign: TextAlign.right,
               style: TextStyle(
-                fontSize: 12.5,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
               ),

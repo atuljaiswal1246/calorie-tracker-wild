@@ -219,7 +219,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                 SizedBox(height: 2),
                 Text(
                   '${c.current} / ${c.target}',
-                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                  style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
                 ),
                 SizedBox(height: 8),
                 ClipRRect(

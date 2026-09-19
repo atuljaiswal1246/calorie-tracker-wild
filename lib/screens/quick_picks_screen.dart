@@ -183,7 +183,7 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
                           child: Text(
                             'No dishes match "$_query"',
                             style: TextStyle(
-                                fontSize: 14, color: AppColors.muted),
+                                fontSize: AppType.body, color: AppColors.muted),
                           ),
                         )
                       : ListView(
@@ -194,7 +194,7 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
                             Text(
                               'Tap a dish, pick your portion, log it — no AI needed.',
                               style: TextStyle(
-                                  fontSize: 12, color: AppColors.muted, height: 1.4),
+                                  fontSize: AppType.small, color: AppColors.muted, height: 1.4),
                             ),
                             SizedBox(height: 10),
                             ..._filtered.map((p) => _PickTile(
@@ -311,7 +311,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
             SizedBox(height: 4),
             Text(
               'Per 100 g: ${food.calories} kcal · ${food.protein.toStringAsFixed(1)}g P · ${food.carbs.toStringAsFixed(1)}g C · ${food.fat.toStringAsFixed(1)}g F',
-              style: TextStyle(fontSize: 12, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
             ),
             SizedBox(height: 16),
             // Portion presets
@@ -350,7 +350,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                             Text(
                               '${g.toStringAsFixed(0)} g',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: AppType.small,
                                 color: _grams == g
                                     ? Colors.white70
                                     : AppColors.muted,
@@ -409,7 +409,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
                 child: Text(
                   'Log — $_calories kcal',
                   style: TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 16),
+                      fontWeight: FontWeight.w700, fontSize: AppType.bodyStrong),
                 ),
               ),
             ),
@@ -436,7 +436,7 @@ class _PickConfirmSheetState extends State<_PickConfirmSheet> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: AppType.body,
               fontWeight: FontWeight.w600,
               color: selected ? Colors.white : AppColors.ink,
             ),

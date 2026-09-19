@@ -78,7 +78,7 @@ class NutritionTipsScreen extends StatelessWidget {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 18,
+        fontSize: AppType.title,
         fontWeight: FontWeight.w700,
         color: AppColors.ink,
         letterSpacing: -0.3,

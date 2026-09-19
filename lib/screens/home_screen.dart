@@ -402,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Icon(Icons.photo_camera, size: 28, color: AppColors.ink),
                             SizedBox(height: 8),
-                            Text('Camera', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                            Text('Camera', style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600, color: AppColors.ink)),
                           ],
                         ),
                       ),
@@ -423,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Icon(Icons.photo_library, size: 28, color: AppColors.ink),
                             SizedBox(height: 8),
-                            Text('Gallery', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                            Text('Gallery', style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600, color: AppColors.ink)),
                           ],
                         ),
                       ),
@@ -629,7 +629,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => _billing?.restore(),
             child: Text(
               'Restore purchase',
-              style: TextStyle(fontSize: 14, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
             ),
           ),
         ],
@@ -753,7 +753,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Text.rich(
       TextSpan(
         style: TextStyle(
-          fontSize: 16,
+          fontSize: AppType.bodyStrong,
           fontWeight: FontWeight.w600,
           color: AppColors.muted,
           letterSpacing: -0.3,
@@ -946,7 +946,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'View all',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w700,
                     color: AppColors.accent,
                   ),
@@ -959,7 +959,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   '🌱 Level ${gami.level} · ${gami.levelTitle}',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.muted,
                   ),
@@ -968,7 +968,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   '+${gami.todayPoints} pts today',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w700,
                     color: AppColors.green,
                   ),
@@ -1038,7 +1038,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             '+${q.calPoints}',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: AppType.small,
               fontWeight: FontWeight.w700,
               color: AppColors.muted,
             ),
@@ -1148,7 +1148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Text(
                                   '${day.day}',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: AppType.small,
                                     fontWeight: weight,
                                     color: textColor,
                                   ),
@@ -1211,7 +1211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(height: 3),
                   Text(
                     'Snap a photo — we estimate the calories and macros.',
-                    style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+                    style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
                   ),
                 ],
               ),
@@ -1283,7 +1283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: AppType.small,
                       color: Colors.white.withValues(alpha: 0.85),
                     ),
                   ),
@@ -1331,7 +1331,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Today',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppType.small,
                 fontWeight: FontWeight.w700,
                 color: AppColors.muted,
               ),
@@ -1383,7 +1383,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Center(
               child: Text(
                 'of $goal kcal',
-                style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
             ),
             SizedBox(height: 12),
@@ -1465,7 +1465,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 9.5,
+                  fontSize: AppType.micro,
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),
@@ -1477,7 +1477,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: AppType.small,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
@@ -1517,7 +1517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                   ),
@@ -1528,7 +1528,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               value,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
                 fontFeatures: [FontFeature.tabularFigures()],
@@ -1537,7 +1537,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 2),
             Text(
               sub,
-              style: TextStyle(fontSize: 10.5, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.micro, color: AppColors.muted),
             ),
           ],
         ),
@@ -1566,7 +1566,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'Steps',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                   ),
@@ -1582,7 +1582,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'Track',
                       style: TextStyle(
-                        fontSize: 9.5,
+                        fontSize: AppType.micro,
                         fontWeight: FontWeight.w700,
                         color: AppColors.green,
                       ),
@@ -1594,7 +1594,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               '${_stepsToday} / 8000',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
                 fontFeatures: [FontFeature.tabularFigures()],
@@ -1603,7 +1603,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 2),
             Text(
               'steps today',
-              style: TextStyle(fontSize: 10.5, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.micro, color: AppColors.muted),
             ),
             SizedBox(height: 8),
             Row(
@@ -1622,7 +1622,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text(
                         '+ Add',
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: AppType.micro,
                           fontWeight: FontWeight.w600,
                           color: AppColors.ink,
                         ),
@@ -1642,7 +1642,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       '🏃 + Exercise',
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: AppType.micro,
                         fontWeight: FontWeight.w600,
                         color: AppColors.ink,
                       ),
@@ -1678,7 +1678,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'Water',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w700,
                     color: AppColors.muted,
                   ),
@@ -1689,7 +1689,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               '${(_waterMl / 1000).toStringAsFixed(1)} / ${(_waterGoalMl / 1000).toStringAsFixed(1)} L',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
                 fontFeatures: [FontFeature.tabularFigures()],
@@ -1698,7 +1698,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 2),
             Text(
               'tap to add glass',
-              style: TextStyle(fontSize: 10.5, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.micro, color: AppColors.muted),
             ),
           ],
         ),
@@ -1838,7 +1838,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   'Add manually',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.muted,
                   ),
@@ -1851,7 +1851,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   'Barcode scan',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.muted,
                   ),
@@ -1863,7 +1863,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 12),
             Text(
               'One-tap from your usuals:',
-              style: TextStyle(fontSize: 11, color: AppColors.muted),
+              style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
             ),
             SizedBox(height: 8),
             Wrap(
@@ -1931,7 +1931,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: AppType.small,
                 fontWeight: FontWeight.w700,
                 color: primary
                     ? (AppColors.dark
@@ -2007,7 +2007,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         '${latestWaist != null ? ' · waist ${latestWaist.toStringAsFixed(1)}cm' : ''} — your story'
                     : 'Start tracking your body story',
                 style: TextStyle(
-                  fontSize: 12.5,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w600,
                   color: AppColors.ink,
                 ),
@@ -2062,7 +2062,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text(
                 line != null ? '"$line…"' : 'Your week in review — read it',
                 style: TextStyle(
-                  fontSize: 12.5,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w600,
                   color: AppColors.ink,
                   height: 1.35,
@@ -2088,7 +2088,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Recently uploaded',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
                 letterSpacing: -0.3,
@@ -2191,7 +2191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppType.small,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
@@ -2199,7 +2199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       '$kcal kcal',
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: AppType.micro,
                         color: Colors.white70,
                       ),
                     ),
@@ -2431,7 +2431,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _signedInEmail!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: AppColors.muted),
+                      style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
                     ),
                   ],
                 ],
@@ -2536,7 +2536,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           bmiLabel,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w600,
                             color: bmiColor,
                           ),
@@ -2595,7 +2595,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           '${e.weightKg.round()} kg',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: AppType.body,
                             fontWeight: FontWeight.w600,
                             color: AppColors.ink,
                           ),
@@ -2605,7 +2605,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(1)}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: AppType.small,
                               fontWeight: FontWeight.w600,
                               color: diff < 0 ? AppColors.green : AppColors.missedRed,
                             ),
@@ -2740,14 +2740,14 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 14, color: AppColors.muted)),
+          Text(label, style: TextStyle(fontSize: AppType.body, color: AppColors.muted)),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
@@ -2865,7 +2865,7 @@ class _MiniWeightChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (entries.length < 2) {
       return Center(
-        child: Text('Need 2+ entries for a trend', style: TextStyle(fontSize: 12, color: AppColors.muted)),
+        child: Text('Need 2+ entries for a trend', style: TextStyle(fontSize: AppType.small, color: AppColors.muted)),
       );
     }
 
@@ -2998,7 +2998,7 @@ class _AshaTickerState extends State<_AshaTicker> {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 12.5,
+          fontSize: AppType.body,
           color: Colors.white.withValues(alpha: 0.9),
           height: 1.3,
         ),
@@ -3072,13 +3072,13 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                         ),
                         child: Row(
                           children: [
-                            Text(a.emoji, style: TextStyle(fontSize: 18)),
+                            Text(a.emoji, style: TextStyle(fontSize: AppType.title)),
                             SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 a.name,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: AppType.body,
                                   fontWeight: FontWeight.w600,
                                   color: active ? Colors.white : AppColors.ink,
                                 ),
@@ -3138,7 +3138,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                     child: Text(
                       '≈ $_kcal kcal burned',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: AppType.body,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                       ),

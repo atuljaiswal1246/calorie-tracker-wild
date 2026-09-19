@@ -50,7 +50,7 @@ class _DemoWaterScreenState extends State<DemoWaterScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Tap a droplet — your glass fills instantly.',
-                  style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+                  style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
                 ),
               ),
             ),
@@ -74,7 +74,7 @@ class _DemoWaterScreenState extends State<DemoWaterScreen> {
                   const SizedBox(height: 2),
                   Text('$_glasses of $_goal glasses · goal 2,000 ml',
                       style:
-                          TextStyle(fontSize: 12.5, color: AppColors.muted)),
+                          TextStyle(fontSize: AppType.body, color: AppColors.muted)),
                   const SizedBox(height: 18),
                   // Droplet row
                   Padding(
@@ -129,7 +129,7 @@ class _DemoWaterScreenState extends State<DemoWaterScreen> {
                           const SizedBox(width: 6),
                           Text('Goal reached — nicely done!',
                               style: TextStyle(
-                                  fontSize: 12.5,
+                                  fontSize: AppType.body,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.green)),
                         ],
