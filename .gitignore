@@ -71,3 +71,6 @@ cloudflare_worker/.wrangler/
 # Agent worktrees and harness logs (in-repo so nothing is scattered outside)
 .worktrees/
 .agent-logs/
+
+# Generated golden-test failure dumps
+test/failures/

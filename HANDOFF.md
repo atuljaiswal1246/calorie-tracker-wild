@@ -154,9 +154,9 @@ device test is the next real gate. See `§2b` and the Desktop review folder.
 | 1 | Update the **Play Console listing text** to match `PLAY_STORE_LISTING.md` (drop the Groups line, fix the "data stays on your device" claim) | **user** | The repo doc is fixed; the Console copy is a separate edit nobody has done yet |
 | 2 | Watch the **Data safety review** result (Publishing overview / Inbox) | user | Submitted 2026-09-15 |
 | 3 | Finish closed testing (day 14), request **production access**, then move to open testing | user | Google decides; keep testers opted in |
-| 4 | Cut the next release **0.9.6+10** | assistant | **AAB built + signed** at `~/Desktop/CalMatters-0.9.6+10.aab` (75.6 MB) and installed on the iPhone. Remaining: the user's own walkthrough on a device, then upload to Play (Play needs the **AAB**, not the profile APK) |
-| 5 | Back up `android/app/release-key.jks` somewhere safe (password manager / encrypted drive) | **user** | It is gitignored, so it is NOT on GitHub. Losing it means no more updates to the same Play listing |
-| 6 | `git push` the unpushed commits to `github.com/atuljaiswal1246/calmatters-app` | assistant (on request) | Local `main` is now ~25 commits ahead of `origin/main` |
+| 4 | ~~Cut the next release~~ — **DONE 2026-09-17: 0.9.6 (11) is LIVE on closed testing** | assistant | Uploaded through the Play API (`tools/publish.py`); verified as `alpha versionCodes=['11'] status=completed`. Play refused the first attempt: the build carried Firebase's transitive `AD_ID` permission against a declaration saying the app has no advertising ID — the permission is now stripped. Release notes are capped at 500 chars |
+| 5 | ~~Back up `android/app/release-key.jks` somewhere safe~~ — **DONE, confirmed by the user 2026-09-17** | user | It is gitignored, so it is NOT on GitHub. Losing it means no more updates to the same Play listing |
+| 6 | ~~`git push`~~ — **done, `main` is in sync** | assistant | Every commit from this session is pushed |
 | 7 | After launch: Hindi/localisation, DPDP compliance (Nov 2026), iOS ($99 program → Apple sign-in → StoreKit with the same product IDs), friends public-aggregate design, performance profiling, prefs O(n) write tidy-up | both | See `AUDIT_REPORT.md` §7–8 for the full gap list |
 | 8 | Decide the **macro-split basis** (weight vs calories) — see §2b | **user** | One-line change; needs a product call |
 
