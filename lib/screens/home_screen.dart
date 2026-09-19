@@ -264,12 +264,12 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.camera_alt, color: AppColors.ink),
+              leading: Icon(Symbols.camera_alt_rounded, color: AppColors.ink),
               title: const Text('Take a photo'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
-              leading: Icon(Icons.photo_library, color: AppColors.ink),
+              leading: Icon(Symbols.photo_library_rounded, color: AppColors.ink),
               title: Text('Choose from gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
@@ -400,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Column(
                           children: [
-                            Icon(Icons.photo_camera, size: 28, color: AppColors.ink),
+                            Icon(Symbols.photo_camera_rounded, size: 28, color: AppColors.ink),
                             SizedBox(height: 8),
                             Text('Camera', style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600, color: AppColors.ink)),
                           ],
@@ -421,7 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Column(
                           children: [
-                            Icon(Icons.photo_library, size: 28, color: AppColors.ink),
+                            Icon(Symbols.photo_library_rounded, size: 28, color: AppColors.ink),
                             SizedBox(height: 8),
                             Text('Gallery', style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600, color: AppColors.ink)),
                           ],
@@ -591,13 +591,13 @@ class _HomeScreenState extends State<HomeScreen> {
             'Your free trial has ended',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 26,
+              fontSize: AppType.hero,
               fontWeight: FontWeight.w800,
               color: AppColors.ink,
               letterSpacing: -0.5,
             ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height: AppSpace.md),
           Text(
             'Unlock unlimited food analysis and all features with a subscription.',
             textAlign: TextAlign.center,
@@ -664,8 +664,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.wifi_off_rounded, size: 18, color: AppColors.accentOrange),
-                  SizedBox(width: 10),
+                  Icon(Symbols.wifi_off_rounded, size: 18, color: AppColors.accentOrange),
+                  SizedBox(width: AppSpace.md),
                   Expanded(
                     child: Text(
                       'You\'re offline. AI features unavailable.',
@@ -680,7 +680,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
-          SizedBox(height: 22),
+          SizedBox(height: AppSpace.xl),
           // Asha — concierge (adaptive by time of day, tap = chat).
           // Parked behind Features.asha while the core loop is perfected.
           if (Features.asha) ...[
@@ -693,7 +693,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(flex: 5, child: _dayHeroTile(profile)),
-              SizedBox(width: 10),
+              SizedBox(width: AppSpace.md),
               Expanded(
                 flex: 4,
                 child: Column(
@@ -717,24 +717,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: AppSpace.md),
                     _stepsTile(),
-                    SizedBox(height: 10),
+                    SizedBox(height: AppSpace.md),
                     _waterTile(),
                   ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 22),
+          SizedBox(height: AppSpace.xl),
           _questCard(),
-          SizedBox(height: 22),
+          SizedBox(height: AppSpace.xl),
           _whatsCooking(),
-          SizedBox(height: 22),
+          SizedBox(height: AppSpace.xl),
           _bodyStrip(),
-          SizedBox(height: 14),
+          SizedBox(height: AppSpace.lg),
           _weeklyTeaser(),
-          SizedBox(height: 22),
+          SizedBox(height: AppSpace.xl),
           _recentSection(),
         ],
       ),
@@ -795,9 +795,9 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(child: _greeting(profile)),
         SizedBox(width: 8),
         _insightsPill(),
-        SizedBox(width: 6),
+        SizedBox(width: AppSpace.sm),
         _achievementsPill(),
-        SizedBox(width: 6),
+        SizedBox(width: AppSpace.sm),
         _streakPill(),
       ],
     );
@@ -821,7 +821,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(AppRadius.card),
           boxShadow: AppColors.cardShadow,
         ),
-        child: Icon(Icons.insights_rounded, size: 17, color: AppColors.ink),
+        child: Icon(Symbols.insights_rounded, size: 17, color: AppColors.ink),
       ),
     );
   }
@@ -942,7 +942,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: AppColors.muted,
                   ),
                 ),
-                SizedBox(width: 6),
+                SizedBox(width: AppSpace.sm),
                 Text(
                   'View all',
                   style: TextStyle(
@@ -953,7 +953,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 6),
+            SizedBox(height: AppSpace.sm),
             Row(
               children: [
                 Text(
@@ -999,12 +999,12 @@ class _HomeScreenState extends State<HomeScreen> {
               color: q.completed ? AppColors.green : AppColors.cardAlt,
             ),
             child: Icon(
-              q.completed ? Icons.check_rounded : Icons.circle_outlined,
+              q.completed ? Symbols.check_rounded : Symbols.circle_rounded,
               size: 14,
               color: q.completed ? Colors.white : AppColors.faint,
             ),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: AppSpace.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1034,7 +1034,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: AppSpace.md),
           Text(
             '+${q.calPoints}',
             style: TextStyle(
@@ -1192,10 +1192,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.cardAlt,
                 borderRadius: BorderRadius.circular(AppRadius.card),
               ),
-              child: Icon(Icons.camera_alt_rounded,
+              child: Icon(Symbols.camera_alt_rounded,
                   size: 22, color: AppColors.ink),
             ),
-            SizedBox(width: 14),
+            SizedBox(width: AppSpace.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1216,7 +1216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: AppColors.muted),
+            Icon(Symbols.chevron_right_rounded, color: AppColors.muted),
           ],
         ),
       ),
@@ -1262,7 +1262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
-              child: Icon(Icons.auto_awesome, size: 21, color: Colors.white),
+              child: Icon(Symbols.auto_awesome_rounded, size: 21, color: Colors.white),
             ),
             SizedBox(width: 12),
             Expanded(
@@ -1292,7 +1292,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+            Icon(Symbols.chevron_right_rounded, color: Colors.white70, size: 20),
           ],
         ),
       ),
@@ -1336,7 +1336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.muted,
               ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: AppSpace.md),
             // The ring carries the calorie total (the app's own language — the
             // plan screen does the same). The old side-by-side number wrapped
             // onto two lines on every phone ("10" / "86").
@@ -1363,7 +1363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             '$logged',
                             style: TextStyle(
-                              fontSize: 30,
+                              fontSize: AppType.hero,
                               fontWeight: FontWeight.w800,
                               color: AppColors.ink,
                               letterSpacing: -1,
@@ -1395,7 +1395,7 @@ class _HomeScreenState extends State<HomeScreen> {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: AppSpace.md),
             Row(
               children: [
                 _macroPill(
@@ -1406,7 +1406,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
                       _sugarTarget.toDouble(), AppColors.sugar),
                 ),
-                SizedBox(width: 6),
+                SizedBox(width: AppSpace.sm),
                 _macroPill(
                   'Sodium',
                   '${_sodiumKcal().round()}mg',
@@ -1414,7 +1414,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   () => _openMacro(MacroType.sodium, _sodiumKcal(),
                       _sodiumTarget.toDouble(), AppColors.sodium),
                 ),
-                SizedBox(width: 6),
+                SizedBox(width: AppSpace.sm),
                 _macroPill(
                   'Burn',
                   '${_activity.todayExercises().fold(0, (s, e) => s + e.calories)} kcal',
@@ -1513,7 +1513,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 Icon(icon, size: 15, color: iconColor),
-                SizedBox(width: 6),
+                SizedBox(width: AppSpace.sm),
                 Text(
                   label,
                   style: TextStyle(
@@ -1561,8 +1561,8 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.directions_walk, size: 15, color: AppColors.green),
-                SizedBox(width: 6),
+                Icon(Symbols.directions_walk_rounded, size: 15, color: AppColors.green),
+                SizedBox(width: AppSpace.sm),
                 Text(
                   'Steps',
                   style: TextStyle(
@@ -1629,7 +1629,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                SizedBox(width: 6),
+                SizedBox(width: AppSpace.sm),
                 InkWell(
                   onTap: () => _addExerciseSheet(),
                   borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -1673,8 +1673,8 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.water_drop, size: 15, color: AppColors.water),
-                SizedBox(width: 6),
+                Icon(Symbols.water_drop_rounded, size: 15, color: AppColors.water),
+                SizedBox(width: AppSpace.sm),
                 Text(
                   'Water',
                   style: TextStyle(
@@ -1829,7 +1829,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          SizedBox(height: 10),
+          SizedBox(height: AppSpace.md),
           Row(
             children: [
               InkWell(
@@ -2013,7 +2013,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
+            Icon(Symbols.chevron_right_rounded, size: 18, color: AppColors.muted),
           ],
         ),
       ),
@@ -2069,7 +2069,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
+            Icon(Symbols.chevron_right_rounded, size: 18, color: AppColors.muted),
           ],
         ),
       ),
@@ -2345,7 +2345,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           'Profile',
           style: TextStyle(
-            fontSize: 26,
+            fontSize: AppType.hero,
             fontWeight: FontWeight.w800,
             color: AppColors.ink,
             letterSpacing: -0.5,
@@ -2389,7 +2389,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
               ),
             ),
-            SizedBox(width: 14),
+            SizedBox(width: AppSpace.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2402,7 +2402,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 19,
+                            fontSize: AppType.title,
                             fontWeight: FontWeight.w800,
                             color: AppColors.ink,
                           ),
@@ -2415,7 +2415,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           padding: EdgeInsets.all(10),
                           constraints: BoxConstraints(minWidth: 44, minHeight: 44),
-                          child: Icon(Icons.edit, size: 14, color: AppColors.ink),
+                          child: Icon(Symbols.edit_rounded, size: 14, color: AppColors.ink),
                         ),
                       ),
                     ],
@@ -2480,7 +2480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Daily calories',
                 '${profile.calorieGoal} kcal',
                 onTap: () => _showCalorieGoalEdit(profile),
-                trailing: Icons.edit,
+                trailing: Symbols.edit_rounded,
               ),
             ],
           ),
@@ -2506,9 +2506,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: bmiColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.card),
                 ),
-                child: Icon(Icons.monitor_weight_outlined, size: 24, color: bmiColor),
+                child: Icon(Symbols.monitor_weight_rounded, size: 24, color: bmiColor),
               ),
-              SizedBox(width: 14),
+              SizedBox(width: AppSpace.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2562,7 +2562,7 @@ class _HomeScreenState extends State<HomeScreen> {
               letterSpacing: -0.3,
             ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height: AppSpace.md),
           Container(
             padding: EdgeInsets.all(AppSpace.lg),
             decoration: BoxDecoration(
@@ -2577,7 +2577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 60,
                   child: _MiniWeightChart(entries: recentWeights),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: AppSpace.md),
                 // Latest entries
                 ...recentWeights.reversed.take(5).map((e) {
                   final idx = recentWeights.indexOf(e);
@@ -2662,7 +2662,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: AppColors.ink.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
-                  child: Icon(Icons.settings_outlined,
+                  child: Icon(Symbols.settings_rounded,
                       size: 20, color: AppColors.ink),
                 ),
                 SizedBox(width: 12),
@@ -2676,7 +2676,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                Icon(Icons.chevron_right,
+                Icon(Symbols.chevron_right_rounded,
                     size: 20, color: AppColors.muted),
               ],
             ),
@@ -2694,13 +2694,13 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         title: Text(
           'Edit calorie goal',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: AppType.headline, fontWeight: FontWeight.w700),
         ),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: TextInputType.number,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: AppType.headline, fontWeight: FontWeight.w700),
           decoration: InputDecoration(
             suffixText: 'kcal/day',
             hintText: '1500',
@@ -2753,7 +2753,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               if (trailing != null) ...[
-                SizedBox(width: 6),
+                SizedBox(width: AppSpace.sm),
                 Icon(trailing, size: 13, color: AppColors.muted),
               ],
             ],
@@ -2777,14 +2777,14 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         title: Text(
           'Edit name',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: AppType.headline, fontWeight: FontWeight.w700),
         ),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLength: 40,
           textCapitalization: TextCapitalization.words,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: AppType.headline, fontWeight: FontWeight.w700),
           decoration: InputDecoration(
             hintText: 'Your name',
             counterText: '',
@@ -3046,18 +3046,18 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
               Text(
                 'Log exercise',
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                   letterSpacing: -0.4,
                 ),
               ),
-              SizedBox(height: 14),
+              SizedBox(height: AppSpace.lg),
               SizedBox(
                 height: 230,
                 child: ListView.separated(
                   itemCount: ActivityService.activities.length,
-                  separatorBuilder: (_, __) => SizedBox(height: 6),
+                  separatorBuilder: (_, __) => SizedBox(height: AppSpace.sm),
                   itemBuilder: (context, i) {
                     final a = ActivityService.activities[i];
                     final active = a.name == _selected;
@@ -3073,7 +3073,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                         child: Row(
                           children: [
                             Text(a.emoji, style: TextStyle(fontSize: AppType.title)),
-                            SizedBox(width: 10),
+                            SizedBox(width: AppSpace.md),
                             Expanded(
                               child: Text(
                                 a.name,
@@ -3085,7 +3085,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                               ),
                             ),
                             if (active)
-                              Icon(Icons.check,
+                              Icon(Symbols.check_rounded,
                                   size: 18, color: Colors.white),
                           ],
                         ),
@@ -3094,7 +3094,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                   },
                 ),
               ),
-              SizedBox(height: 14),
+              SizedBox(height: AppSpace.lg),
               Text(
                 'Duration',
                 style: TextStyle(
@@ -3131,7 +3131,7 @@ class _ExerciseSheetState extends State<_ExerciseSheet> {
                   );
                 }).toList(),
               ),
-              SizedBox(height: 18),
+              SizedBox(height: AppSpace.lg),
               Row(
                 children: [
                   Expanded(
