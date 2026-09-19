@@ -125,7 +125,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
           SizedBox(height: 2),
           Text(
             'Tier ${tier.index} of ${LeagueService.tiers.length} · ${_countdown()}',
-            style: TextStyle(fontSize: 12, color: AppColors.muted),
+            style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
           ),
           SizedBox(height: 12),
           Row(
@@ -226,7 +226,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
               child: Text(
                 '${r.position}',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w800,
                   color: zoneColor ?? AppColors.muted,
                 ),
@@ -237,7 +237,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
               child: Text(
                 r.name,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppType.body,
                   fontWeight: r.isYou ? FontWeight.w800 : FontWeight.w600,
                   color: AppColors.ink,
                 ),

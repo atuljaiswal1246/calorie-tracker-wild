@@ -118,7 +118,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: AppType.title,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
                   ),
@@ -127,7 +127,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   'Earned from quests, streaks and leagues',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                  style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
                 ),
               ],
             ),
@@ -138,7 +138,7 @@ class _ShopScreenState extends State<ShopScreen> {
           SizedBox(width: 4),
           Text('${gami.freezes}',
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppType.body,
                   fontWeight: FontWeight.w700,
                   color: AppColors.muted)),
         ],
@@ -207,7 +207,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 Text(
                   item.name,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
                   ),
@@ -215,7 +215,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 SizedBox(height: 2),
                 Text(
                   item.description,
-                  style: TextStyle(fontSize: 11, color: AppColors.muted),
+                  style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
                 ),
               ],
             ),
@@ -225,7 +225,7 @@ class _ShopScreenState extends State<ShopScreen> {
             (_shop?.isEquipped(item) ?? false)
                 ? Text('Equipped',
                     style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppType.small,
                         fontWeight: FontWeight.w800,
                         color: AppColors.green))
                 : TextButton(
@@ -239,7 +239,7 @@ class _ShopScreenState extends State<ShopScreen> {
                     ),
                     child: Text('Use',
                         style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w700)),
+                            fontSize: AppType.small, fontWeight: FontWeight.w700)),
                   )
           else
             TextButton(
@@ -262,7 +262,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   SizedBox(width: 4),
                   Text('${item.cost}',
                       style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w700)),
+                          fontSize: AppType.small, fontWeight: FontWeight.w700)),
                 ],
               ),
             ),

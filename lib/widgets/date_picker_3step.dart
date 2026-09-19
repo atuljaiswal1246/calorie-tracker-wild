@@ -142,7 +142,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
                   ),
                   Text('${_step + 1}/3',
                       style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppType.small,
                           fontWeight: FontWeight.w700,
                           color: AppColors.muted)),
                 ],
@@ -267,7 +267,7 @@ class _Date3StepSheetState extends State<_Date3StepSheet> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppType.body,
             fontWeight: FontWeight.w700,
             color: selected ? Colors.white : AppColors.ink,
           ),

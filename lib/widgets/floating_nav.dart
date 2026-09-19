@@ -193,7 +193,7 @@ class _NavAvatar extends StatelessWidget {
                   : Text(
                       initials,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppType.small,
                         fontWeight: FontWeight.w800,
                         color: AppColors.ink,
                       ),

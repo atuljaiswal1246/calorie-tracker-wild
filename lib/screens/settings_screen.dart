@@ -378,7 +378,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Text(
                       'Cal Matters v0.9.6',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppType.small,
                         color: AppColors.muted.withValues(alpha: 0.6),
                       ),
                     ),
@@ -392,7 +392,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       'your diet.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppType.small,
                         height: 1.4,
                         color: AppColors.muted.withValues(alpha: 0.6),
                       ),
@@ -472,7 +472,7 @@ class _SwitchRow extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12.5,
+                      fontSize: AppType.body,
                       color: AppColors.muted,
                     ),
                   ),
@@ -537,7 +537,7 @@ class _TapRow extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: AppType.body,
                         color: AppColors.muted,
                       ),
                     ),

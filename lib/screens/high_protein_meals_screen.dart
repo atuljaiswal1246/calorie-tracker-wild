@@ -70,7 +70,7 @@ class HighProteinMealsScreen extends StatelessWidget {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 18,
+        fontSize: AppType.title,
         fontWeight: FontWeight.w700,
         color: AppColors.ink,
         letterSpacing: -0.3,
@@ -124,7 +124,7 @@ class HighProteinMealsScreen extends StatelessWidget {
           SizedBox(height: 6),
           Text(
             meal.description,
-            style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.4),
+            style: TextStyle(fontSize: AppType.small, color: AppColors.muted, height: 1.4),
           ),
           SizedBox(height: 4),
           Row(

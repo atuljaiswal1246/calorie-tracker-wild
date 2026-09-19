@@ -81,7 +81,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                 Text(
                   "Today's quests",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
                   ),
@@ -91,7 +91,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                 SizedBox(height: 8),
                 Text(
                   'Quests reset at midnight. Completing all three pays a bonus.',
-                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                  style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
                 ),
               ],
             ),
@@ -120,7 +120,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                   Text(
                     'Level ${gami.level} · ${gami.levelTitle}',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppType.title,
                       fontWeight: FontWeight.w800,
                       color: AppColors.ink,
                     ),
@@ -146,7 +146,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
           SizedBox(height: 6),
           Text(
             '${gami.pointsToNextLevel} points to the next level',
-            style: TextStyle(fontSize: 12, color: AppColors.muted),
+            style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
           ),
         ],
       ),
@@ -194,7 +194,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 10.5,
+                      fontSize: AppType.micro,
                       fontWeight: FontWeight.w700,
                       color: AppColors.muted,
                     ),
@@ -252,7 +252,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                   Text(
                     q.template.title,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: AppType.body,
                       fontWeight: FontWeight.w600,
                       color: q.completed ? AppColors.muted : AppColors.ink,
                     ),
@@ -260,7 +260,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                   SizedBox(height: 2),
                   Text(
                     '${q.template.category} · ${q.current}/${q.target}',
-                    style: TextStyle(fontSize: 11, color: AppColors.muted),
+                    style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
                   ),
                   if (!q.completed) ...[
                     SizedBox(height: 6),

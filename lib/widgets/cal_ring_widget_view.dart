@@ -72,7 +72,7 @@ class CalRingWidgetView extends StatelessWidget {
                   Text(
                     '$remaining left',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: AppType.small,
                       fontWeight: FontWeight.w700,
                       color: _muted,
                     ),
@@ -91,7 +91,7 @@ class CalRingWidgetView extends StatelessWidget {
                         Text(
                           'Today',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: AppType.small,
                             fontWeight: FontWeight.w800,
                             color: _muted,
                           ),
@@ -113,7 +113,7 @@ class CalRingWidgetView extends StatelessWidget {
                         ),
                         Text(
                           over ? 'kcal over' : 'kcal left',
-                          style: TextStyle(fontSize: 12, color: _muted),
+                          style: TextStyle(fontSize: AppType.small, color: _muted),
                         ),
                         const SizedBox(height: 8),
                         // Two rows rather than four: the key is a legend, not
@@ -146,7 +146,7 @@ class CalRingWidgetView extends StatelessWidget {
           decoration: BoxDecoration(color: c, shape: BoxShape.circle),
         ),
         const SizedBox(width: 5),
-        Text(label, style: TextStyle(fontSize: 10.5, color: _muted)),
+        Text(label, style: TextStyle(fontSize: AppType.micro, color: _muted)),
       ]);
 
   Widget _ring({required double size, required double numberSize}) => SizedBox(

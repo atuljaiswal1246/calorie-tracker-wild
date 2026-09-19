@@ -350,7 +350,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               Text(
                 streak == 1 ? '1 day streak' : '$streak day streak',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w800,
                   color: AppColors.ink,
                 ),
@@ -398,7 +398,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Text(
             'No data yet',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: AppType.title,
               fontWeight: FontWeight.w700,
               color: AppColors.ink,
             ),
@@ -407,7 +407,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Text(
             'Start logging meals to see your insights here.',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: AppType.body,
               color: AppColors.muted,
             ),
             textAlign: TextAlign.center,
@@ -435,7 +435,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             Text(
               'This Week',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
@@ -540,7 +540,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             Text(
               _summaryText!,
               style: TextStyle(
-                fontSize: 13.5,
+                fontSize: AppType.body,
                 height: 1.5,
                 color: AppColors.ink,
                 fontWeight: FontWeight.w500,
@@ -551,7 +551,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               'Tap to get a personal recap — what went right, '
               'what to fix this week.',
               style: TextStyle(
-                fontSize: 12.5,
+                fontSize: AppType.body,
                 height: 1.4,
                 color: AppColors.muted,
               ),
@@ -586,7 +586,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             Text(
               _summaryError!,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppType.small,
                 color: AppColors.missedRed,
               ),
             ),
@@ -634,7 +634,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: AppType.small,
               fontWeight: FontWeight.w700,
               color: AppColors.muted,
             ),
@@ -659,7 +659,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 Text(
                   unit,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.muted,
                   ),
@@ -698,7 +698,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 Text(
                   '7-Day Trend',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink,
                   ),
@@ -769,7 +769,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     child: Text(
                       '$cal',
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: AppType.micro,
                         fontWeight: FontWeight.w600,
                         color: barColor,
                         fontFeatures: [FontFeature.tabularFigures()],
@@ -788,7 +788,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 Text(
                   shortLabel,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: AppType.small,
                     fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                     color: isToday ? AppColors.ink : AppColors.muted,
                   ),
@@ -832,7 +832,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             Text(
               'Macro Split (7-day avg)',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
@@ -893,7 +893,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Text(
             value,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppType.bodyStrong,
               fontWeight: FontWeight.w700,
               color: color,
               fontFeatures: [FontFeature.tabularFigures()],
@@ -903,7 +903,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Text(
             '$label · $pct',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: AppType.small,
               fontWeight: FontWeight.w500,
               color: AppColors.muted,
             ),
@@ -931,7 +931,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             Text(
               'Logging Stats',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
@@ -989,7 +989,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: AppType.body,
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -1037,7 +1037,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             Text(
               'Highlights',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w700,
                 color: AppColors.ink,
               ),
@@ -1087,7 +1087,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Text(
             value,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppType.bodyStrong,
               fontWeight: FontWeight.w800,
               color: color,
               fontFeatures: [FontFeature.tabularFigures()],
@@ -1097,7 +1097,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Text(
             date,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: AppType.small,
               fontWeight: FontWeight.w500,
               color: AppColors.muted,
             ),
@@ -1106,7 +1106,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: AppType.small,
               fontWeight: FontWeight.w600,
               color: AppColors.ink,
             ),

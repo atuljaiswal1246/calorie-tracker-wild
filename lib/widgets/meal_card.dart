@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import '../models/food_entry.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 import 'macro_pill.dart';
 import 'thumbnail_widget.dart';
 
@@ -57,7 +58,7 @@ class MealCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: AppType.bodyStrong,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
                         letterSpacing: -0.3,
@@ -81,7 +82,7 @@ class MealCard extends StatelessWidget {
                             Text(
                               '${entry.totalCalories}',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: AppType.bodyStrong,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.ink,
                                 fontFeatures: [
@@ -118,7 +119,7 @@ class MealCard extends StatelessWidget {
               Text(
                 _formatTime(entry.dateTime),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: AppType.small,
                   color: AppColors.muted,
                   fontWeight: FontWeight.w500,
                 ),

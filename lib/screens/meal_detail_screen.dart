@@ -109,7 +109,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           mealLabel,
           style: TextStyle(
             color: AppColors.ink,
-            fontSize: 18,
+            fontSize: AppType.title,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -155,7 +155,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   SizedBox(width: 6),
                   Text(
                     time,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    style: TextStyle(fontSize: AppType.body, color: Colors.grey[500]),
                   ),
                 ],
               ),
@@ -251,7 +251,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   child: Text(
                     item.name,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: AppType.bodyStrong,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
@@ -371,7 +371,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       child: Text(
         '$label $value',
         style: TextStyle(
-          fontSize: 12,
+          fontSize: AppType.small,
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -387,7 +387,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: AppType.bodyStrong,
             fontWeight: FontWeight.w700,
             color: color,
           ),
@@ -395,7 +395,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: AppType.small,
             color: color.withOpacity(0.7),
           ),
         ),

@@ -180,14 +180,14 @@ class _DemoScanScreenState extends State<DemoScanScreen>
           scanning ? 'Point at your plate' : 'Analysing "${dish.name}"…',
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: AppType.bodyStrong,
             fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           scanning ? 'Hold steady — detecting your food' : 'Matching Indian foods',
-          style: const TextStyle(color: Colors.white70, fontSize: 12.5),
+          style: const TextStyle(color: Colors.white70, fontSize: AppType.body),
         ),
         const SizedBox(height: 34),
       ],
@@ -301,7 +301,7 @@ class _ResultCard extends StatelessWidget {
                         children: [
                           Text(dish.hindi,
                               style: TextStyle(
-                                  fontSize: 12.5, color: AppColors.muted)),
+                                  fontSize: AppType.body, color: AppColors.muted)),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(

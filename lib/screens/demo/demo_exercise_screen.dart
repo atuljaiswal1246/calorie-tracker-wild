@@ -119,7 +119,7 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
                       children: [
                         Text('This week',
                             style: TextStyle(
-                                fontSize: 12.5,
+                                fontSize: AppType.body,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.muted)),
                         const SizedBox(height: 14),
@@ -148,7 +148,7 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
                   const SizedBox(height: 14),
                   Text('Logged workouts',
                       style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: AppType.body,
                           fontWeight: FontWeight.w700,
                           color: AppColors.muted)),
                   const SizedBox(height: 8),
@@ -175,13 +175,13 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
                             Expanded(
                               child: Text(w.$1,
                                   style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: AppType.body,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.ink)),
                             ),
                             Text('${w.$2} min · ${w.$3} kcal',
                                 style: TextStyle(
-                                    fontSize: 12, color: AppColors.muted)),
+                                    fontSize: AppType.small, color: AppColors.muted)),
                           ],
                         ),
                       ),
@@ -204,7 +204,7 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
                           const SizedBox(width: 6),
                           Text('Log a demo workout',
                               style: TextStyle(
-                                  fontSize: 14.5,
+                                  fontSize: AppType.bodyStrong,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.ink)),
                         ],
@@ -236,11 +236,11 @@ class _DemoExerciseScreenState extends State<DemoExerciseScreen> {
         Icon(icon, size: 16, color: color),
         const SizedBox(width: 8),
         Text(label,
-            style: TextStyle(fontSize: 12.5, color: AppColors.muted)),
+            style: TextStyle(fontSize: AppType.body, color: AppColors.muted)),
         const Spacer(),
         Text(value,
             style: TextStyle(
-                fontSize: 14,
+                fontSize: AppType.body,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink)),
       ],
@@ -290,7 +290,7 @@ class _Bar extends StatelessWidget {
         const SizedBox(height: 6),
         Text(label,
             style: TextStyle(
-                fontSize: 10.5,
+                fontSize: AppType.micro,
                 fontWeight: highlight ? FontWeight.w800 : FontWeight.w500,
                 color: highlight ? AppColors.ink : AppColors.muted)),
       ],

@@ -800,7 +800,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
               ),
               child: Text('Log this meal',
                   style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700)),
             ),
           ),
         ],
@@ -823,7 +823,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
             children: [
               Text(_error!,
                   style: TextStyle(
-                      color: AppColors.errorRed, fontSize: 14)),
+                      color: AppColors.errorRed, fontSize: AppType.body)),
               SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
@@ -857,7 +857,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
         SizedBox(width: 4),
         Text(text,
             style: TextStyle(
-                fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted)),
+                fontSize: AppType.small, fontWeight: FontWeight.w500, color: AppColors.muted)),
       ],
     );
   }
@@ -919,7 +919,7 @@ class _FoodResultTile extends StatelessWidget {
             ),
             Text('${food.calories} kcal',
                 style: TextStyle(
-                    fontSize: 14,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink)),
             SizedBox(width: 8),
@@ -948,7 +948,7 @@ class _FoodResultTile extends StatelessWidget {
       ),
       child: Text(text,
           style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+              fontSize: AppType.small, fontWeight: FontWeight.w600, color: color)),
     );
   }
 }
@@ -1015,7 +1015,7 @@ class _QuickFoodTile extends StatelessWidget {
             ),
             Text('$calories kcal',
                 style: TextStyle(
-                    fontSize: 14,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w700,
                     color: AppColors.ink)),
             SizedBox(width: 8),
@@ -1044,7 +1044,7 @@ class _QuickFoodTile extends StatelessWidget {
       ),
       child: Text(text,
           style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+              fontSize: AppType.small, fontWeight: FontWeight.w600, color: color)),
     );
   }
 }
@@ -1107,7 +1107,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
           SizedBox(height: 16),
           Text(food.name,
               style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink)),
           SizedBox(height: 16),
@@ -1116,10 +1116,10 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
           Row(
             children: [
               Text('Amount',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                  style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600, color: AppColors.ink)),
               Spacer(),
               Text('$_quantity g',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                  style: TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700, color: AppColors.ink)),
             ],
           ),
           SizedBox(height: 10),
@@ -1202,7 +1202,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
               ),
               child: Text('Log this food',
                   style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
+                      fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700)),
             ),
           ),
         ],
@@ -1244,11 +1244,11 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
           children: [
             Text(value,
                 style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w700, color: color)),
+                    fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700, color: color)),
             SizedBox(height: 2),
             Text(label,
                 style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppType.small,
                     fontWeight: FontWeight.w500,
                     color: color.withValues(alpha: 0.7))),
           ],
@@ -1308,17 +1308,17 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
           ),
           SizedBox(height: 16),
           Text(widget.name,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.ink)),
+              style: TextStyle(fontSize: AppType.title, fontWeight: FontWeight.w700, color: AppColors.ink)),
           SizedBox(height: 16),
 
           // Quantity presets
           Row(
             children: [
               Text('Amount',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                  style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600, color: AppColors.ink)),
               Spacer(),
               Text('$_quantity g',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                  style: TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700, color: AppColors.ink)),
             ],
           ),
           SizedBox(height: 10),
@@ -1361,7 +1361,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               child: Text('Log this food',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  style: TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700)),
             ),
           ),
         ],
@@ -1399,7 +1399,7 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
           children: [
             Text(value, style: TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700, color: color)),
             SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: color.withValues(alpha: 0.7))),
+            Text(label, style: TextStyle(fontSize: AppType.small, fontWeight: FontWeight.w500, color: color.withValues(alpha: 0.7))),
           ],
         ),
       ),
@@ -1468,7 +1468,7 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
             ),
             SizedBox(height: 16),
             Text('Enter food manually',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                style: TextStyle(fontSize: AppType.title, fontWeight: FontWeight.w700, color: AppColors.ink)),
             SizedBox(height: 16),
 
             _field('Food name', _nameCtrl, hint: 'e.g. Dal rice'),
@@ -1540,7 +1540,7 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 child: Text('Log this food',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    style: TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700)),
               ),
             ),
           ],

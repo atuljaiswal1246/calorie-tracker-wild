@@ -65,7 +65,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
             icon: Icon(Icons.add_rounded, size: 18),
             label: Text(
               'Save today',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: AppType.body, fontWeight: FontWeight.w600),
             ),
             style: TextButton.styleFrom(
               foregroundColor: _ink,
@@ -120,7 +120,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                 child: Text(
                   'Save today',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: AppType.body,
                     fontWeight: FontWeight.w600,
                     color: _muted,
                   ),
@@ -185,7 +185,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   Text(
                     plan.tagline,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: AppType.small,
                       color: _muted,
                     ),
                     maxLines: 1,
@@ -203,7 +203,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                         child: Text(
                           plan.focus,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: AppType.small,
                             fontWeight: FontWeight.w600,
                             color: color,
                           ),
@@ -213,7 +213,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                       Text(
                         '7 days · 4 meals',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: AppType.small,
                           fontWeight: FontWeight.w500,
                           color: _muted,
                         ),
@@ -240,7 +240,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
           Text(
             'No meal plans yet',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: AppType.title,
               fontWeight: FontWeight.w700,
               color: _ink,
             ),
@@ -250,7 +250,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
             'Save a day\'s meals as a plan to quickly\nlog the same meals again.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: AppType.body,
               color: _muted,
               height: 1.4,
             ),
@@ -308,7 +308,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                       child: Text(
                         item.name,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: AppType.body,
                           color: _ink,
                         ),
                         maxLines: 1,
@@ -373,7 +373,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: AppType.small,
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -410,7 +410,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
             Text(
               plan.name,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppType.title,
                 fontWeight: FontWeight.w700,
                 color: _ink,
               ),
@@ -796,7 +796,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                       Text(
                         'Log any meal or the full day',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppType.small,
                           color: _muted,
                         ),
                       ),
@@ -832,7 +832,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                           Text(
                             'Day ${d.day}',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: AppType.small,
                               fontWeight: FontWeight.w700,
                               color: selected ? Colors.white : _ink,
                             ),
@@ -840,7 +840,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                           Text(
                             '${d.totalCalories}',
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: AppType.micro,
                               color: selected ? Colors.white70 : _muted,
                             ),
                           ),
@@ -958,7 +958,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                           Text(
                             item.name,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: AppType.body,
                               fontWeight: FontWeight.w600,
                               color: _ink,
                             ),
@@ -966,7 +966,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                           Text(
                             item.serving,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: AppType.small,
                               color: _muted,
                             ),
                           ),
@@ -976,7 +976,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
                     Text(
                       '${item.calories} kcal · ${item.protein.toStringAsFixed(0)}P',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppType.small,
                         color: Color(0xFF8E8E93),
                       ),
                     ),
@@ -1027,7 +1027,7 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: AppType.small,
           fontWeight: FontWeight.w600,
           color: color,
         ),

@@ -664,7 +664,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   onPressed: () => Navigator.pop(ctx, true),
                   child: Text('Save',
                       style:
-                          TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: AppType.bodyStrong)),
                 ),
               ),
             ],
@@ -723,7 +723,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               ? TextInputType.numberWithOptions(decimal: true)
               : null,
           style: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.ink),
+              fontSize: AppType.bodyStrong, fontWeight: FontWeight.w600, color: AppColors.ink),
           decoration: InputDecoration(
             contentPadding:
                 EdgeInsets.symmetric(horizontal: 14, vertical: AppSpace.md),
@@ -830,7 +830,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                             Expanded(
                               child: Text(
                                 _qualityWarning!,
-                                style: TextStyle(fontSize: 12, color: AppColors.warningOrange),
+                                style: TextStyle(fontSize: AppType.small, color: AppColors.warningOrange),
                               ),
                             ),
                           ],
@@ -900,7 +900,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                   'One food at a time gives the best result — '
                                   'a thali? Scan the roti, then the sabzi.',
                                   style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: AppType.small,
                                       color: AppColors.muted,
                                       height: 1.35),
                                 ),
@@ -923,7 +923,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                           children: [
                             Text(_error!,
                                 style: TextStyle(
-                                    color: AppColors.missedRed, fontSize: 14)),
+                                    color: AppColors.missedRed, fontSize: AppType.body)),
                             SizedBox(height: 10),
                             Row(
                               children: [
@@ -977,7 +977,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       SizedBox(height: 12),
                       Center(
                         child: Text('Analyzing your food...',
-                            style: TextStyle(color: AppColors.muted, fontSize: 14)),
+                            style: TextStyle(color: AppColors.muted, fontSize: AppType.body)),
                       ),
                       SizedBox(height: 16),
                       Center(
@@ -1025,7 +1025,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                       '"Bhindi Fry") gives much closer calories '
                                       'and macros. Tap to type it:',
                                       style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: AppType.small,
                                           color: Color(0xFF6B5414),
                                           height: 1.35),
                                     ),
@@ -1267,7 +1267,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 child: Text(
                   'Batch review — $total photo${total == 1 ? '' : 's'}',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: AppType.bodyStrong,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
                     letterSpacing: -0.3,
@@ -1305,7 +1305,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                   Text(
                     'Analyzing photo $_batchIndex of $total…',
                     style: TextStyle(
-                        fontSize: 13.5, color: AppColors.ink),
+                        fontSize: AppType.body, color: AppColors.ink),
                   ),
                 ],
               ),
@@ -1330,7 +1330,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       '${_batchFailed.length} photo(s) had no food '
                       'detected — skipped.',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.warningOrange),
+                          fontSize: AppType.small, color: AppColors.warningOrange),
                     ),
                   ),
                 ],
@@ -1378,7 +1378,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                   Text(
                                     '+${items.length - 3} more',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: AppType.small,
                                       color: AppColors.muted,
                                     ),
                                   ),
@@ -1388,7 +1388,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                               ? Text(
                                   'No food detected',
                                   style: TextStyle(
-                                      fontSize: 12.5,
+                                      fontSize: AppType.body,
                                       color: AppColors.muted),
                                 )
                               : Row(
@@ -1406,7 +1406,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                     Text(
                                       'Waiting…',
                                       style: TextStyle(
-                                          fontSize: 12.5,
+                                          fontSize: AppType.body,
                                           color: AppColors.muted),
                                     ),
                                   ],
@@ -1416,7 +1416,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       Text(
                         '${items.fold(0, (s, i) => s + i.calories)} kcal',
                         style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: AppType.body,
                           fontWeight: FontWeight.w700,
                           color: AppColors.ink,
                         ),
@@ -1475,7 +1475,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
               child: Text(
                 'No food was detected in any photo.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13.5, color: AppColors.muted),
+                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
               ),
             ),
         ],
@@ -1577,7 +1577,7 @@ class _FoodItemCardState extends State<_FoodItemCard> {
                       padding: EdgeInsets.symmetric(horizontal: AppSpace.md),
                       child: Text('${item.quantity.round()}',
                           style: TextStyle(
-                              fontSize: 16,
+                              fontSize: AppType.bodyStrong,
                               fontWeight: FontWeight.w700,
                               color: AppColors.ink)),
                     ),
@@ -1706,7 +1706,7 @@ class _TotalCard extends StatelessWidget {
         children: [
           Text('Total',
               style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppType.title,
                   fontWeight: FontWeight.w700,
                   color: Colors.white)),
           SizedBox(height: 16),
@@ -1731,13 +1731,13 @@ class _TotalCard extends StatelessWidget {
         SizedBox(height: 4),
         Text(value,
             style: TextStyle(
-                fontSize: 16,
+                fontSize: AppType.bodyStrong,
                 fontWeight: FontWeight.w700,
                 color: Colors.white)),
         SizedBox(height: 2),
         Text(label,
             style: TextStyle(
-                fontSize: 12,
+                fontSize: AppType.small,
                 fontWeight: FontWeight.w500,
                 color: Colors.white.withValues(alpha: 0.6))),
       ],
