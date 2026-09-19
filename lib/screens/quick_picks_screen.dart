@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -28,7 +29,7 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
   String _mealType = _autoMealType();
 
   static String _autoMealType() {
-    final hour = DateTime.now().hour;
+    final hour = clock.now().hour;
     if (hour < 11) return 'breakfast';
     if (hour < 16) return 'lunch';
     if (hour < 21) return 'dinner';
@@ -86,8 +87,8 @@ class _QuickPicksScreenState extends State<QuickPicksScreen> {
 
   Future<void> _logLocalFood(FoodDBItem food) async {
     final entry = FoodEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      dateTime: DateTime.now(),
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      dateTime: clock.now(),
       mealType: _mealType,
       items: [
         FoodItem(

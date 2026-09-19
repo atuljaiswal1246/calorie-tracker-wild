@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import '../data/prebuilt_plans.dart';
 import '../models/food_entry.dart';
@@ -554,7 +555,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
   }
 
   void _showSaveFromTodaySheet(BuildContext context) {
-    final todayEntries = widget.storage.entries.where((e) => e.isOn(DateTime.now())).toList();
+    final todayEntries = widget.storage.entries.where((e) => e.isOn(clock.now())).toList();
     if (todayEntries.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -678,7 +679,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                     }
                     if (items.isEmpty) return;
                     final plan = MealPlan(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      id: clock.now().millisecondsSinceEpoch.toString(),
                       name: name,
                       items: items,
                     );
@@ -1037,9 +1038,9 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
 
   Future<void> _logMeal(PlanMeal meal) async {
     await widget.storage.addEntry(FoodEntry(
-      id: (DateTime.now().microsecondsSinceEpoch + _rand.nextInt(9999))
+      id: (clock.now().microsecondsSinceEpoch + _rand.nextInt(9999))
           .toString(),
-      dateTime: DateTime.now(),
+      dateTime: clock.now(),
       mealType: meal.title,
       imagePath: '',
       items: meal.items
@@ -1061,9 +1062,9 @@ class _PrebuiltPlanDetailScreenState extends State<PrebuiltPlanDetailScreen> {
   Future<void> _logDay(PlanDay day) async {
     for (final meal in day.meals) {
       await widget.storage.addEntry(FoodEntry(
-        id: (DateTime.now().microsecondsSinceEpoch + _rand.nextInt(99999))
+        id: (clock.now().microsecondsSinceEpoch + _rand.nextInt(99999))
             .toString(),
-        dateTime: DateTime.now(),
+        dateTime: clock.now(),
         mealType: meal.title,
         imagePath: '',
         items: meal.items

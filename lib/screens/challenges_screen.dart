@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
 import '../models/food_entry.dart';
@@ -24,7 +25,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
 
   void _computeChallenges() {
     final entries = widget.storage.entries;
-    final now = DateTime.now();
+    final now = clock.now();
     final today = DateTime(now.year, now.month, now.day);
 
     int loggedDaysThisWeek = 0;

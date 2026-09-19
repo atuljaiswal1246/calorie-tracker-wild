@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
@@ -56,7 +57,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
   }
 
   String _countdown() {
-    final now = widget.now ?? DateTime.now();
+    final now = widget.now ?? clock.now();
     final end = DateTime(
       now.year,
       now.month,

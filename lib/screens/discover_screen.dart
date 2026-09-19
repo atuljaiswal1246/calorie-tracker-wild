@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
 import '../config/features.dart';
@@ -45,7 +46,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   void _load() {
     final entries = widget.storage.entries;
-    final now = DateTime.now();
+    final now = clock.now();
     final today = DateTime(now.year, now.month, now.day);
 
     // Streak

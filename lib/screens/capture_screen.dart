@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -53,7 +54,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
   int _batchIndex = 0;
 
   static String _autoMealType() {
-    final hour = DateTime.now().hour;
+    final hour = clock.now().hour;
     if (hour < 11) return 'breakfast';
     if (hour < 16) return 'lunch';
     if (hour < 21) return 'dinner';
@@ -129,8 +130,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
     for (final e in successes) {
       final savedPath = await _toPermanent(File(e.key));
       final entry = FoodEntry(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        dateTime: DateTime.now(),
+        id: clock.now().microsecondsSinceEpoch.toString(),
+        dateTime: clock.now(),
         mealType: _batchMealType,
         items: e.value,
         imagePath: savedPath,
@@ -234,7 +235,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
     try {
       final appDir = await getApplicationDocumentsDirectory();
       final ext = source.path.split('.').last;
-      final fileName = 'meal_${DateTime.now().microsecondsSinceEpoch}_${source.path.hashCode.abs()}.$ext';
+      final fileName = 'meal_${clock.now().microsecondsSinceEpoch}_${source.path.hashCode.abs()}.$ext';
       final dest = '${appDir.path}/$fileName';
       final permanentFile = await source.copy(dest);
       if (await permanentFile.exists()) return permanentFile.path;
@@ -389,7 +390,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
     try {
       final appDir = await getApplicationDocumentsDirectory();
       final ext = _image!.path.split('.').last;
-      final fileName = 'meal_${DateTime.now().microsecondsSinceEpoch}.$ext';
+      final fileName = 'meal_${clock.now().microsecondsSinceEpoch}.$ext';
       final dest = '${appDir.path}/$fileName';
       final permanentFile = await _image!.copy(dest);
       if (await permanentFile.exists()) savedPath = permanentFile.path;
@@ -398,8 +399,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
     }
 
     final entry = FoodEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      dateTime: DateTime.now(),
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      dateTime: clock.now(),
       mealType: _mealType,
       items: items,
       imagePath: savedPath,

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,7 +33,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
   String _mealType = _autoMealType();
 
   static String _autoMealType() {
-    final hour = DateTime.now().hour;
+    final hour = clock.now().hour;
     if (hour < 11) return 'breakfast';
     if (hour < 16) return 'lunch';
     if (hour < 21) return 'dinner';
@@ -156,8 +157,8 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
   Future<void> _logLocalFood(FoodDBItem food) async {
     final qty = _selectedQuantity;
     final entry = FoodEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      dateTime: DateTime.now(),
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      dateTime: clock.now(),
       mealType: _mealType,
       items: [
         FoodItem(
@@ -311,8 +312,8 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     if (items == null || items.isEmpty) return;
 
     final entry = FoodEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      dateTime: DateTime.now(),
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      dateTime: clock.now(),
       mealType: _mealType,
       items: items,
       imagePath: '',
@@ -625,8 +626,8 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     quantity = result;
 
     final entry = FoodEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      dateTime: DateTime.now(),
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      dateTime: clock.now(),
       mealType: _mealType,
       items: [
         FoodItem(
@@ -673,8 +674,8 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
         onMealTypeChanged: (v) => setState(() => _mealType = v),
         onLog: (name, cal, p, c, f) async {
           final entry = FoodEntry(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
-            dateTime: DateTime.now(),
+            id: clock.now().microsecondsSinceEpoch.toString(),
+            dateTime: clock.now(),
             mealType: _mealType,
             items: [
               FoodItem(

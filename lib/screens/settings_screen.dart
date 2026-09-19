@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -113,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final data = widget.storage.exportJson();
     final dir = await getTemporaryDirectory();
     final file = File(
-        '${dir.path}/cal_matters_export_${DateTime.now().millisecondsSinceEpoch}.json');
+        '${dir.path}/cal_matters_export_${clock.now().millisecondsSinceEpoch}.json');
     await file.writeAsString(data);
     if (file.existsSync()) {
       await SharePlus.instance.share(

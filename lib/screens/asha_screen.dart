@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -52,7 +53,7 @@ class _AshaScreenState extends State<AshaScreen> {
       _systemPrompt = 'You are Asha, a warm, practical AI nutrition assistant.';
       return;
     }
-    final today = DateTime.now();
+    final today = clock.now();
     final entries = widget.storage.entries.where((e) => e.isOn(today)).toList();
 
     final totalCal = entries.fold<int>(0, (s, e) => s + e.totalCalories);
