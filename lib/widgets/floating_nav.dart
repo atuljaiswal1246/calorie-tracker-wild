@@ -78,12 +78,21 @@ class FloatingNav extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: _NavAvatar(
+            child: _NavItem(
               index: 2,
+              icon: Icons.emoji_events_rounded,
+              label: 'Trophy',
               active: currentIndex == 2,
+              onTap: () => onTap(2),
+            ),
+          ),
+          Expanded(
+            child: _NavAvatar(
+              index: 3,
+              active: currentIndex == 3,
               initials: avatarInitials,
               photoPath: avatarPhotoPath,
-              onTap: () => onTap(2),
+              onTap: () => onTap(3),
             ),
           ),
         ],

@@ -14,7 +14,6 @@ import 'package:path_provider/path_provider.dart';
 import '../config/features.dart';
 import '../models/food_entry.dart';
 import '../models/profile.dart';
-import '../services/achievements_service.dart';
 import '../services/activity_service.dart';
 import '../services/asha_prompts.dart';
 import '../services/auth_service.dart';
@@ -30,14 +29,12 @@ import '../services/notification_coordinator.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../services/widget_service.dart';
-import '../services/weekly_summary_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/widgets.dart';
 import 'achievements_screen.dart';
 import 'barcode_scanner_screen.dart';
 import 'gamification_hub_screen.dart';
-import 'insights_screen.dart';
 import 'capture_screen.dart';
 import 'manual_entry_screen.dart';
 import 'meal_detail_screen.dart';
@@ -73,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _waterMl = 0;
   int _waterGoalMl = 2500;
   DateTime _selected = clock.now();
-  int _navIndex = 0; // 0 home, 1 progress, 2 profile
+  int _navIndex = 0; // 0 home, 1 progress, 2 trophy, 3 profile
   late final ScrollController _weekScrollController;
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
@@ -330,9 +327,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return streak;
   }
 
-  int get _sugarTarget => (_profile?.calorieGoal ?? 2000) ~/ 200;
-  int get _sodiumTarget => 2300;
-
   String get _initials {
     final name = _profile?.name.trim() ?? 'U';
     final parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
@@ -340,9 +334,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return name.length >= 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase();
   }
-
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 
   // ---- Actions ----
 
@@ -540,7 +531,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Positioned.fill(
               child: switch (_navIndex) {
                 1 => _progressPage(),
-                2 => _profilePage(profile),
+                3 => _profilePage(profile),
                 _ => _homePage(profile),
               },
             ),
@@ -551,6 +542,16 @@ class _HomeScreenState extends State<HomeScreen> {
               child: FloatingNav(
                 currentIndex: _navIndex,
                 onTap: (i) {
+                  if (i == 2) {
+                    HapticFeedback.lightImpact();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            AchievementsScreen(storage: widget.storage),
+                      ),
+                    );
+                    return;
+                  }
                   setState(() => _navIndex = i);
                   if (i == 0) _load();
                 },
@@ -639,139 +640,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ================= Home =================
 
-  Widget _homePage(Profile profile) {
-    final goal = profile.calorieGoal;
-    final proteinGoal = profile.proteinGrams;
-
-    return RefreshIndicator(
-      color: AppColors.ink,
-      onRefresh: () async => _load(),
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, 150),
-        children: [
-          _header(profile),
-          if (_entries.isEmpty) ...[
-            SizedBox(height: 16),
-            _firstLogCard(),
-          ],
-          if (!_isOnline) ...[
-            SizedBox(height: 12),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.warningBg,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-              ),
-              child: Row(
-                children: [
-                  Icon(Symbols.wifi_off_rounded, size: 18, color: AppColors.accentOrange),
-                  SizedBox(width: AppSpace.md),
-                  Expanded(
-                    child: Text(
-                      'You\'re offline. AI features unavailable.',
-                      style: TextStyle(
-                        fontSize: AppType.body,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          SizedBox(height: AppSpace.xl),
-          // Asha — concierge (adaptive by time of day, tap = chat).
-          // Parked behind Features.asha while the core loop is perfected.
-          if (Features.asha) ...[
-            _ashaConcierge(),
-            SizedBox(height: 16),
-          ],
-          _weekSelector(calorieGoal: goal),
-          SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 5, child: _dayHeroTile(profile)),
-              SizedBox(width: AppSpace.md),
-              Expanded(
-                flex: 4,
-                child: Column(
-                  children: [
-                    _smallTile(
-                      icon: Symbols.egg,
-                      iconColor: AppColors.protein,
-                      label: 'Protein',
-                      value:
-                          '${_protein(_selected).round()} / ${proteinGoal.round()}g',
-                      sub: 'log more protein today',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MacroBreakdownScreen(
-                            macroType: MacroType.protein,
-                            entries: _on(_selected),
-                            total: _protein(_selected),
-                            target: proteinGoal.toDouble(),
-                            color: AppColors.protein,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: AppSpace.md),
-                    _stepsTile(),
-                    SizedBox(height: AppSpace.md),
-                    _waterTile(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: AppSpace.xl),
-          _questCard(),
-          SizedBox(height: AppSpace.xl),
-          _whatsCooking(),
-          SizedBox(height: AppSpace.xl),
-          _bodyStrip(),
-          SizedBox(height: AppSpace.lg),
-          _weeklyTeaser(),
-          SizedBox(height: AppSpace.xl),
-          _recentSection(),
-        ],
-      ),
-    );
-  }
-
   String get _greetingText {
     final hour = clock.now().hour;
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
     if (hour < 21) return 'Good evening';
     return 'Good night';
-  }
-
-  Widget _greeting(Profile profile) {
-    return Text.rich(
-      TextSpan(
-        style: TextStyle(
-          fontSize: AppType.bodyStrong,
-          fontWeight: FontWeight.w600,
-          color: AppColors.muted,
-          letterSpacing: -0.3,
-        ),
-        children: [
-          TextSpan(text: '$_greetingText, '),
-          TextSpan(
-            text: profile.name.split(' ').first,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-            ),
-          ),
-        ],
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
   }
 
   Future<void> _openPricing() async {
@@ -789,79 +663,6 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Home header: the greeting is the page title (the app name lives on the
   /// welcome screen — repeating it here squeezed the status pills off narrow
   /// Android phones), with the user's status pills on the right.
-  Widget _header(Profile profile) {
-    return Row(
-      children: [
-        Expanded(child: _greeting(profile)),
-        SizedBox(width: 8),
-        _insightsPill(),
-        SizedBox(width: AppSpace.sm),
-        _achievementsPill(),
-        SizedBox(width: AppSpace.sm),
-        _streakPill(),
-      ],
-    );
-  }
-
-  Widget _insightsPill() {
-    return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => InsightsScreen(storage: widget.storage),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        padding: EdgeInsets.all(10),
-        constraints: BoxConstraints(minWidth: 44, minHeight: 44),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Icon(Symbols.insights_rounded, size: 17, color: AppColors.ink),
-      ),
-    );
-  }
-
-  Widget _achievementsPill() {
-    return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => AchievementsScreen(storage: widget.storage),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Row(
-          children: [
-            Icon(Symbols.emoji_events_rounded,
-                size: 15, color: AppColors.accentOrange),
-            SizedBox(width: 4),
-            Text(
-              '${AchievementsService(widget.storage).unlockedCount}',
-              style: TextStyle(
-                fontSize: AppType.body,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _streakPill() {
     return Semantics(
       label: '$_displayStreak day streak. Tap for details.',
@@ -894,90 +695,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _questCard() {
-    final gami = _gami;
-    if (gami == null || gami.activeQuests.isEmpty) return const SizedBox.shrink();
-    final quests = gami.activeQuests;
-    return InkWell(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const GamificationHubScreen()),
-        );
-      },
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        padding: EdgeInsets.all(AppSpace.lg),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Symbols.checklist_rounded, size: 17, color: AppColors.ink),
-                SizedBox(width: 8),
-                Text(
-                   "Today's quests",
-                  style: TextStyle(
-                    fontSize: AppType.bodyStrong,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
-                  ),
-                ),
-                Spacer(),
-                Text(
-                  '${gami.questsCompleted}/${quests.length}',
-                  style: TextStyle(
-                    fontSize: AppType.body,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.muted,
-                  ),
-                ),
-                SizedBox(width: AppSpace.sm),
-                Text(
-                  'View all',
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.accent,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppSpace.sm),
-            Row(
-              children: [
-                Text(
-                  '🌱 Level ${gami.level} · ${gami.levelTitle}',
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.muted,
-                  ),
-                ),
-                Spacer(),
-                Text(
-                  '+${gami.todayPoints} pts today',
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.green,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 12),
-            ...quests.map(_questRow),
-          ],
         ),
       ),
     );
@@ -1045,180 +762,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      ),
-    );
-  }
-
-  Widget _weekSelector({required int calorieGoal}) {
-    final today = clock.now();
-    final dates = List<DateTime>.generate(
-      60,
-      (i) => DateTime(today.year, today.month, today.day)
-          .subtract(Duration(days: 59 - i)),
-    );
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppSpace.xs, vertical: AppSpace.sm),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.sheet),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: SizedBox(
-        height: 64,
-        child: SingleChildScrollView(
-          controller: _weekScrollController,
-          scrollDirection: Axis.horizontal,
-          physics: BouncingScrollPhysics(),
-          child: Row(
-            children: dates.map((day) {
-              final isSelected = _isSameDay(day, _selected);
-              final isFuture = day.isAfter(today);
-              final dayCalories = _calories(day);
-              final progress = calorieGoal > 0
-                  ? (dayCalories / calorieGoal).clamp(0.0, 1.0)
-                  : 0.0;
-              final hasLog = _on(day).isNotEmpty;
-
-              Color ringColor;
-              if (isFuture) {
-                ringColor = AppColors.weekRing;
-              } else if (progress >= 0.8) {
-                ringColor = AppColors.green;
-              } else if (progress >= 0.5) {
-                ringColor = AppColors.warningOrange;
-              } else if (progress > 0) {
-                ringColor = AppColors.ink;
-              } else {
-                ringColor = AppColors.weekRing;
-              }
-
-              Color textColor = AppColors.faint;
-              FontWeight weight = FontWeight.w500;
-              if (isSelected) {
-                textColor = AppColors.ink;
-                weight = FontWeight.w800;
-              } else if (!isFuture && hasLog) {
-                textColor = AppColors.ink;
-                weight = FontWeight.w600;
-              }
-
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpace.xs),
-                child: InkWell(
-                  onTap: () => setState(() => _selected = day),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: Container(
-                    width: 52,
-                    padding: EdgeInsets.symmetric(vertical: AppSpace.xs),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.cardSelected : Colors.transparent,
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          height: 16,
-                          child: Center(
-                            child: Text(
-                              day.isAfter(today) ? '—' : DateFormat('E').format(day),
-                              style: TextStyle(
-                                fontSize: AppType.micro,
-                                height: 1.2,
-                                color: textColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: CustomPaint(
-                            painter: _RingPainter(
-                              progress: isFuture ? 0 : progress,
-                              color: ringColor,
-                              strokeWidth: 2.5,
-                            ),
-                            child: Center(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  '${day.day}',
-                                  style: TextStyle(
-                                    fontSize: AppType.small,
-                                    fontWeight: weight,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _firstLogCard() {
-    return InkWell(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        _openCapture();
-      },
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        padding: EdgeInsets.all(AppSpace.lg),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: AppColors.cardAlt,
-                borderRadius: BorderRadius.circular(AppRadius.card),
-              ),
-              child: Icon(Symbols.camera_alt_rounded,
-                  size: 22, color: AppColors.ink),
-            ),
-            SizedBox(width: AppSpace.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Log your first meal',
-                    style: TextStyle(
-                      fontSize: AppType.bodyStrong,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  SizedBox(height: 3),
-                  Text(
-                    'Snap a photo — we estimate the calories and macros.',
-                    style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Symbols.chevron_right_rounded, color: AppColors.muted),
-          ],
-        ),
       ),
     );
   }
@@ -1300,423 +843,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Big hero: day ring, streak, carbs/fat, macro pills (fiber/sugar/sodium).
-  Widget _dayHeroTile(Profile profile) {
-    final logged = _calories(_selected);
-    final goal = profile.calorieGoal;
-    final progress = goal > 0 ? (logged / goal).clamp(0.0, 1.0) : 0.0;
-
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => MacroBreakdownScreen(
-            macroType: MacroType.calories,
-            entries: _on(_selected),
-            total: logged.toDouble(),
-            target: goal.toDouble(),
-            color: AppColors.ink,
-          ),
-        ),
-      ),
-      borderRadius: BorderRadius.circular(AppRadius.sheet),
-      child: Container(
-        padding: EdgeInsets.all(AppSpace.lg),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.sheet),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Today',
-              style: TextStyle(
-                fontSize: AppType.small,
-                fontWeight: FontWeight.w700,
-                color: AppColors.muted,
-              ),
-            ),
-            SizedBox(height: AppSpace.md),
-            // The ring carries the calorie total (the app's own language — the
-            // plan screen does the same). The old side-by-side number wrapped
-            // onto two lines on every phone ("10" / "86").
-            Center(
-              child: SizedBox(
-                width: 108,
-                height: 108,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 10,
-                      backgroundColor: AppColors.track,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(AppColors.ink),
-                      strokeCap: StrokeCap.round,
-                    ),
-                    Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(18),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            '$logged',
-                            style: TextStyle(
-                              fontSize: AppType.hero,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.ink,
-                              letterSpacing: -1,
-                              fontFeatures: [
-                                FontFeature.tabularFigures()
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 8),
-            Center(
-              child: Text(
-                'of $goal kcal',
-                style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              'C ${_carbs(_selected).round()}g · '
-              'F ${_fat(_selected).round()}g · '
-              'Fib ${_on(_selected).fold(0.0, (s, e) => s + e.totalFiber).round()}g',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
-            ),
-            SizedBox(height: AppSpace.md),
-            Row(
-              children: [
-                _macroPill(
-                  'Sugar',
-                  '${_on(_selected).fold(0.0, (s, e) => s + e.totalSugar).round()}g',
-                  AppColors.sugar,
-                  () => _openMacro(MacroType.sugar,
-                      _on(_selected).fold(0.0, (s, e) => s + e.totalSugar),
-                      _sugarTarget.toDouble(), AppColors.sugar),
-                ),
-                SizedBox(width: AppSpace.sm),
-                _macroPill(
-                  'Sodium',
-                  '${_sodiumKcal().round()}mg',
-                  AppColors.sodium,
-                  () => _openMacro(MacroType.sodium, _sodiumKcal(),
-                      _sodiumTarget.toDouble(), AppColors.sodium),
-                ),
-                SizedBox(width: AppSpace.sm),
-                _macroPill(
-                  'Burn',
-                  '${_activity.todayExercises().fold(0, (s, e) => s + e.calories)} kcal',
-                  AppColors.accentOrange,
-                  () {},
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  double _sodiumKcal() =>
-      _on(_selected).fold(0.0, (s, e) => s + e.totalSodium);
-
-  void _openMacro(MacroType type, double total, double target, Color color) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => MacroBreakdownScreen(
-          macroType: type,
-          entries: _on(_selected),
-          total: total,
-          target: target,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  Widget _macroPill(String label, String value, Color color, VoidCallback onTap) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 6, horizontal: AppSpace.xs),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: AppType.micro,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-              SizedBox(height: 1),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: AppType.small,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _smallTile({
-    required IconData icon,
-    required Color iconColor,
-    required String label,
-    required String value,
-    required String sub,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        padding: EdgeInsets.all(AppSpace.md),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 15, color: iconColor),
-                SizedBox(width: AppSpace.sm),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.muted,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: AppType.body,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              sub,
-              style: TextStyle(fontSize: AppType.micro, color: AppColors.muted),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _stepsTile() {
-    return InkWell(
-      onTap: _stepsEnabled ? null : _enableSteps,
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        padding: EdgeInsets.all(AppSpace.md),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Symbols.directions_walk_rounded, size: 15, color: AppColors.green),
-                SizedBox(width: AppSpace.sm),
-                Text(
-                  'Steps',
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.muted,
-                  ),
-                ),
-                Spacer(),
-                if (!_stepsEnabled)
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.green.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Text(
-                      'Track',
-                      style: TextStyle(
-                        fontSize: AppType.micro,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.green,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              '${_stepsToday} / 8000',
-              style: TextStyle(
-                fontSize: AppType.body,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              'steps today',
-              style: TextStyle(fontSize: AppType.micro, color: AppColors.muted),
-            ),
-            SizedBox(height: 8),
-            Row(
-              children: [
-                if (_stepsEnabled && _stepsSource != StepsSource.healthConnect)
-                  InkWell(
-                    onTap: _manualStepsDialog,
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
-                      decoration: BoxDecoration(
-                        color: AppColors.bg,
-                        borderRadius: BorderRadius.circular(AppRadius.pill),
-                      ),
-                      child: Text(
-                        '+ Add',
-                        style: TextStyle(
-                          fontSize: AppType.micro,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.ink,
-                        ),
-                      ),
-                    ),
-                  ),
-                SizedBox(width: AppSpace.sm),
-                InkWell(
-                  onTap: () => _addExerciseSheet(),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
-                    decoration: BoxDecoration(
-                      color: AppColors.bg,
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Symbols.directions_run_rounded,
-                          size: 13,
-                          color: AppColors.ink,
-                        ),
-                        SizedBox(width: 3),
-                        Text(
-                          '+ Exercise',
-                          style: TextStyle(
-                            fontSize: AppType.micro,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.ink,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _waterTile() {
-    return InkWell(
-      onTap: _openWaterSheet,
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        padding: EdgeInsets.all(AppSpace.md),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Symbols.water_drop_rounded, size: 15, color: AppColors.water),
-                SizedBox(width: AppSpace.sm),
-                Text(
-                  'Water',
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.muted,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              '${(_waterMl / 1000).toStringAsFixed(1)} / ${(_waterGoalMl / 1000).toStringAsFixed(1)} L',
-              style: TextStyle(
-                fontSize: AppType.body,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              'tap to add glass',
-              style: TextStyle(fontSize: AppType.micro, color: AppColors.muted),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _openWaterSheet() async {
     final ml = await showModalBottomSheet<int>(
       context: context,
@@ -1787,443 +913,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// What's Cooking — the frictionless log zone.
-  Widget _whatsCooking() {
-    final recent = widget.storage.recentFoods.take(4).toList();
-    return Container(
-      padding: EdgeInsets.all(AppSpace.lg),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Symbols.restaurant_menu_rounded, size: 16, color: AppColors.ink),
-              SizedBox(width: 7),
-              Text(
-                'What\'s cooking?',
-                style: TextStyle(
-                  fontSize: AppType.bodyStrong,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                  letterSpacing: -0.3,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _logCta(
-                  icon: Icons.center_focus_strong,
-                  label: 'Scan food',
-                  primary: true,
-                  onTap: _openCapture,
-                ),
-              ),
-              SizedBox(width: 8),
-              _logCta(
-                icon: Icons.photo_library_outlined,
-                label: 'Gallery',
-                onTap: _openGallery,
-              ),
-              SizedBox(width: 8),
-              _logCta(
-                icon: Icons.restaurant_menu,
-                label: 'Quick picks',
-                onTap: _openQuickPicks,
-              ),
-            ],
-          ),
-          SizedBox(height: AppSpace.md),
-          Row(
-            children: [
-              InkWell(
-                onTap: _openManualEntry,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                child: Text(
-                  'Add manually',
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.muted,
-                  ),
-                ),
-              ),
-              SizedBox(width: 16),
-              InkWell(
-                onTap: _openBarcodeScanner,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                child: Text(
-                  'Barcode scan',
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.muted,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (recent.isNotEmpty) ...[
-            SizedBox(height: 12),
-            Text(
-              'One-tap from your usuals:',
-              style: TextStyle(fontSize: AppType.small, color: AppColors.muted),
-            ),
-            SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: recent.map((f) {
-                return InkWell(
-                  onTap: () => _quickLog(f),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.bg,
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Text(
-                      '${f['name']} · ${f['calories']} kcal',
-                      style: TextStyle(
-                        fontSize: AppType.small,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _logCta({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool primary = false,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          // Inverted in dark mode: the grey inkButton loses the primary
-          // action against a dark card.
-          color: primary
-              ? (AppColors.dark ? Colors.white : AppColors.inkButton)
-              : AppColors.bg,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-        ),
-        child: Column(
-          children: [
-            Icon(icon,
-                size: 20,
-                color: primary
-                    ? (AppColors.dark
-                        ? const Color(0xFF1C1C1E)
-                        : Colors.white)
-                    : AppColors.ink),
-            SizedBox(height: 4),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: AppType.small,
-                fontWeight: FontWeight.w700,
-                color: primary
-                    ? (AppColors.dark
-                        ? const Color(0xFF1C1C1E)
-                        : Colors.white)
-                    : AppColors.ink,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _quickLog(Map<String, dynamic> f) async {
-    final item = FoodItem(
-      name: f['name'] as String? ?? 'Food',
-      calories: (f['calories'] as num?)?.toInt() ?? 100,
-      protein: (f['protein'] as num?)?.toDouble() ?? 0,
-      carbs: (f['carbs'] as num?)?.toDouble() ?? 0,
-      fat: (f['fat'] as num?)?.toDouble() ?? 0,
-      quantity: 1,
-    );
-    final entry = FoodEntry(
-      id: clock.now().microsecondsSinceEpoch.toString(),
-      dateTime: clock.now(),
-      mealType: _autoMeal(),
-      items: [item],
-      imagePath: '',
-    );
-    await widget.storage.addEntry(entry);
-    HapticFeedback.lightImpact();
-    _load();
-  }
-
-  String _autoMeal() {
-    final h = clock.now().hour;
-    if (h < 11) return 'breakfast';
-    if (h < 16) return 'lunch';
-    if (h < 21) return 'dinner';
-    return 'snack';
-  }
-
-  /// Body story — weight/waist trendline nudge.
-  Widget _bodyStrip() {
-    final weights = widget.storage.weightEntries;
-    final latestW = weights.isNotEmpty ? weights.last.weightKg : null;
-    final firstW = weights.isNotEmpty ? weights.first.weightKg : null;
-    final deltaW =
-        (latestW != null && firstW != null) ? latestW - firstW : null;
-    final bodies = widget.storage.bodyMeasurements;
-    final latestWaist = bodies.isNotEmpty ? bodies.first.waist : null;
-
-    return InkWell(
-      onTap: () => setState(() => _navIndex = 1),
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Row(
-          children: [
-            Icon(Symbols.straighten_rounded, size: 17, color: AppColors.accentOrange),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                deltaW != null
-                    ? '${deltaW <= 0 ? '▼' : '▲'} ${deltaW.abs().toStringAsFixed(1)}kg'
-                        '${latestWaist != null ? ' · waist ${latestWaist.toStringAsFixed(1)}cm' : ''} — your story'
-                    : 'Start tracking your body story',
-                style: TextStyle(
-                  fontSize: AppType.body,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                ),
-              ),
-            ),
-            Icon(Symbols.chevron_right_rounded, size: 18, color: AppColors.muted),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Weekly AI review teaser — 1 line, tap into Insights.
-  Widget _weeklyTeaser() {
-    final cached =
-        WeeklySummaryService(widget.storage).cached()?.replaceAll('\n', ' ');
-    final line = cached != null && cached.isNotEmpty
-        ? (cached.length > 110 ? cached.substring(0, 110) : cached)
-        : null;
-    // Nothing to review on a fresh account — don't advertise an empty screen.
-    if (line == null && _entries.isEmpty) return const SizedBox.shrink();
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => InsightsScreen(storage: widget.storage),
-        ),
-      ),
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFFF4B4B).withValues(alpha: 0.14),
-              Color(0xFFFF7A45).withValues(alpha: 0.14),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(
-            color: AppColors.protein.withValues(alpha: 0.25),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(Symbols.insights_rounded,
-                size: 17, color: AppColors.accentOrange),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                line != null ? '"$line…"' : 'Your week in review — read it',
-                style: TextStyle(
-                  fontSize: AppType.body,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                  height: 1.35,
-                ),
-              ),
-            ),
-            Icon(Symbols.chevron_right_rounded, size: 18, color: AppColors.muted),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Recently uploaded — 2-col photo grid.
-  Widget _recentSection() {
-    final recent = _on(_selected).take(4).toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recently uploaded',
-              style: TextStyle(
-                fontSize: AppType.bodyStrong,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-                letterSpacing: -0.3,
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        AllEntriesScreen(storage: widget.storage),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
-                child: Text(
-                  'View all',
-                  style: TextStyle(
-                    fontSize: AppType.body,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.muted,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12),
-        if (recent.isEmpty)
-          EmptyCard(onScanTap: _openCapture)
-        else
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 1.5,
-            children: recent.map((e) => _recentGridCard(e)).toList(),
-          ),
-      ],
-    );
-  }
-
-  Widget _recentGridCard(FoodEntry entry) {
-    final kcal = entry.totalCalories;
-    final names =
-        entry.items.map((i) => i.name).take(2).join(', ');
-    return InkWell(
-      onTap: () async {
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MealDetailScreen(
-              entry: entry,
-              storage: widget.storage,
-              onDeleted: () => _deleteEntry(entry),
-            ),
-          ),
-        );
-        _load();
-      },
-      onLongPress: () => _deleteEntry(entry),
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (entry.imagePath.isNotEmpty &&
-                File(entry.imagePath).existsSync())
-              Image.file(
-                File(entry.imagePath),
-                fit: BoxFit.cover,
-              )
-            else
-              Container(
-                color: AppColors.cardAlt,
-                child: Center(
-                  child: Icon(Symbols.restaurant_rounded, size: 24, color: AppColors.faint),
-                ),
-              ),
-            Positioned(
-              left: 8,
-              bottom: 8,
-              right: 8,
-              child: Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      names,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: AppType.small,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      '$kcal kcal',
-                      style: TextStyle(
-                        fontSize: AppType.micro,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  /// Connect step tracking (or fall back to manual entry on devices
+  /// without a step sensor).
   Future<void> _enableSteps() async {
     if (_enablingSteps) return;
     setState(() => _enablingSteps = true);
@@ -2325,6 +1016,796 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ================= Placeholder tabs =================
+
+  Widget _homePage(Profile profile) {
+    final goal = profile.calorieGoal;
+    final logged = _calories(_selected);
+    final remaining = (goal - logged).clamp(0, goal);
+
+    return RefreshIndicator(
+      color: AppColors.ink,
+      onRefresh: () async => _load(),
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 118),
+        children: [
+          _header(profile),
+          if (!_isOnline) ...[
+            SizedBox(height: AppSpace.md),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.warningBg,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              child: Row(
+                children: [
+                  Icon(Symbols.wifi_off_rounded,
+                      size: 18, color: AppColors.accentOrange),
+                  SizedBox(width: AppSpace.md),
+                  Expanded(
+                    child: Text(
+                      "You're offline. AI features unavailable.",
+                      style: TextStyle(
+                        fontSize: AppType.body,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          SizedBox(height: AppSpace.lg),
+          _heroCard(profile, goal, logged, remaining),
+          SizedBox(height: AppSpace.md),
+          _equationLine(goal, logged),
+          SizedBox(height: AppSpace.lg),
+          _scanCta(),
+          SizedBox(height: AppSpace.md),
+          _logTiles(),
+          SizedBox(height: AppSpace.md),
+          _logLinks(),
+          SizedBox(height: AppSpace.xl),
+          _sectionTitle("Today's habits"),
+          SizedBox(height: AppSpace.md),
+          _habitsCard(),
+          SizedBox(height: AppSpace.xl),
+          _questCard(),
+          SizedBox(height: AppSpace.xl),
+          _sectionTitle('Recently logged',
+              trailing: 'View all', onTrailing: _openAllEntries),
+          SizedBox(height: AppSpace.md),
+          _recentRow(),
+          if (Features.asha) ...[
+            SizedBox(height: AppSpace.xl),
+            _ashaConcierge(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _openAllEntries() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AllEntriesScreen(storage: widget.storage),
+      ),
+    );
+  }
+
+  Widget _header(Profile profile) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: _greetingBlock(profile)),
+        SizedBox(width: AppSpace.sm),
+        _streakPill(),
+      ],
+    );
+  }
+
+  Widget _greetingBlock(Profile profile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$_greetingText, ${profile.name.split(' ').first}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: AppType.headline,
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+            letterSpacing: -0.8,
+          ),
+        ),
+        SizedBox(height: 3),
+        InkWell(
+          onTap: _openDayPicker,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _dateLabel,
+                style: TextStyle(
+                  fontSize: AppType.small,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.faint,
+                ),
+              ),
+              SizedBox(width: 3),
+              Icon(Symbols.keyboard_arrow_down_rounded,
+                  size: 15, color: AppColors.faint),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String get _dateLabel {
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    final d = _selected;
+    return '${days[d.weekday - 1]} · ${d.day} ${months[d.month - 1]}';
+  }
+
+  Future<void> _openDayPicker() async {
+    final now = clock.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selected,
+      firstDate: DateTime(now.year - 2),
+      lastDate: now,
+      helpText: 'Pick a day',
+    );
+    if (picked != null && mounted) {
+      setState(
+          () => _selected = DateTime(picked.year, picked.month, picked.day));
+    }
+  }
+
+  Widget _heroCard(Profile profile, int goal, int logged, int remaining) {
+    final progress = goal > 0 ? (remaining / goal).clamp(0.0, 1.0) : 0.0;
+    return InkWell(
+      onTap: () => _openMacro(MacroType.calories, logged.toDouble(),
+          goal.toDouble(), AppColors.ink),
+      borderRadius: BorderRadius.circular(AppRadius.sheet),
+      child: Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 132,
+              height: 132,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 12,
+                    backgroundColor: AppColors.track,
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.accentOrange),
+                    strokeCap: StrokeCap.round,
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$remaining',
+                          style: TextStyle(
+                            fontSize: AppType.hero,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
+                            letterSpacing: -1.2,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'KCAL LEFT',
+                          style: TextStyle(
+                            fontSize: AppType.micro,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.faint,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: AppSpace.lg),
+            Expanded(
+              child: Column(
+                children: [
+                  _macroRow('Protein', _protein(_selected),
+                      profile.proteinGrams.toDouble(), AppColors.protein,
+                      MacroType.protein),
+                  SizedBox(height: 13),
+                  _macroRow('Carbs', _carbs(_selected),
+                      profile.carbsGrams.toDouble(), AppColors.carbs,
+                      MacroType.carbs),
+                  SizedBox(height: 13),
+                  _macroRow('Fat', _fat(_selected),
+                      profile.fatGrams.toDouble(), AppColors.fat,
+                      MacroType.fat),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _macroRow(
+      String name, double value, double target, Color color, MacroType type) {
+    final pct = target > 0 ? (value / target).clamp(0.0, 1.0) : 0.0;
+    return InkWell(
+      onTap: () => _openMacro(type, value, target, color),
+      borderRadius: BorderRadius.circular(AppRadius.pill),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                name,
+                style: TextStyle(
+                  fontSize: AppType.body,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+              Text(
+                '${value.round()} / ${target.round()}g',
+                style: TextStyle(
+                  fontSize: AppType.small,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.faint,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.bar),
+            child: LinearProgressIndicator(
+              value: pct,
+              minHeight: 7,
+              backgroundColor: AppColors.cardAlt,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _equationLine(int goal, int logged) {
+    final left = goal - logged;
+    return Text.rich(
+      TextSpan(
+        style: TextStyle(
+          fontSize: AppType.small,
+          fontWeight: FontWeight.w600,
+          color: AppColors.faint,
+        ),
+        children: [
+          TextSpan(
+              text: '$goal',
+              style: TextStyle(
+                  color: AppColors.ink, fontWeight: FontWeight.w800)),
+          TextSpan(text: ' goal · '),
+          TextSpan(
+              text: '$logged',
+              style: TextStyle(
+                  color: AppColors.ink, fontWeight: FontWeight.w800)),
+          TextSpan(text: ' eaten · '),
+          TextSpan(text: left > 0 ? '$left left' : 'goal reached'),
+        ],
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _scanCta() {
+    return InkWell(
+      onTap: _openCapture,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: Container(
+        height: 56,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.inkButton,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Symbols.center_focus_strong_rounded,
+                size: 20, color: Colors.white),
+            SizedBox(width: 9),
+            Text(
+              'Scan food',
+              style: TextStyle(
+                fontSize: AppType.title,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _logTiles() {
+    return Row(
+      children: [
+        Expanded(
+          child: _logTile(
+              Symbols.photo_library_rounded, 'Gallery', _openGallery),
+        ),
+        SizedBox(width: AppSpace.md),
+        Expanded(
+          child: _logTile(Symbols.restaurant_menu_rounded, 'Quick picks',
+              _openQuickPicks),
+        ),
+      ],
+    );
+  }
+
+  Widget _logTile(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: AppColors.ink),
+            SizedBox(width: AppSpace.sm),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: AppType.body,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _logLinks() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _logLink('Add manually', _openManualEntry),
+        SizedBox(width: AppSpace.xl),
+        _logLink('Barcode scan', _openBarcodeScanner),
+      ],
+    );
+  }
+
+  Widget _logLink(String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.pill),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: AppType.body,
+            fontWeight: FontWeight.w700,
+            color: AppColors.muted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title,
+      {String? trailing, VoidCallback? onTrailing}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: AppType.title,
+            fontWeight: FontWeight.w800,
+            color: AppColors.ink,
+            letterSpacing: -0.4,
+          ),
+        ),
+        if (trailing != null)
+          InkWell(
+            onTap: onTrailing,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: AppSpace.sm, vertical: AppSpace.xs),
+              child: Text(
+                trailing,
+                style: TextStyle(
+                  fontSize: AppType.small,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.muted,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _habitsCard() {
+    return Container(
+      padding:
+          EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: AppSpace.xs),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.sheet),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
+        children: [
+          _habitRow(
+            icon: Symbols.water_drop_rounded,
+            iconColor: AppColors.water,
+            label: 'Water',
+            value: (_waterMl / 1000).toStringAsFixed(1),
+            unit: '/ ${(_waterGoalMl / 1000).toStringAsFixed(1)} L',
+            pct: _waterGoalMl > 0
+                ? (_waterMl / _waterGoalMl).clamp(0.0, 1.0)
+                : 0.0,
+            color: AppColors.water,
+            actionIcon: Symbols.add_rounded,
+            actionLabel: 'Glass',
+            onAction: _openWaterSheet,
+          ),
+          Divider(height: 1, color: AppColors.divider),
+          _habitRow(
+            icon: Symbols.directions_run_rounded,
+            iconColor: AppColors.green,
+            label: 'Steps',
+            value: '$_stepsToday',
+            unit: '/ 8,000',
+            pct: (_stepsToday / 8000).clamp(0.0, 1.0),
+            color: AppColors.green,
+            actionIcon: Symbols.directions_run_rounded,
+            actionLabel: 'Exercise',
+            onAction: _addExerciseSheet,
+            onTap: _stepsEnabled ? _manualStepsDialog : _enableSteps,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _habitRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required String unit,
+    required double pct,
+    required Color color,
+    required IconData actionIcon,
+    required String actionLabel,
+    required VoidCallback onAction,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: Padding(
+      padding: EdgeInsets.symmetric(vertical: AppSpace.md),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppColors.cardAlt,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+            ),
+            child: Icon(icon, size: 18, color: iconColor),
+          ),
+          SizedBox(width: AppSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: AppType.body,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontSize: AppType.small,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.faint,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: value,
+                            style: TextStyle(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          TextSpan(text: ' $unit'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.bar),
+                  child: LinearProgressIndicator(
+                    value: pct,
+                    minHeight: 6,
+                    backgroundColor: AppColors.cardAlt,
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: AppSpace.md),
+          InkWell(
+            onTap: onAction,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.cardAlt,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(actionIcon, size: 14, color: AppColors.ink),
+                  SizedBox(width: 4),
+                  Text(
+                    actionLabel,
+                    style: TextStyle(
+                      fontSize: AppType.small,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+    );
+  }
+
+  Widget _questCard() {
+    final gami = _gami;
+    if (gami == null || gami.activeQuests.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final quests = gami.activeQuests;
+    final pct = (gami.questsCompleted / quests.length).clamp(0.0, 1.0);
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const GamificationHubScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(AppRadius.sheet),
+      child: Container(
+        padding: EdgeInsets.all(AppSpace.lg),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Symbols.checklist_rounded,
+                    size: 17, color: AppColors.accentOrange),
+                SizedBox(width: 8),
+                Text(
+                  "Today's quests",
+                  style: TextStyle(
+                    fontSize: AppType.bodyStrong,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
+                Spacer(),
+                Text(
+                  'Level ${gami.level} · +${gami.todayPoints} pts',
+                  style: TextStyle(
+                    fontSize: AppType.small,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.accentOrange,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: AppSpace.md),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.bar),
+              child: LinearProgressIndicator(
+                value: pct,
+                minHeight: 6,
+                backgroundColor: AppColors.cardAlt,
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(AppColors.accentOrange),
+              ),
+            ),
+            SizedBox(height: AppSpace.md),
+            ...quests.take(3).map(_questRow),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _recentRow() {
+    final recent = _on(_selected).take(6).toList();
+    if (recent.isEmpty) return EmptyCard(onScanTap: _openCapture);
+    return SizedBox(
+      height: 152,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: recent.length,
+        separatorBuilder: (_, __) => SizedBox(width: AppSpace.md),
+        itemBuilder: (_, i) => _recentCard(recent[i]),
+      ),
+    );
+  }
+
+  Widget _recentCard(FoodEntry entry) {
+    final kcal = entry.totalCalories;
+    final names = entry.items.map((i) => i.name).take(2).join(', ');
+    final time = DateFormat.jm().format(entry.dateTime);
+    return InkWell(
+      onTap: () async {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => MealDetailScreen(
+              entry: entry,
+              storage: widget.storage,
+              onDeleted: () => _deleteEntry(entry),
+            ),
+          ),
+        );
+        _load();
+      },
+      onLongPress: () => _deleteEntry(entry),
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: SizedBox(
+        width: 150,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              child: SizedBox(
+                width: 150,
+                height: 104,
+                child: (entry.imagePath.isNotEmpty &&
+                        File(entry.imagePath).existsSync())
+                    ? Image.file(File(entry.imagePath), fit: BoxFit.cover)
+                    : Container(
+                        color: AppColors.cardAlt,
+                        child: Center(
+                          child: Icon(Symbols.restaurant_rounded,
+                              size: 24, color: AppColors.faint),
+                        ),
+                      ),
+              ),
+            ),
+            SizedBox(height: AppSpace.sm),
+            Text(
+              names.isEmpty ? 'Meal' : names,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: AppType.body,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              '$kcal kcal · $time',
+              style: TextStyle(
+                fontSize: AppType.small,
+                fontWeight: FontWeight.w600,
+                color: AppColors.faint,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openMacro(MacroType type, double total, double target, Color color) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MacroBreakdownScreen(
+          macroType: type,
+          entries: _on(_selected),
+          total: total,
+          target: target,
+          color: color,
+        ),
+      ),
+    );
+  }
 
   Widget _progressPage() => ProgressScreen(storage: widget.storage);
 
@@ -2821,51 +2302,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _load();
     }
   }
-}
-
-class _RingPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-  final double strokeWidth;
-
-  _RingPainter({
-    required this.progress,
-    required this.color,
-    this.strokeWidth = 2.5,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    final bgPaint = Paint()
-      ..color = color.withValues(alpha: 0.15)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-    canvas.drawCircle(center, radius, bgPaint);
-
-    if (progress > 0) {
-      final arcPaint = Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round;
-
-      final rect = Rect.fromCircle(center: center, radius: radius);
-      canvas.drawArc(
-        rect,
-        -3.14159 / 2,
-        2 * 3.14159 * progress.clamp(0.0, 1.0),
-        false,
-        arcPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_RingPainter old) =>
-      old.progress != progress || old.color != color;
 }
 
 class _MiniWeightChart extends StatelessWidget {

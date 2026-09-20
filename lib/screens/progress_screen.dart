@@ -14,6 +14,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/empty_illustration.dart';
 import 'achievements_screen.dart';
+import 'insights_screen.dart';
 
 class ProgressScreen extends StatefulWidget {
   final StorageService storage;
@@ -168,6 +169,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
       children: [
         _header(),
         SizedBox(height: 16),
+        _insightsEntry(),
+        SizedBox(height: 16),
         _weightCard(profile),
         SizedBox(height: 16),
         _periodToggle(),
@@ -225,6 +228,47 @@ class _ProgressScreenState extends State<ProgressScreen> {
         SizedBox(height: 16),
         _fastingCard(),
       ],
+      ),
+    );
+  }
+
+  Widget _insightsEntry() {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => InsightsScreen(storage: widget.storage),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Row(
+          children: [
+            Icon(Symbols.insights_rounded,
+                size: 18, color: AppColors.accentOrange),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Insights & weekly review',
+                style: TextStyle(
+                  fontSize: AppType.bodyStrong,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+            ),
+            Icon(Symbols.chevron_right_rounded,
+                size: 18, color: AppColors.muted),
+          ],
+        ),
       ),
     );
   }
