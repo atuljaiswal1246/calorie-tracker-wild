@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home 1 — spec</title>
+<style>
+  @font-face{font-family:'Inter';src:url('file:///Users/neharohilla/Desktop/calorie_tracker/assets/fonts/Inter.ttf');font-weight:100 900}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:393px}
+  :root{
+    --bg:#FAF9F7; --card:#FFFFFF; --alt:#F1F0EC; --ink:#1C1C1E; --muted:#6E6E73; --faint:#8A8A85;
+    --track:#ECECE7; --line:#F1F0EC; --btn:#1C1C1E; --btn-ink:#FFFFFF;
+    --shadow:0 8px 22px rgba(0,0,0,.06); --shadow-lg:0 10px 26px rgba(0,0,0,.07);
+    --navshadow:0 12px 30px rgba(0,0,0,.16);
+  }
+  body.dark{
+    --bg:#0E0F11; --card:#1B1C1E; --alt:#26272B; --ink:#F2F2F4; --muted:#9A9AA2; --faint:#6D6D75;
+    --track:#2E2F33; --line:#2A2B2F; --btn:#3A3B40; --btn-ink:#FFFFFF;
+    --shadow:0 8px 22px rgba(0,0,0,.35); --shadow-lg:0 10px 26px rgba(0,0,0,.4);
+    --navshadow:0 12px 30px rgba(0,0,0,.5);
+  }
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .phone{position:relative;width:100%;min-height:852px}
+  .scroll{padding:22px 20px 108px}
+  .hrow{display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+  .greet{font-size:24px;font-weight:800;letter-spacing:-.8px}
+  .dt{display:flex;align-items:center;gap:4px;margin-top:3px}
+  .dt .d{font-size:12px;font-weight:600;color:var(--faint)}
+  .dt svg{width:13px;height:13px;color:var(--faint)}
+  .pill{display:flex;align-items:center;gap:5px;background:var(--card);border-radius:14px;padding:8px 11px;box-shadow:var(--shadow)}
+  .pill span{font-size:13px;font-weight:800}
+  .flame{width:15px;height:15px;color:#FF9500}
+
+  .hero{margin-top:18px;background:var(--card);border-radius:24px;padding:20px;display:flex;gap:20px;align-items:center;box-shadow:var(--shadow-lg)}
+  .ringwrap{position:relative;width:132px;height:132px;flex:0 0 auto}
+  .ringnum{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ringnum .n{font-size:31px;font-weight:800;letter-spacing:-1.4px;line-height:1}
+  .ringnum .l{font-size:11px;font-weight:700;color:var(--faint);margin-top:3px;letter-spacing:.2px}
+  .mstack{flex:1;display:flex;flex-direction:column;gap:13px}
+  .m .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .m .name{font-size:13px;font-weight:700}
+  .m .val{font-size:12px;font-weight:700;color:var(--faint)}
+  .m .val b{color:var(--ink);font-weight:800}
+  .track{height:7px;border-radius:4px;background:var(--alt);overflow:hidden}
+  .track i{display:block;height:7px;border-radius:4px}
+  .equation{margin-top:14px;font-size:12px;font-weight:600;color:var(--faint);text-align:center}
+  .equation b{color:var(--ink);font-weight:800}
+
+  .cta{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:9px;height:56px;border-radius:18px;background:var(--btn);color:var(--btn-ink);font-size:17px;font-weight:700;letter-spacing:-.2px;box-shadow:0 10px 22px rgba(0,0,0,.18)}
+  .cta svg{width:20px;height:20px}
+  .tiles{display:flex;gap:12px;margin-top:12px}
+  .tile{flex:1;height:52px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700}
+  .tile svg{width:18px;height:18px}
+  .links{display:flex;justify-content:center;gap:22px;margin-top:12px}
+  .links span{font-size:13px;font-weight:700;color:var(--muted)}
+  .hact{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--ink);background:var(--alt);border-radius:10px;padding:7px 10px;flex:0 0 auto}
+  .hact svg{width:14px;height:14px}
+  .qcard{margin-top:16px;background:var(--card);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow)}
+  .qhead{display:flex;align-items:center;justify-content:space-between}
+  .qhead .ql{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800}
+  .qhead .ql svg{width:16px;height:16px;color:#FF9500}
+  .qhead .qr{font-size:12px;font-weight:800;color:#FF9500}
+  .qbar{height:6px;border-radius:4px;background:var(--alt);overflow:hidden;margin-top:12px}
+  .qbar i{display:block;height:6px;border-radius:4px;background:#FF9500}
+  .qrow{display:flex;align-items:center;gap:10px;margin-top:13px}
+  .qdot{width:18px;height:18px;border-radius:99px;border:2px solid var(--track);flex:0 0 auto}
+  .qname{flex:1;font-size:12.5px;font-weight:700}
+  .qpts{font-size:11.5px;font-weight:800;color:var(--faint)}
+
+  .sect{display:flex;align-items:baseline;justify-content:space-between;margin:24px 4px 12px}
+  .sect h2{font-size:17px;font-weight:800;letter-spacing:-.4px}
+  .sect a{font-size:12px;font-weight:700;color:var(--faint)}
+  .meals{display:flex;gap:12px}
+  .meal{width:150px;flex:0 0 auto}
+  .meal .im{width:150px;height:104px;border-radius:18px;overflow:hidden;background:var(--alt)}
+  .meal .im img{width:100%;height:100%;object-fit:cover;display:block}
+  .meal .nm{font-size:13px;font-weight:800;margin-top:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meal .kc{font-size:11.5px;font-weight:600;color:var(--faint);margin-top:2px}
+
+  .emptycard{display:none;align-items:center;gap:16px;background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+  .emptycard img{width:96px;height:96px;border-radius:16px;object-fit:cover;flex:0 0 auto}
+  .emptycard .et{font-size:15px;font-weight:800;letter-spacing:-.3px}
+  .emptycard .es{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:5px;line-height:1.5}
+  .emptycard .eb{margin-top:11px;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#FF9500}
+  body.empty .meals{display:none}
+  body.empty .emptycard{display:flex}
+
+  .habits{margin-top:16px;background:var(--card);border-radius:20px;padding:6px 18px;box-shadow:var(--shadow)}
+  .habit{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .habit:last-child{border-bottom:none}
+  .hic{width:34px;height:34px;border-radius:11px;background:var(--alt);display:flex;align-items:center;justify-content:center}
+  .hic svg{width:18px;height:18px}
+  .hbody{flex:1}
+  .hbody .t{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .hbody .t .a{font-size:13px;font-weight:700}
+  .hbody .t .b{font-size:12px;font-weight:700;color:var(--faint)}
+  .hbody .t .b b{color:var(--ink);font-weight:800}
+  .htrack{height:6px;border-radius:4px;background:var(--alt);overflow:hidden}
+  .htrack i{display:block;height:6px;border-radius:4px}
+
+  .fade{display:none;position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(transparent,var(--bg) 62%)}
+  .nav{position:absolute;left:16px;right:16px;bottom:12px;height:64px;background:var(--card);border-radius:999px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;box-shadow:var(--navshadow)}
+  .navi{width:58px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint)}
+  .navi.on{color:var(--ink)}
+  .navi svg{width:21px;height:21px}
+  .navi span{font-size:10px;font-weight:700}
+  .homechip{background:var(--alt);border-radius:16px;padding:7px 16px}
+  .scan{width:56px;height:56px;border-radius:999px;background:var(--btn);color:var(--btn-ink);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,.22)}
+  .scan svg{width:24px;height:24px}
+  .avatar{width:34px;height:34px;border-radius:999px;background:var(--alt);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scroll">
+    <div class="hrow">
+      <div>
+        <div class="greet">Good morning, Atul</div>
+        <div class="dt"><span class="d">Sunday · 20 September</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="pill"><svg class="flame" viewBox="0 0 24 24"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 .5 1 1.5 2 3 2 0-3-1-6 0-8z" fill="currentColor"/></svg><span>5</span></div>
+    </div>
+
+    <div class="hero">
+      <div class="ringwrap">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <circle cx="66" cy="66" r="56" fill="none" stroke="var(--track)" stroke-width="12"/>
+          <circle cx="66" cy="66" r="56" fill="none" stroke="#FF9500" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="168.2 351.9" transform="rotate(-90 66 66)"/>
+        </svg>
+        <div class="ringnum"><div class="n">995</div><div class="l">KCAL LEFT</div></div>
+      </div>
+      <div class="mstack">
+        <div class="m"><div class="top"><span class="name">Protein</span><span class="val"><b>39</b> / 151g</span></div><div class="track"><i style="width:26%;background:#E53935"></i></div></div>
+        <div class="m"><div class="top"><span class="name">Carbs</span><span class="val"><b>129</b> / 166g</span></div><div class="track"><i style="width:78%;background:#FF9500"></i></div></div>
+        <div class="m"><div class="top"><span class="name">Fat</span><span class="val"><b>46</b> / 90g</span></div><div class="track"><i style="width:51%;background:#007AFF"></i></div></div>
+      </div>
+    </div>
+    <div class="equation"><b>2,081</b> goal · <b>1,086</b> eaten · 3 meals to go</div>
+
+    <div class="cta"><svg viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Scan food</div>
+    <div class="tiles">
+      <div class="tile"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="9" cy="10" r="1.6" fill="currentColor"/><path d="M4 17l5-4 4 3 3-2 4 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Gallery</div>
+      <div class="tile"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Quick picks</div>
+    </div>
+    <div class="links"><span>Add manually</span><span>Barcode scan</span></div>
+
+    <div class="sect"><h2>Today's habits</h2></div>
+    <div class="habits">
+      <div class="habit">
+        <div class="hic"><svg viewBox="0 0 24 24" style="color:#007AFF"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z" fill="currentColor"/></svg></div>
+        <div class="hbody"><div class="t"><span class="a">Water</span><span class="b"><b>1.2</b> / 2.5 L</span></div><div class="htrack"><i style="width:48%;background:#007AFF"></i></div></div>
+        <div class="hact"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Glass</div>
+      </div>
+      <div class="habit">
+        <div class="hic"><svg viewBox="0 0 24 24" style="color:#34C759"><path d="M13 3l-1 6h5l-7 12 1-8H6l7-10z" fill="currentColor"/></svg></div>
+        <div class="hbody"><div class="t"><span class="a">Steps</span><span class="b"><b>0</b> / 8,000</span></div><div class="htrack"><i style="width:0%;background:#34C759"></i></div></div>
+        <div class="hact"><svg viewBox="0 0 24 24"><path d="M13 3l-1 6h5l-7 12 1-8H6l7-10z" fill="currentColor"/></svg>Exercise</div>
+      </div>
+    </div>
+
+    <div class="qcard">
+      <div class="qhead">
+        <span class="ql"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>Today's quests</span>
+        <span class="qr">Level 1 · +0 pts</span>
+      </div>
+      <div class="qbar"><i style="width:0%"></i></div>
+      <div class="qrow"><span class="qdot"></span><span class="qname">Hit your daily water goal</span><span class="qpts">+10</span></div>
+      <div class="qrow"><span class="qdot"></span><span class="qname">Log a meal using AI Photo Scan</span><span class="qpts">+15</span></div>
+      <div class="qrow"><span class="qdot"></span><span class="qname">Log all 3 meals today</span><span class="qpts">+15</span></div>
+    </div>
+
+    <div class="sect"><h2>Recently logged</h2><a>View all</a></div>
+    <div class="meals">
+      <div class="meal"><div class="im"><img src="file:///Users/neharohilla/Desktop/calorie_tracker/assets/onboarding/food_palak_paneer.jpg"></div><div class="nm">Palak Paneer</div><div class="kc">265 kcal · 1:30 pm</div></div>
+      <div class="meal"><div class="im"><img src="file:///Users/neharohilla/Desktop/calorie_tracker/assets/onboarding/hero_bowl.jpg"></div><div class="nm">Oats & Berries</div><div class="kc">210 kcal · 9:10 am</div></div>
+    </div>
+    <div class="emptycard">
+      <img src="file:///Users/neharohilla/Desktop/calorie_tracker/assets/illustrations/empty_meals.jpg">
+      <div>
+        <div class="et">No meals yet</div>
+        <div class="es">Snap your first plate and I'll work out the calories.</div>
+        <div class="eb">Scan food →</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="nav">
+    <div class="navi on"><div class="homechip"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" fill="currentColor"/></svg></div><span>Home</span></div>
+    <div class="navi"><svg viewBox="0 0 24 24"><rect x="4" y="12" width="4" height="8" rx="1.5" fill="currentColor"/><rect x="10" y="7" width="4" height="13" rx="1.5" fill="currentColor"/><rect x="16" y="10" width="4" height="10" rx="1.5" fill="currentColor"/></svg><span>Progress</span></div>
+    <div class="scan"><svg viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>
+    <div class="navi"><svg viewBox="0 0 24 24"><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z" fill="currentColor"/><path d="M7 6H5a2 2 0 0 0 0 4h1.2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M17 6h2a2 2 0 0 1 0 4h-1.2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M12 13v3" stroke="currentColor" stroke-width="2"/><path d="M10 16h4l.6 4h-5.2L10 16Z" fill="currentColor"/><path d="M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Trophy</span></div>
+    <div class="navi"><div class="avatar">AT</div><span>Profile</span></div>
+  </div>
+</div>
+<script>
+  var p=new URLSearchParams(location.search);
+  if(p.get('theme')==='dark') document.body.classList.add('dark');
+  if(p.get('state')==='empty') document.body.classList.add('empty');
+  var w=p.get('w');
+  if(w){ document.documentElement.style.width=w+'px'; document.body.style.width=w+'px'; }
+  var s=p.get('scroll');
+  if(s){ document.querySelector('.scroll').style.marginTop='-'+s+'px'; document.querySelector('.fade').style.display='block'; }
+  var hgt=p.get('h');
+  if(hgt){
+    document.documentElement.style.height=hgt+'px';
+    document.body.style.height=hgt+'px';
+    document.querySelector('.phone').style.height=hgt+'px';
+    document.querySelector('.scroll').style.height=hgt+'px';
+    document.querySelector('.scroll').style.overflow='hidden';
+  }
+</script>
+</body>
+</html>

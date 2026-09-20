@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face {
+    font-family: 'Inter';
+    src: url('file:///Users/neharohilla/Desktop/calorie_tracker/assets/fonts/Inter.ttf');
+    font-weight: 100 900;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1500px; height: 1610px; overflow: hidden; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #FAF9F7; color: #1C1C1E;
+    -webkit-font-smoothing: antialiased;
+  }
+  .head { padding: 34px 48px 0 48px; }
+  .title { font-size: 30px; font-weight: 800; letter-spacing: -0.8px; }
+  .title em { font-style: normal; color: #E5484D; }
+  .sub { margin-top: 6px; font-size: 15px; font-weight: 500; color: #8A8A8E; }
+
+  .stage { position: absolute; left: 0; top: 0; width: 1500px; height: 1610px; }
+  .shot {
+    position: absolute; left: 80px; top: 170px; width: 472px; height: 1022px;
+    border-radius: 22px; border: 1px solid #E6E3DE;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+  }
+  .hl { position: absolute; border: 2px solid #E5484D; border-radius: 8px;
+        background: rgba(229,72,77,0.10); }
+  .pin {
+    position: absolute; width: 30px; height: 30px; border-radius: 50%;
+    background: #E5484D; color: #fff; font-size: 15px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    transform: translate(-50%,-50%); box-shadow: 0 0 0 4px #FAF9F7, 0 3px 8px rgba(0,0,0,0.25);
+    z-index: 5;
+  }
+  .legend { position: absolute; left: 620px; top: 170px; width: 830px; }
+  .item { display: flex; gap: 16px; padding: 15px 0; border-bottom: 1px solid #ECE9E4; }
+  .item:last-child { border-bottom: none; }
+  .num {
+    flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
+    background: #E5484D; color: #fff; font-size: 15px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .body { flex: 1; }
+  .item h3 { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+  .item p { margin-top: 3px; font-size: 14px; line-height: 1.45; color: #55555A; }
+  .item code { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+               background: #F0EDE8; color: #1C1C1E; padding: 1px 5px; border-radius: 4px; }
+  .item .ref { margin-top: 5px; font-size: 12px; font-weight: 600; color: #B0ADA8; }
+
+  .rule {
+    position: absolute; left: 620px; top: 1204px; width: 830px;
+    background: #FFF4E5; border: 1px solid #FFD9A8; border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .rule .k { font-size: 12px; font-weight: 800; letter-spacing: 0.6px; color: #B26A00; }
+  .rule p { margin-top: 4px; font-size: 14px; line-height: 1.5; color: #5A4A2E; }
+
+  .refstrip { position: absolute; left: 80px; top: 1250px; }
+  .refstrip .cap { font-size: 12px; font-weight: 800; letter-spacing: 0.6px; color: #B0ADA8; margin-bottom: 10px; }
+  .thumbs { display: flex; gap: 18px; }
+  .thumb img { width: 120px; height: 260px; border-radius: 10px; border: 1px solid #E6E3DE; display: block; }
+  .thumb span { display: block; margin-top: 7px; font-size: 12px; font-weight: 600; color: #8A8A8E; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="title">Home &mdash; why it doesn't feel like <em>onboarding</em></div>
+    <div class="sub">Six concrete deviations from the design language the onboarding screens are built on.</div>
+  </div>
+
+  <div class="stage">
+    <img class="shot" src="file:///Users/neharohilla/Desktop/calorie_tracker/test/goldens/app_home.png">
+
+    <!-- highlight regions -->
+    <div class="hl" style="left:99px;   top:204px; width:216px; height:38px;"></div>
+    <div class="hl" style="left:351px;  top:408px; width:175px; height:233px;"></div>
+    <div class="hl" style="left:114px;  top:576px; width:212px; height:74px;"></div>
+    <div class="hl" style="left:111px;  top:655px; width:206px; height:58px;"></div>
+    <div class="hl" style="left:358px;  top:672px; width:56px;  height:41px;"></div>
+    <div class="hl" style="left:99px;   top:1072px;width:437px; height:120px;"></div>
+
+    <!-- pins -->
+    <div class="pin" style="left:266px; top:222px;">1</div>
+    <div class="pin" style="left:440px; top:482px;">2</div>
+    <div class="pin" style="left:212px; top:594px;">3</div>
+    <div class="pin" style="left:212px; top:684px;">4</div>
+    <div class="pin" style="left:386px; top:692px;">5</div>
+    <div class="pin" style="left:320px; top:1142px;">6</div>
+  </div>
+
+  <div class="legend">
+    <div class="item">
+      <div class="num">1</div>
+      <div class="body">
+        <h3>No hero &mdash; the biggest text is 15px</h3>
+        <p>The greeting is the page title, set at <code>AppType.bodyStrong</code> (15px). Onboarding anchors every screen with a 22&ndash;26px w800 headline. Nothing here says &ldquo;this is the screen&rdquo;.</p>
+        <div class="ref">home_screen.dart:756 &middot; _greeting()</div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="num">2</div>
+      <div class="body">
+        <h3>Eight co-equal modules, no hierarchy</h3>
+        <p>Greeting + 3 status pills, week strip, Today ring, Protein, Steps, Water, quests, log card &mdash; all the same visual weight in one scroll. Onboarding gives one idea the whole screen.</p>
+        <div class="ref">_header() &middot; week strip &middot; _homePage() children</div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="num">3</div>
+      <div class="body">
+        <h3>Small type everywhere</h3>
+        <p>~40 sites at <code>body</code>/<code>small</code> (13&ndash;15px); no large anchor anywhere below the ring. Density without a focal point is what reads as &ldquo;cramped dashboard&rdquo;.</p>
+        <div class="ref">AppType.body / AppType.small across Home</div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="num">4</div>
+      <div class="body">
+        <h3>Too many hues</h3>
+        <p>The palette is cream + near-black + <em style="font-style:normal;color:#FF9500;font-weight:700">orange</em>. Home adds pink (Sugar), blue (Sodium), amber (Burn) and green (steps / Track). Onboarding uses the orange accent alone.</p>
+        <div class="ref">Sugar / Sodium / Burn chips &middot; Track pill</div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="num">5</div>
+      <div class="body">
+        <h3>Icons, never illustration</h3>
+        <p>Every module is a small Material Symbol. Onboarding is illustration-led at hero scale (the Leonardo art). Home has no illustration at all.</p>
+        <div class="ref">protein / steps / water module icons</div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="num">6</div>
+      <div class="body">
+        <h3>The nav covers the primary action</h3>
+        <p>The floating nav is a Stack overlay (<code>Positioned</code>, <code>bottom: 14</code>, 64px). At first paint it sits on the <b>&ldquo;What's cooking?&rdquo;</b> card &mdash; clipping the title and the Scan food tiles. The main thing you came to do is half-hidden.</p>
+        <div class="ref">home_screen.dart:547 &middot; FloatingNav overlay</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <div class="k">THE ONE LINE</div>
+    <p>Onboarding is <b>one idea, big left-aligned type, generous space, illustration</b>. Home is the opposite: <b>many small cards, small type, tight gaps, icons</b>. Same app, two different languages.</p>
+  </div>
+
+  <div class="refstrip">
+    <div class="cap">REFERENCE &mdash; THE ONBOARDING LANGUAGE</div>
+    <div class="thumbs">
+      <div class="thumb"><img src="file:///Users/neharohilla/Desktop/calorie_tracker/test/goldens/onboarding_0.png"><span>Goal &middot; one idea, 2&times;2</span></div>
+      <div class="thumb"><img src="file:///Users/neharohilla/Desktop/calorie_tracker/test/goldens/onboarding_3.png"><span>Activity &middot; illustration-led</span></div>
+      <div class="thumb"><img src="file:///Users/neharohilla/Desktop/calorie_tracker/test/goldens/onboarding_6.png"><span>Plan ready &middot; one hero</span></div>
+    </div>
+  </div>
+</body>
+</html>

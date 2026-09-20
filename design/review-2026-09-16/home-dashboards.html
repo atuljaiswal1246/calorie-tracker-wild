@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cal Matters — Home dashboards</title>
+<style>
+  @font-face{font-family:'Inter';src:url('file:///Users/neharohilla/Desktop/calorie_tracker/assets/fonts/Inter.ttf');font-weight:100 900}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#F3F1EE;color:#1C1C1E;padding:40px 44px}
+  h1{font-size:27px;font-weight:800;letter-spacing:-.8px}
+  h1 em{font-style:normal;color:#FF9500}
+  .sub{margin-top:6px;font-size:13.5px;color:#8A8A8E;font-weight:500;max-width:900px;line-height:1.5}
+  .grid{display:flex;gap:36px;margin-top:30px;align-items:flex-start}
+  .item{width:352px}
+  .cap{margin-bottom:11px}
+  .cap b{font-size:15px;font-weight:800;letter-spacing:-.2px}
+  .cap span{display:block;margin-top:3px;font-size:12.5px;color:#8A8A8E;font-weight:500;line-height:1.4}
+  .frame{width:352px;height:763px;border-radius:22px;overflow:hidden;background:#FAF9F7;box-shadow:0 16px 40px rgba(0,0,0,.16)}
+  iframe{width:393px;height:852px;border:0;transform:scale(.8957);transform-origin:top left}
+</style>
+</head>
+<body>
+  <h1>Cal Matters &mdash; <em>Home</em>, three dashboards</h1>
+  <div class="sub">Same content, three hierarchy strategies. Each leads with one north-star number (calories left), then macros as a clear second tier, then logging and habits — with the capture action always above the nav.</div>
+
+  <div class="grid">
+    <div class="item">
+      <div class="cap"><b>1 · Ring + macro rows</b><span>Ring = calories left; macros as labelled rows. The most scannable, closest to how leading trackers do it.</span></div>
+      <div class="frame"><iframe src="home-dash-1.html"></iframe></div>
+    </div>
+    <div class="item">
+      <div class="cap"><b>2 · Number-led, calm</b><span>Biggest possible remaining number, one progress line, quiet macro rows. Least chrome.</span></div>
+      <div class="frame"><iframe src="home-dash-2.html"></iframe></div>
+    </div>
+    <div class="item">
+      <div class="cap"><b>3 · Bento tiles</b><span>Full-width calorie card, then equal macro and habit tiles. Closest to the current app, re-composed.</span></div>
+      <div class="frame"><iframe src="home-dash-3.html"></iframe></div>
+    </div>
+  </div>
+</body>
+</html>

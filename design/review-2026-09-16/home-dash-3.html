@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home 3 — Bento</title>
+<style>
+  @font-face{font-family:'Inter';src:url('file:///Users/neharohilla/Desktop/calorie_tracker/assets/fonts/Inter.ttf');font-weight:100 900}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:393px;height:852px;overflow:hidden}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#FAF9F7;color:#1C1C1E;-webkit-font-smoothing:antialiased}
+  .phone{position:relative;width:393px;height:852px;overflow:hidden}
+  .scroll{height:852px;overflow:hidden;padding:22px 20px 0}
+  .hrow{display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+  .greet{font-size:22px;font-weight:800;letter-spacing:-.7px}
+  .date{font-size:12px;font-weight:600;color:#8A8A85;margin-top:2px}
+  .pill{display:flex;align-items:center;gap:5px;background:#FFF;border-radius:99px;padding:8px 12px;box-shadow:0 4px 12px rgba(0,0,0,.06)}
+  .pill span{font-size:13px;font-weight:800}
+  .flame{width:15px;height:15px;color:#FF9500}
+
+  .card{background:#FFF;border-radius:22px;box-shadow:0 8px 22px rgba(0,0,0,.06)}
+  .hero{margin-top:18px;padding:18px 20px;display:flex;align-items:center;gap:20px}
+  .ringwrap{position:relative;width:118px;height:118px;flex:0 0 auto}
+  .ringnum{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ringnum .n{font-size:28px;font-weight:800;letter-spacing:-1.3px;line-height:1}
+  .ringnum .l{font-size:10px;font-weight:700;color:#8A8A85;margin-top:3px;letter-spacing:.3px}
+  .heroinfo{flex:1}
+  .heroinfo .lbl{font-size:11px;font-weight:800;letter-spacing:.7px;color:#B0ADA8}
+  .heroinfo .eq{font-size:13px;font-weight:600;color:#6E6E73;margin-top:7px;line-height:1.6}
+  .heroinfo .eq b{color:#1C1C1E;font-weight:800}
+
+  .macro3{display:flex;gap:11px;margin-top:12px}
+  .mtile{flex:1;padding:14px 13px}
+  .mtile .nm{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#6E6E73}
+  .mtile .dt{width:7px;height:7px;border-radius:99px}
+  .mtile .v{margin-top:9px;font-size:17px;font-weight:800;letter-spacing:-.4px}
+  .mtile .v span{font-size:11px;font-weight:700;color:#8A8A85;letter-spacing:0}
+  .mtile .tr{height:5px;border-radius:4px;background:#F1F0EC;overflow:hidden;margin-top:9px}
+  .mtile .tr i{display:block;height:5px;border-radius:4px}
+
+  .stat2{display:flex;gap:11px;margin-top:12px}
+  .stile{flex:1;padding:14px 15px}
+  .stile .th{display:flex;align-items:center;justify-content:space-between}
+  .stile .th .a{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#6E6E73}
+  .stile .th .b{font-size:11.5px;font-weight:700;color:#8A8A85}
+  .stile .th .b b{color:#1C1C1E;font-weight:800}
+  .stile .tr{height:6px;border-radius:4px;background:#F1F0EC;overflow:hidden;margin-top:12px}
+  .stile .tr i{display:block;height:6px;border-radius:4px}
+
+  .cta{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:9px;height:56px;border-radius:18px;background:#1C1C1E;color:#FFF;font-size:17px;font-weight:700;letter-spacing:-.2px;box-shadow:0 10px 22px rgba(0,0,0,.18)}
+  .cta svg{width:20px;height:20px}
+  .tiles{display:flex;gap:11px;margin-top:12px}
+  .tile{flex:1;height:50px;border-radius:16px;background:#FFF;box-shadow:0 6px 16px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:700}
+  .tile svg{width:18px;height:18px}
+
+  .sect{display:flex;align-items:baseline;justify-content:space-between;margin:22px 4px 11px}
+  .sect h2{font-size:16px;font-weight:800;letter-spacing:-.4px}
+  .sect a{font-size:12px;font-weight:700;color:#8A8A85}
+  .meals{display:flex;gap:11px}
+  .meal{width:147px;flex:0 0 auto}
+  .meal .im{width:147px;height:96px;border-radius:18px;overflow:hidden;background:#F1F0EC}
+  .meal .im img{width:100%;height:100%;object-fit:cover;display:block}
+  .meal .nm{font-size:12.5px;font-weight:800;margin-top:8px}
+  .meal .kc{font-size:11px;font-weight:600;color:#8A8A85;margin-top:2px}
+
+  .fade{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(transparent,#FAF9F7 62%)}
+  .nav{position:absolute;left:16px;right:16px;bottom:12px;height:64px;background:#FFF;border-radius:999px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;box-shadow:0 12px 30px rgba(0,0,0,.16)}
+  .navi{width:58px;display:flex;flex-direction:column;align-items:center;gap:3px;color:#8A8A85}
+  .navi.on{color:#1C1C1E}
+  .navi svg{width:21px;height:21px}
+  .navi span{font-size:10px;font-weight:700}
+  .homechip{background:#F1F0EC;border-radius:16px;padding:7px 16px}
+  .scan{width:56px;height:56px;border-radius:999px;background:#1C1C1E;color:#FFF;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,.22)}
+  .scan svg{width:24px;height:24px}
+  .avatar{width:34px;height:34px;border-radius:999px;background:#F1F0EC;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scroll">
+    <div class="hrow">
+      <div>
+        <div class="greet">Good morning, Atul</div>
+        <div class="date">Sunday · 20 September</div>
+      </div>
+      <div class="pill"><svg class="flame" viewBox="0 0 24 24"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 .5 1 1.5 2 3 2 0-3-1-6 0-8z" fill="currentColor"/></svg><span>5</span></div>
+    </div>
+
+    <div class="card hero">
+      <div class="ringwrap">
+        <svg width="118" height="118" viewBox="0 0 118 118">
+          <circle cx="59" cy="59" r="50" fill="none" stroke="#ECECE7" stroke-width="11"/>
+          <circle cx="59" cy="59" r="50" fill="none" stroke="#FF9500" stroke-width="11" stroke-linecap="round"
+                  stroke-dasharray="150.2 314.2" transform="rotate(-90 59 59)"/>
+        </svg>
+        <div class="ringnum"><div class="n">995</div><div class="l">LEFT</div></div>
+      </div>
+      <div class="heroinfo">
+        <div class="lbl">TODAY</div>
+        <div class="eq"><b>2,081</b> kcal goal<br><b>1,086</b> eaten · 3 meals to go</div>
+      </div>
+    </div>
+
+    <div class="macro3">
+      <div class="card mtile"><div class="nm"><em class="dt" style="background:#E53935"></em>Protein</div><div class="v">39<span>g</span></div><div class="tr"><i style="width:26%;background:#E53935"></i></div></div>
+      <div class="card mtile"><div class="nm"><em class="dt" style="background:#FF9500"></em>Carbs</div><div class="v">129<span>g</span></div><div class="tr"><i style="width:78%;background:#FF9500"></i></div></div>
+      <div class="card mtile"><div class="nm"><em class="dt" style="background:#007AFF"></em>Fat</div><div class="v">46<span>g</span></div><div class="tr"><i style="width:51%;background:#007AFF"></i></div></div>
+    </div>
+
+    <div class="stat2">
+      <div class="card stile">
+        <div class="th"><span class="a"><svg viewBox="0 0 24 24" style="width:15px;height:15px;color:#007AFF"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z" fill="currentColor"/></svg>Water</span><span class="b"><b>1.2</b> / 2.5 L</span></div>
+        <div class="tr"><i style="width:48%;background:#007AFF"></i></div>
+      </div>
+      <div class="card stile">
+        <div class="th"><span class="a"><svg viewBox="0 0 24 24" style="width:15px;height:15px;color:#34C759"><path d="M13 3l-1 6h5l-7 12 1-8H6l7-10z" fill="currentColor"/></svg>Steps</span><span class="b"><b>0</b> / 8,000</span></div>
+        <div class="tr"><i style="width:0%;background:#34C759"></i></div>
+      </div>
+    </div>
+
+    <div class="cta"><svg viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Scan food</div>
+    <div class="tiles">
+      <div class="tile"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="9" cy="10" r="1.6" fill="currentColor"/><path d="M4 17l5-4 4 3 3-2 4 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Gallery</div>
+      <div class="tile"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Quick picks</div>
+    </div>
+
+    <div class="sect"><h2>Recently logged</h2><a>View all</a></div>
+    <div class="meals">
+      <div class="meal"><div class="im"><img src="file:///Users/neharohilla/Desktop/calorie_tracker/assets/onboarding/food_palak_paneer.jpg"></div><div class="nm">Palak Paneer</div><div class="kc">265 kcal · 1:30 pm</div></div>
+      <div class="meal"><div class="im"><img src="file:///Users/neharohilla/Desktop/calorie_tracker/assets/onboarding/hero_bowl.jpg"></div><div class="nm">Oats & Berries</div><div class="kc">210 kcal · 9:10 am</div></div>
+    </div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="nav">
+    <div class="navi on"><div class="homechip"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" fill="currentColor"/></svg></div><span>Home</span></div>
+    <div class="navi"><svg viewBox="0 0 24 24"><rect x="4" y="12" width="4" height="8" rx="1.5" fill="currentColor"/><rect x="10" y="7" width="4" height="13" rx="1.5" fill="currentColor"/><rect x="16" y="10" width="4" height="10" rx="1.5" fill="currentColor"/></svg><span>Progress</span></div>
+    <div class="scan"><svg viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>
+    <div class="navi"><div class="avatar">AT</div><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
