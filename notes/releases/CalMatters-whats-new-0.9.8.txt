@@ -1,0 +1,8 @@
+Cal Matters 0.9.8 (build 13) — what's new
+
+- Test build: paywall bypassed (testers go straight to Home; test-only, reverted
+  before production).
+- Home brought onto the design system: consistent spacing, Material Symbols icons,
+  and the app type scale (no more off-scale sizes).
+
+Note: NOT uploaded to Play. Tester APK only.

@@ -1,0 +1,34 @@
+Cal Matters 0.9.8 (build 13) — test build
+
+INSTALL FIRST (important)
+If you already have Cal Matters (Play Store version or an older APK), uninstall it
+first. This build is signed with our own key, so Android refuses to install it over
+a differently-signed copy — you'd see "App not installed". Uninstall, then install
+this APK.
+
+WHAT'S NEW IN 0.9.8
+
+1. NO PAYMENT SCREEN — this test build skips the paywall, so you go straight to
+   Home after sign-up. Nothing to buy or restore. (This is test-only; the real
+   build keeps the normal 3-day-trial flow.)
+
+2. HOME CLEAN-UP — spacing, icon shapes and text sizes across Home are now on the
+   app's design system. Should look tidier and more even. If anything looks off
+   (misaligned, cramped, or an icon that looks wrong), screenshot it.
+
+STILL WORTH CHECKING (unchanged since 0.9.7)
+
+3. WIDGETS — long-press home screen -> Widgets -> search "Cal Matters". Add the
+   Ring and Meal widgets. Please confirm the NUMBERS are real (the ring matches
+   what you've logged, not a placeholder).
+
+4. SOUND — Settings (gear) -> "Test notification sound". Also listen for a small
+   sound when you log a meal. If you hear nothing, check the phone isn't on silent.
+
+5. THE NUDGE — near the time you usually log a meal, if you haven't logged it yet,
+   one notification should arrive. It should never repeat for the same meal or fire
+   at night.
+
+6. Undo — deleting a meal offers "Undo" for a few seconds.
+
+Anything broken or ugly: screenshot it and send it over. Thank you!
