@@ -103,9 +103,9 @@ it, and the Settings "TEST BUILD" banner is gone as a result).
   into an account-only page (upgrade, Restore, Sign out).
 - Home shows a quiet countdown in the last 3 days, then "Your 7-day trial has
   ended".
-- **`Features.trialControls = true`** adds Settings → "Trial (test build)"
-  (force ended / active / clear) so the lock can be exercised without waiting a
-  week. **MUST be false before production.**
+- **`Features.trialControls`** adds trial QA buttons (force ended / active)
+  on the account page once the trial has ended. **OFF for the closed-testing
+  build** (2026-09-21) — testers see the real trial. Turn on only locally.
 - **KNOWN GAP:** account-level only. A different Gmail on the same phone still
   gets a fresh trial — that needs the device ledger (stable device id +
   Cloud Function). The trial date is already cloud-synced so that layer is a

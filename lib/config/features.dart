@@ -33,8 +33,11 @@ class Features {
   /// tester who cannot pay.
   static const bool bypassPaywall = false;
 
-  /// Shows the trial QA controls in Settings (force trial expired / active)
-  /// so the soft lock can be exercised without waiting 7 days.
-  /// MUST be false before a production release.
-  static const bool trialControls = true;
+  /// Shows the trial QA controls (force trial expired / active) on the
+  /// account page while the trial has ended, so the soft lock can be
+  /// exercised without waiting 7 days.
+  ///
+  /// OFF for the closed-testing build (2026-09-21): testers must see the
+  /// real trial, not a switch that fakes it. Turn on only in a local build.
+  static const bool trialControls = false;
 }
