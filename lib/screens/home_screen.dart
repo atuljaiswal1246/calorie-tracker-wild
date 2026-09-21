@@ -531,7 +531,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Positioned.fill(
               child: switch (_navIndex) {
                 1 => _progressPage(),
-                3 => _profilePage(profile),
+                3 => _limited ? _limitedProfilePage() : _profilePage(profile),
                 _ => _homePage(profile),
               },
             ),
@@ -543,6 +543,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 currentIndex: _navIndex,
                 onTap: (i) {
                   if (i == 2) {
+                    if (_limited) {
+                      _openPricing();
+                      return;
+                    }
                     HapticFeedback.lightImpact();
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -552,88 +556,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                     return;
                   }
+                  if (i == 1 && _limited) {
+                    _openPricing();
+                    return;
+                  }
                   setState(() => _navIndex = i);
                   if (i == 0) _load();
                 },
-                onCenterTap: _openCapture,
+                onCenterTap: () => _gate(_openCapture),
                 avatarInitials: _initials,
                 avatarPhotoPath: _profilePhotoPath,
               ),
             ),
-            if (!widget.storage.isPaidOrSandbox(
-                authEmail: widget.auth.currentUser?.email))
-              Positioned.fill(child: _paywallOverlay()),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _paywallOverlay() {
-    return Container(
-      color: AppColors.bg,
-      padding: EdgeInsets.symmetric(horizontal: 28),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: AppColors.warningBg,
-              borderRadius: BorderRadius.circular(AppRadius.sheet),
-            ),
-            child: Center(
-              child: Icon(Symbols.lock_rounded, size: 34, color: AppColors.ink),
-            ),
-          ),
-          SizedBox(height: 24),
-          Text(
-            'Your free trial has ended',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppType.hero,
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-              letterSpacing: -0.5,
-            ),
-          ),
-          SizedBox(height: AppSpace.md),
-          Text(
-            'Unlock unlimited food analysis and all features with a subscription.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: AppType.bodyStrong, color: AppColors.muted, height: 1.5),
-          ),
-          SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: FilledButton(
-              onPressed: _openPricing,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.inkButton,
-                foregroundColor: Colors.white,
-                shape: StadiumBorder(),
-              ),
-              child: Text(
-                'Unlock — ₹100/mo or ₹1,000/yr',
-                style: TextStyle(
-                  fontSize: AppType.title,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 12),
-          TextButton(
-            onPressed: () => _billing?.restore(),
-            child: Text(
-              'Restore purchase',
-              style: TextStyle(fontSize: AppType.body, color: AppColors.muted),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1029,6 +965,10 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.fromLTRB(20, 20, 20, 118),
         children: [
           _header(profile),
+          if (_limited || widget.storage.trialDaysLeft <= 3) ...[
+            SizedBox(height: AppSpace.md),
+            _trialBanner(),
+          ],
           if (!_isOnline) ...[
             SizedBox(height: AppSpace.md),
             Container(
@@ -1345,7 +1285,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _scanCta() {
     return InkWell(
-      onTap: _openCapture,
+      onTap: () => _gate(_openCapture),
       borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         height: 56,
@@ -1381,12 +1321,12 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Expanded(
           child: _logTile(
-              Symbols.photo_library_rounded, 'Gallery', _openGallery),
+              Symbols.photo_library_rounded, 'Gallery', () => _gate(_openGallery)),
         ),
         SizedBox(width: AppSpace.md),
         Expanded(
           child: _logTile(Symbols.restaurant_menu_rounded, 'Quick picks',
-              _openQuickPicks),
+              () => _gate(_openQuickPicks)),
         ),
       ],
     );
@@ -1428,7 +1368,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         _logLink('Add manually', _openManualEntry),
         SizedBox(width: AppSpace.xl),
-        _logLink('Barcode scan', _openBarcodeScanner),
+        _logLink('Barcode scan', () => _gate(_openBarcodeScanner)),
       ],
     );
   }
@@ -1804,6 +1744,198 @@ class _HomeScreenState extends State<HomeScreen> {
           color: color,
         ),
       ),
+    );
+  }
+
+  bool get _limited =>
+      widget.storage.isLimited(authEmail: widget.auth.currentUser?.email);
+
+  /// Premium actions route to the paywall once the trial has ended.
+  void _gate(VoidCallback action) {
+    if (_limited) {
+      _openPricing();
+      return;
+    }
+    action();
+  }
+
+  /// Trial state on Home: a quiet countdown near the end, then the
+  /// "trial ended" prompt. Manual logging stays free either way.
+  Widget _trialBanner() {
+    final level = widget.storage
+        .accessLevel(authEmail: widget.auth.currentUser?.email);
+    final String title;
+    final String body;
+    if (level == AccessLevel.limited) {
+      title = 'Your 7-day trial has ended';
+      body = 'Manual logging stays free. Subscribe to unlock AI scanning, '
+          'Progress and Settings.';
+    } else {
+      final days = widget.storage.trialDaysLeft;
+      if (days > 3) return const SizedBox.shrink();
+      title = days <= 1
+          ? 'Last day of your free trial'
+          : '$days days left in your free trial';
+      body = 'Subscribe to keep AI scanning, Progress and Settings.';
+    }
+    return InkWell(
+      onTap: _openPricing,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.warningBg,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+        ),
+        child: Row(
+          children: [
+            Icon(Symbols.workspace_premium_rounded,
+                size: 20, color: AppColors.accentOrange),
+            SizedBox(width: AppSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: AppType.body,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink)),
+                  SizedBox(height: 2),
+                  Text(body,
+                      style: TextStyle(
+                          fontSize: AppType.small,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.muted,
+                          height: 1.35)),
+                ],
+              ),
+            ),
+            SizedBox(width: AppSpace.sm),
+            Icon(Symbols.chevron_right_rounded,
+                size: 18, color: AppColors.muted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// TEST BUILD ONLY - force the trial states so the soft lock can be
+  /// checked without waiting a week (Features.trialControls).
+  Widget _trialControls() {
+    if (!Features.trialControls) return const SizedBox.shrink();
+    return Container(
+      padding: EdgeInsets.all(AppSpace.lg),
+      decoration: BoxDecoration(
+        color: AppColors.warningBg,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Trial (test build)',
+              style: TextStyle(
+                  fontSize: AppType.bodyStrong,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink)),
+          SizedBox(height: 4),
+          Text('Force the trial state to check the lock.',
+              style: TextStyle(fontSize: AppType.small, color: AppColors.muted)),
+          SizedBox(height: AppSpace.md),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    await widget.storage.debugForceTrialExpired();
+                    _load();
+                  },
+                  child: const Text('Trial ended'),
+                ),
+              ),
+              SizedBox(width: AppSpace.sm),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    await widget.storage.debugForceTrialActive();
+                    _load();
+                  },
+                  child: const Text('Trial active'),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: AppSpace.sm),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () async {
+                await widget.storage.debugClearTrialForce();
+                _load();
+              },
+              child: const Text('Clear override'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Profile tab once the trial has ended: account essentials only.
+  Widget _limitedProfilePage() {
+    return ListView(
+      padding: EdgeInsets.fromLTRB(20, 24, 20, 150),
+      children: [
+        Text('Account',
+            style: TextStyle(
+                fontSize: AppType.hero,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+                letterSpacing: -0.8)),
+        SizedBox(height: AppSpace.lg),
+        _trialBanner(),
+        SizedBox(height: AppSpace.lg),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: FilledButton(
+            onPressed: _openPricing,
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.inkButton,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.card)),
+            ),
+            child: Text('Unlock - Rs 100/mo or Rs 1,000/yr',
+                style: TextStyle(
+                    fontSize: AppType.title, fontWeight: FontWeight.w700)),
+          ),
+        ),
+        SizedBox(height: AppSpace.md),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => _billing?.restore(),
+            child: const Text('Restore purchase'),
+          ),
+        ),
+        SizedBox(height: AppSpace.xl),
+        _trialControls(),
+        SizedBox(height: AppSpace.xl),
+        SizedBox(
+          width: double.infinity,
+          child: TextButton(
+            onPressed: () async {
+              await widget.auth.signOut();
+              if (!mounted) return;
+              widget.onSignedOut();
+            },
+            child: Text('Sign out',
+                style: TextStyle(
+                    color: AppColors.missedRed, fontWeight: FontWeight.w700)),
+          ),
+        ),
+      ],
     );
   }
 

@@ -13,11 +13,10 @@ import '../widgets/animated_stats.dart';
 import '../widgets/app_image.dart';
 import '../widgets/date_picker_3step.dart';
 import 'auth_screen.dart';
-import 'pricing_screen.dart';
 
 /// The redesigned onboarding journey — six screens, one question each:
 ///   1 · Goal  2 · You  3 · Height & weight  4 · Activity  5 · Target & pace
-///   6 · Plan ready.  Then sign-up → pricing.
+///   6 · Plan ready.  Then sign-up → straight into the app (free trial).
 ///
 /// Tap-only; the calorie / macro math lives in [Profile] and is unchanged.
 class OnboardingFlow extends StatefulWidget {
@@ -25,7 +24,6 @@ class OnboardingFlow extends StatefulWidget {
   final AuthService auth;
   final VoidCallback onComplete;
   final VoidCallback onBack;
-  final bool startAtPricing;
   final bool startAtSignup;
   final int? startAtStep;
 
@@ -35,7 +33,6 @@ class OnboardingFlow extends StatefulWidget {
     required this.auth,
     required this.onComplete,
     required this.onBack,
-    this.startAtPricing = false,
     this.startAtSignup = false,
     this.startAtStep,
   });
@@ -53,7 +50,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   static const int _buildingStep = 5;
   static const int _planStep = 6;
   static const int _signupStep = 7;
-  static const int _pricingStep = 8;
   static const int _questionCount = 6;
 
   int _step = 0;
@@ -92,9 +88,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     _goal = 'lose';
     _pace = 'recommended';
     _workoutFreq = '3to5';
-    if (widget.startAtPricing) {
-      _step = _pricingStep;
-    } else if (widget.startAtSignup) {
+    if (widget.startAtSignup) {
       _restoreFromSavedProfile();
       _step = _signupStep;
     } else if (widget.startAtStep != null && widget.startAtStep! > 0) {
@@ -103,7 +97,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
     _stepStartedAt = clock.now();
     Funnel.onboardingStart(_step);
-    if (_step == _pricingStep) Funnel.paywallView();
   }
 
   @override
@@ -121,7 +114,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         5 => 'building',
         6 => 'plan',
         7 => 'signup',
-        8 => 'pricing',
         _ => 'unknown',
       };
 
@@ -287,27 +279,17 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     _saveDraft();
   }
 
+  /// The plan screen's CTA. New users create an account; the free trial then
+  /// starts inside the app — there is no paywall step in the funnel.
   Future<void> _goToPricing() async {
-    if (widget.storage.isPaidOrSandbox(
-        authEmail: widget.auth.currentUser?.email)) {
+    _logStep(_step);
+    if (widget.auth.isSignedIn) {
+      await widget.storage.ensureTrialStarted();
       _finish();
       return;
     }
-    _logStep(_step);
-    if (widget.auth.isSignedIn) {
-      setState(() => _step = _pricingStep);
-      Funnel.paywallView();
-    } else {
-      setState(() => _step = _signupStep);
-    }
+    setState(() => _step = _signupStep);
     _saveDraft();
-  }
-
-  Future<void> _onPaid() async {
-    Funnel.purchaseComplete();
-    await widget.storage.savePaid(true);
-    if (!mounted) return;
-    _finish();
   }
 
   Future<void> _finish() async {
@@ -463,21 +445,12 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         onAuthenticated: () async {
           final uid = widget.auth.currentUser?.uid;
           if (uid != null) widget.storage.setUserId(uid);
-          if (widget.storage.isPaidOrSandbox(
-              authEmail: widget.auth.currentUser?.email)) {
-            _finish();
-            return;
-          }
-          setState(() => _step = _pricingStep);
-          _saveDraft();
+          // Pull the trial date from the cloud first: a reinstall or a
+          // sign-in on another device must not restart the 7 days.
+          await widget.storage.loadTrialFromCloud();
+          await widget.storage.ensureTrialStarted();
+          _finish();
         },
-        onBack: () => setState(() => _step = _planStep),
-      );
-    }
-    if (_step == _pricingStep) {
-      return PricingScreen(
-        storage: widget.storage,
-        onPaid: _onPaid,
         onBack: () => setState(() => _step = _planStep),
       );
     }

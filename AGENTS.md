@@ -88,21 +88,29 @@ green, and installed on the user's phone. Everything else is parked, however
 good it sounds.
 
 
-## ⚠️ TEST BUILD — PAYWALL BYPASSED (2026-09-19) — MUST be reverted before production
-`Features.bypassPaywall = true` (`lib/config/features.dart`), honoured inside
-`StorageService.isPaidOrSandbox` — the single gate the whole funnel uses. While it
-is true the funnel goes straight to Home after sign-up and Home never shows the
-trial-ended overlay, so **closed testers are never stuck on a payment screen**.
-`PricingScreen` and `billing_service.dart` are untouched and merely unreachable.
+## Free trial + soft lock (2026-09-21) — REPLACES the post-signup paywall
+**The funnel no longer asks for payment.** Sign-up → Home; every account gets a
+**7-day full-access trial**; day 8 it soft-locks.
+`Features.bypassPaywall = false` (reverted 2026-09-21 — the funnel no longer needs
+it, and the Settings "TEST BUILD" banner is gone as a result).
 
-**Guardrail:** while the flag is true, Settings shows an amber
-"TEST BUILD — payment is bypassed" banner as the first thing on the screen. If that
-banner is ever seen in a production build, the flag was not flipped.
-
-**Before the production release:** set `bypassPaywall = false`, rebuild, and confirm
-(a) the paywall appears after sign-up for a non-paying account and (b) the Settings
-banner is gone. `tools/mark_paid.py <email>` marks an individual tester paid instead
-(dev route; the product route is a real purchase).
+- `StorageService` is the gate: `AccessLevel {trial, limited, full}`,
+  `accessLevel()`, `isLimited()`, `trialDaysLeft`, `ensureTrialStarted()`,
+  `loadTrialFromCloud()` (earliest of local vs cloud wins, so a reinstall or a
+  sign-in on another device cannot restart the 7 days).
+- **Limited** keeps manual logging + Home + habits + history free; **locks**
+  AI scan, Gallery, Quick picks, Barcode, Progress, Trophy, and turns Profile
+  into an account-only page (upgrade, Restore, Sign out).
+- Home shows a quiet countdown in the last 3 days, then "Your 7-day trial has
+  ended".
+- **`Features.trialControls = true`** adds Settings → "Trial (test build)"
+  (force ended / active / clear) so the lock can be exercised without waiting a
+  week. **MUST be false before production.**
+- **KNOWN GAP:** account-level only. A different Gmail on the same phone still
+  gets a fresh trial — that needs the device ledger (stable device id +
+  Cloud Function). The trial date is already cloud-synced so that layer is a
+  small follow-up.
+- Unblock a tester without code: `tools/mark_paid.py <email>`.
 
 
 ## Agent delegation — brain + muscles (locked 2026-09-19)

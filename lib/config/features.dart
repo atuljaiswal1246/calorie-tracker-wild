@@ -24,13 +24,17 @@ class Features {
   /// Services ID or client secret. Required on the App Store (4.8).
   static const bool appleSignIn = false;
 
-  /// TESTING ONLY. While true the paywall is unreachable: the funnel goes
-  /// straight to Home after sign-up and Home never shows the trial-ended
-  /// gate. PricingScreen and the billing code are untouched - simply not
-  /// reached.
+  /// TESTING ONLY. While true the paywall is unreachable and every account is
+  /// treated as fully paid.
   ///
-  /// MUST be false before a production release. While it is true the app
-  /// shows a visible "TEST BUILD" banner in Settings, so it cannot ship
-  /// unnoticed.
-  static const bool bypassPaywall = true;
+  /// REVERTED to false (2026-09-21): the funnel no longer asks for payment
+  /// after sign-up, so every account now gets the real 7-day free trial and
+  /// the soft lock. Only flip this back to true to temporarily unblock a
+  /// tester who cannot pay.
+  static const bool bypassPaywall = false;
+
+  /// Shows the trial QA controls in Settings (force trial expired / active)
+  /// so the soft lock can be exercised without waiting 7 days.
+  /// MUST be false before a production release.
+  static const bool trialControls = true;
 }

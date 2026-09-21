@@ -361,6 +361,23 @@ void main() {
     });
   });
 
+  testWidgets('home (trial ended)', (tester) async {
+    await withClock(Clock.fixed(_pinnedNow), () async {
+    final storage = await _storage();
+    await storage.debugForceTrialExpired();
+    await _shot(
+      tester,
+      HomeScreen(
+        storage: storage,
+        auth: _FakeAuth(),
+        onSignedOut: () {},
+        onResetGoals: () {},
+      ),
+      'app_home_locked',
+    );
+    });
+  });
+
   testWidgets('home full page', (tester) async {
     await withClock(Clock.fixed(_pinnedNow), () async {
     final storage = await _storage();

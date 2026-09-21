@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +17,13 @@ import '../config/features.dart';
 /// Used because iOS has no Play Billing; without this the app is unusable on
 /// the iPhone while testing.
 String kSandboxEmail = 'atuljaiswal1246@gmail.com';
+
+/// What an account may do right now.
+///
+/// - [trial]   — inside the free 7-day window (or not started yet).
+/// - [limited] — trial over and not paid: manual logging + Home stay free.
+/// - [full]    — paid (or the sandbox / test-build bypass).
+enum AccessLevel { trial, limited, full }
 
 class WaterEntry {
   final DateTime date;
@@ -978,6 +986,100 @@ class StorageService {
   /// True while the current account is the sandbox email (for messaging).
   bool isSandboxUser({String? authEmail}) =>
       !kReleaseMode && Platform.isIOS && authEmail == kSandboxEmail;
+
+  // ---- Free trial ----
+  // The funnel no longer asks for payment after sign-up: every new account
+  // gets a 7-day full-access trial, then drops to [AccessLevel.limited]
+  // (manual logging + Home stay free). The start date is mirrored to
+  // `users/{uid}` so reinstalling or signing back in cannot restart it.
+
+  static const _trialStartKey = 'trial_started_at_ms';
+  static const _trialForceKey = 'trial_force_state'; // TESTING ONLY
+  static const int trialDays = 7;
+
+  DateTime? get trialStartedAt {
+    final ms = _prefs.getInt(_trialStartKey);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  DateTime? get trialEndsAt =>
+      trialStartedAt?.add(Duration(days: trialDays));
+
+  bool get isTrialActive {
+    final end = trialEndsAt;
+    return end != null && clock.now().isBefore(end);
+  }
+
+  /// Whole days left in the trial (0 once it has ended).
+  int get trialDaysLeft {
+    final end = trialEndsAt;
+    if (end == null) return trialDays;
+    final hours = end.difference(clock.now()).inHours;
+    return hours <= 0 ? 0 : (hours / 24).ceil();
+  }
+
+  /// What the account may do right now. The test-build override is checked
+  /// FIRST so the lock can be exercised even while the paywall is bypassed.
+  AccessLevel accessLevel({String? authEmail}) {
+    switch (_prefs.getString(_trialForceKey)) {
+      case 'expired':
+        return AccessLevel.limited;
+      case 'active':
+        return AccessLevel.trial;
+    }
+    if (isPaidOrSandbox(authEmail: authEmail)) return AccessLevel.full;
+    if (trialStartedAt == null) return AccessLevel.trial; // starts on first use
+    return isTrialActive ? AccessLevel.trial : AccessLevel.limited;
+  }
+
+  /// True when the trial has run out and the account has not paid.
+  bool isLimited({String? authEmail}) =>
+      accessLevel(authEmail: authEmail) == AccessLevel.limited;
+
+  /// Starts the trial exactly once (idempotent) and mirrors it to the cloud.
+  Future<void> ensureTrialStarted() async {
+    if (trialStartedAt != null) return;
+    final now = clock.now();
+    await _prefs.setInt(_trialStartKey, now.millisecondsSinceEpoch);
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(() => ref.set(
+          {'trialStartedAt': now.millisecondsSinceEpoch},
+          SetOptions(merge: true)));
+    }
+  }
+
+  /// Pulls the trial start from `users/{uid}` on sign-in. The EARLIEST of the
+  /// local and cloud dates wins, so clearing local data (reinstall) cannot
+  /// grant a fresh trial on the same account.
+  Future<void> loadTrialFromCloud() async {
+    final ref = _profileRef();
+    if (ref == null) return;
+    DocumentSnapshot doc;
+    try {
+      doc = await ref.get();
+    } catch (_) {
+      return; // offline / denied — keep the local value
+    }
+    final data = doc.data() as Map<String, dynamic>?;
+    final cloudMs = data?['trialStartedAt'] as int?;
+    if (cloudMs == null) return;
+    final local = trialStartedAt;
+    if (local == null || cloudMs < local.millisecondsSinceEpoch) {
+      await _prefs.setInt(_trialStartKey, cloudMs);
+    }
+  }
+
+  // TESTING ONLY (Features.trialControls) — force the trial states so the lock
+  // can be checked without waiting a week.
+  Future<void> debugForceTrialExpired() async =>
+      _prefs.setString(_trialForceKey, 'expired');
+
+  Future<void> debugForceTrialActive() async =>
+      _prefs.setString(_trialForceKey, 'active');
+
+  Future<void> debugClearTrialForce() async =>
+      _prefs.remove(_trialForceKey);
 
   // ---- Recently Logged Foods ----
 

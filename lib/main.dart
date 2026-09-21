@@ -85,7 +85,6 @@ class _CalorieAppState extends State<CalorieApp> {
   // (unpaid returner). Prevents reactive isSignedIn guessing from opening
   // wrong screens (e.g. pricing before the questionnaire).
   bool _onboardingAtSignup = false;
-  bool _onboardingAtPricing = false;
   int? _onboardingAtStep;
 
   @override
@@ -111,7 +110,6 @@ class _CalorieAppState extends State<CalorieApp> {
   Future<void> _init() async {
     final profileExists = widget.storage.profile != null;
     _onboardingAtSignup = false;
-    _onboardingAtPricing = false;
     _onboardingAtStep = null;
     // If already signed in (app relaunch), restore session.
     if (widget.auth.isSignedIn) {
@@ -141,40 +139,37 @@ class _CalorieAppState extends State<CalorieApp> {
     final uid = widget.auth.currentUser!.uid;
     widget.storage.setUserId(uid);
 
-    // Load cloud data (profile + entries + payment state) for this user.
+    // Load cloud data (profile + entries + payment + trial) for this user.
     Profile? profile;
     try {
       profile = await widget.storage.loadProfileFromCloud();
       await widget.storage.loadEntriesFromCloud();
       await widget.storage.loadPaidFromCloud();
+      await widget.storage.loadTrialFromCloud();
       // Water / weight / exercise / league / gamification — restored only if
       // this device has none (so a phone switch doesn't look like data loss).
       await widget.storage.syncUserDataFromCloud();
     } catch (_) {
       // Cloud not ready / offline — proceed with local data.
     }
+    // The trial starts the first time a signed-in account reaches the app;
+    // idempotent, so a relaunch never restarts it.
+    await widget.storage.ensureTrialStarted();
 
     if (!mounted) return;
     if (profile == null) {
       // Signed in but never completed the questionnaire — must fill it.
       // Resume at the saved step if they were mid-journey (draft).
       _onboardingAtSignup = false;
-      _onboardingAtPricing = false;
       final draft = widget.storage.onboardingDraft;
       _onboardingAtStep = draft != null
           ? ((draft['step'] as num?) ?? 0).toInt().clamp(0, 6)
           : null;
       _goTo(_AppScreen.onboarding);
-    } else if (widget.storage.isPaidOrSandbox(
-      authEmail: widget.auth.currentUser?.email,
-    )) {
-      // Subscribed (free trial or after) or sandbox dev — full access.
-      _goTo(_AppScreen.home);
     } else {
-      // Unpaid — pricing (Play offer starts the free trial).
-      _onboardingAtSignup = false;
-      _onboardingAtPricing = true;
-      _goTo(_AppScreen.onboarding);
+      // The trial / soft lock now lives inside the app, so there is no
+      // paywall step between sign-in and Home.
+      _goTo(_AppScreen.home);
     }
   }
 
@@ -260,11 +255,9 @@ class _CalorieAppState extends State<CalorieApp> {
             onComplete: () => _goTo(_AppScreen.home),
             onBack: () {
               _onboardingAtSignup = false;
-              _onboardingAtPricing = false;
               _onboardingAtStep = null;
               _goTo(_AppScreen.welcome);
             },
-            startAtPricing: _onboardingAtPricing,
             startAtSignup: _onboardingAtSignup,
             startAtStep: _onboardingAtStep,
           ),
@@ -278,7 +271,6 @@ class _CalorieAppState extends State<CalorieApp> {
             onResetGoals: () {
               // Reset goals = re-answer the questionnaire from scratch.
               _onboardingAtSignup = false;
-              _onboardingAtPricing = false;
               _onboardingAtStep = null;
               widget.storage.clearOnboardingDraft();
               _goTo(_AppScreen.onboarding);
