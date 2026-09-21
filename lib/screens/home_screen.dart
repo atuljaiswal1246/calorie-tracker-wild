@@ -636,72 +636,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _questRow(ActiveQuest q) {
-    return Semantics(
-      label: '${q.template.title}, ${q.current} of ${q.target}'
-          '${q.completed ? ', completed' : ''}, worth ${q.calPoints} Cal Points',
-      child: Padding(
-      padding: EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: q.completed ? AppColors.green : AppColors.cardAlt,
-            ),
-            child: Icon(
-              q.completed ? Symbols.check_rounded : Symbols.circle_rounded,
-              size: 14,
-              color: q.completed ? Colors.white : AppColors.faint,
-            ),
-          ),
-          SizedBox(width: AppSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  q.template.title,
-                  style: TextStyle(
-                    fontSize: AppType.body,
-                    fontWeight: FontWeight.w600,
-                    color: q.completed ? AppColors.muted : AppColors.ink,
-                    decoration:
-                        q.completed ? TextDecoration.lineThrough : null,
-                  ),
-                ),
-                SizedBox(height: 5),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadius.bar),
-                  child: LinearProgressIndicator(
-                    value: q.progress,
-                    minHeight: 5,
-                    backgroundColor: AppColors.cardAlt,
-                    valueColor: AlwaysStoppedAnimation(
-                      q.completed ? AppColors.green : AppColors.ink,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: AppSpace.md),
-          Text(
-            '+${q.calPoints}',
-            style: TextStyle(
-              fontSize: AppType.small,
-              fontWeight: FontWeight.w700,
-              color: AppColors.muted,
-            ),
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-
   /// Asha concierge card — time-aware openers, tap straight into chat.
   Widget _ashaConcierge() {
     final h = clock.now().hour;
@@ -1001,17 +935,17 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: AppSpace.md),
           _equationLine(goal, logged),
           SizedBox(height: AppSpace.lg),
+          _sparkline(profile),
+          SizedBox(height: AppSpace.lg),
+          _nextMealPrompt(),
           _scanCta(),
           SizedBox(height: AppSpace.md),
           _logTiles(),
           SizedBox(height: AppSpace.md),
           _logLinks(),
           SizedBox(height: AppSpace.xl),
-          _sectionTitle("Today's habits"),
-          SizedBox(height: AppSpace.md),
-          _habitsCard(),
-          SizedBox(height: AppSpace.xl),
-          _questCard(),
+          _todayStrip(),
+          _logExercise(),
           SizedBox(height: AppSpace.xl),
           _sectionTitle('Recently logged',
               trailing: 'View all', onTrailing: _openAllEntries),
@@ -1131,7 +1065,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _heroCard(Profile profile, int goal, int logged, int remaining) {
     final progress = goal > 0 ? (remaining / goal).clamp(0.0, 1.0) : 0.0;
     return InkWell(
-      onTap: () => _openMacro(MacroType.calories, logged.toDouble(),
+      // The ring is the action: tap it to log. Long-press for the
+      // calorie breakdown.
+      onTap: () => _gate(_openCapture),
+      onLongPress: () => _openMacro(MacroType.calories, logged.toDouble(),
           goal.toDouble(), AppColors.ink),
       borderRadius: BorderRadius.circular(AppRadius.sheet),
       child: Container(
@@ -1428,230 +1365,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _habitsCard() {
-    return Container(
-      padding:
-          EdgeInsets.symmetric(horizontal: AppSpace.lg, vertical: AppSpace.xs),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.sheet),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        children: [
-          _habitRow(
-            icon: Symbols.water_drop_rounded,
-            iconColor: AppColors.water,
-            label: 'Water',
-            value: (_waterMl / 1000).toStringAsFixed(1),
-            unit: '/ ${(_waterGoalMl / 1000).toStringAsFixed(1)} L',
-            pct: _waterGoalMl > 0
-                ? (_waterMl / _waterGoalMl).clamp(0.0, 1.0)
-                : 0.0,
-            color: AppColors.water,
-            actionIcon: Symbols.add_rounded,
-            actionLabel: 'Glass',
-            onAction: _openWaterSheet,
-          ),
-          Divider(height: 1, color: AppColors.divider),
-          _habitRow(
-            icon: Symbols.directions_run_rounded,
-            iconColor: AppColors.green,
-            label: 'Steps',
-            value: '$_stepsToday',
-            unit: '/ 8,000',
-            pct: (_stepsToday / 8000).clamp(0.0, 1.0),
-            color: AppColors.green,
-            actionIcon: Symbols.directions_run_rounded,
-            actionLabel: 'Exercise',
-            onAction: _addExerciseSheet,
-            onTap: _stepsEnabled ? _manualStepsDialog : _enableSteps,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _habitRow({
-    required IconData icon,
-    required Color iconColor,
-    required String label,
-    required String value,
-    required String unit,
-    required double pct,
-    required Color color,
-    required IconData actionIcon,
-    required String actionLabel,
-    required VoidCallback onAction,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.card),
-      child: Padding(
-      padding: EdgeInsets.symmetric(vertical: AppSpace.md),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: AppColors.cardAlt,
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-            ),
-            child: Icon(icon, size: 18, color: iconColor),
-          ),
-          SizedBox(width: AppSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: AppType.body,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.ink,
-                      ),
-                    ),
-                    Text.rich(
-                      TextSpan(
-                        style: TextStyle(
-                          fontSize: AppType.small,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.faint,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: value,
-                            style: TextStyle(
-                              color: AppColors.ink,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          TextSpan(text: ' $unit'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadius.bar),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    minHeight: 6,
-                    backgroundColor: AppColors.cardAlt,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: AppSpace.md),
-          InkWell(
-            onTap: onAction,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: AppColors.cardAlt,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(actionIcon, size: 14, color: AppColors.ink),
-                  SizedBox(width: 4),
-                  Text(
-                    actionLabel,
-                    style: TextStyle(
-                      fontSize: AppType.small,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-    );
-  }
-
-  Widget _questCard() {
-    final gami = _gami;
-    if (gami == null || gami.activeQuests.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    final quests = gami.activeQuests;
-    final pct = (gami.questsCompleted / quests.length).clamp(0.0, 1.0);
-    return InkWell(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const GamificationHubScreen()),
-        );
-      },
-      borderRadius: BorderRadius.circular(AppRadius.sheet),
-      child: Container(
-        padding: EdgeInsets.all(AppSpace.lg),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.sheet),
-          boxShadow: AppColors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Symbols.checklist_rounded,
-                    size: 17, color: AppColors.accentOrange),
-                SizedBox(width: 8),
-                Text(
-                  "Today's quests",
-                  style: TextStyle(
-                    fontSize: AppType.bodyStrong,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
-                  ),
-                ),
-                Spacer(),
-                Text(
-                  'Level ${gami.level} · +${gami.todayPoints} pts',
-                  style: TextStyle(
-                    fontSize: AppType.small,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.accentOrange,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppSpace.md),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.bar),
-              child: LinearProgressIndicator(
-                value: pct,
-                minHeight: 6,
-                backgroundColor: AppColors.cardAlt,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColors.accentOrange),
-              ),
-            ),
-            SizedBox(height: AppSpace.md),
-            ...quests.take(3).map(_questRow),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _recentRow() {
     final recent = _on(_selected).take(6).toList();
     if (recent.isEmpty) return EmptyCard(onScanTap: _openCapture);
@@ -1692,19 +1405,57 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.card),
-              child: SizedBox(
-                width: 150,
-                height: 104,
-                child: (entry.imagePath.isNotEmpty &&
-                        File(entry.imagePath).existsSync())
-                    ? Image.file(File(entry.imagePath), fit: BoxFit.cover)
-                    : Container(
-                        color: AppColors.cardAlt,
-                        child: Center(
-                          child: Icon(Symbols.restaurant_rounded,
-                              size: 24, color: AppColors.faint),
+              child: Stack(
+                children: [
+                  SizedBox(
+                    width: 150,
+                    height: 104,
+                    child: (entry.imagePath.isNotEmpty &&
+                            File(entry.imagePath).existsSync())
+                        ? Image.file(File(entry.imagePath), fit: BoxFit.cover)
+                        : Container(
+                            color: AppColors.cardAlt,
+                            child: Center(
+                              child: Icon(Symbols.restaurant_rounded,
+                                  size: 24, color: AppColors.faint),
+                            ),
+                          ),
+                  ),
+                  Positioned(
+                    right: 6,
+                    bottom: 6,
+                    child: Semantics(
+                      label: 'Log again',
+                      button: true,
+                      child: InkWell(
+                        onTap: () => _logAgain(entry),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColors.inkButton,
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.pill),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Symbols.add_rounded,
+                                  size: 13, color: Colors.white),
+                              SizedBox(width: 3),
+                              Text('Log again',
+                                  style: TextStyle(
+                                      fontSize: AppType.micro,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white)),
+                            ],
+                          ),
                         ),
                       ),
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: AppSpace.sm),
@@ -1936,6 +1687,287 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Which meal the clock says it is.
+  String _mealForHour(int hour) {
+    if (hour < 11) return 'breakfast';
+    if (hour < 16) return 'lunch';
+    if (hour < 19) return 'snack';
+    return 'dinner';
+  }
+
+  String _mealLabel(String meal) =>
+      meal.isEmpty ? meal : meal[0].toUpperCase() + meal.substring(1);
+
+  /// One tap re-logs a repeat meal (the single biggest retention lever for
+  /// daily Indian food, where the same thali repeats).
+  Future<void> _logAgain(FoodEntry entry) async {
+    final now = clock.now();
+    final again = FoodEntry(
+      id: now.microsecondsSinceEpoch.toString(),
+      dateTime: now,
+      mealType: _mealForHour(now.hour),
+      items: entry.items,
+      imagePath: entry.imagePath,
+    );
+    await widget.storage.addEntry(again);
+    HapticFeedback.lightImpact();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            'Logged ${again.items.map((i) => i.name).take(2).join(', ')}'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    _load();
+  }
+
+  /// "It's 1:30 pm - log lunch?" - only while that meal is still unlogged.
+  Widget _nextMealPrompt() {
+    final now = clock.now();
+    final meal = _mealForHour(now.hour);
+    if (_on(_selected).any((e) => e.mealType == meal)) {
+      return const SizedBox.shrink();
+    }
+    final label = _mealLabel(meal);
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppSpace.md),
+      child: InkWell(
+        onTap: () => _gate(_openCapture),
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            boxShadow: AppColors.cardShadow,
+          ),
+          child: Row(
+            children: [
+              Icon(Symbols.restaurant_menu_rounded,
+                  size: 18, color: AppColors.accentOrange),
+              SizedBox(width: AppSpace.md),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    style: TextStyle(
+                        fontSize: AppType.body,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.muted),
+                    children: [
+                      TextSpan(text: "It's ${DateFormat.jm().format(now)} — log "),
+                      TextSpan(
+                          text: label,
+                          style: TextStyle(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w800)),
+                      TextSpan(text: '?'),
+                    ],
+                  ),
+                ),
+              ),
+              Icon(Symbols.chevron_right_rounded,
+                  size: 18, color: AppColors.muted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Last 7 days of calories, as bars. A glance at Home instead of a trip
+  /// to Progress.
+  Widget _sparkline(Profile profile) {
+    final goal = profile.calorieGoal;
+    final days =
+        List.generate(7, (i) => _selected.subtract(Duration(days: 6 - i)));
+    const dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: days.map((d) {
+          final kcal = _calories(d);
+          final frac = goal > 0 ? (kcal / goal).clamp(0.0, 1.0) : 0.0;
+          final isSelected = d.year == _selected.year &&
+              d.month == _selected.month &&
+              d.day == _selected.day;
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 3),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 34,
+                    alignment: Alignment.bottomCenter,
+                    child: FractionallySizedBox(
+                      heightFactor: frac == 0 ? 0.06 : frac,
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.accentOrange
+                              : AppColors.track,
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.bar),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    dayLetters[d.weekday - 1],
+                    style: TextStyle(
+                      fontSize: AppType.micro,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? AppColors.ink : AppColors.faint,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// One compact "Today" strip: water, steps and quests together, so Home
+  /// stops being a stack of competing cards.
+  Widget _todayStrip() {
+    final gami = _gami;
+    final quests = gami?.activeQuests ?? const <ActiveQuest>[];
+    final questDone = gami?.questsCompleted ?? 0;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.md),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.sheet),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _todayStat(
+              icon: Symbols.water_drop_rounded,
+              color: AppColors.water,
+              label: 'Water',
+              value: '${(_waterMl / 1000).toStringAsFixed(1)}L',
+              pct: _waterGoalMl > 0
+                  ? (_waterMl / _waterGoalMl).clamp(0.0, 1.0)
+                  : 0.0,
+              onTap: _openWaterSheet,
+            ),
+          ),
+          _stripDivider(),
+          Expanded(
+            child: _todayStat(
+              icon: Symbols.directions_run_rounded,
+              color: AppColors.green,
+              label: 'Steps',
+              value: '$_stepsToday',
+              pct: (_stepsToday / 8000).clamp(0.0, 1.0),
+              onTap: _stepsEnabled ? _manualStepsDialog : _enableSteps,
+            ),
+          ),
+          _stripDivider(),
+          Expanded(
+            child: _todayStat(
+              icon: Symbols.checklist_rounded,
+              color: AppColors.accentOrange,
+              label: 'Quests',
+              value: quests.isEmpty ? '-' : '$questDone/${quests.length}',
+              pct: quests.isEmpty
+                  ? 0.0
+                  : (questDone / quests.length).clamp(0.0, 1.0),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const GamificationHubScreen()),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _logExercise() => Padding(
+        padding: EdgeInsets.only(top: AppSpace.sm),
+        child: Center(
+          child: _logLink('Log exercise', _addExerciseSheet),
+        ),
+      );
+
+  Widget _stripDivider() => Container(
+        width: 1,
+        height: 44,
+        color: AppColors.divider,
+      );
+
+  Widget _todayStat({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String value,
+    required double pct,
+    required VoidCallback onTap,
+  }) {
+    return Semantics(
+      label: '$label, $value',
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 15, color: color),
+                  SizedBox(width: 5),
+                  Text(label,
+                      style: TextStyle(
+                          fontSize: AppType.small,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.muted)),
+                ],
+              ),
+              SizedBox(height: 6),
+              Text(value,
+                  style: TextStyle(
+                      fontSize: AppType.bodyStrong,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                      fontFeatures: const [FontFeature.tabularFigures()])),
+              SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.bar),
+                child: LinearProgressIndicator(
+                  value: pct,
+                  minHeight: 5,
+                  backgroundColor: AppColors.cardAlt,
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
