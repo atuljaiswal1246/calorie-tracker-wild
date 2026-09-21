@@ -8,6 +8,8 @@ library;
 
 import 'dart:math';
 
+import 'package:clock/clock.dart';
+
 import '../models/league.dart';
 import 'analytics_service.dart';
 import 'gamification_controller.dart';
@@ -54,7 +56,7 @@ class LeagueService {
   /// Ensure the league is in the current week. Settles the previous week if the
   /// window rolled over, then syncs this week's points.
   Future<LeagueState> sync({DateTime? at}) async {
-    final now = at ?? DateTime.now();
+    final now = at ?? clock.now();
     final s = state;
     final monday = _mondayKey(now);
     if (s.weekStart != monday) {
