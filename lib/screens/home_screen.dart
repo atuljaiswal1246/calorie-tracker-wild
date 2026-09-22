@@ -890,7 +890,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _homePage(Profile profile) {
     final goal = profile.calorieGoal;
     final logged = _calories(_selected);
-    final remaining = (goal - logged).clamp(0, goal);
 
     return RefreshIndicator(
       color: AppColors.ink,
@@ -931,7 +930,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
           SizedBox(height: AppSpace.lg),
-          _heroCard(profile, goal, logged, remaining),
+          _heroCard(profile, goal, logged),
           SizedBox(height: AppSpace.md),
           _equationLine(goal, logged),
           SizedBox(height: AppSpace.lg),
@@ -1062,8 +1061,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _heroCard(Profile profile, int goal, int logged, int remaining) {
-    final progress = goal > 0 ? (remaining / goal).clamp(0.0, 1.0) : 0.0;
+  Widget _heroCard(Profile profile, int goal, int logged) {
+    // Ring fills with what's EATEN (logged/goal), not what's left — like a
+    // progress ring. Center shows the eaten number; the equation line below
+    // still states goal · eaten · left.
+    final progress = goal > 0 ? (logged / goal).clamp(0.0, 1.0) : 0.0;
+    final over = logged > goal;
     return InkWell(
       // The ring is the action: tap it to log. Long-press for the
       // calorie breakdown.
@@ -1099,22 +1102,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '$remaining',
+                          '$logged',
                           style: TextStyle(
                             fontSize: AppType.hero,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
+                            color: over ? AppColors.missedRed : AppColors.ink,
                             letterSpacing: -1.2,
                             fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'KCAL LEFT',
+                          over ? 'KCAL OVER' : 'KCAL EATEN',
                           style: TextStyle(
                             fontSize: AppType.micro,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.faint,
+                            color: over ? AppColors.missedRed : AppColors.faint,
                             letterSpacing: 0.3,
                           ),
                         ),
