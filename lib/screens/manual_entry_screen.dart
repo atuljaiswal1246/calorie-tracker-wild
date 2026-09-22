@@ -13,7 +13,13 @@ import '../theme/app_tokens.dart';
 class ManualEntryScreen extends StatefulWidget {
   final StorageService storage;
 
-  ManualEntryScreen({super.key, required this.storage});
+  /// When true, the screen acts as a picker: it does NOT log anything to
+  /// storage. Instead it pops with a List<FoodItem> the caller adds to an
+  /// in-progress meal (used from CaptureScreen results to add a food the AI
+  /// missed).
+  final bool picker;
+
+  ManualEntryScreen({super.key, required this.storage, this.picker = false});
 
   @override
   State<ManualEntryScreen> createState() => _ManualEntryScreenState();
@@ -136,9 +142,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
 
   double _selectedQuantity = 100;
 
-  void _showFoodConfirmation(FoodDBItem food) {
+  Future<void> _showFoodConfirmation(FoodDBItem food) async {
     _selectedQuantity = 100;
-    showModalBottomSheet(
+    final qty = await showModalBottomSheet<double>(
       context: context,
       backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(
@@ -149,34 +155,43 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
         mealType: _mealType,
         onMealTypeChanged: (v) => setState(() => _mealType = v),
         onQuantityChanged: (v) => _selectedQuantity = v,
-        onLog: () => _logLocalFood(food),
       ),
     );
+    // The sheet has fully closed by now — safe to log/pop the screen.
+    if (qty == null || !mounted) return;
+    _selectedQuantity = qty;
+    await _logLocalFood(food);
   }
 
   Future<void> _logLocalFood(FoodDBItem food) async {
     final qty = _selectedQuantity;
+    final item = FoodItem(
+      name: food.name,
+      servingSizeGrams: qty,
+      calories: (food.calories * qty / 100).round(),
+      protein: food.protein * qty / 100,
+      carbs: food.carbs * qty / 100,
+      fat: food.fat * qty / 100,
+      fiber: food.fiber * qty / 100,
+      sugar: food.sugar * qty / 100,
+      sodium: food.sodium * qty / 100,
+      calcium: food.calcium * qty / 100,
+      iron: food.iron * qty / 100,
+      vitaminC: food.vitaminC * qty / 100,
+      quantity: qty / 100,
+    );
+
+    if (widget.picker) {
+      if (!mounted) return;
+      Navigator.of(context).pop([item]);
+      return;
+    }
+
     final entry = FoodEntry(
       id: clock.now().microsecondsSinceEpoch.toString(),
       dateTime: clock.now(),
       mealType: _mealType,
-      items: [
-        FoodItem(
-          name: food.name,
-          servingSizeGrams: qty,
-          calories: (food.calories * qty / 100).round(),
-          protein: food.protein * qty / 100,
-          carbs: food.carbs * qty / 100,
-          fat: food.fat * qty / 100,
-          fiber: food.fiber * qty / 100,
-          sugar: food.sugar * qty / 100,
-          sodium: food.sodium * qty / 100,
-          calcium: food.calcium * qty / 100,
-          iron: food.iron * qty / 100,
-          vitaminC: food.vitaminC * qty / 100,
-          quantity: qty / 100,
-        ),
-      ],
+      items: [item],
       imagePath: '',
     );
 
@@ -311,6 +326,12 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     final items = _aiItems;
     if (items == null || items.isEmpty) return;
 
+    if (widget.picker) {
+      if (!mounted) return;
+      Navigator.of(context).pop(items);
+      return;
+    }
+
     final entry = FoodEntry(
       id: clock.now().microsecondsSinceEpoch.toString(),
       dateTime: clock.now(),
@@ -363,7 +384,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      'Add food manually',
+                      widget.picker ? 'Add to meal' : 'Add food manually',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: AppType.title,
@@ -625,21 +646,26 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     if (result == null || !mounted) return;
     quantity = result;
 
+    final item = FoodItem(
+      name: name,
+      servingSizeGrams: quantity,
+      calories: (calories * quantity / 100).round(),
+      protein: protein * quantity / 100,
+      carbs: carbs * quantity / 100,
+      fat: fat * quantity / 100,
+      quantity: quantity / 100,
+    );
+
+    if (widget.picker) {
+      Navigator.of(context).pop([item]);
+      return;
+    }
+
     final entry = FoodEntry(
       id: clock.now().microsecondsSinceEpoch.toString(),
       dateTime: clock.now(),
       mealType: _mealType,
-      items: [
-        FoodItem(
-          name: name,
-          servingSizeGrams: quantity,
-          calories: (calories * quantity / 100).round(),
-          protein: protein * quantity / 100,
-          carbs: carbs * quantity / 100,
-          fat: fat * quantity / 100,
-          quantity: quantity / 100,
-        ),
-      ],
+      items: [item],
       imagePath: '',
     );
 
@@ -661,8 +687,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     }
   }
 
-  void _showCustomFoodEntry() {
-    showModalBottomSheet(
+  Future<void> _showCustomFoodEntry() async {
+    final result = await showModalBottomSheet<
+        ({String name, int cal, double p, double c, double f})>(
       context: context,
       backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(
@@ -672,34 +699,50 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       builder: (ctx) => _CustomFoodSheet(
         mealType: _mealType,
         onMealTypeChanged: (v) => setState(() => _mealType = v),
-        onLog: (name, cal, p, c, f) async {
-          final entry = FoodEntry(
-            id: clock.now().microsecondsSinceEpoch.toString(),
-            dateTime: clock.now(),
-            mealType: _mealType,
-            items: [
-              FoodItem(
-                name: name,
-                calories: cal,
-                protein: p,
-                carbs: c,
-                fat: f,
-              ),
-            ],
-            imagePath: '',
-          );
-          await widget.storage.addEntry(entry);
-          await widget.storage.addRecentFood({
-            'name': name, 'calories': cal, 'protein': p, 'carbs': c, 'fat': f,
-          });
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Logged! Added to your day.')),
-          );
-          Navigator.of(context).pop(true);
-        },
       ),
     );
+    if (result == null || !mounted) return;
+
+    if (widget.picker) {
+      Navigator.of(context).pop([
+        FoodItem(
+          name: result.name,
+          calories: result.cal,
+          protein: result.p,
+          carbs: result.c,
+          fat: result.f,
+        )
+      ]);
+      return;
+    }
+
+    final entry = FoodEntry(
+      id: clock.now().microsecondsSinceEpoch.toString(),
+      dateTime: clock.now(),
+      mealType: _mealType,
+      items: [
+        FoodItem(
+          name: result.name,
+          calories: result.cal,
+          protein: result.p,
+          carbs: result.c,
+          fat: result.f,
+        ),
+      ],
+      imagePath: '',
+    );
+    await widget.storage.addEntry(entry);
+    await widget.storage.addRecentFood({
+      'name': result.name,
+      'calories': result.cal,
+      'protein': result.p,
+      'carbs': result.c,
+      'fat': result.f,
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Logged! Added to your day.')),
+    );
+    Navigator.of(context).pop(true);
   }
 
   Widget _buildAIResults() {
@@ -799,7 +842,8 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   borderRadius: BorderRadius.circular(AppRadius.card),
                 ),
               ),
-              child: Text('Log this meal',
+              child: Text(
+                  widget.picker ? 'Add to meal' : 'Log this meal',
                   style:
                       TextStyle(fontSize: AppType.bodyStrong, fontWeight: FontWeight.w700)),
             ),
@@ -1057,14 +1101,12 @@ class _FoodConfirmSheet extends StatefulWidget {
   final String mealType;
   final ValueChanged<String> onMealTypeChanged;
   final ValueChanged<double> onQuantityChanged;
-  final VoidCallback onLog;
 
   _FoodConfirmSheet({
     required this.food,
     required this.mealType,
     required this.onMealTypeChanged,
     required this.onQuantityChanged,
-    required this.onLog,
   });
 
   @override
@@ -1192,8 +1234,7 @@ class _FoodConfirmSheetState extends State<_FoodConfirmSheet> {
             child: FilledButton(
               onPressed: () {
                 widget.onQuantityChanged(_quantity);
-                widget.onLog();
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(_quantity);
               },
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.inkButton,
@@ -1413,12 +1454,10 @@ class _QuickLogSheetState extends State<_QuickLogSheet> {
 class _CustomFoodSheet extends StatefulWidget {
   final String mealType;
   final ValueChanged<String> onMealTypeChanged;
-  final Future<void> Function(String name, int cal, double p, double c, double f) onLog;
 
   _CustomFoodSheet({
     required this.mealType,
     required this.onMealTypeChanged,
-    required this.onLog,
   });
 
   @override
@@ -1527,14 +1566,13 @@ class _CustomFoodSheetState extends State<_CustomFoodSheet> {
                   final name = _nameCtrl.text.trim();
                   final cal = int.tryParse(_calCtrl.text.trim()) ?? 0;
                   if (name.isEmpty || cal <= 0) return;
-                  widget.onLog(
-                    name,
-                    cal,
-                    double.tryParse(_protCtrl.text.trim()) ?? 0,
-                    double.tryParse(_carbCtrl.text.trim()) ?? 0,
-                    double.tryParse(_fatCtrl.text.trim()) ?? 0,
-                  );
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop((
+                    name: name,
+                    cal: cal,
+                    p: double.tryParse(_protCtrl.text.trim()) ?? 0,
+                    c: double.tryParse(_carbCtrl.text.trim()) ?? 0,
+                    f: double.tryParse(_fatCtrl.text.trim()) ?? 0,
+                  ));
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.inkButton,

@@ -602,6 +602,24 @@ class _CaptureScreenState extends State<CaptureScreen> {
     if (discard == true && mounted) Navigator.of(context).pop();
   }
 
+  /// Add a food the AI missed: opens ManualEntryScreen in picker mode, which
+  /// returns Logged-in items instead of logging them — they join `_items`.
+  Future<void> _addItem() async {
+    final picked = await Navigator.of(context).push<List<FoodItem>?>(
+      MaterialPageRoute(
+        builder: (_) => ManualEntryScreen(
+          storage: widget.storage,
+          picker: true,
+        ),
+      ),
+    );
+    if (picked == null || picked.isEmpty || !mounted) return;
+    setState(() {
+      _items ??= [];
+      _items!.addAll(picked);
+    });
+  }
+
   /// Pre-log edit: correct an item's calories/macros/servings.
   Future<void> _editItem(FoodItem item) async {
     final ctrlCal = TextEditingController(text: item.calories.toString());
@@ -1101,6 +1119,26 @@ class _CaptureScreenState extends State<CaptureScreen> {
                           },
                         );
                       }),
+
+                      SizedBox(height: 12),
+
+                      // Add missing items the AI may have missed
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _addItem,
+                          icon: Icon(Symbols.add_rounded, size: 18),
+                          label: Text('Add item'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.ink,
+                            side: BorderSide(color: AppColors.inkButton),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
 
                       SizedBox(height: 12),
 

@@ -128,6 +128,8 @@ Rules:
 - If the photo shows ONE food (a single bowl of sabzi, one roti, etc.), return it as the ONLY item — do not add guesses about side dishes that are not clearly visible.
 - NAMES MUST BE SPECIFIC: identify the exact dish by its traditional name (e.g. "Aloo Gobi", "Bhindi Fry", "Mixed Vegetable Curry", "Chana Masala", "Baingan Bharta", "Palak Paneer"). NEVER return generic labels like "Vegetable Curry", "Veg Sabzi", "Curry", "Side Dish" or "Vegetables" unless the photo truly shows an unidentifiable mixed dish; prefer the most specific name you can.
 - If the food is a mixed dish of many items (a thali), still return each visible item separately, but each with a specific name.
+- IMPORTANT: For a thali or multi-item meal, list EVERY visible item — do not merge two dishes into one, and do NOT omit small items (sambar, chutney, papad, curd, pickle, salad, dal, sabzi are all separate items). Count every distinct dish you can see, then return exactly that many items.
+- IMPORTANT: Use realistic home-cooked Indian portion sizes, not restaurant mega-serves. A single katori of dal is ~150-200g, one roti is ~40g, one bowl of rice is ~200g cooked. Prefer reasonable home portions and keep total meal calories plausible (a standard home thali is usually 500-900 kcal, not 1500+).
 ''';
 
     final body = {
@@ -216,6 +218,7 @@ Rules:
 - sodium = mg for the full serving
 - calcium/iron/vitaminC = mg for the full serving — estimate from the typical nutrient content of the dish. If you cannot estimate a value, output 0.
 - Indian household serving sizes. Use quantity if specified, otherwise typical single serving.
+- IMPORTANT: Use realistic home-cooked Indian portion sizes, not restaurant mega-serves (a katori of dal ~150-200g cooked, one roti ~40g, one bowl of rice ~200g cooked). Keep total meal calories plausible.
 ''';
 
     final body = {
