@@ -62,6 +62,39 @@ class FoodItem {
   int get calories => (_protein > 0 || _carbs > 0 || _fat > 0)
       ? (_atwaterCalories * quantity).round()
       : (_calories * quantity).round();
+
+  /// Returns a copy of this item with [newGrams] as its serving size, scaling
+  /// calories and every macro proportionally. `quantity` (number of servings)
+  /// is preserved. Returns this item unchanged when the current serving size
+  /// or the new one is unknown (<= 0).
+  FoodItem withPortion(double newGrams) {
+    if (servingSizeGrams <= 0 || newGrams <= 0) return this;
+    final s = newGrams / servingSizeGrams;
+    return FoodItem(
+      name: name,
+      servingSizeGrams: newGrams,
+      calories: (_calories * s).round(),
+      protein: _protein * s,
+      carbs: _carbs * s,
+      fat: _fat * s,
+      fiber: _fiber * s,
+      sugar: _sugar * s,
+      sodium: _sodium * s,
+      calcium: _calcium * s,
+      iron: _iron * s,
+      vitaminC: _vitaminC * s,
+      quantity: quantity,
+      dbMatchedName: dbMatchedName,
+      dbSource: dbSource,
+      dbCaloriesPer100g: dbCaloriesPer100g,
+      dbProteinPer100g: dbProteinPer100g,
+      dbCarbsPer100g: dbCarbsPer100g,
+      dbFatPer100g: dbFatPer100g,
+      dbFiberPer100g: dbFiberPer100g,
+      dbSugarPer100g: dbSugarPer100g,
+      dbSodiumPer100g: dbSodiumPer100g,
+    );
+  }
   double get protein => _protein * quantity;
   double get carbs => _carbs * quantity;
   double get fat => _fat * quantity;

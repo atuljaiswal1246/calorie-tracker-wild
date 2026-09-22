@@ -725,6 +725,38 @@ class _CaptureScreenState extends State<CaptureScreen> {
     ctrlFat.dispose();
   }
 
+  /// Tap-to-edit portion: pick a gram preset (or type one) and rescale the
+  /// item's calories/macros proportionally to the new serving size.
+  Future<void> _editPortion(FoodItem item) async {
+    final baseGrams = item.servingSizeGrams;
+    if (baseGrams <= 0) return;
+
+    final q = item.quantity == 0 ? 1.0 : item.quantity;
+    // Per-single-serving base values (getters include quantity).
+    final baseCal = item.calories / q;
+
+    final grams = await showModalBottomSheet<double>(
+      context: context,
+      backgroundColor: AppColors.card,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => _PortionSheet(
+        name: item.name,
+        baseGrams: baseGrams,
+        baseCalories: baseCal,
+      ),
+    );
+    if (grams == null || grams <= 0 || !mounted) return;
+
+    setState(() {
+      final i = _items!.indexOf(item);
+      if (i < 0) return;
+      _items![i] = item.withPortion(grams);
+    });
+  }
+
   Widget _editField(String label, TextEditingController ctrl,
       {bool isNumber = false}) {
     return Column(
@@ -1111,6 +1143,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                           item: item,
                           onChanged: () => setState(() {}),
                           onEdit: () => _editItem(item),
+                          onPortion: () => _editPortion(item),
                           onDelete: () {
                             setState(() => _items!.remove(item));
                             if (_items!.isEmpty) {
@@ -1530,12 +1563,14 @@ class _FoodItemCard extends StatefulWidget {
   final VoidCallback onChanged;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
+  final VoidCallback? onPortion;
 
   _FoodItemCard({
     required this.item,
     required this.onChanged,
     this.onDelete,
     this.onEdit,
+    this.onPortion,
   });
 
   @override
@@ -1638,12 +1673,39 @@ class _FoodItemCardState extends State<_FoodItemCard> {
           Row(
             children: [
               if (item.servingSizeGrams > 0)
-                Text(
-                  '${_intuitiveServing(item.servingSizeGrams)} · ${item.servingSizeGrams.round()}g',
-                  style: TextStyle(
-                      fontSize: AppType.body,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.muted),
+                Flexible(
+                  child: InkWell(
+                    onTap: widget.onPortion,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.bg,
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              '${_intuitiveServing(item.servingSizeGrams)} · ${item.servingSizeGrams.round()}g',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: AppType.body,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.ink),
+                            ),
+                          ),
+                          if (widget.onPortion != null) ...[
+                            SizedBox(width: 4),
+                            Icon(Icons.unfold_more,
+                                size: 14, color: AppColors.muted),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               Spacer(),
               Text('${item.calories} kcal',
@@ -1780,6 +1842,204 @@ class _TotalCard extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: Colors.white.withValues(alpha: 0.6))),
       ],
+    );
+  }
+}
+
+/// Bottom sheet for changing a single item's portion size. Shows gram preset
+/// chips (plus a free-entry field) with a live calorie preview, and pops the
+/// chosen gram value. Mirrors the confirm sheets in manual entry.
+class _PortionSheet extends StatefulWidget {
+  final String name;
+  final double baseGrams;
+  final double baseCalories;
+
+  _PortionSheet({
+    required this.name,
+    required this.baseGrams,
+    required this.baseCalories,
+  });
+
+  @override
+  State<_PortionSheet> createState() => _PortionSheetState();
+}
+
+class _PortionSheetState extends State<_PortionSheet> {
+  static const _presets = <double>[50, 100, 150, 200, 250, 300];
+
+  late double _grams;
+  final _ctrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Snap the current portion to the nearest preset if it is close, else use
+    // the exact value so the field always shows something sensible.
+    _grams = widget.baseGrams;
+    _ctrl.text = _grams.round().toString();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _setGrams(double g) {
+    if (g <= 0) return;
+    setState(() {
+      _grams = g;
+      _ctrl.text = g.round().toString();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final kcal = widget.baseGrams > 0
+        ? (widget.baseCalories * _grams / widget.baseGrams).round()
+        : 0;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 12,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: AppColors.track,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+          SizedBox(height: 16),
+          Text('Portion size',
+              style: TextStyle(
+                  fontSize: AppType.title,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink)),
+          SizedBox(height: 2),
+          Text(widget.name,
+              style: TextStyle(fontSize: AppType.body, color: AppColors.muted)),
+          SizedBox(height: 16),
+
+          // Live preview
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.bg,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              children: [
+                Text('${_grams.round()} g',
+                    style: TextStyle(
+                        fontSize: AppType.headline,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink)),
+                SizedBox(height: 2),
+                Text('$kcal kcal',
+                    style: TextStyle(
+                        fontSize: AppType.body,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.accentOrange)),
+              ],
+            ),
+          ),
+          SizedBox(height: 16),
+
+          Text('Choose an amount',
+              style: TextStyle(
+                  fontSize: AppType.body,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.muted)),
+          SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _presets.map((g) {
+              final selected = (_grams - g).abs() < 1;
+              return InkWell(
+                onTap: () => _setGrams(g),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.ink : AppColors.bg,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                  ),
+                  child: Text('${g.round()} g',
+                      style: TextStyle(
+                          fontSize: AppType.body,
+                          fontWeight: FontWeight.w600,
+                          color: selected ? Colors.white : AppColors.ink)),
+                ),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 16),
+
+          Text('Or enter grams',
+              style: TextStyle(
+                  fontSize: AppType.body,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.muted)),
+          SizedBox(height: 8),
+          TextField(
+            controller: _ctrl,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (v) {
+              final g = double.tryParse(v.trim());
+              if (g != null && g > 0) setState(() => _grams = g);
+            },
+            style: TextStyle(
+                fontSize: AppType.bodyStrong,
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink),
+            decoration: InputDecoration(
+              suffixText: 'g',
+              filled: true,
+              fillColor: AppColors.bg,
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+
+          SizedBox(
+            height: 52,
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: _grams > 0
+                  ? () => Navigator.of(context).pop(_grams)
+                  : null,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.inkButton,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text('Save portion',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: AppType.bodyStrong)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
