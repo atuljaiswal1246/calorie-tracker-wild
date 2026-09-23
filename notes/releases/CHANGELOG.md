@@ -5,6 +5,29 @@ testing**; `tools/publish.py <aab> <track> [notes-file]`.
 
 ---
 
+## 0.9.10 (15) — 2026-09-23 — closed testing
+Three fixes reported from device testing.
+
+**Capture — never stuck with an incomplete meal.**
+- "Add item" button under the AI results opens the manual search in picker
+  mode and merges the chosen food(s) into the meal. Fixes thali scans where
+  the model reports 4 of 5 items.
+- The thali prompt now demands EVERY visible item (no merging, no dropped
+  sides like sambar/papad/chutney) and realistic home-style portions.
+- Any item's portion chip is tappable: preset grams (50-300) or free entry,
+  with a live kcal preview; rescales calories/macros proportionally
+  (`FoodItem.withPortion`).
+
+**Home — calorie ring direction.**
+- The hero ring filled with `remaining/goal` and centred the "left" figure, so
+  it shrank as you ate. It now fills `logged/goal` and shows the eaten number
+  ("KCAL EATEN"; red "KCAL OVER" past goal). "left" stays in the equation line.
+
+**Verification:** `flutter analyze` 0 errors; `flutter test` 219/219.
+Uploaded via `tools/publish.py`; read back `alpha completed ['15'] 0.9.10`.
+
+---
+
 ## 0.9.9 (14) — 2026-09-21 — live on closed testing
 Two themes: the way in (pricing) and Home.
 
