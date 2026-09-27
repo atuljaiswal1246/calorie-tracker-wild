@@ -269,4 +269,56 @@ void main() {
       reason: 'The corpus report must say which number the bar is judged on.\n$out',
     );
   });
+
+  test('the milestone note claims the corpus bar and disclaims the product one', () {
+    // A milestone note is where an overclaim does its damage: the next session,
+    // or the owner, reads "bar met" and stops looking. So the note must carry the
+    // four numbers AND say in words that meeting a corpus bar is not meeting a
+    // product bar. If the corpus moves again, this fails until the note is
+    // updated - which is the point.
+    final note = File('notes/M1_BAR_STATUS.md');
+    expect(note.existsSync(), isTrue,
+        reason: 'notes/M1_BAR_STATUS.md is the record of whether M1 is met. If '
+            'it has gone, the next session has nothing to check.');
+    final text = note.readAsStringSync();
+    final classes =
+        int.parse(RegExp(r'DISH CLASSES:\s*(\d+)').firstMatch(out)!.group(1)!);
+
+    for (final number in [
+      '${casesFrom(out)} cases',
+      '${familiesFrom(out)} distinct dish names',
+      '$classes distinct dish classes',
+    ]) {
+      expect(text, contains(number),
+          reason: 'The milestone note does not state "$number", which the '
+              'corpus actually measures. Update it with the real numbers.\n$out');
+    }
+
+    for (final disclaimer in const [
+      'does NOT mean',
+      'never been measured',
+      'WITHDRAWN',
+    ]) {
+      expect(text.toLowerCase(), contains(disclaimer.toLowerCase()),
+          reason: 'The milestone note lost its "$disclaimer". A bar-met note '
+              'without a disclaimer is how a corpus milestone gets reported to '
+              'the owner as a product improvement.');
+    }
+
+    // And the honesty of the note is the honesty of the harness: it must not
+    // claim an accuracy number the corpus has never produced.
+    expect(
+      RegExp(r'\b\d{1,2}\.\d\s*%').hasMatch(text),
+      isTrue,
+      reason: 'The note should carry the last MEASURED median, clearly marked as '
+          'belonging to an older and differently-composed corpus. A milestone '
+          'note with no accuracy number at all invites one to be invented.\n$text',
+    );
+  });
 }
+
+int casesFrom(String out) =>
+    int.parse(RegExp(r'CORPUS:\s*(\d+)').firstMatch(out)!.group(1)!);
+
+int familiesFrom(String out) =>
+    int.parse(RegExp(r'over\s*(\d+)\s*distinct dish families').firstMatch(out)!.group(1)!);
