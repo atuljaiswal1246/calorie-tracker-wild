@@ -31,6 +31,7 @@
 
 const AICREDITS_UPSTREAM = "https://aicredits.in/v1/chat/completions";
 const GO_UPSTREAM = "https://opencode.ai/zen/go/v1/chat/completions";
+const ZEN_UPSTREAM = "https://opencode.ai/zen/v1/chat/completions";
 const OPENROUTER_UPSTREAM = "https://openrouter.ai/api/v1/chat/completions";
 
 const BEST_MODEL = "mimo-v2.5";
@@ -42,10 +43,80 @@ const FAIL_THRESHOLD = 3;
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
 const DAILY_LIMIT = 100;
 
+/** Headers OpenCode requires: a stable session id and an identifying UA. */
+function goProbeHeaders(request) {
+  return {
+    "x-opencode-session":
+      (request.headers.get("x-opencode-session") || "").trim() ||
+      (request.headers.get("x-device-id") || "").trim() ||
+      "cal-matters-anonymous",
+    "User-Agent": "cal-matters-proxy/1.0",
+  };
+}
+
 export default {
   async fetch(request, env) {
     if (request.method !== "POST") {
       return json(405, { error: "Method not allowed" });
+    }
+
+    // ---- Diagnostic: which secret can actually serve a given model? ----
+    // Answers with the secret's NAME and an HTTP status only. A key value is
+    // never read back, logged or returned, and the probe cannot be used to
+    // obtain one: it makes one real call per configured provider and reports
+    // what the upstream said. Guessing which key serves a model is how we end
+    // up billing the wrong account, so this is measured instead.
+    const probeModel = (request.headers.get("x-cm-probe-model") || "").trim();
+    if (probeModel) {
+      const candidates = [
+        ["go", GO_UPSTREAM, env.OPENCODE_KEY],
+        ["zen", ZEN_UPSTREAM, env.ZEN_KEY],
+        ["openrouter", OPENROUTER_UPSTREAM, env.OPENROUTER_KEY],
+        ["aicredits", AICREDITS_UPSTREAM, env.AICREDITS_KEY],
+      ];
+      const results = [];
+      for (const [name, url, key] of candidates) {
+        if (!key) {
+          results.push({ secret: name, status: "no-key-configured" });
+          continue;
+        }
+        const extra =
+          name === "go"
+            ? goProbeHeaders(request)
+            : { "User-Agent": "cal-matters-proxy/1.0" };
+        const outcome = await tryUpstream(
+          url, key, probeModel,
+          {
+            model: probeModel,
+            messages: [{ role: "user", content: "Say ok" }],
+            max_tokens: 5,
+          },
+          extra,
+        );
+        results.push(
+          outcome.ok
+            ? {
+                secret: name,
+                status: 200,
+                can_serve_model: true,
+                served_model: outcome.servedModel || "unknown",
+              }
+            : {
+                secret: name,
+                status: outcome.status,
+                can_serve_model: false,
+                // A short, non-sensitive excerpt: model ids and limit names.
+                reason: String(outcome.detail || "")
+                  .slice(0, 160)
+                  .replace(/[A-Za-z0-9_\-]{24,}/g, "<redacted>"),
+              },
+        );
+      }
+      return json(200, {
+        probe_model: probeModel,
+        note: "secret NAMES and upstream status only; no key value is read or returned",
+        results,
+      });
     }
 
     const hasAny =
@@ -60,8 +131,27 @@ export default {
     } catch (e) {
       return json(400, { error: "Invalid JSON" });
     }
+
+    // ---- /health, and the paid-spend record it exposes ----
+    // Reachable without a key. Reports what the proxy is actually doing and
+    // what it has spent, so "we fell through to the paid tier" is a fact on a
+    // page rather than something discovered later on an invoice. A tier that
+    // costs money and leaves no trace is how a budget disappears quietly.
     if (!body || !body.messages) {
-      return json(400, { error: "messages required" });
+      return json(200, {
+        ok: true,
+        status: "live",
+        time: new Date().toISOString(),
+        secrets_configured: {
+          AICREDITS_KEY: Boolean(env.AICREDITS_KEY),
+          OPENCODE_KEY: Boolean(env.OPENCODE_KEY),
+          OPENROUTER_KEY: Boolean(env.OPENROUTER_KEY),
+          ZEN_KEY: Boolean(env.ZEN_KEY),
+          note: "presence only - values are never read back or returned",
+        },
+        breaker: await breakerState(env),
+        paid_usage: await readPaidUse(env),
+      });
     }
 
     // --- Per-device daily quota (KV, optional binding) ---
@@ -99,15 +189,8 @@ export default {
     // OpenCode Go REQUIRES a stable `x-opencode-session` and an identifying
     // User-Agent (https://opencode.ai/docs/go/#where-can-i-use-it). Without
     // them it answers 400 MissingSessionID, the tier dies silently, and every
-    // scan falls through to a PAID fallback. Session = the caller's own
-    // session id when it sends one, else the stable per-install device id.
-    const goHeaders = {
-      "x-opencode-session":
-        (request.headers.get("x-opencode-session") || "").trim() ||
-        (request.headers.get("x-device-id") || "").trim() ||
-        "cal-matters-anonymous",
-      "User-Agent": "cal-matters-proxy/1.0",
-    };
+    // scan falls through to a PAID fallback.
+    const goHeaders = goProbeHeaders(request);
 
     // Every tier's outcome for this request, so a downgrade is never silent.
     const tiers = [];
@@ -143,6 +226,13 @@ export default {
       );
       if (res.ok) {
         await resetBreaker(env, provider);
+        // PAID SPEND MUST NEVER BE SILENT. Whenever we answer from a billing
+        // upstream we record the token count, the model actually served, and
+        // the time, so /health can show what today cost. A tier that costs
+        // money and leaves no trace is how a budget disappears quietly.
+        if (provider !== "go") {
+          await recordPaidUse(env, provider, res);
+        }
         // Tell the truth about who actually answered. The app used to be
         // silently downgraded to a weaker model with nothing in the logs.
         const headers = new Headers(res.response.headers);
@@ -206,6 +296,106 @@ async function recordFailure(env, provider, status, detail) {
 }
 
 /** True when the provider's circuit breaker is open (in cooldown). */
+/**
+ * Record a response served by a BILLING upstream (anything that is not the
+ * included `go` subscription). Keeps a per-UTC-day running total plus the last
+ * single request, so /health can answer "what did today cost, and when did we
+ * last fall through to the paid tier?".
+ *
+ * Cost is computed from the token usage the upstream reported, at list price.
+ * It is an ESTIMATE from usage, not the invoice - the invoice remains the only
+ * authority, and the note in /health says so.
+ */
+const PRICE_IN_PER_M = 0.15;   // gpt-4o-mini list
+const PRICE_OUT_PER_M = 0.60;
+
+async function recordPaidUse(env, provider, res) {
+  if (!env.QUOTA) return;
+  try {
+    let usage = {};
+    try {
+      usage = JSON.parse(await res.response.clone().text()).usage || {};
+    } catch (e) {
+      usage = {};
+    }
+    const pin = Number(usage.prompt_tokens || 0);
+    const pout = Number(usage.completion_tokens || 0);
+    const cost = (pin / 1e6) * PRICE_IN_PER_M + (pout / 1e6) * PRICE_OUT_PER_M;
+
+    const day = new Date().toISOString().slice(0, 10);
+    const key = `paid_${day}`;
+    const cur = (await env.QUOTA.get(key)) || '{"requests":0,"usd":0}';
+    let agg;
+    try {
+      agg = JSON.parse(cur);
+    } catch (e) {
+      agg = { requests: 0, usd: 0 };
+    }
+    agg.requests = (agg.requests || 0) + 1;
+    agg.usd = (agg.usd || 0) + cost;
+    await env.QUOTA.put(key, JSON.stringify(agg), { expirationTtl: 86400 * 8 });
+
+    await env.QUOTA.put(
+      "paid_last",
+      JSON.stringify({
+        at: new Date().toISOString(),
+        provider,
+        requested_model: res.requestedModel || "unknown",
+        served_model: res.servedModel || "unknown",
+        prompt_tokens: pin,
+        completion_tokens: pout,
+        est_cost_usd: Number(cost.toFixed(8)),
+      }),
+      { expirationTtl: 86400 * 30 },
+    );
+  } catch (e) {
+    // Accounting is best-effort; never break the product.
+  }
+}
+
+async function readPaidUse(env) {
+  if (!env.QUOTA) {
+    return { available: false, reason: "no QUOTA binding" };
+  }
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const agg = await env.QUOTA.get(`paid_${day}`);
+    const last = await env.QUOTA.get("paid_last");
+    return {
+      available: true,
+      today_utc: day,
+      requests_billed: agg ? (JSON.parse(agg).requests || 0) : 0,
+      est_cost_usd_today: agg ? Number((JSON.parse(agg).usd || 0).toFixed(6)) : 0,
+      last_billed_request: last ? JSON.parse(last) : null,
+      note: "ESTIMATE from token usage at list price. The upstream invoice is the only authority.",
+    };
+  } catch (e) {
+    return { available: false, reason: "read failed" };
+  }
+}
+
+/** Current circuit-breaker state for every tier, for /health. */
+async function breakerState(env) {
+  if (!env.QUOTA) return { available: false };
+  const out = {};
+  for (const p of ["go", "aicredits", "openrouter"]) {
+    try {
+      const raw = await env.QUOTA.get(`cb_${p}`);
+      out[p] = raw ? JSON.parse(raw) : { fails: 0, until: 0, state: "not-recorded" };
+    } catch (e) {
+      out[p] = { error: "read failed" };
+    }
+  }
+  const now = Date.now();
+  for (const [k, v] of Object.entries(out)) {
+    if (v && typeof v.until === "number") {
+      v.suspended = now < v.until;
+      v.suspended_for_min = v.suspended ? Math.round((v.until - now) / 60000) : 0;
+    }
+  }
+  return { available: true, tiers: out };
+}
+
 async function isSuspended(env, provider) {
   if (!env.QUOTA) return false;
   try {
@@ -299,6 +489,7 @@ async function tryUpstream(url, key, model, body, extraHeaders) {
         headers: { "Content-Type": "application/json" },
       }),
       servedModel,
+      requestedModel: model,
     };
   } catch (e) {
     return { ok: false, status: 0, detail: String(e && e.message) || "network" };
