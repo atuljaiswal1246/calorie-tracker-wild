@@ -464,17 +464,20 @@
     {
       "id": "tamil_uthappam",
       "image": "tools/ai_accuracy/photos/tamil_uthappam_jpg.jpg",
-      "note": "A single uthappam on a banana leaf with small bowls of sambar and chutney. Unmistakable and clearly a home serving.",
+      "note": "A single uthappam on a banana leaf with small bowls of sambar and chutney. Unmistakable and clearly a home serving. CORRECTION 2026-09-28: this case was previously reported as the worst failure - the model 'inventing' a dish. Measured live, the model answered \"Vegetable Uttapam\", which IS this dish; my alias list simply lacked that spelling. The model was right and my label was the bug. A false accusation is worse than no measurement because it sends you fixing the wrong thing.",
       "confidence": "high",
       "truth": [
         {
           "name": "Uthappam",
           "aliases": [
-            "Uttappam",
-            "Uthapam",
             "Dosa",
+            "Idli Dosa",
+            "Uthapam",
             "Uthappam",
-            "Idli Dosa"
+            "Uttapam",
+            "Uttappam",
+            "Vegetable Uthappam",
+            "Vegetable Uttappam"
           ],
           "kcal": 180,
           "grams": 100
