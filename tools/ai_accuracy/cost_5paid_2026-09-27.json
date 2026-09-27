@@ -1,0 +1,169 @@
+{
+  "provider": "proxy",
+  "shipped": {
+    "label": "shipped (working tree)",
+    "provider": "proxy",
+    "transport": "production path: base64 image -> vision model in the shipped request shape",
+    "rows": [
+      {
+        "id": "thali_ma08",
+        "truth_kcal": 700,
+        "pred_kcal": 560,
+        "recalled": [
+          "Rice",
+          "Dal",
+          "Dry Vegetable Sabzi",
+          "Paneer or Meat Curry"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 3,
+        "n_truth": 4,
+        "kcal_error_pct": 20.0,
+        "atwater_pct": 5.2,
+        "latency_s": 5.7,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 326,
+          "cost_usd": 0.00412275
+        }
+      },
+      {
+        "id": "dal_makhani_bowl",
+        "truth_kcal": 280,
+        "pred_kcal": 300,
+        "recalled": [
+          "Dal Makhani"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 1,
+        "n_truth": 1,
+        "kcal_error_pct": 7.1,
+        "atwater_pct": 3.3,
+        "latency_s": 3.5,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 124,
+          "cost_usd": 0.00400155
+        }
+      },
+      {
+        "id": "kadhi_bowl",
+        "truth_kcal": 150,
+        "pred_kcal": 300,
+        "recalled": [],
+        "missed": [
+          "Kadhi"
+        ],
+        "invented": [
+          "Chana Masala"
+        ],
+        "generic": [],
+        "n_pred": 1,
+        "n_truth": 1,
+        "kcal_error_pct": 100.0,
+        "atwater_pct": 4.0,
+        "latency_s": 3.4,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 124,
+          "cost_usd": 0.00400155
+        }
+      },
+      {
+        "id": "urad_dal_two_roti",
+        "truth_kcal": 470,
+        "pred_kcal": 400,
+        "recalled": [
+          "Urad Dal",
+          "Roti"
+        ],
+        "missed": [
+          "Onion",
+          "Cucumber"
+        ],
+        "invented": [],
+        "generic": [],
+        "n_pred": 2,
+        "n_truth": 4,
+        "kcal_error_pct": 14.9,
+        "atwater_pct": 6.2,
+        "latency_s": 4.7,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 37515,
+          "completion_tokens": 223,
+          "cost_usd": 0.00576105
+        }
+      },
+      {
+        "id": "north_indian_dinner",
+        "truth_kcal": 670,
+        "pred_kcal": 730,
+        "recalled": [
+          "Aloo Fry",
+          "Roti"
+        ],
+        "missed": [
+          "Chole"
+        ],
+        "invented": [
+          "Rajma"
+        ],
+        "generic": [],
+        "n_pred": 3,
+        "n_truth": 3,
+        "kcal_error_pct": 9.0,
+        "atwater_pct": 10.8,
+        "latency_s": 5.6,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 37515,
+          "completion_tokens": 324,
+          "cost_usd": 0.00582165
+        }
+      }
+    ],
+    "summary": {
+      "meals": 5,
+      "scored": 5,
+      "unmeasured": 0,
+      "invented_total": 2,
+      "missed_total": 4,
+      "generic_total": 0,
+      "median_kcal_error_pct": 14.9,
+      "median_atwater_pct": 5.2,
+      "median_latency_s": 4.7,
+      "verdict": "all scans answered"
+    },
+    "served_models": [
+      "gpt-4o-mini-2024-07-18"
+    ]
+  }
+}

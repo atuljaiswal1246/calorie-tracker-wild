@@ -172,7 +172,29 @@ def ask_proxy(prompt: str, image_path: str, device_id: str) -> dict:
         raw_body = resp.read().decode()
     if served.startswith("?"):
         served = json.loads(raw_body).get("model", "?")
-    return json.loads(raw_body), served, provider
+    parsed = json.loads(raw_body)
+    usage = parsed.get("usage") or {}
+    text = ((parsed.get("choices") or [{}])[0].get("message") or {}).get("content", "")
+    return json.loads(text.replace("```json", "").replace("```", "").strip()), \
+        served, provider, usage
+
+
+# ---- cost ---------------------------------------------------------------
+# gpt-4o-mini list pricing, per 1M tokens. AICredits is OpenAI-compatible, so
+# this is the price the owner is billed at. Kept in one place so a price change
+# is a one-line edit and never a guess buried in a report.
+PRICE_IN_PER_M = 0.15
+PRICE_OUT_PER_M = 0.60
+
+
+def price(usage: dict) -> dict:
+    pin = int(usage.get("prompt_tokens", 0) or 0)
+    pout = int(usage.get("completion_tokens", 0) or 0)
+    return {
+        "prompt_tokens": pin,
+        "completion_tokens": pout,
+        "cost_usd": round(pin / 1e6 * PRICE_IN_PER_M + pout / 1e6 * PRICE_OUT_PER_M, 8),
+    }
 
 
 def ask_free(prompt: str, image_path: str) -> tuple[dict, str]:
@@ -317,7 +339,7 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
                 if provider == "free":
                     (result, model), retries = with_retry(ask_free, prompt, path)
                 else:
-                    (result, model, _prov), retries = with_retry(
+                    (result, model, _prov, usage), retries = with_retry(
                         ask_proxy, prompt, path, device_id)
                 served.add(model)
                 row = score_case(case, result)
@@ -326,12 +348,15 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
                 row["model"] = model
                 row["retries"] = retries
                 row["transport"] = TRANSPORT_NOTE[provider]
+                if provider != "free":
+                    row["usage"] = price(usage)
                 rows.append(row)
+                cost = (f"  ${row['usage']['cost_usd']:.6f}" if "usage" in row else "")
                 print(f"  {case['id']:<24} r{attempt + 1} {model:<28} "
                       f"kcal {row['pred_kcal']:>5} (ref {row['truth_kcal']:>5})"
                       f"  err {row['kcal_error_pct']:>5}%"
                       f"  inv={len(row['invented'])} miss={len(row['missed'])}"
-                      f"  retries={retries}  {row['latency_s']}s")
+                      f"  retries={retries}  {row['latency_s']}s{cost}")
                 if row["invented"]:
                     print(f"      INVENTED: {', '.join(row['invented'])}")
             except RateLimited:
@@ -376,6 +401,61 @@ def print_block(res: dict) -> None:
     print(f"  SUMMARY {json.dumps(res['summary'])}")
 
 
+def cost_report(rows: list[dict], device: str) -> None:
+    """The number the owner actually asked for: what does a scan cost.
+
+    Separates the cost of the PHOTO from the cost of the prompt by also pricing
+    one text-only call with no image attached. Without that split, "cost per
+    scan" is a number nobody can reason about.
+    """
+    scans = [r for r in rows if r.get("usage")]
+    if not scans:
+        print("\n=== COST ===\nno priced scans in this run "
+              "(the free provider reports no token usage)")
+        return
+
+    # text-only control: same model, same question, no image
+    control = None
+    try:
+        body = json.dumps({
+            "model": "mimo-v2.5",
+            "messages": [{"role": "user", "content": "Say ok"}],
+            "max_tokens": 5,
+        })
+        req = urllib.request.Request(
+            ENDPOINT, data=body.encode(), method="POST",
+            headers={"Content-Type": "application/json",
+                     "x-device-id": device, "User-Agent": "Mozilla/5.0 Chrome/120.0"})
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            control = price(json.loads(resp.read().decode()).get("usage") or {})
+    except Exception as exc:                          # noqa: BLE001
+        print(f"  (text-only control failed: {exc})")
+
+    costs = [s["usage"]["cost_usd"] for s in scans]
+    pins = [s["usage"]["prompt_tokens"] for s in scans]
+    mean = lambda xs: sum(xs) / len(xs)
+    med = lambda xs: sorted(xs)[len(xs) // 2]
+
+    print("\n=== COST, 5 paid scans (gpt-4o-mini via AICredits) ===")
+    print(f"  {'case':<24}{'prompt tok':>12}{'output tok':>12}{'cost USD':>14}")
+    for s in scans:
+        u = s["usage"]
+        print(f"  {s['id']:<24}{u['prompt_tokens']:>12}{u['completion_tokens']:>12}"
+              f"{u['cost_usd']:>14.6f}")
+    print(f"\n  COST PER SCAN   mean ${mean(costs):.6f}   median ${med(costs):.6f}")
+    if control:
+        per_photo = mean(costs) - control["cost_usd"]
+        print(f"  text-only call        ${control['cost_usd']:.6f} "
+              f"({control['prompt_tokens']} prompt tok, no photo)")
+        print(f"  => COST PER PHOTO     ${per_photo:.6f}  "
+              f"(mean prompt tokens with a photo: {mean(pins):.0f})")
+    print("\n  What that means per person, at the prices in the app:")
+    for label, n in (("1 scan/day", 30), ("3 scans/day", 90), ("5 scans/day", 150)):
+        print(f"    {label:<12} {n:>4} scans/month  =  ${mean(costs) * n:.4f}/month")
+    print("\n  Priced at gpt-4o-mini list: $0.15/1M in, $0.60/1M out. "
+          "Not a quote - the invoice is the truth.")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--compare", metavar="GIT_REF",
@@ -389,6 +469,9 @@ def main() -> int:
                     help="runs per case; the upstream is NOT deterministic, so a "
                          "single run cannot distinguish a fix from luck")
     ap.add_argument("--device-id", default=None)
+    ap.add_argument("--cost", action="store_true",
+                    help="price the scans: cost per scan, cost per photo, and "
+                         "per-person monthly projection")
     args = ap.parse_args()
 
     with open(CASES, encoding="utf-8") as fh:
@@ -414,6 +497,9 @@ def main() -> int:
                     "median_kcal_error_pct", "median_atwater_pct",
                     "median_latency_s"):
             print(f"  {key:<26} {b.get(key)}  ->  {a.get(key)}")
+
+    if args.cost and args.provider == "proxy":
+        cost_report(current["rows"], device)
 
     if args.json:
         with open(args.json, "w", encoding="utf-8") as fh:

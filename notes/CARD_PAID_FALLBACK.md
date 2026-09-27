@@ -1,10 +1,76 @@
-# CARD — paid fallback needed, or not? · **owner's decision**
+# CARD — paid fallback needed, or not? · **CLOSED**
 
-**Status: OPEN.** I keep this card. I bring it to the owner in **one line** when
-the evidence says the decision can no longer be deferred.
+**Status: CLOSED — answer: YES, the paid vision fallback is needed.**
 
-Raised 2026-09-27. Owner instruction of record: *"free pe chalwa do abhi ke liye"*
-— explicitly **temporary**, not permanent.
+**Decided by the owner at 21:1x IST on 2026-09-27, on their own initiative.**
+For the record, and because it matters how the record reads: earlier the same
+evening the owner had said *"free pe chalwa do abhi ke liye"*. I did not ask
+for money at any point, and I did not re-ask when the evidence came in — the
+owner reversed the earlier decision themselves. The reversal was theirs, not a
+request of mine.
+
+**What I am NOT doing with this answer, per the same instruction:** the
+Worker's existing per-user usage budget is **untouched** (I have not edited the
+quota or circuit-breaker code today), and **I have not created any plan, tier or
+price.** Pricing is the owner's decision, not mine.
+
+---
+
+## 1. The key never reaches the app — verified, not assumed
+
+Checked 2026-09-27 across the whole tree: **no provider key literal exists in
+the shipped app.** The only near-matches are two upstream *URLs* inside
+`cloudflare_worker/worker.js`. The app puts exactly one custom header on the
+wire:
+
+```dart
+headers: { 'Content-Type': 'application/json', 'x-device-id': _deviceId }
+```
+
+The provider key stays a Cloudflare secret and the Worker is the only thing that
+touches the model. Unchanged, and now checked rather than believed.
+
+**One correction to a premise I was given:** the instruction referred to
+`DEEPSEEK_API_KEY` being on the Worker "as now". **There is no such secret.**
+`wrangler secret list` returns exactly four:
+
+```
+AICREDITS_KEY   OPENCODE_KEY   OPENROUTER_KEY   ZEN_KEY
+```
+
+I did not add one and did not change the architecture. Flagging it so nobody
+builds on a secret that is not there.
+
+## 2. What a scan actually costs — the number that was missing
+
+5 paid scans, 2026-09-27, producer `tools/ai_accuracy.py --cost`
+(`cost_5paid_2026-09-27.json`). Model `gpt-4o-mini-2024-07-18` via AICredits.
+
+| case | prompt tokens | output tokens | cost |
+|---|---|---|---|
+| thali_ma08 | 26,181 | 326 | $0.004123 |
+| dal_makhani_bowl | 26,181 | 124 | $0.004002 |
+| kadhi_bowl | 26,181 | 124 | $0.004002 |
+| urad_dal_two_roti | 37,515 | 223 | $0.005761 |
+| north_indian_dinner | 37,515 | 324 | $0.005822 |
+
+| | |
+|---|---|
+| **cost per scan** | **mean $0.0047, median $0.0041** |
+| text-only call, no photo | $0.000003 |
+| **cost per photo** | **$0.0047 — the photo is 99.94% of the cost** |
+| 1 scan/day | **$0.14 / person / month** |
+| 3 scans/day | **$0.43 / person / month** |
+| 5 scans/day | **$0.71 / person / month** |
+
+Priced at gpt-4o-mini list ($0.15/1M in, $0.60/1M out). **Not a quote — the
+invoice is the truth.**
+
+**The one lever I found, which I am NOT pulling:** cost tracks image size
+(26,181 tokens at one size vs 37,515 at another — 43% more for 43% more
+pixels). The app already compresses to 800px/quality 70. Compressing harder
+would cut cost roughly in half, but it trades accuracy, and accuracy is M2's
+bar, which is the owner's to set. Recorded, not acted on.
 
 ---
 
