@@ -141,8 +141,10 @@ except SystemExit as e:
 import sys, runpy, re
 sys.path.insert(0, "tools")
 mod = runpy.run_path("tools/report_to_jarvis.py", run_name="not_main")
-out = mod["build"]("Landed: abc.\\n\\nTime: ~07:20 IST, 2026-09-28")
-stamped = re.search(r"~\\d{2}:\\d{2}", out).group(0)
+text, stamp = mod["build"](
+    "Landed: abc." + chr(10) + chr(10) + "Time: ~07:20 IST, 2026-09-28")
+out = text
+stamped = stamp
 print("TYPED", "07:20" in out)
 print("HEADER", stamped)
 ''';
@@ -152,6 +154,50 @@ print("HEADER", stamped)
         reason: 'a hand-typed time survived into the report.\n$out');
     expect(out.contains('HEADER ~'), isTrue,
         reason: 'no machine-read header was added.\n$out');
+  });
+
+  test('a body may QUOTE a wrong time while confessing to it', () {
+    // The first report through the script was REFUSED, because the body quoted
+    // the fabricated "~07:20" in the sentence confessing to it, and the guard
+    // matched the quote. A guard that refuses an honest confession gets worked
+    // around within a day and then protects nothing. So verify() takes the stamp
+    // the script GENERATED, never the body.
+    final py = _python()!;
+    final probe = '''
+import sys, runpy
+sys.path.insert(0, "tools")
+mod = runpy.run_path("tools/report_to_jarvis.py", run_name="not_main")
+text, stamp = mod["build"]("I wrote ~07:20 and it was two hours wrong.")
+mod["verify"](stamp)
+print("SENT-WITH-CONFESSION-IN-BODY")
+''';
+    final r = Process.runSync(py, ['-c', probe]);
+    expect('${r.stdout}${r.stderr}', contains('SENT-WITH-CONFESSION-IN-BODY'),
+        reason: 'verify() must check the generated stamp only, or a report that '
+            'truthfully quotes a wrong time cannot be sent.\n${r.stdout}');
+  });
+
+  test('the SHIPPED path sends a body that quotes a wrong time', () {
+    // The behavioural half of the guard above, end to end through main(): a real
+    // --dry-run with a body that quotes the fabricated time must NOT be refused.
+    // The earlier version of this only called verify() directly with a stamp, so
+    // it could not see main() handing verify() the body instead - and my sabotage
+    // proof proved exactly that: RED was not achieved because nothing checked
+    // the shipped path. An empty result is not a finding, including when the
+    // empty result is a proof that passed.
+    final py = _python()!;
+    final r = Process.runSync(py, [
+      'tools/report_to_jarvis.py', '--dry-run', '--body-text',
+      'Last night my header said ~07:20 and the machine said 05:13.',
+    ]);
+    final out = '${r.stdout}${r.stderr}';
+    expect(r.exitCode, 0,
+        reason: 'A report that truthfully quotes a wrong time was REFUSED. A '
+            'guard that blocks honest confessions gets disabled within a day, '
+            'and then it protects nothing.\n$out');
+    expect(out, isNot(contains('REFUSING TO SEND')), reason: out);
+    expect(out, contains('Time: ~'),
+        reason: 'No machine-read header was added.\n$out');
   });
 
   test('the newest commit is not dated in the FUTURE', () {

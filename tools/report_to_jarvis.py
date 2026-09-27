@@ -73,15 +73,23 @@ def body_text(path: str | None, inline: str | None) -> str:
     raise SystemExit("give me --body <file> or --body-text <string>")
 
 
-def build(text: str) -> str:
-    """Prefix the opening line and the machine-read time. Always."""
+def build(text: str) -> tuple[str, str]:
+    """Prefix the opening line and the machine-read time. Always.
+
+    Returns the text AND the stamp, so the check below verifies the value THIS
+    function generated rather than re-reading the whole body. I got that wrong
+    first: the first report through this script was REFUSED because the body
+    QUOTED the bad time I was confessing to ("my header said ~07:20"), and the
+    guard matched the quote. A guard that can be tripped by the truth being
+    reported is a guard that will be worked around, and then it protects nothing.
+    """
     stamp = clock.header()
     if re.search(r"(?im)^\s*time:\s", text):
         print("! this body already contains a 'Time:' line. It is being "
               "replaced with the machine's clock, because a typed time is a "
               "guess. If you meant to keep yours, do not.", file=sys.stderr)
         text = re.sub(r"(?im)^\s*time:.*$", "", text)
-    return f"{OPENING}\n\n{text.rstrip()}\n\nTime: {stamp}"
+    return f"{OPENING}\n\n{text.rstrip()}\n\nTime: {stamp}", stamp
 
 
 def drift_minutes(said_min: int, real_min: int) -> int:
@@ -97,11 +105,16 @@ def drift_minutes(said_min: int, real_min: int) -> int:
     return min(raw, 24 * 60 - raw)
 
 
-def verify(stamped: str) -> None:
-    """Re-read the clock and refuse a stamp that has drifted."""
-    m = re.search(r"~(\d{1,2}):(\d{2})", stamped)
+def verify(stamp: str) -> None:
+    """Re-read the clock and refuse a stamp that has drifted.
+
+    Takes the stamp this script GENERATED, not the body: a body may legitimately
+    quote an old or wrong time while reporting that it was wrong, and a guard
+    that refuses honest confessions gets disabled.
+    """
+    m = re.search(r"~(\d{1,2}):(\d{2})", stamp)
     if not m:
-        raise SystemExit(f"no time in the stamp {stamped!r}")
+        raise SystemExit(f"no time in the stamp {stamp!r}")
     said = int(m.group(1)) * 60 + int(m.group(2))
     n = clock.now()
     real = n.hour * 60 + n.minute
@@ -123,8 +136,8 @@ def main() -> int:
                     help="print the exact payload; send nothing")
     args = ap.parse_args()
 
-    text = build(body_text(args.body, args.body_text))
-    verify(text)
+    text, stamp = build(body_text(args.body, args.body_text))
+    verify(stamp)
 
     if args.dry_run:
         print(text)
