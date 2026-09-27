@@ -1,0 +1,503 @@
+{
+  "provider": "proxy",
+  "shipped": {
+    "label": "shipped (working tree)",
+    "provider": "proxy",
+    "transport": "production path: base64 image -> vision model in the shipped request shape",
+    "rows": [
+      {
+        "id": "palak_paneer_meal",
+        "truth_kcal": 470,
+        "pred_kcal": 470,
+        "recalled": [
+          "Palak Paneer",
+          "Roti"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 2,
+        "n_truth": 2,
+        "kcal_error_pct": 0.0,
+        "atwater_pct": 3.4,
+        "latency_s": 6.0,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 224,
+          "cost_usd": 0.00406155
+        }
+      },
+      {
+        "id": "chickpea_salad_probe",
+        "truth_kcal": 450,
+        "pred_kcal": 300,
+        "recalled": [
+          "Chickpea Salad"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 1,
+        "n_truth": 1,
+        "kcal_error_pct": 33.3,
+        "atwater_pct": 3.3,
+        "latency_s": 5.3,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 77,
+          "cost_usd": 0.00397335
+        }
+      },
+      {
+        "id": "thali_ma08",
+        "truth_kcal": 700,
+        "pred_kcal": 560,
+        "recalled": [
+          "Rice",
+          "Dal",
+          "Dry Vegetable Sabzi",
+          "Paneer or Meat Curry"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 3,
+        "n_truth": 4,
+        "kcal_error_pct": 20.0,
+        "atwater_pct": 5.2,
+        "latency_s": 5.6,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 326,
+          "cost_usd": 0.00412275
+        }
+      },
+      {
+        "id": "dal_makhani_bowl",
+        "truth_kcal": 280,
+        "pred_kcal": 300,
+        "recalled": [
+          "Dal Makhani"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 1,
+        "n_truth": 1,
+        "kcal_error_pct": 7.1,
+        "atwater_pct": 3.3,
+        "latency_s": 5.1,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 124,
+          "cost_usd": 0.00400155
+        }
+      },
+      {
+        "id": "kadhi_bowl",
+        "truth_kcal": 150,
+        "pred_kcal": 300,
+        "recalled": [],
+        "missed": [
+          "Kadhi"
+        ],
+        "invented": [
+          "Chana Masala"
+        ],
+        "generic": [],
+        "n_pred": 1,
+        "n_truth": 1,
+        "kcal_error_pct": 100.0,
+        "atwater_pct": 10.0,
+        "latency_s": 3.4,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 124,
+          "cost_usd": 0.00400155
+        }
+      },
+      {
+        "id": "urad_dal_two_roti",
+        "truth_kcal": 470,
+        "pred_kcal": 400,
+        "recalled": [
+          "Urad Dal",
+          "Roti"
+        ],
+        "missed": [
+          "Onion",
+          "Cucumber"
+        ],
+        "invented": [],
+        "generic": [],
+        "n_pred": 2,
+        "n_truth": 4,
+        "kcal_error_pct": 14.9,
+        "atwater_pct": 6.2,
+        "latency_s": 4.8,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 37515,
+          "completion_tokens": 223,
+          "cost_usd": 0.00576105
+        }
+      },
+      {
+        "id": "north_indian_dinner",
+        "truth_kcal": 670,
+        "pred_kcal": 730,
+        "recalled": [
+          "Aloo Fry",
+          "Roti"
+        ],
+        "missed": [
+          "Chole"
+        ],
+        "invented": [
+          "Rajma"
+        ],
+        "generic": [],
+        "n_pred": 3,
+        "n_truth": 3,
+        "kcal_error_pct": 9.0,
+        "atwater_pct": 10.8,
+        "latency_s": 5.8,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 37515,
+          "completion_tokens": 324,
+          "cost_usd": 0.00582165
+        }
+      },
+      {
+        "id": "bhindi_masala_rice",
+        "truth_kcal": 390,
+        "pred_kcal": 350,
+        "recalled": [
+          "Rice",
+          "Bhindi Masala"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 2,
+        "n_truth": 2,
+        "kcal_error_pct": 10.3,
+        "atwater_pct": 1.4,
+        "latency_s": 5.2,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 37515,
+          "completion_tokens": 225,
+          "cost_usd": 0.00576225
+        }
+      },
+      {
+        "id": "baingan_bharta",
+        "truth_kcal": 120,
+        "pred_kcal": 180,
+        "recalled": [
+          "Baingan Bharta"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 1,
+        "n_truth": 1,
+        "kcal_error_pct": 50.0,
+        "atwater_pct": 3.3,
+        "latency_s": 4.5,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 124,
+          "cost_usd": 0.00400155
+        }
+      },
+      {
+        "id": "lauki_curry",
+        "truth_kcal": 110,
+        "pred_kcal": 120,
+        "recalled": [
+          "Lauki Ki Sabzi"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 1,
+        "n_truth": 1,
+        "kcal_error_pct": 9.1,
+        "atwater_pct": 6.7,
+        "latency_s": 4.0,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 126,
+          "cost_usd": 0.00400275
+        }
+      },
+      {
+        "id": "matar_paneer_bowl",
+        "truth_kcal": 280,
+        "pred_kcal": 350,
+        "recalled": [
+          "Matar Paneer"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 1,
+        "n_truth": 1,
+        "kcal_error_pct": 25.0,
+        "atwater_pct": 6.3,
+        "latency_s": 4.8,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 124,
+          "cost_usd": 0.00400155
+        }
+      },
+      {
+        "id": "chapati_dal_bhindi_plate",
+        "truth_kcal": 460,
+        "pred_kcal": 420,
+        "recalled": [
+          "Roti",
+          "Dal",
+          "Bhindi Sabzi"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 3,
+        "n_truth": 3,
+        "kcal_error_pct": 8.7,
+        "atwater_pct": 7.1,
+        "latency_s": 5.4,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 324,
+          "cost_usd": 0.00412155
+        }
+      },
+      {
+        "id": "masala_dosa_plate",
+        "truth_kcal": 290,
+        "pred_kcal": 450,
+        "recalled": [
+          "Masala Dosa",
+          "Chutney"
+        ],
+        "missed": [],
+        "invented": [
+          "Medu Vada"
+        ],
+        "generic": [],
+        "n_pred": 2,
+        "n_truth": 2,
+        "kcal_error_pct": 55.2,
+        "atwater_pct": 6.0,
+        "latency_s": 4.6,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 224,
+          "cost_usd": 0.00406155
+        }
+      },
+      {
+        "id": "idli_sambar_chutney_plate",
+        "truth_kcal": 250,
+        "pred_kcal": 390,
+        "recalled": [
+          "Idli",
+          "Sambar",
+          "Chutney"
+        ],
+        "missed": [],
+        "invented": [],
+        "generic": [],
+        "n_pred": 3,
+        "n_truth": 3,
+        "kcal_error_pct": 56.0,
+        "atwater_pct": 2.6,
+        "latency_s": 5.5,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 325,
+          "cost_usd": 0.00412215
+        }
+      },
+      {
+        "id": "rava_idli_home",
+        "truth_kcal": 280,
+        "pred_kcal": 370,
+        "recalled": [
+          "Rava Idli",
+          "Sambar"
+        ],
+        "missed": [
+          "Chutney"
+        ],
+        "invented": [],
+        "generic": [],
+        "n_pred": 2,
+        "n_truth": 3,
+        "kcal_error_pct": 32.1,
+        "atwater_pct": 3.0,
+        "latency_s": 4.5,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 222,
+          "cost_usd": 0.00406035
+        }
+      },
+      {
+        "id": "tamil_uthappam",
+        "truth_kcal": 310,
+        "pred_kcal": 500,
+        "recalled": [
+          "Sambar",
+          "Chutney"
+        ],
+        "missed": [
+          "Uthappam"
+        ],
+        "invented": [
+          "Vegetable Uttapam"
+        ],
+        "generic": [],
+        "n_pred": 3,
+        "n_truth": 3,
+        "kcal_error_pct": 61.3,
+        "atwater_pct": 7.0,
+        "latency_s": 5.2,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 14847,
+          "completion_tokens": 328,
+          "cost_usd": 0.00242385
+        }
+      },
+      {
+        "id": "andhra_idli_vada_sambar",
+        "truth_kcal": 330,
+        "pred_kcal": 360,
+        "recalled": [
+          "Idli",
+          "Sambar"
+        ],
+        "missed": [
+          "Vada"
+        ],
+        "invented": [
+          "Coconut Chutney"
+        ],
+        "generic": [],
+        "n_pred": 3,
+        "n_truth": 3,
+        "kcal_error_pct": 9.1,
+        "atwater_pct": 5.8,
+        "latency_s": 5.7,
+        "status": "answered",
+        "run": 1,
+        "model": "gpt-4o-mini-2024-07-18",
+        "retries": 0,
+        "transport": "production path: base64 image -> vision model in the shipped request shape",
+        "usage": {
+          "prompt_tokens": 26181,
+          "completion_tokens": 325,
+          "cost_usd": 0.00412215
+        }
+      }
+    ],
+    "summary": {
+      "meals": 17,
+      "scored": 17,
+      "unmeasured": 0,
+      "invented_total": 5,
+      "missed_total": 7,
+      "generic_total": 0,
+      "median_kcal_error_pct": 20.0,
+      "median_atwater_pct": 5.8,
+      "median_latency_s": 5.2,
+      "verdict": "all scans answered"
+    },
+    "served_models": [
+      "gpt-4o-mini-2024-07-18"
+    ]
+  }
+}

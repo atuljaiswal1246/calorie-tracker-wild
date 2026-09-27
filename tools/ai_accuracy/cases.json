@@ -11,7 +11,8 @@
     "defensible the label is: a thali I can name item by item is 'high'; a",
     "bowl that a scan could fairly call either kadhi or dal is 'medium'.",
     "Anything I could not name honestly was deleted, not guessed at.",
-    "Batch 2 added 5 more openly licensed, human-reviewed meals, chosen for dish BREADTH: 8 of the 16 candidates were bhindi, exactly the trap batch 1 hit with chole bhature, so only one bhindi was taken."
+    "Batch 2 added 5 more openly licensed, human-reviewed meals, chosen for dish BREADTH: 8 of the 16 candidates were bhindi, exactly the trap batch 1 hit with chole bhature, so only one bhindi was taken.",
+    "Batch 3 added 5 more openly licensed, human-reviewed meals. THE TRAP, THIRD TIME: of 18 candidates 8 were masala dosa and 7 were idli, so only 5 distinct dishes were taken. THE HONEST LIMIT: because the queries were breakfast items, all five are South-Indian breakfast. That is a real bias in the corpus; batch 4 must target curries, eggs and non-breakfast home cooking before any overall score is quoted."
   ],
   "cases": [
     {
@@ -354,6 +355,182 @@
             "Lady Finger"
           ],
           "kcal": 120,
+          "grams": 100
+        }
+      ]
+    },
+    {
+      "id": "masala_dosa_plate",
+      "image": "tools/ai_accuracy/photos/masala_dosa_10_jpg.jpg",
+      "note": "A folded masala dosa on a steel plate with two small bowls of chutney, shot from above. 'Medium' because the filling inside the fold is not visible, so the potato-vs-onion split is a judgement call, and the two chutneys cannot be told apart.",
+      "confidence": "medium",
+      "truth": [
+        {
+          "name": "Masala Dosa",
+          "aliases": [
+            "Dosa",
+            "Masala Dosa",
+            "Dosa Plain"
+          ],
+          "kcal": 250,
+          "grams": 120
+        },
+        {
+          "name": "Chutney",
+          "aliases": [
+            "Coconut Chutney",
+            "Mint Chutney",
+            "Chutney",
+            "Dosa Chutney"
+          ],
+          "kcal": 40,
+          "grams": 40
+        }
+      ]
+    },
+    {
+      "id": "idli_sambar_chutney_plate",
+      "image": "tools/ai_accuracy/photos/camerazoom_20150614100720279_jpg.jpg",
+      "note": "A white plate from above: four steamed idli and two small bowls, one pale brown and one orange. Home-style, not styled.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Idli",
+          "aliases": [
+            "Steamed Idli",
+            "Idli",
+            "Idli Medu"
+          ],
+          "kcal": 120,
+          "grams": 100
+        },
+        {
+          "name": "Sambar",
+          "aliases": [
+            "Sambar",
+            "Dal",
+            "Idli Sambar"
+          ],
+          "kcal": 90,
+          "grams": 120
+        },
+        {
+          "name": "Chutney",
+          "aliases": [
+            "Coconut Chutney",
+            "Chutney"
+          ],
+          "kcal": 40,
+          "grams": 30
+        }
+      ]
+    },
+    {
+      "id": "rava_idli_home",
+      "image": "tools/ai_accuracy/photos/rava_idli_jpg.jpg",
+      "note": "Rava idli in a steel bowl on a home table, with sambar in a black bowl and two chutney bowls. Overhead and plainly home-cooked.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Rava Idli",
+          "aliases": [
+            "Idli",
+            "Rava Idli",
+            "Steamed Idli"
+          ],
+          "kcal": 150,
+          "grams": 100
+        },
+        {
+          "name": "Sambar",
+          "aliases": [
+            "Sambar",
+            "Dal"
+          ],
+          "kcal": 90,
+          "grams": 120
+        },
+        {
+          "name": "Chutney",
+          "aliases": [
+            "Coconut Chutney",
+            "Chutney"
+          ],
+          "kcal": 40,
+          "grams": 30
+        }
+      ]
+    },
+    {
+      "id": "tamil_uthappam",
+      "image": "tools/ai_accuracy/photos/tamil_uthappam_jpg.jpg",
+      "note": "A single uthappam on a banana leaf with small bowls of sambar and chutney. Unmistakable and clearly a home serving.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Uthappam",
+          "aliases": [
+            "Uttappam",
+            "Uthapam",
+            "Dosa",
+            "Uthappam",
+            "Idli Dosa"
+          ],
+          "kcal": 180,
+          "grams": 100
+        },
+        {
+          "name": "Sambar",
+          "aliases": [
+            "Sambar",
+            "Dal"
+          ],
+          "kcal": 90,
+          "grams": 100
+        },
+        {
+          "name": "Chutney",
+          "aliases": [
+            "Coconut Chutney",
+            "Chutney"
+          ],
+          "kcal": 40,
+          "grams": 30
+        }
+      ]
+    },
+    {
+      "id": "andhra_idli_vada_sambar",
+      "image": "tools/ai_accuracy/photos/idli_with_sambar_chutney_tirupati_andhra_pradesh_dsc_0009_jp.jpg",
+      "note": "On a banana leaf: two idli, one golden vada, a bowl of sambar and chutney, with a steel tumbler. 'Medium' because vada and boondi in the sambar can be confused at this size.",
+      "confidence": "medium",
+      "truth": [
+        {
+          "name": "Idli",
+          "aliases": [
+            "Idli",
+            "Steamed Idli"
+          ],
+          "kcal": 90,
+          "grams": 70
+        },
+        {
+          "name": "Vada",
+          "aliases": [
+            "Medu Vada",
+            "Vada",
+            "Uttapam Vada"
+          ],
+          "kcal": 150,
+          "grams": 60
+        },
+        {
+          "name": "Sambar",
+          "aliases": [
+            "Sambar",
+            "Dal"
+          ],
+          "kcal": 90,
           "grams": 100
         }
       ]

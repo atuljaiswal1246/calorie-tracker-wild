@@ -134,6 +134,38 @@ def clean(text: str) -> str:
     return re.sub(r"\s+", " ", html.unescape(text)).strip()
 
 
+# Batch 3: dishes batches 1-2 do NOT hold, and regions batch 1-2 under-covered.
+# Batch 1-2 leaned North/Northwest (thali, dal makhani, kadhi, chole) and one
+# Bengali dish. The stated user eats what their region eats, so a corpus that is
+# only "North Indian" would flatter the score for half the country.
+BATCH3_QUERIES = [
+    'filetype:bitmap "masala dosa"',
+    'filetype:bitmap "idli sambar"',
+    'filetype:bitmap "uttapam"',
+    'filetype:bitmap "medu vada"',
+    'filetype:bitmap "bisi bele bathu"',
+    'filetype:bitmap "masoor dal" bowl',
+    'filetype:bitmap "chana dal" bowl',
+    'filetype:bitmap "dal tadka"',
+    'filetype:bitmap "tarka dal"',
+    'filetype:bitmap "egg curry" bowl',
+    'filetype:bitmap "butter chicken" bowl',
+    'filetype:bitmap "chicken tikka masala"',
+    'filetype:bitmap "rogan josh"',
+    'filetype:bitmap "gobi curry"',
+    'filetype:bitmap "shahi paneer"',
+    'filetype:bitmap "kadai paneer"',
+    'filetype:bitmap "palak kofta"',
+    'filetype:bitmap "malai kofta"',
+    'filetype:bitmap "dhokla"',
+    'filetype:bitmap "khandvi"',
+    'filetype:bitmap "thepla" plate',
+    'filetype:bitmap "khichdi"',
+    'filetype:bitmap "halwa" bowl',
+    'filetype:bitmap "gulab jamun"',
+    'filetype:bitmap "payasam"',
+]
+
 def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
     seen, out = set(), []
     for q in (queries or QUERIES):
@@ -213,11 +245,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=5, help="photos to add in this batch")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES}
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
