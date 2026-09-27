@@ -139,6 +139,33 @@ BATCH5_QUERIES = [
 ]
 
 
+# BATCH 6 — the last two classes the 20-meal bar needs, and the two biggest gaps
+# in what a real user photographs.
+#
+# 18 of 20 after batch 5. The corpus has exactly ONE non-vegetarian case class
+# (biryani) while a home-cooked Indian kitchen eats egg and chicken most weeks,
+# and the product promise is a photo of whatever is on the plate. So the two
+# classes I want most are the two the corpus is worst at, which happens to be
+# exactly what the bar still needs.
+#
+# Targets, one query each, none of them mapping to an existing class:
+#   egg bhurji / omelette (egg)   methi sabzi (fenugreek)   chicken curry
+#   cabbage poriyal               kheer (a thali dessert)
+#   veg pulao                     bhindi do pyaz
+# "chicken curry" and "fish curry" already appear in the COVERAGE list, as items
+# inside a thali. Coverage is not a class: a thali case is scored as that thali,
+# so a standalone chicken curry the model must name is a different judgement.
+
+BATCH6_QUERIES = [
+    'filetype:bitmap "egg bhurji"',
+    'filetype:bitmap omelette indian',
+    'filetype:bitmap "methi sabzi"',
+    'filetype:bitmap "cabbage poriyal"',
+    'filetype:bitmap "veg pulao" plate',
+    'filetype:bitmap kheer bowl',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -359,11 +386,11 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES}
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:

@@ -326,6 +326,13 @@ DISH_CLASS = {
     "aloo gobi": "aloo gobi", "aloo ghobhi": "aloo gobi", "aloo_gobhi": "aloo gobi",
     "kofta curry": "kofta", "kofta": "kofta", "malai kofta": "kofta",
     "khakra": "khakra",
+    # batch 6. Egg bhurji and an omelette are ONE class; a bar must not be
+    # buyable with near-synonyms, so every synonym lands on one key.
+    "egg bhurji": "egg", "eggs": "egg", "omelette": "egg", "egg": "egg",
+    "boiled egg": "egg", "egg curry": "egg", "anda": "egg",
+    "veg pulao": "pulao", "pulao": "pulao", "vegetable pulao": "pulao",
+    "kheer": "kheer", "chahao kheer": "kheer", "payasam": "kheer",
+    "boondi raitha": "raitha", "raitha": "raitha", "raita": "raitha",
     "uthappam": "uthappam", "vada": "vada", "chickpea salad": "legume salad",
 }
 

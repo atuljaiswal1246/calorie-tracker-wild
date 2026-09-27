@@ -242,4 +242,31 @@ void main() {
           'real number rather than deleting this.\n$out',
     );
   });
+
+  test("THE BAR: the corpus meets ROADMAP M1's 20 distinct dish classes", () {
+    // The milestone itself needs a machine. Before batch 6 the corpus held 13
+    // classes and every note said "22 cases", which made it look closer than it
+    // was. A corpus can also shrink quietly - a case deleted to stop a bad score
+    // looks exactly like a corpus tidied up - so the bar is asserted, not
+    // remembered.
+    final classes =
+        int.parse(RegExp(r'DISH CLASSES:\s*(\d+)').firstMatch(out)!.group(1)!);
+    expect(
+      classes,
+      greaterThanOrEqualTo(20),
+      reason: 'The corpus has fallen to $classes distinct dish classes, below '
+          "ROADMAP M1's bar of 20 MEALS. If a case was removed because the "
+          'model scored badly on it, that is deleting evidence to flatter a '
+          'number - restore it and fix the model instead.\n$out',
+    );
+    // And the harness must state the bar where it prints the number, so the
+    // milestone is visible in a run's own output.
+    // Matched on the fragment, not the whole sentence: the sixth time tonight a
+    // guard of mine has failed on MY WORDING rather than on a defect.
+    expect(
+      out.contains('is judged on $classes'),
+      isTrue,
+      reason: 'The corpus report must say which number the bar is judged on.\n$out',
+    );
+  });
 }
