@@ -4,17 +4,44 @@
 The core claim of this app is that it knows what is on your plate. Until this
 existed, every prompt change was a guess. This scores the LIVE path: it takes
 the prompt **straight out of the Dart source** (so we test what actually ships,
-not a copy that can drift), sends the real photo to the real proxy, and scores
-the answer against a labelled truth.
+not a copy that can drift), sends the real photo to the model, and scores the
+answer against a labelled truth.
 
-    # score the prompt that currently ships
+    # the PRODUCTION path: base64 image -> vision model via the proxy
     python3 tools/ai_accuracy.py
+
+    # the FREE path, per the owner's money decision
+    python3 tools/ai_accuracy.py --provider free
 
     # A/B the fix: score the pre-fix prompt from git, side by side
     python3 tools/ai_accuracy.py --compare ba7d8d6
 
     # save a baseline for the record
     python3 tools/ai_accuracy.py --json out.json
+
+## The two providers are NOT the same measurement, and must never be mixed
+
+| provider | what actually happens | comparable to the paid baseline? |
+|---|---|---|
+| `proxy` (default) | the photo is base64-encoded and sent to a **vision model** in the production request shape | yes — this IS production |
+| `free` | the prompt is handed to the **opencode CLI**, and the agent reads the image off disk as a file | **no** |
+
+The free path is a different system, not a cheaper version of the same one. A
+coding model has no vision input channel; it can only see a picture because the
+agent hands it the file, and it will happily describe a "butter naan" that is
+really a roti. Its numbers are recorded and labelled, and they are never
+averaged into the production score.
+
+## When the free model is rate-limited, that is not a result
+
+A 429 is a **condition**, not an answer. The harness retries with backoff, and
+if it still cannot get through it records the scan as
+`UNMEASURED - free model rate-limited` and reports no number for it. A number
+nobody can name the producer of is the most dangerous thing this tool could
+print, so it refuses to invent one.
+
+Every run records: which model, whether it answered or was rate-limited, and
+how many retries it took.
 
 Scores, per meal:
   recall      truth dishes the model actually named
@@ -69,6 +96,16 @@ def same_dish(a: str, b: str) -> bool:
     return len(ta & tb) >= 1 and (ta <= tb or tb <= ta or len(ta & tb) >= min(len(ta), len(tb)))
 
 
+def truth_names(truth_item: dict) -> list[str]:
+    """A labelled dish plus the names a cook would reasonably use for it.
+
+    Without this, "Chole" vs "Chana Masala" scores as a miss even though a user
+    would call that the same food, and the corpus quietly rewards one naming
+    habit instead of measuring recognition.
+    """
+    return [truth_item["name"], *truth_item.get("aliases", [])]
+
+
 # ---------------------------------------------------------------- prompt source
 PROMPT_RE = re.compile(r"final prompt = '''\n(.*?)'''", re.S)
 
@@ -90,8 +127,28 @@ def image_prompt(ref: str | None = None) -> str:
     raise SystemExit("could not find the image prompt in " + (ref or "the working tree"))
 
 
-# ---------------------------------------------------------------- live call
+# ---------------------------------------------------------------- transports
+FREE_MODEL = "opencode-go/space-bunny-free"
+
+# A coding model has no vision input channel. The free path therefore differs
+# in kind, not just in price, and every number it produces is labelled as such.
+TRANSPORT_NOTE = {
+    "proxy": "production path: base64 image -> vision model in the shipped request shape",
+    "free": "DIFFERENT SYSTEM: opencode CLI agent reads the image off disk. "
+            "Not comparable to the production baseline.",
+}
+
+RETRY_SLEEPS = (3, 8, 20)          # backoff, in seconds
+
+
+def _looks_rate_limited(text: str) -> bool:
+    low = text.lower()
+    return ("429" in low or "rate limit" in low or "too many requests"
+            in low or "quota" in low or "resource_exhausted" in low)
+
+
 def ask_proxy(prompt: str, image_path: str, device_id: str) -> dict:
+    """Production path. Raises RateLimited if the upstream refuses."""
     with open(image_path, "rb") as fh:
         b64 = base64.b64encode(fh.read()).decode()
     payload = {
@@ -113,10 +170,58 @@ def ask_proxy(prompt: str, image_path: str, device_id: str) -> dict:
         served = resp.headers.get("x-cm-served-model", "?")
         provider = resp.headers.get("x-cm-provider", "?")
         raw_body = resp.read().decode()
-    body = json.loads(raw_body)
-    text = body["choices"][0]["message"]["content"]
-    raw = text.replace("```json", "").replace("```", "").strip()
-    return json.loads(raw), served, provider
+    if served.startswith("?"):
+        served = json.loads(raw_body).get("model", "?")
+    return json.loads(raw_body), served, provider
+
+
+def ask_free(prompt: str, image_path: str) -> tuple[dict, str]:
+    """Free path via the sanctioned CLI client.
+
+    Never hand-rolls HTTP to zen/go: that is exactly what the abuse filter
+    rejects, and the CLI is the validated client.
+    """
+    env = {k: v for k, v in os.environ.items() if k != "OPENCODE_API_KEY"}
+    task = (f"{prompt}\n\n"
+            f"Read the image file at this exact path and analyse what is in it: "
+            f"{image_path}\n"
+            f"Answer with ONLY the JSON object, no prose, no code fence.")
+    proc = subprocess.run(
+        ["opencode", "run", "-m", FREE_MODEL, task],
+        capture_output=True, text=True, timeout=300, env=env, cwd=ROOT)
+    out = (proc.stdout or "") + (proc.stderr or "")
+    if proc.returncode != 0 or not out.strip():
+        raise RuntimeError(f"free model produced nothing (exit {proc.returncode})")
+    if _looks_rate_limited(out):
+        raise RateLimited(out[-300:])
+    raw = out
+    fence = re.search(r"```(?:json)?\s*(\{.*?\})", out, re.S)
+    if fence:
+        raw = fence.group(1)
+    else:
+        brace = re.search(r"\{.*\}", out, re.S)
+        if not brace:
+            raise RuntimeError("free model returned no JSON object")
+        raw = brace.group(0)
+    return json.loads(raw), FREE_MODEL
+
+
+class RateLimited(RuntimeError):
+    """The model refused for quota reasons. This is a condition, not a result."""
+
+
+def with_retry(fn, *args):
+    """Returns (value, retries). Raises RateLimited after the backoff is spent."""
+    last = None
+    for attempt, wait in enumerate((0,) + RETRY_SLEEPS):
+        if wait:
+            print(f"      rate limited - retry {attempt} in {wait}s")
+            time.sleep(wait)
+        try:
+            return fn(*args), attempt
+        except RateLimited as exc:
+            last = exc
+    raise last
 
 
 # ---------------------------------------------------------------- scoring
@@ -126,11 +231,15 @@ def score_case(case: dict, result: dict) -> dict:
 
     matched, invented = [], []
     for pred in items:
-        hit = next((t for t in truth if same_dish(pred.get("name", ""), t["name"])), None)
+        hit = next((t for t in truth
+                    if any(same_dish(pred.get("name", ""), n) for n in truth_names(t))),
+                   None)
         (matched if hit else invented).append(pred.get("name", "?"))
 
     recalled = [t["name"] for t in truth
-                if any(same_dish(t["name"], p.get("name", "")) for p in items)]
+                if any(same_dish(t["name"], p.get("name", "")) or
+                       any(same_dish(n, p.get("name", "")) for n in truth_names(t))
+                       for p in items)]
 
     truth_kcal = sum(t["kcal"] for t in truth)
     pred_kcal = sum(float(p.get("calories", 0) or 0) for p in items)
@@ -157,32 +266,44 @@ def score_case(case: dict, result: dict) -> dict:
         "kcal_error_pct": None if kcal_err is None else round(kcal_err * 100, 1),
         "atwater_pct": None if atwater is None else round(atwater * 100, 1),
         "latency_s": None,
+        "status": "answered",
     }
 
 
+UNMEASURED = "UNMEASURED - free model rate-limited"
+
+
 def summarise(rows: list[dict]) -> dict:
-    if not rows:
-        return {}
-    inv = sum(len(r["invented"]) for r in rows)
-    miss = sum(len(r["missed"]) for r in rows)
-    gen = sum(len(r["generic"]) for r in rows)
-    errs = [r["kcal_error_pct"] for r in rows if r["kcal_error_pct"] is not None]
-    atws = [r["atwater_pct"] for r in rows if r["atwater_pct"] is not None]
-    lat = [r["latency_s"] for r in rows if r["latency_s"]]
+    """Scores only ever come from rows that were actually answered."""
+    scored = [r for r in rows if r.get("status") == "answered"]
+    unmeasured = [r for r in rows if r.get("status") != "answered"]
+    if not scored:
+        return {"meals": len(rows), "scored": 0, "unmeasured": len(unmeasured),
+                "verdict": UNMEASURED}
+    inv = sum(len(r["invented"]) for r in scored)
+    miss = sum(len(r["missed"]) for r in scored)
+    gen = sum(len(r["generic"]) for r in scored)
+    errs = [r["kcal_error_pct"] for r in scored if r["kcal_error_pct"] is not None]
+    atws = [r["atwater_pct"] for r in scored if r["atwater_pct"] is not None]
+    lat = [r["latency_s"] for r in scored if r["latency_s"]]
     med = lambda xs: sorted(xs)[len(xs) // 2] if xs else None
     return {
         "meals": len(rows),
+        "scored": len(scored),
+        "unmeasured": len(unmeasured),
         "invented_total": inv,
         "missed_total": miss,
         "generic_total": gen,
         "median_kcal_error_pct": med(errs),
         "median_atwater_pct": med(atws),
         "median_latency_s": round(med(lat), 1) if med(lat) else None,
+        "verdict": (f"PARTIAL - {len(unmeasured)} of {len(rows)} scans {UNMEASURED}"
+                    if unmeasured else "all scans answered"),
     }
 
 
 def run(label: str, prompt: str, cases: list[dict], device_id: str,
-        repeat: int = 1) -> dict:
+        repeat: int = 1, provider: str = "proxy") -> dict:
     rows, served = [], set()
     for case in cases:
         path = os.path.join(ROOT, case["image"])
@@ -191,44 +312,68 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
             continue
         for attempt in range(repeat):
             t0 = time.time()
+            retries, model = 0, "?"
             try:
-                result, served_model, _prov = ask_proxy(prompt, path, device_id)
+                if provider == "free":
+                    (result, model), retries = with_retry(ask_free, prompt, path)
+                else:
+                    (result, model, _prov), retries = with_retry(
+                        ask_proxy, prompt, path, device_id)
+                served.add(model)
+                row = score_case(case, result)
+                row["latency_s"] = round(time.time() - t0, 1)
+                row["run"] = attempt + 1
+                row["model"] = model
+                row["retries"] = retries
+                row["transport"] = TRANSPORT_NOTE[provider]
+                rows.append(row)
+                print(f"  {case['id']:<24} r{attempt + 1} {model:<28} "
+                      f"kcal {row['pred_kcal']:>5} (ref {row['truth_kcal']:>5})"
+                      f"  err {row['kcal_error_pct']:>5}%"
+                      f"  inv={len(row['invented'])} miss={len(row['missed'])}"
+                      f"  retries={retries}  {row['latency_s']}s")
+                if row["invented"]:
+                    print(f"      INVENTED: {', '.join(row['invented'])}")
+            except RateLimited:
+                row = {**{k: None for k in
+                          ("pred_kcal", "kcal_error_pct", "atwater_pct")},
+                       "id": case["id"], "run": attempt + 1,
+                       "status": UNMEASURED, "model": FREE_MODEL,
+                       "retries": len(RETRY_SLEEPS),
+                       "latency_s": round(time.time() - t0, 1),
+                       "invented": [], "missed": [], "generic": [],
+                       "recalled": [], "n_pred": 0,
+                       "n_truth": len(case["truth"]), "truth_kcal": 0}
+                rows.append(row)
+                print(f"  {case['id']:<24} r{attempt + 1} {FREE_MODEL:<28} "
+                      f"{UNMEASURED} (after {len(RETRY_SLEEPS)} retries)")
             except Exception as exc:                  # noqa: BLE001
                 print(f"  ! {case['id']} run{attempt + 1}: {exc}", file=sys.stderr)
-                continue
-            row = score_case(case, result)
-            row["latency_s"] = round(time.time() - t0, 1)
-            row["served_model"] = served_model
-            row["run"] = attempt + 1
-            rows.append(row)
-            served.add(served_model)
-            print(f"  {case['id']:<26} run{attempt + 1} kcal {row['pred_kcal']:>5}"
-                  f" (ref {row['truth_kcal']:>5})  err {row['kcal_error_pct']:>5}%"
-                  f"  invented={len(row['invented'])} missed={len(row['missed'])}"
-                  f"  atwater={row['atwater_pct']}%"
-                  f"  {row['latency_s']}s")
-            if row["invented"]:
-                print(f"      INVENTED: {', '.join(row['invented'])}")
-    return {"label": label, "rows": rows, "summary": summarise(rows),
+    return {"label": label, "provider": provider,
+            "transport": TRANSPORT_NOTE[provider],
+            "rows": rows, "summary": summarise(rows),
             "served_models": sorted(served)}
 
 
 def print_block(res: dict) -> None:
     print(f"\n--- {res['label']} ---")
+    print(f"    provider : {res['provider']}")
+    print(f"    transport: {res['transport']}")
+    print(f"    models   : {', '.join(res['served_models']) or 'none answered'}")
     for r in res["rows"]:
-        print(f"  {r['id']:<26} kcal {r['pred_kcal']:>5} (ref {r['truth_kcal']:>5})"
+        if r.get("status") != "answered":
+            print(f"  {r['id']:<24} {UNMEASURED}")
+            continue
+        print(f"  {r['id']:<24} r{r.get('run')} {r.get('model', '?'):<28}"
+              f" kcal {r['pred_kcal']:>5} (ref {r['truth_kcal']:>5})"
               f"  err {r['kcal_error_pct']:>5}%"
-              f"  invented={len(r['invented'])} missed={len(r['missed'])}"
-              f"  atwater={r['atwater_pct']}%"
-              f"  {r['latency_s']}s")
-        if r["invented"]:
-            print(f"      INVENTED: {', '.join(r['invented'])}")
+              f"  inv={len(r['invented'])} miss={len(r['missed'])}"
+              f"  retries={r.get('retries', 0)}")
         if r["missed"]:
             print(f"      MISSED:   {', '.join(r['missed'])}")
         if r["generic"]:
             print(f"      GENERIC:  {', '.join(r['generic'])}")
-    s = res["summary"]
-    print(f"  SUMMARY {json.dumps(s)}")
+    print(f"  SUMMARY {json.dumps(res['summary'])}")
 
 
 def main() -> int:
@@ -236,6 +381,10 @@ def main() -> int:
     ap.add_argument("--compare", metavar="GIT_REF",
                     help="also score the image prompt as of this git ref, side by side")
     ap.add_argument("--json", help="write the full result here")
+    ap.add_argument("--provider", choices=["proxy", "free"], default="proxy",
+                    help="proxy = production vision path (paid). free = the "
+                         "opencode CLI, a DIFFERENT system - never averaged "
+                         "together with proxy results")
     ap.add_argument("--repeat", type=int, default=1,
                     help="runs per case; the upstream is NOT deterministic, so a "
                          "single run cannot distinguish a fix from luck")
@@ -246,21 +395,24 @@ def main() -> int:
         cases = json.load(fh)["cases"]
     device = args.device_id or f"ceo-acc-{int(time.time())}"
 
-    print(f"cases: {len(cases)}  x{args.repeat} run(s)   "
-          f"(bar in ROADMAP M1 is 20 meals - the set is short, see cases.json)")
-    current = run("shipped (working tree)", image_prompt(), cases, device, args.repeat)
-    out = {"shipped": current}
+    print(f"cases: {len(cases)}  x{args.repeat} run(s)   provider: {args.provider}")
+    print(f"bar in ROADMAP M1 is 20 meals - the set is short, see cases.json")
+    current = run("shipped (working tree)", image_prompt(), cases, device,
+                  args.repeat, args.provider)
+    out = {"provider": args.provider, "shipped": current}
     if args.compare:
         out["compare"] = run(f"pre-fix @{args.compare}",
-                             image_prompt(args.compare), cases, device, args.repeat)
+                             image_prompt(args.compare), cases, device,
+                             args.repeat, args.provider)
 
     print_block(current)
     if "compare" in out:
         print_block(out["compare"])
         a, b = current["summary"], out["compare"]["summary"]
-        print("\n=== A/B: shipped vs pre-fix ===")
-        for key in ("invented_total", "missed_total", "median_kcal_error_pct",
-                    "median_atwater_pct", "median_latency_s"):
+        print("\n=== A/B: shipped vs pre-fix (same provider only) ===")
+        for key in ("scored", "unmeasured", "invented_total", "missed_total",
+                    "median_kcal_error_pct", "median_atwater_pct",
+                    "median_latency_s"):
             print(f"  {key:<26} {b.get(key)}  ->  {a.get(key)}")
 
     if args.json:
