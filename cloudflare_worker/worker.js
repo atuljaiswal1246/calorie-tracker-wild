@@ -111,6 +111,19 @@ export default {
 
     // Every tier's outcome for this request, so a downgrade is never silent.
     const tiers = [];
+
+    // Test-only: `x-cm-force-provider: <name>` moves that provider to the front
+    // so a single tier can be measured on its own. Needed because `go` is last
+    // for latency, which means a success earlier in the list hides it entirely
+    // and we cannot tell "go is broken" from "go was never tried".
+    // It cannot bypass the per-device quota, and it exposes no key: the caller
+    // only names a provider that is already configured here.
+    const forced = (request.headers.get("x-cm-force-provider") || "").trim();
+    if (forced) {
+      const i = rotation.findIndex(([name]) => name === forced);
+      if (i > 0) rotation.unshift(...rotation.splice(i, 1));
+    }
+
     for (const [provider, url, key, model] of rotation) {
       if (!key) {
         tiers.push(`${provider}:nokey`);
