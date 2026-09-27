@@ -151,6 +151,7 @@ export default {
         },
         breaker: await breakerState(env),
         paid_usage: await readPaidUse(env),
+        usage_by_secret_today: await usageBySecret(env),
       });
     }
 
@@ -230,6 +231,10 @@ export default {
         // upstream we record the token count, the model actually served, and
         // the time, so /health can show what today cost. A tier that costs
         // money and leaves no trace is how a budget disappears quietly.
+        // Per-secret usage count, for ALL tiers including `go`. The owner asked
+        // "aaj kitni baar use hua" per secret, and a secret whose usage is
+        // invisible is a secret nobody can decide to keep or delete.
+        await countUse(env, provider);
         if (provider !== "go") {
           await recordPaidUse(env, provider, res);
         }
@@ -351,6 +356,44 @@ async function recordPaidUse(env, provider, res) {
   } catch (e) {
     // Accounting is best-effort; never break the product.
   }
+}
+
+/** Count one served request per secret, per UTC day. */
+async function countUse(env, provider) {
+  if (!env.QUOTA) return;
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const key = `use_${provider}_${day}`;
+    const cur = await env.QUOTA.get(key);
+    const n = (parseInt(cur || "0", 10) || 0) + 1;
+    await env.QUOTA.put(key, String(n), { expirationTtl: 86400 * 8 });
+  } catch (e) {
+    // Counting is best-effort; never break the product.
+  }
+}
+
+/** How many requests each secret served today. Names and counts only. */
+async function usageBySecret(env) {
+  if (!env.QUOTA) return { available: false };
+  const day = new Date().toISOString().slice(0, 10);
+  const out = {};
+  for (const p of ["go", "aicredits", "openrouter"]) {
+    try {
+      const raw = await env.QUOTA.get(`use_${p}_${day}`);
+      out[p] = parseInt(raw || "0", 10) || 0;
+    } catch (e) {
+      out[p] = "read-failed";
+    }
+  }
+  return {
+    available: true,
+    utc_day: day,
+    requests_served_today: out,
+    note:
+      "Counts requests this Worker SERVED from each secret's upstream. " +
+      "ZEN_KEY is not in the serving rotation, so it shows no count. " +
+      "Counts started when this field was added, not at the beginning of the day.",
+  };
 }
 
 async function readPaidUse(env) {
