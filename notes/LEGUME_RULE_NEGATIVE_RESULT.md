@@ -66,3 +66,16 @@ help", which is exactly how the copy-magnet bug got in.
 Before adding a rule to this prompt, run the A/B first and keep it only if the
 corpus median does not regress. A rule that fixes one case and invents a dish
 somewhere else is a net loss, because the invention is invisible to the user.
+
+---
+
+## CORPUS behind every number in this note
+
+> Added 2026-09-28 after `test/score_needs_corpus_test.dart` caught this note
+> quoting a score with no corpus. A score without its corpus cannot be
+> interpreted, and the composition is the part that changes its meaning.
+
+**12 cases x 3 runs per arm = 36 scans per arm. **0 breakfast, 12 non-breakfast.****
+
+*These figures are not comparable with any other run unless the corpus is
+the same. Quote the corpus with the score, always.*

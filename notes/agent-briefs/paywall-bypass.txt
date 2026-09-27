@@ -1,0 +1,65 @@
+TASK — Cal Matters (Flutter): a testing-only paywall bypass, plus one icon fix.
+
+You are in an isolated git worktree. Two small, related changes. Both must be
+invisible in production.
+
+CONTEXT
+Testers on the closed-testing build get stuck at the paywall because the app is
+subscription-gated and a release build follows the real gate (no sandbox). During
+testing they should never see a payment screen. The owner's instruction: keep the
+payment page code, just stop wiring it up — do not delete or change `PricingScreen`
+or the billing code.
+
+CHANGE 1 — the bypass (one switch)
+- In `lib/config/features.dart` add:
+      /// TESTING ONLY. While true the paywall is unreachable: the funnel goes
+      /// straight to Home after sign-up and Home never shows the trial-ended
+      /// gate. PricingScreen and the billing code are untouched - simply not
+      /// reached.
+      ///
+      /// MUST be false before a production release. While it is true the app
+      /// shows a visible "TEST BUILD" banner in Settings, so it cannot ship
+      /// unnoticed.
+      static const bool bypassPaywall = true;
+- `lib/services/storage_service.dart` has the single gate used in four places:
+  `isPaidOrSandbox({String? authEmail})`. Make it return true when
+  `Features.bypassPaywall` is true, BEFORE any other logic. Import `../config/features.dart`
+  if needed. Do not change anything else in that method.
+- Do NOT edit main.dart, onboarding_flow.dart or home_screen.dart for this change.
+  One switch is the point: if the flag works, the funnel's existing calls already
+  see "paid" and skip the paywall and Home's overlay is skipped too.
+
+CHANGE 2 — the banner (the guardrail)
+- In `lib/screens/settings_screen.dart`, when `Features.bypassPaywall` is true,
+  show a clearly visible banner as the FIRST thing under the "Settings" title:
+  amber/warning background (`AppColors.warningBg`), a warning icon, and the text
+  "TEST BUILD — payment is bypassed". It must be impossible to miss. When the flag
+  is false the banner must not render at all.
+- Keep it to one small widget; do not restructure the screen.
+
+CHANGE 3 — one emoji used as an icon
+- `lib/screens/home_screen.dart` line ~1643 has the label `'🏃 + Exercise'`. An
+  emoji must not be used as a functional icon (UI_GUIDELINES.md). Replace it with
+  a Row: a `Symbols` icon (the project imports
+  `package:material_symbols_icons/material_symbols_icons.dart`; use
+  `Symbols.directions_run_rounded`) at a size matching the neighbouring "+ Add"
+  chip icon, a small gap, then the text `'+ Exercise'`. Match the existing chip's
+  style exactly - it sits next to a "+ Add" chip in the same row.
+- Leave the other two emoji in that file alone: the 🌱 level badge is decorative
+  gamification (allowed by the guidelines) and the Asha line is dormant behind a flag.
+
+FORBIDDEN: deleting or editing PricingScreen / billing_service.dart; changing the
+funnel structure; touching the locked screens; other files.
+
+VERIFY
+  flutter pub get
+  flutter analyze                 -> report the error count (expect 0)
+  flutter test --update-goldens   -> the Settings golden gains the banner
+  flutter test                    -> the WHOLE suite must pass
+Check the changed golden list and confirm no locked-screen golden moved.
+
+REPORT BACK with:
+  - the exact edit to `isPaidOrSandbox`
+  - confirmation that PricingScreen and billing were not touched
+  - the icon change in home_screen.dart (before/after of that line)
+  - `flutter analyze` error count, changed goldens, full-suite result line

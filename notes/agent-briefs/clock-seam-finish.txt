@@ -1,0 +1,46 @@
+TASK — Cal Matters (Flutter): FINISH the clock seam. It is currently partial.
+
+You are in an isolated git worktree. Background: the golden harness pins the clock
+with `withClock(Clock.fixed(...))`, and `home_screen`, `insights_screen` and
+`progress_screen` already call `clock.now()`. But 48 `DateTime.now()` calls remain
+in other screens the harness renders, so their goldens still follow the real wall
+clock - a screen that defaults its "meal type" from the hour produced a golden
+reading "Lunch" yesterday and "Dinner" today. That is the bug this fixes.
+
+WHAT TO DO — pure substitution, nothing else
+In every file under `lib/screens/` (including `lib/screens/demo/`) and `lib/widgets/`:
+  - replace `DateTime.now()` with `clock.now()`
+  - add `import 'package:clock/clock.dart';` where it is needed
+Change NOTHING else: no logic, no layout, no copy, no reformatting, no reordering.
+
+Files with sites (counts to expect): manual_entry_screen 9, capture_screen 7,
+all_entries_screen 7, onboarding_flow 6, meal_plan_screen 6, quick_picks_screen 3,
+barcode_result_screen 3, settings_screen 1, league_screen 1, discover_screen 1,
+date_picker_3step 1, challenges_screen 1, asha_screen 1.
+
+NOTE on the LOCKED screens — welcome_screen.dart, onboarding_flow.dart,
+auth_screen.dart, pricing_screen.dart are locked (the owner signed them off) and must
+NOT be redesigned. The clock substitution is explicitly allowed in them because it
+changes no behaviour and no design: in production `clock.now()` IS the real time -
+only a test can pin it. Do not make any other edit in those files.
+
+Do NOT touch `lib/services/**` in this task (the services take explicit `now`
+parameters or use time for persistence keys, which must stay real).
+
+VERIFY
+  flutter pub get
+  flutter analyze                              -> report the error count (expect 0)
+  flutter test --update-goldens                -> regenerate ALL goldens (whole suite)
+  flutter test                                 -> must pass
+  flutter test                                 -> run it a second time; it must pass again
+(The harness is clock-pinned, so after this a golden run is deterministic.)
+
+REPORT BACK with:
+  - each file changed and how many substitutions
+  - the total number of substitutions
+  - `flutter analyze` error count
+  - the list of golden files that changed
+  - of those, which belong to the LOCKED screens (welcome / onboarding / auth /
+    paywall / dob picker) - these matter most and must be listed explicitly
+  - the full-suite result line, twice
+  - anything that looks wrong but is out of scope (report, do not fix)

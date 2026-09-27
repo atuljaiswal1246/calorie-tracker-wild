@@ -78,3 +78,16 @@ Once real photos exist: run `--repeat 5`, and treat any single-run claim as
 noise. The first milestone worth aiming at is not "high accuracy" — it is
 **0 invented dishes across 20 meals × 5 runs**, because an invented dish is
 the one failure a user cannot detect for themselves.
+
+---
+
+## CORPUS behind every number in this note
+
+> Added 2026-09-28 after `test/score_needs_corpus_test.dart` caught this note
+> quoting a score with no corpus. A score without its corpus cannot be
+> interpreted, and the composition is the part that changes its meaning.
+
+**2 cases x 5 runs = 10 scans. **0 breakfast, 2 non-breakfast.****
+
+*These figures are not comparable with any other run unless the corpus is
+the same. Quote the corpus with the score, always.*

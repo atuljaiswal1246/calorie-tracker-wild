@@ -165,3 +165,16 @@ create, not a purchase.
 
 **Until then: free model for our measurement, paid vision model for the app, and
 I do not spend anything.**
+
+---
+
+## CORPUS behind every number in this note
+
+> Added 2026-09-28 after `test/score_needs_corpus_test.dart` caught this note
+> quoting a score with no corpus. A score without its corpus cannot be
+> interpreted, and the composition is the part that changes its meaning.
+
+**7 cases for the accuracy figures, 5 paid scans for the cost figures. **0 breakfast, 7 non-breakfast.****
+
+*These figures are not comparable with any other run unless the corpus is
+the same. Quote the corpus with the score, always.*

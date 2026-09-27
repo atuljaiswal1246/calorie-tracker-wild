@@ -1,0 +1,62 @@
+TASK — Cal Matters (Flutter): snap the near-miss type sizes onto the type tokens.
+
+You are in an isolated git worktree of the Cal Matters app. The tokens already
+exist in `lib/theme/app_tokens.dart`:
+  AppType.micro 10, small 11.5, body 13, bodyStrong 15, title 17, headline 22, hero 28
+Exact matches were adopted already (212 sites). This task closes the DRIFT: the
+sizes that are within 1px of a token now move onto it, so the app stops having
+25 hand-tuned sizes.
+
+IMPORTANT: unlike the earlier token tasks, this one DOES change pixels - by 0.5 to
+1.0 px, deliberately. That is the point. The goldens WILL change and you are
+allowed to regenerate them ONCE at the end. What must not happen is a layout
+break: no overflow, no clipped text.
+
+THE EXACT MAPPING - use this table, nothing else:
+  fontSize: 9     -> AppType.micro        (10)
+  fontSize: 9.5   -> AppType.micro        (10)
+  fontSize: 10.5  -> AppType.micro        (10)
+  fontSize: 11    -> AppType.small        (11.5)
+  fontSize: 12    -> AppType.small        (11.5)
+  fontSize: 12.5  -> AppType.body         (13)
+  fontSize: 13.5  -> AppType.body         (13)
+  fontSize: 14    -> AppType.body         (13)
+  fontSize: 14.5  -> AppType.bodyStrong   (15)
+  fontSize: 15.5  -> AppType.bodyStrong   (15)
+  fontSize: 16    -> AppType.bodyStrong   (15)
+  fontSize: 18    -> AppType.title        (17)
+  fontSize: 21    -> AppType.headline     (22)
+  fontSize: 23    -> AppType.headline     (22)
+  fontSize: 27    -> AppType.hero         (28)
+DO NOT touch any other size. These are deliberately left alone because the jump
+would be visible and is a design decision for the owner, not a mechanical snap:
+  8, 8.5, 19, 20, 24, 26, 30, 32, 36, 40, 46, 48, 60
+Also leave the already-token values (10, 11.5, 13, 15, 17, 22, 28) exactly as they
+are - they are already AppType.* from the previous task.
+
+WHERE: `lib/screens/**` and `lib/widgets/**` only. Add the
+`import '../theme/app_tokens.dart';` line where needed. Change nothing else - no
+logic, no layout, no colours, no spacing, no reordering, no reformatting.
+
+FORBIDDEN - do not open or edit:
+  lib/screens/welcome_screen.dart, lib/screens/onboarding_flow.dart,
+  lib/screens/auth_screen.dart, lib/screens/pricing_screen.dart   (locked)
+  test/**   pubspec.yaml   lib/theme/app_colors.dart   lib/theme/app_tokens.dart
+
+VERIFY (in this order)
+  flutter pub get
+  flutter analyze                                  -> report the error count (expect 0)
+  flutter test test/app_screens_preview_test.dart   -> will FAIL on changed goldens
+  flutter test --update-goldens test/app_screens_preview_test.dart
+  flutter test test/app_screens_preview_test.dart   -> must now PASS
+Any RenderFlex overflow anywhere means a snap broke a layout: find that site,
+revert just that one change, and report it. Do not "fix" a layout by editing the
+design - report it instead.
+
+REPORT BACK with:
+  - files changed and the number of replacements in each, plus the total
+  - which sizes you replaced and how many of each
+  - `flutter analyze` error count
+  - the result line of the final golden run
+  - any overflow you hit, and which site you reverted
+  - anything out of scope you noticed (report, do not fix)

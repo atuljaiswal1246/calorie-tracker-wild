@@ -1,0 +1,64 @@
+TASK — Cal Matters (Flutter): bring the HOME screen's corner radii onto the design system.
+
+You are in an isolated git worktree. Home (`lib/screens/home_screen.dart`) predates
+the design system and is the only screen that never received the consistency pass.
+It uses 55 off-token corner radii - 19% of all the radius drift in the app - on the
+one screen users see most. This task fixes the radii only. Do NOT touch spacing,
+type sizes, colours, copy or layout structure in this task.
+
+STEP 1 - add one token
+`lib/theme/app_tokens.dart` currently has AppRadius.pill 10, card 16, sheet 24,
+full 999. Add ONE more, with the same style (doc comment + value):
+    /// Tiny indicators: progress bars, dots.
+    static const double bar = 4;
+
+STEP 2 - document it
+In `UI_GUIDELINES.md`, section "Radii", add the `bar` row to the table:
+    | `bar` | 4 | Tiny indicators (progress bars, dots) |
+and change the surrounding rule line so it reads as a closed set of five.
+
+STEP 3 - remap every radius in `lib/screens/home_screen.dart` using EXACTLY this:
+    circular(20) -> circular(AppRadius.card)     (16)  <- the most common, cards/tiles
+    circular(18) -> circular(AppRadius.card)     (16)
+    circular(14) -> circular(AppRadius.card)     (16)
+    circular(12) -> circular(AppRadius.pill)     (10)  <- pills/chips/buttons
+    circular(8)  -> circular(AppRadius.pill)     (10)
+    circular(6)  -> circular(AppRadius.pill)     (10)
+    circular(22) -> circular(AppRadius.sheet)    (24)
+    circular(26) -> circular(AppRadius.sheet)    (24)
+    circular(28) -> circular(AppRadius.sheet)    (24)
+    circular(30) -> circular(AppRadius.sheet)    (24)
+    circular(32) -> circular(AppRadius.sheet)    (24)
+    circular(4)  -> circular(AppRadius.bar)      (4)
+    circular(3)  -> circular(AppRadius.bar)      (4)
+    circular(2)  -> circular(AppRadius.bar)      (4)
+Change nothing that is already a token (AppRadius.*) and nothing not in this table.
+Add the `import '../theme/app_tokens.dart';` line if the file does not already have it.
+
+STEP 4 - the surrounding value
+Some of these feed `BorderRadius.circular(...)` directly; others feed
+`BorderRadius.all(Radius.circular(...))` or `BorderRadius.vertical(top: Radius.circular(...))`.
+Handle all of those forms - the mapping is about the NUMBER, not the call shape.
+
+FORBIDDEN: any other file under lib/screens or lib/widgets; the locked screens;
+type sizes; spacing; copy; colours; pubspec.yaml; test files (except regenerating
+goldens as instructed below).
+
+VERIFY
+  flutter pub get
+  flutter analyze                       -> report the error count (expect 0)
+  flutter test --update-goldens test/app_screens_preview_test.dart
+  flutter test                          -> the WHOLE suite must pass (goldens for the
+                                           widget views and demos are owned by other
+                                           test files - run them all)
+Confirm the only golden files that changed are the ones for screens you touched
+(Home / first-run Home / dark Home / Hist/Insights/Profile if Home is embedded),
+and report the exact list.
+
+REPORT BACK with:
+  - the radius mapping you applied and how many replacements of each
+  - the total
+  - `flutter analyze` error count
+  - the exact list of golden files that changed, and the final full-suite result line
+  - anything surprising (e.g. a radius whose element clearly is not a card/pill) -
+    report it, do not fix it

@@ -40,6 +40,12 @@ class _CaptureScreenState extends State<CaptureScreen> {
   File? _image;
   bool _analyzing = false;
   String? _error;
+
+  /// True when the model abstained: it saw food but would not name it with
+  /// confidence. We show a calm 'name it yourself' path instead of a number we
+  /// do not trust. See OpenAIService._parseResponse for the measurement that
+  /// made this necessary.
+  bool _unrecognised = false;
   String? _qualityWarning;
   List<FoodItem>? _items;
   String _mealType = _autoMealType();
@@ -224,6 +230,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
         _image = null;
         _items = null;
         _error = null;
+        _unrecognised = false;
       });
     } else {
       Navigator.pop(context, true);
@@ -267,6 +274,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
         _image = file;
         _items = null;
         _error = null;
+        _unrecognised = false;
         _qualityWarning = size < 20000 ? 'Image looks small or dark. Result may be less accurate.' : null;
       });
       _analyze();
@@ -348,7 +356,17 @@ class _CaptureScreenState extends State<CaptureScreen> {
         _items = enrichedItems.isNotEmpty ? enrichedItems : null;
         _analyzing = false;
         if (result.mealType != null) _mealType = result.mealType!;
-        if (enrichedItems.isEmpty) _error = 'No food detected. Try another photo.';
+        if (result.unrecognised) {
+          // ABSTAIN, not fail. The model told us it does not know this dish, and
+          // a made-up dish is the one error the user cannot catch. Say so
+          // plainly and hand them the keyboard.
+          _unrecognised = true;
+          _error = null;
+        _unrecognised = false;
+        } else if (enrichedItems.isEmpty) {
+          _unrecognised = false;
+          _error = 'No food detected. Try another photo.';
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -960,6 +978,81 @@ class _CaptureScreenState extends State<CaptureScreen> {
                           ),
                         ],
                       ),
+
+                    // ABSTAIN — the model would not name this dish with
+                    // confidence. We say so plainly and hand over the keyboard
+                    // instead of logging a number the user cannot verify.
+                    // Deliberately NOT styled as an error: not recognising
+                    // something is a normal outcome, and a red box would teach
+                    // the user that the app is broken.
+                    if (_unrecognised) ...[
+                      SizedBox(height: 16),
+                      Container(
+                        padding: EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFE5E5EA)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "I don't recognise this dish",
+                              style: TextStyle(
+                                fontSize: AppType.title,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Better an honest "I don\'t know" than a number '
+                              'that is quietly wrong. Type the name and we\'ll '
+                              'find the calories.',
+                              style: TextStyle(
+                                fontSize: AppType.body,
+                                color: AppColors.muted,
+                                height: 1.35,
+                              ),
+                            ),
+                            SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: FilledButton(
+                                    onPressed: _addItem,
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: AppColors.ink,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            AppRadius.pill),
+                                      ),
+                                    ),
+                                    child: Text('Name the dish'),
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () =>
+                                        setState(() => _unrecognised = false),
+                                    style: OutlinedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            AppRadius.pill),
+                                      ),
+                                    ),
+                                    child: Text('Scan again'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
 
                     // Error
                     if (_error != null) ...[

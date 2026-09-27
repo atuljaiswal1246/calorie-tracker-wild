@@ -1,0 +1,55 @@
+TASK — Cal Matters (Flutter): adopt the spacing and radius tokens WHERE THE VALUE
+ALREADY MATCHES EXACTLY. This is a provably-invisible refactor.
+
+You are in an isolated git worktree of the Cal Matters app. The type tokens were
+adopted last task (212 sites). This task does the same for spacing and radii, with
+the same rule: only replace a number with a token when the number is IDENTICAL, so
+not one pixel may move.
+
+WHAT EXISTS — `lib/theme/app_tokens.dart`
+  AppSpace.xs = 4, sm = 8, md = 12, lg = 16, xl = 24
+  AppRadius.pill = 10, card = 16, sheet = 24, full = 999
+  AppType.micro/small/body/bodyStrong/title/headline/hero  (already adopted - leave alone)
+
+WHAT TO DO
+1. Spacing, in `lib/screens/**` and `lib/widgets/**`, only for these exact forms:
+     EdgeInsets.all(4)   -> EdgeInsets.all(AppSpace.xs)
+     EdgeInsets.all(8)   -> EdgeInsets.all(AppSpace.sm)
+     EdgeInsets.all(12)  -> EdgeInsets.all(AppSpace.md)
+     EdgeInsets.all(16)  -> EdgeInsets.all(AppSpace.lg)
+     EdgeInsets.all(24)  -> EdgeInsets.all(AppSpace.xl)
+   and the same five numbers inside `EdgeInsets.symmetric(...)` and
+   `EdgeInsets.only(...)` argument positions (e.g. `EdgeInsets.symmetric(vertical: 16)`
+   -> `EdgeInsets.symmetric(vertical: AppSpace.lg)`).
+   Do NOT touch `EdgeInsets.zero`, fractional values, or any other number.
+   Do NOT touch `EdgeInsets.fromLTRB(...)` in this task.
+2. Radii, same files:
+     BorderRadius.circular(10)  -> BorderRadius.circular(AppRadius.pill)
+     BorderRadius.circular(16)  -> BorderRadius.circular(AppRadius.card)
+     BorderRadius.circular(24)  -> BorderRadius.circular(AppRadius.sheet)
+     BorderRadius.circular(999) -> BorderRadius.circular(AppRadius.full)
+   Leave every other radius untouched (2, 4, 6, 8, 12, 14, 18, 20, 22, 28, 30, 32 ...).
+3. Add `import '../theme/app_tokens.dart';` (correct relative path per file) once per
+   file that needs it. Nothing else changes - no reordering, no reformatting.
+
+FORBIDDEN — do not open or edit:
+  lib/screens/welcome_screen.dart, lib/screens/onboarding_flow.dart,
+  lib/screens/auth_screen.dart, lib/screens/pricing_screen.dart   (locked screens)
+  test/**   pubspec.yaml   lib/theme/app_colors.dart   lib/theme/app_tokens.dart
+
+THE PROOF
+  flutter pub get
+  flutter analyze                              -> report the error count
+  flutter test test/app_screens_preview_test.dart   -> the goldens MUST pass unchanged
+The harness is now clock-pinned, so a plain golden run is trustworthy. A different
+pixel means a value was not identical. If a golden fails:
+  - do NOT run --update-goldens. Never regenerate a golden to make a test pass;
+  - find and revert your own mistake, then run it again;
+  - if it still fails, stop and report instead of forcing it.
+
+REPORT BACK with:
+  - files changed and the number of replacements in each (spacing vs radii)
+  - totals
+  - `flutter analyze` error count
+  - the exact result line from the golden run
+  - anything out of scope you noticed (report, do not fix)

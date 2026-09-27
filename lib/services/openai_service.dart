@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 
@@ -74,7 +75,8 @@ class OpenAIService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<({List<FoodItem> items, String? mealType})> analyzeImage(String imagePath) async {
+  Future<({List<FoodItem> items, String? mealType, bool unrecognised})>
+      analyzeImage(String imagePath) async {
     for (int attempt = 0; attempt < _maxRetries; attempt++) {
       try {
         final result = await _callImageApi(imagePath);
@@ -92,10 +94,11 @@ class OpenAIService {
         rethrow;
       }
     }
-    return (items: <FoodItem>[], mealType: null);
+    return (items: <FoodItem>[], mealType: null, unrecognised: true);
   }
 
-  Future<({List<FoodItem> items, String? mealType})> _callImageApi(
+  Future<({List<FoodItem> items, String? mealType, bool unrecognised})>
+      _callImageApi(
     String imagePath,
   ) async {
     final compressed = await FlutterImageCompress.compressWithFile(
@@ -128,15 +131,25 @@ Analyze this food photo and return ONLY valid JSON with this exact shape:
     "calories": <integer kcal for the whole serving>,
     "protein": <grams>, "carbs": <grams>, "fat": <grams>,
     "fiber": <grams>, "sugar": <grams>, "sodium": <mg>,
-    "calcium": <mg>, "iron": <mg>, "vitaminC": <mg>}
- ]}
+    "calcium": <mg>, "iron": <mg>, "vitaminC": <mg>,
+    "confidence": <0.0-1.0, how sure you are of this dish name>}
+ ],
+ "unrecognised": <true ONLY if you cannot identify the dish with confidence>
+}
 
 The shape above is a SCHEMA, not an answer. Every value MUST be estimated from
 THIS photo. Never reuse any number or dish name from this instruction.
 
-If no food visible: {"mealType":"snack","items":[]}
+**IF YOU ARE NOT SURE WHAT THE DISH IS, SAY SO INSTEAD OF GUESSING.**
+Set "unrecognised": true and return "items": []. A dish you invent is worse than
+no answer at all: the user cannot tell a made-up dish from a real one, and a
+wrong number goes straight into their diet. The app will offer to let them type
+the name instead. Not recognising something is a normal answer, not a failure.
+
+If no food visible: {"mealType":"snack","items":[],"unrecognised":true}
 
 Rules:
+- Set "confidence" honestly per dish. Below about 0.6 means you are guessing.
 - mealType = breakfast/lunch/dinner/snack
 - servingSizeGrams = estimated total weight of that item in the photo (in grams)
 - calories = integer kcal for the full serving
@@ -177,7 +190,8 @@ Rules:
     return _parseResponse(content);
   }
 
-  Future<({List<FoodItem> items, String? mealType})> analyzeText(String foodName) async {
+  Future<({List<FoodItem> items, String? mealType, bool unrecognised})>
+      analyzeText(String foodName) async {
     for (int attempt = 0; attempt < _maxRetries; attempt++) {
       try {
         final result = await _callTextApi(foodName);
@@ -195,7 +209,7 @@ Rules:
         rethrow;
       }
     }
-    return (items: <FoodItem>[], mealType: null);
+    return (items: <FoodItem>[], mealType: null, unrecognised: true);
   }
 
   /// Plain-text chat with the same proxy — used by Asha (AI nutrition
@@ -221,7 +235,8 @@ Rules:
     return content.trim();
   }
 
-  Future<({List<FoodItem> items, String? mealType})> _callTextApi(
+  Future<({List<FoodItem> items, String? mealType, bool unrecognised})>
+      _callTextApi(
     String foodName,
   ) async {
     // Schema-only, for the same reason as the image prompt: a concrete sample
@@ -275,7 +290,29 @@ Rules:
     return _parseResponse(content);
   }
 
-  ({List<FoodItem> items, String? mealType}) _parseResponse(String content) {
+  /// Test seam for the abstain path. The parser is private on purpose — it is
+  /// an implementation detail of the request — but the ABSTAIN decision is a
+  /// product guarantee, so it needs to be directly testable without a network
+  /// call. See test/abstain_path_test.dart.
+  @visibleForTesting
+  ({List<FoodItem> items, String? mealType, bool unrecognised}) parseForTest(
+    String content,
+  ) =>
+      _parseResponse(content);
+
+  /// Parses the model's answer.
+  ///
+  /// [unrecognised] is the ABSTAIN signal, and it is the whole point of this
+  /// method. Measured on 2026-09-28: when the model is shown a dish it does not
+  /// know, it does not say so — it invents a plausible one (uthappam came back
+  /// as a different dish, with a confident-looking calorie number). An invented
+  /// dish is the one failure a user cannot catch, and a wrong number goes
+  /// straight into their diet. Saying "I don't know" is strictly better than a
+  /// confident guess, so the model is asked for a confidence and the app is
+  /// given a way to abstain.
+  ({List<FoodItem> items, String? mealType, bool unrecognised}) _parseResponse(
+    String content,
+  ) {
     var json = _extractJson(content);
 
     if (json is Map && json['items'] is List) {
@@ -287,18 +324,23 @@ Rules:
           mealType = null;
         }
       }
-      if (items.isNotEmpty) {
+      // The model may abstain explicitly, or simply return nothing it is sure
+      // about. Both mean the same thing to the user: we do not know this dish.
+      final abstained = json['unrecognised'] == true;
+      if (items.isNotEmpty && !abstained) {
         return (
           items: items
               .whereType<Map<String, dynamic>>()
               .map((e) => FoodItem.fromJson(e))
               .toList(),
           mealType: mealType,
+          unrecognised: false,
         );
       }
+      return (items: [], mealType: mealType, unrecognised: true);
     }
 
-    return (items: [], mealType: null);
+    return (items: [], mealType: null, unrecognised: true);
   }
 
   dynamic _extractJson(String content) {

@@ -1,0 +1,69 @@
+TASK — Cal Matters (Flutter): a meal-aware nudge, using the same engine the widget uses.
+
+You are in an isolated git worktree of the Cal Matters app.
+
+CONTEXT — what already exists (read these first, do not duplicate them)
+- `lib/services/widget_state.dart` — `CalWidgetStates.build(storage, now)` returns the
+  day's states in order. Each `CalWidgetState` has: `mood` (calm / due / lastCall /
+  done / over), `mealLabel`, `hero` ("Lunch?" / "Dinner's the last call"), `context`
+  ("You usually log around 1:30pm."), `startMinute`, `endMinute`, and it is built from
+  the user's OWN learned meal times (median of their last 30 days).
+- `lib/services/notification_service.dart` — `scheduleEngineNudge({preferredHour,
+  title, body, id})` schedules one local notification, clamped out of silent hours.
+- `lib/services/notification_coordinator.dart` — `refresh(storage)` runs on app open
+  and schedules at most one generic nudge.
+
+THE FEATURE (design decided - implement exactly this)
+Right now the nudge is generic ("you haven't opened the app"). It must become
+meal-aware: ONE notification, only when the user is in the window where they usually
+log a meal and that meal is still unlogged, and never more than once per meal per day.
+
+1. Create `lib/services/meal_nudge.dart` with a PURE, testable decision function:
+     class MealNudge { final String meal; final String title; final String body; final int sendAtMinute; }
+     MealNudge? decideMealNudge(StorageService storage, DateTime now)
+   It must:
+   - call `CalWidgetStates.build(storage, now)` and take the state covering `now`
+     (there is a helper `CalWidgetStates.pick(states, minute)`);
+   - return a nudge ONLY when that state's `mood == WidgetMood.due` (i.e. the user is
+     inside the window where they usually log this meal and has not logged it);
+   - use the state's `mealLabel` for the meal, and build the copy from the state:
+       title: the state's `hero`            (e.g. "Lunch?")
+       body:  "You usually log around 1:30pm - one tap and it's done."
+              (take the time from the state's `context`, or re-derive it - do not
+              invent a time that disagrees with what the widget shows)
+   - return null when the day is done, over budget, or no meal is due;
+   - return null outside 08:00-20:00 (silent hours), so nothing is scheduled at night;
+   - dedupe: never return a nudge for the same meal on the same date if one was
+     already scheduled that day. Persist the last-sent `{date, meal}` through
+     `StorageService` (add a tiny getter/setter pair, e.g. `mealNudgeSentRaw` /
+     `saveMealNudgeSent`, following the existing key/prefs patterns in that file).
+2. Wire it: in `NotificationCoordinator.refresh`, when `decideMealNudge` returns
+   something, schedule THAT and do not also schedule the generic engine nudge (the
+   mock promises one notification, not two). When it returns null, keep today's
+   existing behaviour exactly as it is. Record the send so the dedupe works.
+3. Unit tests in `test/meal_nudge_test.dart`, at least:
+   - returns a nudge when a meal is due and unlogged (build a storage with a few days
+     of history so a meal time is learned);
+   - returns null when that meal is already logged today;
+   - returns null when everything is logged (mood done) and when over budget;
+   - returns null outside 08:00-20:00;
+   - returns null the second time for the same meal on the same day (dedupe).
+   Follow the existing test style (see `test/widget_state_test.dart`; macros must be
+   zero in seeded FoodItems or kcal-from-macros overrides the calories).
+
+FORBIDDEN - do not touch:
+  the locked screens (welcome / onboarding / auth / pricing), the widget view files,
+  `lib/theme/*`, `pubspec.yaml`, and do not change the existing generic templates.
+
+VERIFY
+  flutter pub get
+  flutter analyze                       -> report the error count (expect 0)
+  flutter test test/meal_nudge_test.dart
+  flutter test                          -> the whole suite must stay green (199+ tests)
+
+REPORT BACK with:
+  - files created/changed
+  - the decision rules you implemented, in one line each
+  - `flutter analyze` error count
+  - the exact test result lines (your new file, and the full suite)
+  - anything ambiguous you had to decide, and anything out of scope you noticed

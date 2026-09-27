@@ -1,0 +1,63 @@
+TASK — Cal Matters (Flutter): finish Home's compliance with the design system.
+
+You are in an isolated git worktree. Home is 60% compliant. Close three gaps in
+`lib/screens/home_screen.dart` — spacing, icons, and the last stray type sizes.
+Do NOT change layout structure, copy, colours, or the log-actions row (see FORBIDDEN).
+
+The guidelines live in `UI_GUIDELINES.md`; the tokens in `lib/theme/app_tokens.dart`:
+  AppType   micro 10, small 11.5, body 13, bodyStrong 15, title 17, headline 22, hero 28
+  AppSpace  xs 4, sm 8, md 12, lg 16, xl 24
+  AppRadius bar 4, pill 10, card 16, sheet 24, full 999
+
+1. SPACING — snap only these gap values, and only these:
+     6  -> AppSpace.sm  (8)
+     10 -> AppSpace.md  (12)
+     14 -> AppSpace.lg  (16)
+     18 -> AppSpace.lg  (16)
+     22 -> AppSpace.xl  (24)
+     26 -> AppSpace.xl  (24)
+   Apply them to `SizedBox(height:)` and `SizedBox(width:)` in home_screen.dart.
+   LEAVE ALONE: anything 0-5 (hairlines, dividers, tiny nudges — a 1px separator
+   must stay 1px), anything already on the scale, and anything above 26 (those are
+   element sizes - avatar, thumbnail, ring - not gaps). Do not touch padding.
+
+2. TYPE — the last 9 numeric sizes in Home, map them onto the scale:
+     20 -> AppType.headline (22)   (x4)
+     19 -> AppType.title    (17)   (x2)
+     26 -> AppType.hero     (28)   (x2)
+     30 -> AppType.hero     (28)   (x1)
+   After this, home_screen.dart must contain ZERO `fontSize: <number>` literals -
+   every one is an AppType token.
+
+3. ICONS — the guidelines ask for Material Symbols for functional icons; Home has
+   9 Symbols and 25 Material Icons. Convert the Material ones in home_screen.dart
+   to the `Symbols.<name>` equivalent (this project imports
+   `package:material_symbols_icons/material_symbols_icons.dart` elsewhere, e.g.
+   `Symbols.local_fire_department_rounded`).
+   If an icon has NO obvious Symbols equivalent, KEEP the Material one rather than
+   guess - a wrong codepoint renders as an empty box. List every icon you converted
+   and every one you left, with the reason.
+
+FORBIDDEN - do not change:
+  - the log-actions row (`_logCta` / the Scan food / Gallery / Quick picks row) or
+    anything about the primary CTA - the owner chose that layout deliberately
+  - copy/text, colours, `AppColors`, `app_tokens.dart`, `UI_GUIDELINES.md`
+  - any other file under lib/ except home_screen.dart
+  - the locked screens, pubspec.yaml
+
+VERIFY
+  flutter pub get
+  flutter analyze                 -> report the error count (expect 0)
+  flutter test --update-goldens   -> regenerate (these changes are visible)
+  flutter test                    -> the WHOLE suite must pass
+Then LOOK at `test/goldens/app_home.png`: confirm no icon renders as an empty box
+(tofu) and no text is clipped or wrapped oddly. Report what you see.
+
+REPORT BACK with:
+  - how many spacing snaps, how many type literals converted, and the exact icon
+    list (converted + kept)
+  - `flutter analyze` error count
+  - the changed golden files (must be Home-owned only, plus Profile which lives in
+    this file - and no locked-screen golden)
+  - the full-suite result line
+  - what you observed in the golden image

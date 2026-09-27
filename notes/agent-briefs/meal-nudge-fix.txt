@@ -1,0 +1,49 @@
+CORRECTION BRIEF — Cal Matters (Flutter): the meal nudge is scheduled for the WRONG TIME.
+
+Your `meal_nudge.dart` decision logic is good; keep it. The wiring in
+`notification_coordinator.dart` has a real defect.
+
+THE DEFECT
+You scheduled it with:
+    NotificationService.scheduleEngineNudge(
+        preferredHour: (mealNudge.sendAtMinute ~/ 60) + 1, ...)
+Look at `scheduleEngineNudge` in `lib/services/notification_service.dart`: it
+subtracts 1 from preferredHour and schedules at minute 0. So for a decision at,
+say, 13:30 it computes 13:00 today - which is already past - and `_scheduleOnce`
+then adds a day. The nudge therefore fires TOMORROW at the meal hour, instead of
+while the meal is still pending today. That defeats the whole feature.
+
+THE FIX (do exactly this)
+1. In `lib/services/notification_service.dart`, add a small public method next to
+   the existing scheduling helpers:
+      /// Schedule a one-off nudge [minutes] from now. Returns false (and schedules
+      /// nothing) if that would fall outside 08:00-20:00.
+      static Future<bool> scheduleMealNudge({
+        required int inMinutes, required String title, required String body, int id = 9002,
+      })
+   Implement it with the same `tz.TZDateTime` + `_scheduleOnce` machinery the other
+   helpers use, but compute the target as now + inMinutes (not an hour on the clock).
+   If the resulting time is before 08:00 or after 20:00, schedule nothing and return
+   false. Do NOT change the behaviour of `scheduleEngineNudge` or `scheduleAll`.
+2. In `notification_coordinator.dart`, when the meal nudge decides:
+   - schedule it 30 minutes from now, but never past the end of the current due
+     window: `inMinutes = min(30, stateForNow.endMinute - minutesNow)`, floored at 1.
+     (`CalWidgetStates.pick` gives you the state; its `endMinute` is the end of that
+     window.) Keep it simple if you prefer: 30 minutes flat, clamped by the
+     08:00-20:00 check in the new method, which is acceptable.
+   - if the new method returns false (outside hours), fall through to the existing
+     generic nudge path instead of returning early.
+   - keep the dedupe (`saveMealNudgeSent`) for the case where it IS scheduled.
+3. Add a test in `test/meal_nudge_test.dart` (or the notification test file) proving
+   the scheduled moment is ~30 minutes ahead and NOT the meal hour - e.g. decide at
+   13:30 and assert the computed schedule is 14:00, not tomorrow.
+
+Do not otherwise change `meal_nudge.dart`, the templates, or anything else.
+
+VERIFY
+  flutter analyze
+  flutter test test/meal_nudge_test.dart
+  flutter test          -> whole suite stays green
+
+REPORT BACK: what you changed, the new method's signature, the analyze error count,
+and the exact result lines for your test file and the full suite.

@@ -236,7 +236,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     });
 
     try {
-      ({List<FoodItem> items, String? mealType}) result;
+      ({List<FoodItem> items, String? mealType, bool unrecognised}) result;
       result = await OpenAIService().analyzeText(text);
       if (!mounted) return;
 
