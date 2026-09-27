@@ -77,3 +77,6 @@ test/failures/
 
 # Test APKs shared out of band (too big for the repo)
 notes/releases/*.apk
+
+# Real camera dumps / documents — contains PII, never commit (found in 25af837)
+tmp_images/
