@@ -62,6 +62,7 @@ import base64
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -125,6 +126,150 @@ def image_prompt(ref: str | None = None) -> str:
         if "Analyze this food photo" in block:
             return block
     raise SystemExit("could not find the image prompt in " + (ref or "the working tree"))
+
+
+
+# ---------------------------------------------------------------- PREFLIGHT
+class MoneyBlocked(RuntimeError):
+    """Raised BEFORE any provider call, when /health already says there is no budget."""
+
+
+def fetch_health(timeout: int = 20) -> dict:
+    """Read the Worker's /health. No image, no model, no spend."""
+    req = urllib.request.Request(
+        ENDPOINT, data=b"{}", method="POST",
+        headers={"Content-Type": "application/json",
+                 "x-device-id": MEASUREMENT_DEVICE_ID,
+                 "User-Agent": "cal-matters-proxy/1.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode())
+
+
+
+WRANGLER_CANDIDATES = [
+    shutil.which("wrangler"),
+    "/Users/neharohilla/.nvm/versions/node/v26.2.0/bin/wrangler",
+    "/opt/homebrew/bin/wrangler",
+]
+
+
+def read_tier_reasons(tiers=("aicredits", "openrouter", "go")) -> dict:
+    """Read the Worker KV key err_<tier> for each serving tier.
+
+    This is the 402/429 evidence /health does not yet expose. It is a READ of
+    shared state, not a change to it, so it needs no Worker deploy and does not
+    touch Asha's setup.
+
+    A failed read is reported as UNKNOWN, never as "no problem" - standing
+    order 4: an empty result is not a finding. The caller then treats UNKNOWN as
+    MONEY BLOCKED, which is the safe direction to be wrong in.
+    """
+    exe = next((p for p in WRANGLER_CANDIDATES if p and os.path.exists(p)), None)
+    out = {}
+    if not exe:
+        return {t: "UNKNOWN - wrangler not found" for t in tiers}
+    for t in tiers:
+        try:
+            proc = subprocess.run(
+                [exe, "kv", "key", "get", "--binding", "QUOTA", f"err_{t}",
+                 "--remote"],
+                capture_output=True, text=True, timeout=90,
+                cwd=os.path.join(ROOT, "cloudflare_worker"))
+            if proc.returncode != 0:
+                out[t] = f"UNKNOWN - kv read failed (exit {proc.returncode})"
+            else:
+                blob = (proc.stdout or "").strip()
+                out[t] = blob if blob else "UNKNOWN - key empty or absent"
+        except Exception as exc:                       # noqa: BLE001
+            out[t] = f"UNKNOWN - {exc}"
+    return out
+
+
+def preflight(health: dict, tier_reasons: dict | None = None) -> dict:
+    """Decide from /health ALONE whether a scan may start.
+
+    "PEHLE /HEALTH, PHIR SCAN." A run that has not read /health has not earned
+    the right to spend. ok=False means make ZERO provider calls.
+
+    KNOWN GAP: /health does not yet expose the per-tier failure reason (the 402
+    "insufficient balance" text lives in the KV key err_<tier>), so this gate
+    infers no-budget from the breakers being suspended rather than reading the
+    reason. Exposing it needs a Worker change, and the Worker is SHARED, so it
+    is raised, not done. Until then a suspended tier is treated as no budget,
+    which is the safe direction to be wrong in.
+    """
+    reasons = []
+    breakers = (health.get("breaker") or {}).get("tiers") or {}
+    serving = ("aicredits", "openrouter", "go")
+    for name in serving:
+        b = breakers.get(name) or {}
+        if b.get("suspended"):
+            reasons.append(
+                f"{name} suspended for {b.get('suspended_for_min', '?')} min")
+    live = [n for n in serving if not (breakers.get(n) or {}).get("suspended")]
+    if not live:
+        reasons.append("no serving tier left")
+
+    # The decisive evidence: what the upstreams actually said. A live tier whose
+    # last recorded failure was 402 has no budget even though its breaker has
+    # expired - that is exactly the hole that let a run through on 2026-09-28.
+    for name, raw in (tier_reasons or {}).items():
+        low = str(raw).lower()
+        if "insufficient balance" in low or "insufficient credit" in low \
+                or "insufficient_quota" in low or "usage limit exceeded" in low \
+                or "usagelimiterror" in low:
+            reasons.append(f"{name}: OUT OF MONEY ({str(raw)[:70]})")
+        elif str(raw).startswith("UNKNOWN"):
+            reasons.append(f"{name}: {raw}")
+
+    paid = health.get("paid_usage") or {}
+    spent = float(paid.get("est_cost_usd_today") or 0)
+    ok = bool(live) and not any(
+        "OUT OF MONEY" in r or "UNKNOWN" in r for r in reasons)
+    return {
+        "ok": ok,
+        "live_tiers": live,
+        "spent_today_usd": spent,
+        "billed_today": paid.get("requests_billed"),
+        "reasons": reasons,
+        "verdict": "CLEAR TO SCAN" if ok else MONEY_BLOCKED,
+    }
+
+
+def run_preflight(device: str | None = None) -> dict:
+    """Live preflight. Returns the decision; never spends."""
+    try:
+        health = fetch_health()
+    except Exception as exc:                       # noqa: BLE001
+        # If we cannot SEE the budget we do not spend against it.
+        return {"ok": False, "verdict": MONEY_BLOCKED,
+                "reasons": [f"could not read /health: {exc}"],
+                "spent_today_usd": None, "billed_today": None}
+    return preflight(health, read_tier_reasons())
+
+
+# ---------------------------------------------------------------- SPEND CEILING
+class SpendCeiling(Exception):
+    """The run hit its own budget and stopped itself."""
+
+
+def make_cost_guard(ceiling_usd: float):
+    """Abort a run mid-flight if it exceeds its own ceiling.
+
+    "PAISA NUMBER HAI, SCAN NUMBER NAHI." A run that cannot complete still costs
+    per attempt, so the ceiling is in money, enforced as it goes.
+    """
+    state = {"spent": 0.0, "calls": 0}
+
+    def charge(usd: float) -> None:
+        state["spent"] += usd
+        state["calls"] += 1
+        if ceiling_usd and state["spent"] >= ceiling_usd:
+            raise SpendCeiling(
+                f"ceiling ${ceiling_usd:.4f} reached after {state['calls']} calls "
+                f"(${state['spent']:.4f})")
+
+    return charge, state
 
 
 # ---------------------------------------------------------------- transports
@@ -315,6 +460,22 @@ UNMEASURED = "UNMEASURED"
 # Insufficient Balance on every tier - a money outage mislabelled as a
 # rate limit, which is precisely the kind of wrong number this harness exists
 # to prevent.
+# MONEY BLOCKED is not UNMEASURED. They are different reasons and they lead to
+# different next decisions: UNMEASURED means "try again later", MONEY BLOCKED
+# means "this costs money, stop and ask". Added 2026-09-28 after ~66 scans ran
+# against an account that was already 402 - the spend was the instrument, and
+# the instrument was telling me not to spend.
+MONEY_BLOCKED = "MONEY BLOCKED - no budget, not an attempt"
+PREFLIGHT_RULE = "PEHLE /HEALTH, PHIR SCAN"
+
+# MEASUREMENT IDENTITY, 2026-09-28. The Worker's breakers and per-user budget are
+# keyed on this id, so measurement traffic and app traffic shared ONE breaker:
+# my 66 calls tripped it and the APP 502'd for ~25 minutes. The blast radius of
+# a measurement run must not include the app. Engineering is splitting the
+# per-user budget into a separate DO; until that lands this id at least names
+# which traffic is which, so the split has something to attach to.
+MEASUREMENT_DEVICE_ID = "ceo-measure"
+
 UNMEASURED_RL = "UNMEASURED - rate limited (429)"
 UNMEASURED_FUNDS = "UNMEASURED - provider out of funds (402)"
 UNMEASURED_UPSTREAM = "UNMEASURED - all upstreams failed (502)"
@@ -380,7 +541,7 @@ def summarise(rows: list[dict]) -> dict:
 
 def run(label: str, prompt: str, cases: list[dict], device_id: str,
         repeat: int = 1, provider: str = "proxy",
-        force_tier: str | None = None) -> dict:
+        force_tier: str | None = None, charge=None) -> dict:
     rows, served = [], set()
     for case in cases:
         path = os.path.join(ROOT, case["image"])
@@ -396,6 +557,8 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
                 else:
                     (result, model, _prov, usage), retries = with_retry(
                         ask_proxy, prompt, path, device_id, force_tier)
+                if charge is not None and provider != "free" and usage:
+                    charge(price(usage)["cost_usd"])
                 served.add(model)
                 row = score_case(case, result)
                 row["latency_s"] = round(time.time() - t0, 1)
@@ -414,6 +577,9 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
                       f"  retries={retries}  {row['latency_s']}s{cost}")
                 if row["invented"]:
                     print(f"      INVENTED: {', '.join(row['invented'])}")
+            except SpendCeiling as exc:
+                print(f"\n  STOPPED BY SPEND CEILING: {exc}")
+                break
             except OutOfFunds:
                 row = {**{k: None for k in
                           ("pred_kcal", "kcal_error_pct", "atwater_pct")},
@@ -545,6 +711,93 @@ def cost_report(rows: list[dict], device: str) -> None:
           "Not a quote - the invoice is the truth.")
 
 
+
+def self_test() -> int:
+    """Prove the preflight gate, with ZERO real provider calls.
+
+    Simulates an all-suspended /health (what a drained account looks like) and
+    asserts the gate blocks. Then simulates a healthy /health and asserts the
+    gate allows. The provider call is replaced by a counter, so running this
+    costs nothing and cannot spend by accident.
+    """
+    calls = {"n": 0}
+
+    def counting_call(*_a, **_k):
+        calls["n"] += 1
+        raise AssertionError("a provider call happened during the self-test")
+
+    real = ask_proxy
+    globals()["ask_proxy"] = counting_call
+    try:
+        blocked = {
+            "breaker": {"tiers": {
+                "aicredits": {"suspended": True, "suspended_for_min": 12},
+                "openrouter": {"suspended": True, "suspended_for_min": 12},
+                "go": {"suspended": True, "suspended_for_min": 20},
+            }},
+            "paid_usage": {"requests_billed": 81, "est_cost_usd_today": 0.33},
+        }
+        g1 = preflight(blocked)
+        print(f"[self-test] all-suspended  -> {g1['verdict']}  ok={g1['ok']}")
+        if g1["ok"]:
+            print("[self-test] FAIL: a drained account was allowed to scan")
+            return 1
+        if calls["n"] != 0:
+            print(f"[self-test] FAIL: {calls['n']} provider call(s) were made")
+            return 1
+
+        healthy = {
+            "breaker": {"tiers": {
+                "aicredits": {"suspended": False, "suspended_for_min": 0},
+                "openrouter": {"suspended": False, "suspended_for_min": 0},
+                "go": {"suspended": False, "suspended_for_min": 0},
+            }},
+            "paid_usage": {"requests_billed": 0, "est_cost_usd_today": 0.0},
+        }
+        g2 = preflight(healthy)
+        print(f"[self-test] healthy        -> {g2['verdict']}  ok={g2['ok']}")
+        if not g2["ok"]:
+            print("[self-test] FAIL: a healthy budget was blocked")
+            return 1
+
+        # The label must be MONEY BLOCKED, not UNMEASURED: they lead to
+        # different next decisions.
+        if MONEY_BLOCKED in UNMEASURED_UPSTREAM or "UNMEASURED" in MONEY_BLOCKED:
+            print("[self-test] FAIL: MONEY_BLOCKED and UNMEASURED are conflated")
+            return 1
+        # The hole that actually let a run through: a tier whose breaker has
+        # expired but whose last recorded failure was 402. It must still block.
+        expired_but_broke = {
+            "breaker": {"tiers": {
+                "aicredits": {"suspended": False, "suspended_for_min": 0},
+                "openrouter": {"suspended": False, "suspended_for_min": 0},
+                "go": {"suspended": False, "suspended_for_min": 0},
+            }},
+            "paid_usage": {"requests_billed": 81, "est_cost_usd_today": 0.33},
+        }
+        g3 = preflight(expired_but_broke, {
+            "aicredits": '{"status":402,"detail":"Insufficient Balance"}',
+        })
+        print(f"[self-test] breaker expired but 402 on record -> {g3['verdict']}  ok={g3['ok']}")
+        if g3["ok"]:
+            print("[self-test] FAIL: an expired breaker hid an empty account")
+            return 1
+
+        # An unreadable budget is not a green light either.
+        g4 = preflight(expired_but_broke, {"aicredits": "UNKNOWN - kv read failed"})
+        print(f"[self-test] unreadable budget          -> {g4['verdict']}  ok={g4['ok']}")
+        if g4["ok"]:
+            print("[self-test] FAIL: an unreadable budget was treated as spendable")
+            return 1
+
+        print(f"[self-test] labels distinct: {MONEY_BLOCKED!r} vs {UNMEASURED_UPSTREAM!r}")
+        print(f"[self-test] provider calls made during self-test: {calls['n']}")
+        print("[self-test] PASS")
+        return 0
+    finally:
+        globals()["ask_proxy"] = real
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--compare", metavar="GIT_REF",
@@ -558,6 +811,15 @@ def main() -> int:
                     help="runs per case; the upstream is NOT deterministic, so a "
                          "single run cannot distinguish a fix from luck")
     ap.add_argument("--device-id", default=None)
+    ap.add_argument("--max-cost-usd", type=float, default=0.50,
+                    help="hard spend ceiling for this run, in money. The run "
+                         "aborts mid-flight when it is reached. Default $0.50.")
+    ap.add_argument("--skip-preflight", action="store_true",
+                    help="escape hatch only. Without /health you have not "
+                         "earned the right to spend.")
+    ap.add_argument("--self-test", action="store_true",
+                    help="prove the preflight gate: a fake all-suspended /health "
+                         "must produce ZERO provider calls")
     ap.add_argument("--force-tier", default=None,
                     help="measure ONE tier via x-cm-force-provider. The app does "
                          "NOT send this header, so a forced run never describes "
@@ -570,19 +832,42 @@ def main() -> int:
 
     with open(CASES, encoding="utf-8") as fh:
         cases = json.load(fh)["cases"]
-    device = args.device_id or f"ceo-acc-{int(time.time())}"
+    # Measurement traffic carries its own id so the per-user budget and the
+    # breakers can be split away from the app's. Blast radius of a measurement
+    # run must not include a user.
+    device = args.device_id or MEASUREMENT_DEVICE_ID
+
+    if args.self_test:
+        return self_test()
+
+    # ---- PEHLE /HEALTH, PHIR SCAN ----
+    if not args.skip_preflight:
+        gate = run_preflight(device)
+        print(f"PREFLIGHT: {gate['verdict']}")
+        print(f"  live tiers        : {gate.get('live_tiers')}")
+        print(f"  billed today      : {gate.get('billed_today')}"
+              f"   est ${gate.get('spent_today_usd')}")
+        for r in gate["reasons"]:
+            print(f"  - {r}")
+        if not gate["ok"]:
+            print(f"\n{MONEY_BLOCKED} — ZERO provider calls will be made. "
+                  f"Not 'UNMEASURED': this is a budget stop, and it needs a "
+                  f"decision, not a retry.")
+            return 3
+    print(f"SPEND CEILING: ${args.max_cost_usd:.4f} for this run")
+    charge, _money = make_cost_guard(args.max_cost_usd)
 
     print(f"cases: {len(cases)}  x{args.repeat} run(s)   provider: {args.provider}")
     print(f"ROUTE: {'FORCED TIER ' + args.force_tier + ' (the app never sends this header)' if args.force_tier else 'the app\'s own default route - what users actually hit'}")
     print(f"bar in ROADMAP M1 is 20 meals - the set is short, see cases.json")
     route = f"forced:{args.force_tier}" if args.force_tier else "app-default"
     current = run("shipped (working tree)", image_prompt(), cases, device,
-                  args.repeat, args.provider, args.force_tier)
+                  args.repeat, args.provider, args.force_tier, charge)
     out = {"provider": args.provider, "route": route, "shipped": current}
     if args.compare:
         out["compare"] = run(f"pre-fix @{args.compare}",
                              image_prompt(args.compare), cases, device,
-                             args.repeat, args.provider, args.force_tier)
+                             args.repeat, args.provider, args.force_tier, charge)
 
     print_block(current)
     if "compare" in out:
