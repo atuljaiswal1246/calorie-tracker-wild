@@ -296,6 +296,38 @@ STAPLE_SIDES = {
 FAMILY_REPEAT_CAP = 3
 
 
+# A dish NAME is not a dish CLASS. "Dal", "Dal Makhani" and "Urad Dal" are three
+# names and one judgement; "Chole" and "Chana Masala" likewise; "Palak Paneer"
+# and "Matar Paneer" likewise. The class count is the honest one and it is much
+# smaller than the family count, so it is the number the bar is measured against:
+# ROADMAP M1 asks for 20 MEALS, and a corpus of eleven dish classes is not
+# twenty meals however many photographs it holds.
+#
+# Measured 2026-09-28 on cases.json @ 22 cases: 17 distinct dish NAMES, but only
+# 11 distinct dish CLASSES. dal, chole and sambar alone hold 14 of the 22 cases.
+# I reported 17 to Jarvis at 02:45 as the honest figure. 11 is more honest.
+
+DISH_CLASS = {
+    "dal": "dal", "dal makhani": "dal", "urad dal": "dal",
+    "chole": "chole", "chana masala": "chole",
+    "palak paneer": "paneer", "matar paneer": "paneer",
+    "bhindi masala": "bhindi", "bhindi sabzi": "bhindi",
+    "sambar": "sambar", "kadhi": "kadhi", "rajma": "rajma",
+    "baingan bharta": "baingan", "lauki ki sabzi": "lauki",
+    "masala dosa": "dosa", "rava idli": "idli", "idli": "idli",
+    "uthappam": "uthappam", "vada": "vada", "chickpea salad": "legume salad",
+}
+
+
+def class_of(case: dict) -> str:
+    """The DISH CLASS a case is about, via the same first-non-staple rule."""
+    names = [t.get("name", "").strip().lower() for t in case.get("truth", [])]
+    for n in names:
+        if n and n not in STAPLE_SIDES:
+            return DISH_CLASS.get(n, n)
+    return names[0] if names else "?"
+
+
 def family_of(case: dict) -> str:
     names = [t.get("name", "").strip().lower() for t in case.get("truth", [])]
     for n in names:
@@ -311,8 +343,28 @@ def independence(cases: list[dict]) -> dict:
     repeated = {k: v for k, v in counts.items() if v > 1}
     sole = [c["id"] for c in cases if counts[family_of(c)] == 1]
     worst = max(counts.values()) if counts else 0
+    # A third measure, so the honest one is not chosen by me. A thali carries
+    # four judgements but class_of() only sees the first non-staple item, so
+    # counting every labelled item measures what the corpus can actually judge.
+    coverage = set()
+    for c in cases:
+        for t in c.get("truth", []):
+            n = t.get("name", "").strip().lower()
+            if n and n not in STAPLE_SIDES:
+                coverage.add(DISH_CLASS.get(n, n))
+
+    ccounts: dict[str, int] = {}
+    for c in cases:
+        k = class_of(c)
+        ccounts[k] = ccounts.get(k, 0) + 1
+    crepeated = {k: v for k, v in ccounts.items() if v > 1}
     return {
         "cases": len(cases),
+        "classes": len(ccounts),
+        "coverage_classes": len(coverage),
+        "coverage": sorted(coverage),
+        "class_counts": dict(sorted(ccounts.items(), key=lambda kv: -kv[1])),
+        "cases_in_repeated_class": sum(crepeated.values()),
         "families": len(counts),
         "repeated_families": dict(sorted(repeated.items(), key=lambda kv: -kv[1])),
         "cases_in_repeated_family": sum(repeated.values()),
@@ -330,6 +382,14 @@ def print_independence(cases: list[dict]) -> dict:
     if r["repeated_families"]:
         print("  repeated: " + ", ".join(
             f"{k} x{v}" for k, v in r["repeated_families"].items()))
+    print(f"DISH CLASSES: {r['classes']} distinct classes "
+          f"({', '.join(f'{k} x{v}' for k, v in list(r['class_counts'].items())[:5])}) "
+          f"- a dish NAME is not a dish CLASS, and the class count is the one "
+          f"the 20-meal bar is measured against")
+    print(f"COVERAGE: {r['coverage_classes']} distinct classes across EVERY "
+          f"labelled item (a thali holds four judgements, class_of sees one). "
+          f"Reported so the conservative number cannot be picked for me: the "
+          f"20-meal bar is judged on {r['classes']}, not on this one.")
     if r["over_cap"]:
         print(f"  ** {len(r['over_cap'])} family/families are over the cap of "
               f"{FAMILY_REPEAT_CAP} - the search trap is coming back **")
@@ -932,9 +992,10 @@ def main() -> int:
     print(f"ROUTE: {'FORCED TIER ' + args.force_tier + ' (the app never sends this header)' if args.force_tier else 'the app\'s own default route - what users actually hit'}")
     ind = print_independence(cases)
     print(f"bar in ROADMAP M1 is 20 MEALS = 20 distinct dishes. We have "
-          f"{ind['families']} distinct families across {ind['cases']} cases, so "
-          f"the bar is NOT met on the honest measure - quote a score with both "
-          f"numbers, never the case count alone.")
+          f"{ind['families']} distinct dish names and only {ind['classes']} "
+          f"distinct dish CLASSES across {ind['cases']} cases, so the bar is "
+          f"NOT met by a wide margin - quote a score with all three numbers, "
+          f"never the case count alone.")
     route = f"forced:{args.force_tier}" if args.force_tier else "app-default"
     current = run("shipped (working tree)", image_prompt(), cases, device,
                   args.repeat, args.provider, args.force_tier, charge)

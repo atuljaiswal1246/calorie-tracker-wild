@@ -28,7 +28,20 @@
     "= 12 / 11; batch 3 (median 20.0%) = 17 / 15.",
     "Producer: tools/ai_accuracy.py --corpus, which is the ONE definition of a",
     "family; test/corpus_independence_test.dart executes it rather than re-deriving",
-    "it, and fails if these declared numbers stop matching the file."
+    "it, and fails if these declared numbers stop matching the file.",
+    "",
+    "A DISH NAME IS NOT A DISH CLASS. Correcting the number I reported at 02:45 as",
+    "\"17 distinct families\": 17 is the count of distinct dish NAMES. Grouped by the",
+    "judgement a scan actually has to make, the same 22 cases are 13 distinct dish CLASSES",
+    "- Dal / Dal Makhani / Urad Dal are one class, Chole / Chana Masala one,",
+    "Palak Paneer / Matar Paneer one - and dal, chole and sambar alone hold 14 of the",
+    "22 cases. Against a bar of 20 MEALS we are at 13, not 17, and 13 is the number",
+    "the bar is judged on.",
+    "A third number, printed so the conservative one cannot be picked for me:",
+    "COVERAGE = 26 distinct classes across EVERY labelled item, because a thali holds",
+    "four judgements and class_of() only sees the first non-staple one.",
+    "22 cases / 17 names / 13 case-level classes / 26 coverage classes. The harness",
+    "prints all four and says which one the bar is judged on."
   ],
   "cases": [
     {

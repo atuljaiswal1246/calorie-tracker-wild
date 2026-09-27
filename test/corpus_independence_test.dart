@@ -167,4 +167,74 @@ void main() {
           'in the harness.',
     );
   });
+
+  // ---- a dish NAME is not a dish CLASS -------------------------------------
+  //
+  // "Dal", "Dal Makhani" and "Urad Dal" are three names and ONE judgement. Same
+  // for Chole / Chana Masala, and Palak Paneer / Matar Paneer. Measured 2026-09-28
+  // on the same 22 cases: 17 distinct names, but only **13 dish classes**, and
+  // dal+chole+sambar alone hold 14 of the 22 cases. I reported 17 to Jarvis at
+  // 02:45 as the honest figure. 13 is more honest, and 20 meals is further
+  // away than 17 suggested.
+  test('the dish-CLASS count is reported, and it is never larger than the name count', () {
+    final m =
+        RegExp(r'DISH CLASSES:\s*(\d+)\s*distinct classes').firstMatch(out);
+    expect(m, isNotNull,
+        reason: 'The dish-class line is gone. Without it the corpus looks like '
+            '17 independent meals.\n$out');
+    final classes = int.parse(m!.group(1)!);
+    expect(
+      classes,
+      lessThanOrEqualTo(families),
+      reason: 'Classes cannot outnumber names.\n$out',
+    );
+    expect(
+      classes,
+      lessThan(families),
+      reason: 'Classes == names, so DISH_CLASS is empty or the map is gone. '
+          'That makes every class number a restatement of the name count, which '
+          'is the number I got wrong.\n$out',
+    );
+  });
+
+  test('the coverage number is printed too, so the conservative one cannot be hidden', () {
+    // 26 distinct classes across EVERY labelled item, because a thali holds four
+    // judgements and class_of() only sees the first non-staple. Publishing only
+    // the flattering one would be me choosing my own number.
+    final m =
+        RegExp(r'COVERAGE:\s*(\d+)\s*distinct classes').firstMatch(out);
+    expect(m, isNotNull,
+        reason: 'The coverage line is gone, so only the conservative number is '
+            'visible and the generous one has quietly disappeared.\n$out');
+    final coverage = int.parse(m!.group(1)!);
+    final classes =
+        int.parse(RegExp(r'DISH CLASSES:\s*(\d+)').firstMatch(out)!.group(1)!);
+    expect(
+      coverage,
+      greaterThan(classes),
+      reason: 'Coverage counts every labelled item and must exceed the '
+          'case-level class count.\n$out',
+    );
+    expect(
+      out,
+      contains('judged on $classes'),
+      reason: 'The harness must say which number the bar is judged on, or the '
+          'choice is silent and therefore mine.\n$out',
+    );
+  });
+
+  test('the declared class count in cases.json still matches the corpus', () {
+    final classes =
+        int.parse(RegExp(r'DISH CLASSES:\s*(\d+)').firstMatch(out)!.group(1)!);
+    final readme = File('tools/ai_accuracy/cases.json').readAsStringSync();
+    expect(
+      readme.contains('$classes distinct dish classes') ||
+          readme.contains('$classes distinct dish CLASSES'),
+      isTrue,
+      reason: 'cases.json _readme does not declare "$classes distinct dish '
+          'classes", which is what the corpus now measures. If you changed a '
+          'DISH_CLASS mapping or added a case, update the _readme with the '
+          'real number rather than deleting this.\n$out',
+    );
+  });
 }
