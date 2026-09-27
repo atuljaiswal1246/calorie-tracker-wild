@@ -1,7 +1,7 @@
 # AGENTS.md — Project Memory & Handoff
 
 > **START HERE.** `AGENTS.md` is read in full by every session and every agent
-> that works on this repo. Seven standing orders are locked in **§0** at the top
+> that works on this repo. Eight standing orders are locked in **§0** at the top
 > of this file, because *an order said in chat is not an order — a rule written
 > in the file is the rule*. Seven of tonight's mistakes came from a rule that
 > lived only in a conversation. `test/standing_orders_test.dart` **fails** if any
@@ -9,10 +9,10 @@
 
 ## §0 — STANDING ORDERS, locked 2026-09-27
 
-Seven rules, each with the reason it exists. They are not advice; a session that
+Eight rules, each with the reason it exists. They are not advice; a session that
 breaks one has shipped a defect. **An order said in chat is not an order — a rule
 written in this file is the rule.** Guarded by
-`test/standing_orders_test.dart`, which fails if any of these seven goes missing.
+`test/standing_orders_test.dart`, which fails if any of these eight goes missing.
 
 ### 1. THE AIM
 **The best health app in the world, Android and iOS.** My working definition —
@@ -88,6 +88,29 @@ If the owner or a supervisor gives me a rule, it lands in this file in the
 proves it is still here.
 *Why:* the owner learned this tonight: rules that live only in a chat are rules
 that the next session will not obey, because it never read them.
+
+### 8. PEHLE /HEALTH, PHIR SCAN — the money is the instrument
+**Three words, and the meaning is not negotiable: read the Worker's `/health`
+FIRST, then scan.** No measurement run may start before it has read what the
+budget is. If the budget cannot be *seen*, the run does not start — an unreadable
+budget is a stop, never a green light.
+- **PAISA NUMBER HAI, SCAN NUMBER NAHI.** A run carries a ceiling **in money**
+  (`--max-cost-usd`, default $0.50) and stops itself mid-flight when it is
+  reached. Never cap a run in request counts.
+- **A 402/429 seen before a run is `MONEY BLOCKED`, not `UNMEASURED`.** Two
+  different reasons, two different next decisions: one means retry, the other
+  means stop and ask a human.
+- **My measurements must never cost a user their app.** Measurement traffic
+  carries its own identity (`MEASUREMENT_DEVICE_ID = "ceo-measure"`) so the
+  per-user budget and the circuit breakers can be split away from the app's.
+  Blast radius of a measurement run must not include a user.
+*Why:* on 2026-09-28 I ran ~66 scans against an account that was already at 402.
+The spend was the instrument, and the instrument was telling me not to spend. It
+bought nothing (every call 502'd) and the circuit breakers it tripped are why
+the **app** was 502 for ~25 minutes. I caused both the cost and the outage.
+Enforced in code, and the machine that checks it runs in `flutter test` —
+`test/money_gate_test.dart`, which *executes* `tools/ai_accuracy.py --self-test`
+rather than trusting the source.
 
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
 **In progress: WIDGETS — device-tested 2026-09-16, two bugs fixed, water pulled.**

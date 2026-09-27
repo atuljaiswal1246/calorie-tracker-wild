@@ -59,15 +59,15 @@ could check without trusting me** — e.g. *"an exact score on 20 measured
 meals, shown side by side against the old prompt."* If I cannot name the
 measurement, it is not a milestone and it does not go in the roadmap.
 
-## 2d. The seven standing orders live in AGENTS.md §0
+## 2d. The eight standing orders live in AGENTS.md §0
 
-The same seven rules are written in full, each with its reason, at the top of
+The same eight rules are written in full, each with its reason, at the top of
 `AGENTS.md` — because that is the file every session and every agent reads. This
 file is my constitution; `AGENTS.md` §0 is the version the next session actually
 sees. They must not drift apart, and `test/standing_orders_test.dart` fails if
-any of the seven goes missing from either.
+any of the eight goes missing from either.
 
-The seven, in one line each:
+The eight, in one line each:
 
 1. **The aim** — the best health app in the world, Android and iOS. My working
    definition is RIGHT, FAST, QUIET (`notes/THE_AIM.md`).
@@ -95,6 +95,13 @@ The seven, in one line each:
 7. **Every standing order gets written down, in the file, in the same sitting** —
    in the **same sitting** it was given, because an order said in chat is not an
    order, and the next session never reads the chat.
+8. **PEHLE /HEALTH, PHIR SCAN** — the money is the instrument. Read the budget
+   *first*; an unreadable budget is a stop, never a green light. A run is capped
+   in **money**, never in request counts (**PAISA NUMBER HAI, SCAN NUMBER NAHI**).
+   A 402/429 seen before a run is `MONEY BLOCKED`, not `UNMEASURED`, because the
+   two lead to different decisions. And my measurements carry their own identity
+   (`ceo-measure`) so they can never cost a **user** their app — I caused both a
+   $0.26 spend that bought nothing and a 25-minute app outage on 2026-09-28.
 
 ## 2c. An empty result is not a finding
 
