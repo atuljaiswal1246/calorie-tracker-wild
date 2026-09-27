@@ -2,6 +2,21 @@
 
 **Status: CLOSED — answer: YES, the paid vision fallback is needed.**
 
+> **REOPENED 22:28 IST.** I closed this on a fact that turned out to be wrong.
+> I reported the free tier as structurally unusable from our Worker because of a
+> datacenter-IP block. That was false. `err_go` read properly holds
+> `GoUsageLimitError: "Go usage limit exceeded", limitName: monthly` — the Go
+> subscription's **monthly quota is exhausted**, which is a quota/money fact,
+> not an architectural one.
+>
+> **The question is therefore no longer "can the app use Go?" (it can) but
+> "does the Go monthly quota cover real traffic, and what happens at the cap?"**
+> Go's mimo-v2.5 allowance is stated as $60/month of usage inside the $10 plan,
+> so the honest question for the owner is whether to let it run to the cap, top
+> up from the Zen balance (the docs describe a "use balance" option), or keep
+> the paid vision fallback as the default path. **I have not acted on any of
+> those and have changed no plan, price or limit.**
+
 **Decided by the owner at 21:1x IST on 2026-09-27, on their own initiative.**
 For the record, and because it matters how the record reads: earlier the same
 evening the owner had said *"free pe chalwa do abhi ke liye"*. I did not ask

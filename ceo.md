@@ -59,6 +59,34 @@ could check without trusting me** — e.g. *"an exact score on 20 measured
 meals, shown side by side against the old prompt."* If I cannot name the
 measurement, it is not a milestone and it does not go in the roadmap.
 
+## 2c. An empty result is not a finding
+
+A command that produced no output has told me **nothing**, and I do not get to
+decide what "nothing" means.
+
+This is not theoretical. On 2026-09-27 I ran `wrangler kv key get` in a shell
+where `wrangler` was not on PATH. It returned exit 127 and empty stdout. I read
+the empty output as "this key holds nothing, therefore the provider is never
+attempted" — and built a whole conclusion on it, including a report to the
+owner that a paid provider was *structurally* unreachable. It was reachable. The
+key held `GoUsageLimitError: usage limit exceeded`, and I had never actually run
+the command.
+
+**The rule:** before I report an absence I must show the command ran — which
+means checking the **exit code**, not reading stdout. Silence from a broken
+command and silence from a real absence are different facts, and only one of
+them is evidence. A search that returns nothing is a result to be explained,
+not a conclusion to be drawn.
+
+**Also true on this machine, and it has bitten me:** macOS has **no `timeout`
+command**. `timeout 90 opencode run …` fails with "command not found", and
+anything downstream can then look like a clean negative result.
+
+**The machine that checks it:** `tools/kv_get.py <key>` wraps a KV read and
+prints `VALUE` / `MISSING` / `ERROR` with the exit code, returning non-zero when
+the read cannot be trusted. Use it instead of a bare `kv get`. Any search in
+this repo's tools must be able to distinguish "found nothing" from "did not run".
+
 ## 3. Order work by money and blockage, not by how good it looks.
 
 Money and unblocking first. Work that only *looks* impressive is a cost with

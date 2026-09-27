@@ -3,6 +3,39 @@
 2026-09-27, ~21:2x IST. Owner challenged my conclusion and was **right to**:
 I had tested the opencode *CLI agent*, not the request. This is the retest.
 
+> ## ⚠️ CORRECTION, 22:28 IST — the conclusion below about WHY is WRONG
+>
+> I reported: *"the blocker is the egress IP, not the request, not the model,
+> not the prompt."* **That is false, and it came from reading an empty output
+> from a command that had failed.**
+>
+> `err_go` was never empty. Read properly (`tools/kv_get.py err_go`) it holds:
+>
+> ```
+> 429  GoUsageLimitError: "Go usage limit exceeded"
+>      limitName: monthly   workspace: wrk_01M1NKGRQ3XPRCHAWEBXKE0EM3
+> ```
+>
+> So the 429 is **the monthly usage limit on the owner's own Go subscription
+> being exhausted** — not a datacenter-IP block, and not evidence that Go is
+> unreachable from a Worker at all. Re-verified at 22:28: still `go:429`.
+>
+> **What survives:** the measurement stands (a correct multimodal request,
+> `x-cm-force-provider: go`, got HTTP 429). **What does not:** my explanation
+> of it, and the structural claim built on it.
+>
+> **How the mistake happened, because it is the reusable part:** I ran
+> `wrangler kv key get` in a shell where `wrangler` was not on PATH. That
+> returns exit 127 and empty stdout. I read the empty stdout as "this key holds
+> nothing, therefore the provider is never attempted" and built a narrative on
+> it. The command had not run at all. `wrangler kv key get` never fails
+> silently — a missing key exits 1 with a message, a present key exits 0 with a
+> value — so the only way to get "empty" is a broken call.
+>
+> `tools/kv_get.py` now exists to make that impossible to repeat: it prints
+> `VALUE` / `MISSING` / `ERROR` with the exit code, and returns non-zero when
+> the read cannot be trusted.
+
 ## What I got wrong
 
 I wrote "the free models CANNOT run the product", on the grounds that a coding
