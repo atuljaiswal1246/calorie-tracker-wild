@@ -50,6 +50,16 @@ python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, c
   clause, and the only invention data I have is from 7–12 case corpora and one
   flaky abstain canary where `kadhi_bowl` abstained on run 1 and invented
   "Chana Masala" on run 2.
+- **The abstain rate has never been measured either — and the instrument could
+  not measure it until 06:50 tonight.** The prompt asks the model for
+  `"unrecognised": true` and the app honours it, but `score_case` ignored the
+  flag and scored an abstention as **zero calories with every item missed** —
+  the worst-looking number a correct behaviour can produce. A median containing
+  abstentions would have argued against the decision the owner personally made,
+  and the "fix" it invites is the exact failure that decision prevents. The
+  harness now scores an abstention as an abstention, reports an abstain RATE
+  next to the median, and the median is over answered scans only. No run could
+  ever have told me, because no abstention had ever been measured.
 - **Meeting a corpus bar is not meeting a product bar.** Nobody should tell the
   owner the scanner improved because I added photographs.
 - **Meeting a class-count bar is not being a sample.** 42% of the corpus is four

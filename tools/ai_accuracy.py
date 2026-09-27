@@ -158,7 +158,21 @@ STUB_ITEM = {"name": "Dal", "calories": 300, "protein": 10, "carbs": 40,
              "fat": 8, "confidence": 0.7}
 
 
+STUB_SEEN = {"n": 0}
+
+
 def stub_result(_prompt, *_a, **_k):
+    """Every third stubbed scan abstains, so one run proves BOTH paths.
+
+    Without that, a stub run would only ever exercise the answered path and the
+    abstain arithmetic would stay untested - which is how the gap in score_case
+    survived in the first place.
+    """
+    STUB_SEEN["n"] += 1
+    if STUB_SEEN["n"] % 3 == 0:
+        return ({"items": [], "total_kcal": 0, "unrecognised": True,
+                 "note": "I cannot identify this dish with confidence"},
+                "STUB (abstained)", 0, None)
     return ({"items": [dict(STUB_ITEM)], "total_kcal": STUB_ITEM["calories"]},
             "STUB (no model)", 0, None)
 
@@ -609,6 +623,18 @@ def score_case(case: dict, result: dict) -> dict:
     truth = case["truth"]
     items = result.get("items", []) or []
 
+    # An abstention is scored as itself. It is NOT a 0-calorie miss: the app's
+    # choice to decline is the feature, and a number that made declining look
+    # catastrophic would push the next prompt change in exactly the wrong
+    # direction.
+    if result.get("unrecognised") is True:
+        return {"id": case["id"], "run": 1, "status": ABSTAINED,
+                "abstained": True, "truth_kcal": sum(t["kcal"] for t in truth),
+                "pred_kcal": None, "kcal_error_pct": None, "atwater_pct": None,
+                "invented": [], "missed": [], "generic": [], "recalled": [],
+                "n_pred": 0, "n_truth": len(truth), "latency_s": 0.0,
+                "retries": 0, "transport": "abstained"}
+
     matched, invented = [], []
     for pred in items:
         hit = next((t for t in truth
@@ -661,6 +687,21 @@ UNMEASURED = "UNMEASURED"
 # means "this costs money, stop and ask". Added 2026-09-28 after ~66 scans ran
 # against an account that was already 402 - the spend was the instrument, and
 # the instrument was telling me not to spend.
+# AN ABSTENTION IS AN ANSWER, not a failure and not a missing measurement. The
+# owner personally decided the app should say "I don't recognise this dish" rather
+# than log a number the user cannot verify - and the harness could not measure
+# that decision AT ALL: the prompt asks for "unrecognised": true, the app parses
+# it, and score_case ignored it, so an abstention was scored as zero calories
+# with every item missed. That is the worst-looking number a correct behaviour can
+# produce, and a median containing it would have argued AGAINST the feature the
+# owner chose. Found by reading, not by a run: no abstention had ever been
+# measured, so no run could have told me.
+#
+# Three different things, three different labels, because they lead to different
+# decisions: ANSWERED, ABSTAINED (the model declined to name the dish), and
+# UNMEASURED (nothing came back at all).
+ABSTAINED = "ABSTAINED - the model declined to name the dish"
+
 MONEY_BLOCKED = "MONEY BLOCKED - no budget, not an attempt"
 PREFLIGHT_RULE = "PEHLE /HEALTH, PHIR SCAN"
 
@@ -706,7 +747,9 @@ def forced_label(tier: str, status) -> str:
 def summarise(rows: list[dict]) -> dict:
     """Scores only ever come from rows that were actually answered."""
     scored = [r for r in rows if r.get("status") == "answered"]
-    unmeasured = [r for r in rows if r.get("status") != "answered"]
+    abstained = [r for r in rows if r.get("abstained") is True]
+    unmeasured = [r for r in rows
+                  if r.get("status") != "answered" and r.get("abstained") is not True]
     if not scored:
         reasons = sorted({r.get("status", UNMEASURED) for r in unmeasured})
         return {"meals": len(rows), "scored": 0, "unmeasured": len(unmeasured),
@@ -721,6 +764,9 @@ def summarise(rows: list[dict]) -> dict:
     return {
         "meals": len(rows),
         "scored": len(scored),
+        "abstained": len(abstained),
+        "abstain_rate_pct": round(100.0 * len(abstained) / len(rows), 1) if rows else None,
+        "median_excludes_abstained": len(abstained),
         "unmeasured": len(unmeasured),
         "invented_total": inv,
         "missed_total": miss,
@@ -728,10 +774,12 @@ def summarise(rows: list[dict]) -> dict:
         "median_kcal_error_pct": med(errs),
         "median_atwater_pct": med(atws),
         "median_latency_s": round(med(lat), 1) if med(lat) else None,
-        "verdict": (("PARTIAL - " + "; ".join(sorted(
+        "verdict": ((f"{len(scored)} answered, {len(abstained)} abstained" if abstained
+                    else None) or
+                   (("PARTIAL - " + "; ".join(sorted(
                         {r.get("status", UNMEASURED) for r in unmeasured}))
                     + f" ({len(unmeasured)} of {len(rows)})")
-                    if unmeasured else "all scans answered"),
+                    if unmeasured else "all scans answered")),
     }
 
 
@@ -839,6 +887,10 @@ def print_block(res: dict) -> None:
     print(f"    transport: {res['transport']}")
     print(f"    models   : {', '.join(res['served_models']) or 'none answered'}")
     for r in res["rows"]:
+        if r.get("abstained") is True:
+            print(f"  {r['id']:<24} ABSTAINED - the model declined to name the "
+                  f"dish (not a miss, and not counted in the median)")
+            continue
         if r.get("status") != "answered":
             print(f"  {r['id']:<24} {r.get('status', UNMEASURED)}")
             continue
@@ -852,6 +904,14 @@ def print_block(res: dict) -> None:
         if r["generic"]:
             print(f"      GENERIC:  {', '.join(r['generic'])}")
     print(f"  SUMMARY {json.dumps(res['summary'])}")
+    sm = res["summary"]
+    if sm.get("abstained"):
+        print(f"  NOTE: {sm['abstained']} of {sm['meals']} scans ABSTAINED "
+              f"({sm['abstain_rate_pct']}%). The median error above is over the "
+              f"{sm['scored']} ANSWERED scans only - an abstention is an answer, "
+              f"not a wrong number, and folding it in as a 0 kcal miss would "
+              f"argue against the feature the owner chose. Report the two "
+              f"together or neither.")
 
 
 def cost_report(rows: list[dict], device: str) -> None:
