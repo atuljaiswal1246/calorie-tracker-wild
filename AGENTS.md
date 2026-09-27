@@ -1,5 +1,80 @@
 # AGENTS.md — Project Memory & Handoff
 
+> **START HERE.** `AGENTS.md` is read in full by every session and every agent
+> that works on this repo. Seven standing orders are locked in **§0** at the top
+> of this file, because *an order said in chat is not an order — a rule written
+> in the file is the rule*. Seven of tonight's mistakes came from a rule that
+> lived only in a conversation. `test/standing_orders_test.dart` **fails** if any
+> of the seven disappears from this file, so they cannot be quietly deleted.
+
+## §0 — STANDING ORDERS, locked 2026-09-27
+
+Seven rules, each with the reason it exists. They are not advice; a session that
+breaks one has shipped a defect. **An order said in chat is not an order — a rule
+written in this file is the rule.** Guarded by
+`test/standing_orders_test.dart`, which fails if any of these seven goes missing.
+
+### 1. THE AIM
+**The best health app in the world, Android and iOS.** My working definition —
+**RIGHT, FAST, QUIET**, for someone in India eating home-cooked food with no
+dietitian, used 3–4 times a day in under 30 seconds — is in `notes/THE_AIM.md`.
+*Why:* an aim nobody can measure is a slogan, and "best" has to mean something
+we can be wrong about.
+
+### 2. ONE DOOR, ONE KEY — and the model is NOT chosen
+The app holds **no API key** and offers **no provider choice**. It sends an
+opaque per-user device id to our own Cloudflare Worker; the Worker holds the key
+and picks the model. **Never hardcode a provider, a key or a model id in the app
+or in a test fixture — and never infer who answered from the code: read the
+Worker's `/health`.**
+*Why:* six stale lines in this very file ("the user has an OpenAI key", a
+Settings provider toggle) sent tonight's work to one provider **by accident
+instead of by decision.** Documentation that lies about the architecture is not
+neutral — it steers the next session.
+
+### 3. CLOUDFLARE BOUNDARY — Asha's setup is not mine
+Never touch Asha's model routing, per-user budget/plan logic, secrets list, the
+deployment her brain runs on, or her `x-jarvis` headers. Cal Matters gets its
+**own** Worker (`calmatters-proxy`) with its own secrets and its own KV.
+**Protocol before any Cloudflare change:** announce to Jarvis first, then record
+a real Asha turn answering, then change, then record the same number again, and
+put both side by side. "I didn't touch it" must be *provable*, not asserted.
+*Why:* the shared Worker carried my `x-cm-force-provider` and `/health` fields
+onto her path. Isolation is cheaper than trust.
+
+### 4. AN EMPTY RESULT IS NOT A FINDING
+A command with no output has told me nothing. Before reporting an absence, show
+the command ran: **check the exit code, never read stdout.** Silence from a
+broken command and silence from a real absence are different facts. macOS has no
+`timeout`, so `timeout 90 <cmd>` fails as "command not found" and whatever
+follows can look like a clean negative. Skill: `an-empty-result-is-not-a-negative-finding`.
+Use `tools/kv_get.py`, which prints `VALUE` / `MISSING` / `ERROR`.
+*Why:* tonight I ran `wrangler kv key get` in a shell where `wrangler` was not
+on PATH, got exit 127 and empty output, read it as a finding, and told the owner
+a provider was *structurally* unreachable. It was reachable; the key held a quota
+error. A whole conclusion rested on a command that never ran.
+
+### 5. DON'T TAKE A BIG DECISION BEFORE A RIGHT TEST
+Write the cheap, correct test **first** — one real call, one image, one model id.
+*Why:* after 11 wrong model ids I concluded "Go has no vision" and built a card
+and a report on it, when one image through the correct request shape answered on
+all four providers. The wrong ids were a catalogue guess wearing a lab coat.
+
+### 6. NAME THE PRODUCER OF EVERY NUMBER
+Every figure I report names **which script, which commit, which model, how many
+tokens, and what time**. A number whose producer I cannot name is not a result,
+it is a rumour.
+*Why:* I reported a prompt fix as "proven" from one run per prompt; repeated runs
+showed the two prompts were indistinguishable. The same unnamed number made me
+read 15.4% and 19.1% as an improvement when they were different case mixes.
+
+### 7. EVERY STANDING ORDER GETS WRITTEN DOWN, IN THIS FILE, IN THE SAME SITTING
+If the owner or a supervisor gives me a rule, it lands in this file in the
+**same sitting** it was given, before the session ends — and the guard test
+proves it is still here.
+*Why:* the owner learned this tonight: rules that live only in a chat are rules
+that the next session will not obey, because it never read them.
+
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
 **In progress: WIDGETS — device-tested 2026-09-16, two bugs fixed, water pulled.**
 `8034675` on top of `e05b13c`. Tested on the user's iQOO (Android 15). The
@@ -179,8 +254,14 @@ previous session so a fresh chat can continue seamlessly.
 ## Decisions Already Made (do not relitigate)
 1. **Framework: Flutter** (chosen over React Native) — strong typing, single codebase,
    reliable image plugins, straightforward release APK.
-2. **AI vision API:** user has a paid **OpenAI subscription + API key**. Gemini free tier
-   is a fallback if needed. Cost is not a constraint.
+2. **AI vision API: ONE DOOR, ONE KEY, AND THE MODEL IS NOT CHOSEN.** The app
+   holds **no API key** and offers **no provider choice**. It sends an opaque
+   per-user device id to our own Cloudflare Worker; the Worker holds the key and
+   picks the model. Whoever built a section of this file around "the user has an
+   OpenAI key" was describing a design we abandoned — and it is why work kept
+   landing on one provider by accident rather than by decision. **To find out who
+   actually answered a request, read the Worker's `/health` — never assume, never
+   infer it from the code.**
 3. **Free-tools constraint:** avoid paid tools *unless the idea is proven*. The only
    unavoidable cost is Google Play's one-time $25 developer registration.
 4. **Launch plan:** Google Play first (cheaper + faster), App Store after validation.
@@ -246,10 +327,15 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
   whether a profile exists.
 - `models/profile.dart` — Profile model + Mifflin-St Jeor BMR/TDEE/calorie goal.
 - `models/food_entry.dart` — FoodItem + FoodEntry models with totals + JSON.
-- `services/storage_service.dart` — `shared_preferences` persistence (profile, entries,
-  OpenAI API key).
-- `services/openai_service.dart` — calls OpenAI vision (`gpt-4o-mini`), base64 image,
-  JSON-schema prompt, robust JSON extraction (fenced-code + `{...}` fallback).
+- `services/storage_service.dart` — `shared_preferences` + Firestore persistence
+  (profile, entries, water, weight, exercise, league, gamification, trial).
+  **It stores no API key of any kind** — the app has none.
+- `services/openai_service.dart` — sends the base64 image to **our Cloudflare
+  Worker** (one door, §0 rule 2) with a schema-only prompt; the Worker holds the
+  key and picks the model. The filename is historical and says nothing about the
+  provider. Robust JSON extraction (fenced-code + `{...}` fallback).
+  **Never add a provider, key or model id here.** To find out which model
+  answered, read the Worker's `/health`.
 - `screens/onboarding_flow.dart` — the 6 onboarding question screens + plan summary.
 - `screens/pricing_screen.dart` — the paywall (`PricingScreen`).
 - `screens/welcome_screen.dart` — first screen (carousel + Try demos).
@@ -269,24 +355,35 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
   by time of day + AI cross-check. "No food detected" for empty cups/plates.
 - `screens/history_screen.dart` — list of past meals, long-press to delete.
 
-### API key handling
-- NOT hardcoded. User enters their OpenAI key at runtime in Home > Settings (gear icon),
-  stored in `shared_preferences`. The app currently uses `gpt-4o-mini` (cheap). Cost is
-  not a blocker per decisions.
+### API key handling — ONE KEY, IN THE WORKER, NOT IN THE APP
+- **The app contains no API key and never asks the user for one.** There is no
+  key field in Settings and none in any screen; this was removed, and
+  `test/no_provider_keys_test.dart` + `test/one_key_path_test.dart` fail if one
+  ever comes back.
+- The one custom header the app sends is `x-device-id`: an opaque per-install id
+  used for rate limiting. **It is not a credential.**
+- Keys live only as Cloudflare Worker secrets. A key on the wire to a customer
+  machine is the whole failure this design exists to make impossible.
+- Which provider and model actually answered is **not knowable from the app**,
+  and must not be guessed from the code. Read the Worker's `/health`:
+  `paid_usage.last_billed_request` gives provider, served model, tokens, cost and
+  timestamp; `usage_by_secret_today` gives per-secret counts; `breaker` gives
+  which tiers are suspended and why.
 
-### AI provider fallback (IMPORTANT — Gemini is the working provider)
-- **User's card could not be charged**, so the paid OpenAI quota is unavailable (429).
-- Added **Gemini free-tier support** (`lib/services/gemini_service.dart`) as the working
-  provider. Settings (gear icon) now has an **OpenAI / Gemini toggle** + separate key
-  fields. Provider and Gemini key are persisted via `StorageService`.
-- **Gemini model in use: `gemini-3.6-flash`** (default in `gemini_service.dart`). Note:
-  `gemini-1.5-flash` and `gemini-2.5-flash` return **404** (deprecated/not available in
-  the user's region). Do NOT switch back to them.
+### AI provider reality (measured, 2026-09-27 — replaces the old Gemini note)
+- **Measured:** vision scans are served by `AICREDITS_KEY` →
+  `gpt-4o-mini-2024-07-18`, ~$0.0041 a scan, the photo being ~99.9% of it.
+  `OPENROUTER_KEY` also serves vision correctly and is the live backup.
+  `OPENCODE_KEY` (the Go plan) is **out of monthly quota** and its catalogue
+  carries **no vision model**, so it currently serves nothing.
+  `ZEN_KEY` is not in the serving rotation at all and reports no funds.
+- **Do not reintroduce a per-provider toggle or a key field in the app.** The
+  Worker decides; the app asks one door. That is §0 rule 2.
+- If a future session needs to know who answered, run a probe
+  (`x-cm-probe-model`, names + status only) or read `/health` — never a guess.
 - **MVP validated end-to-end on a real device (2026-08-21):** onboarding → home →
   gallery photo → AI analysis (detected "Besan Sev", 185 kcal) → log → dashboard totals
   updated → history shows the entry. All working.
-- The app is installed on the user's device (Android, USB debugging). The user must
-  reconnect the phone via USB when a rebuild/install is needed.
 
 ## LOCKED — Calculation Logic & Onboarding Options (do not change)
 - **Weekly rate is FIXED per pace (matches mainstream apps):** slow = 0.1,
@@ -336,7 +433,8 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
 ## AI Provider Setup (2026-08-29) — AICredits via Cloudflare proxy
 - OpenAI/Gemini paid keys CANNOT be used: OpenAI's Stripe checkout rejects most Indian
   cards; user's OpenAI 429 (no usable quota). Gemini free tier exists but is NOT viable
-  for production (10 RPM / 1500 RPD, trains on data, no SLA). GEMINI_KEY removed.
+  for production (10 RPM / 1500 RPD, trains on data, no SLA). **No Gemini key is
+  configured anywhere** — the app has no key of any kind (§0 rule 2).
 - **Production path: AICredits** (aicredits.in) — OpenAI-compatible API, pay in INR via
   UPI, min top-up ₹50 (balance: ₹50 as of 2026-08-29). API key = secret `AICREDITS_KEY`
   on Cloudflare Worker `cal-matters-gemini-proxy` (https://cal-matters-gemini-proxy.atuljaiswal1246.workers.dev).

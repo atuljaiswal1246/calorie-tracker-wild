@@ -59,6 +59,35 @@ could check without trusting me** — e.g. *"an exact score on 20 measured
 meals, shown side by side against the old prompt."* If I cannot name the
 measurement, it is not a milestone and it does not go in the roadmap.
 
+## 2d. The seven standing orders live in AGENTS.md §0
+
+The same seven rules are written in full, each with its reason, at the top of
+`AGENTS.md` — because that is the file every session and every agent reads. This
+file is my constitution; `AGENTS.md` §0 is the version the next session actually
+sees. They must not drift apart, and `test/standing_orders_test.dart` fails if
+any of the seven goes missing from either.
+
+The seven, in one line each:
+
+1. **The aim** — the best health app in the world, Android and iOS. My working
+   definition is RIGHT, FAST, QUIET (`notes/THE_AIM.md`).
+2. **One door, one key, and the model is not chosen** — the app holds no key and
+   offers no provider choice; the Worker holds the key and picks the model. Read
+   `/health` to learn who answered; never hardcode a provider, key or model id.
+3. **Cloudflare boundary** — Asha's setup is not mine. Cal Matters has its own
+   Worker, `calmatters-proxy`, with its own secrets and KV. Announce to Jarvis,
+   record a real Asha turn before and after any change, and put both numbers side
+   by side.
+4. **An empty result is not a finding** — check the exit code, never read stdout.
+   `tools/kv_get.py` prints VALUE / MISSING / ERROR. macOS has no `timeout`.
+5. **No big decision before a right test** — one real call, one image, one model
+   id, before I conclude anything structural.
+6. **Name the producer of every number** — which script, which commit, which
+   model, how many tokens, what time.
+7. **Every standing order gets written down, in the file, in the same sitting** —
+   in the **same sitting** it was given, because an order said in chat is not an
+   order, and the next session never reads the chat.
+
 ## 2c. An empty result is not a finding
 
 A command that produced no output has told me **nothing**, and I do not get to

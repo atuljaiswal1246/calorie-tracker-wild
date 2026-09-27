@@ -187,4 +187,67 @@ void main() {
       reason: 'A key literal is tracked in git:\n${offenders.join('\n')}',
     );
   });
+
+  test('no screen ever asks the user to paste a provider key', () {
+    // The defect AGENTS.md described: a Settings field for an OpenAI or Gemini
+    // key persisted via StorageService - i.e. a CUSTOMER pasting a billable
+    // key into the app. None exists today; this is the machine that keeps it
+    // that way.
+    final banned = RegExp(
+      r"(openai|gemini|deepseek|aicredits|openrouter)[A-Za-z ]{0,12}(api\s*)?key\s*[:=]"
+      r"|(api\s*key|enter your key|paste your key)\s*[:=]",
+      caseSensitive: false,
+    );
+    final offenders = <String>[];
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      if (entity.path.endsWith('openai_service.dart')) continue; // the door itself
+      final lines = entity.readAsLinesSync();
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].trimLeft().startsWith('//')) continue;
+        if (banned.hasMatch(lines[i])) {
+          offenders.add('${entity.path}:${i + 1}  ${lines[i].trim()}');
+        }
+      }
+    }
+    expect(
+      offenders,
+      isEmpty,
+      reason: 'A screen appears to ask the user for a provider key. That is the '
+          'defect AGENTS.md described on 2026-09-27: a customer pasting a '
+          'billable key into the app. The key belongs in the Worker, not on a '
+          'phone.\n\n${offenders.join('\n')}\n',
+    );
+  });
+
+  test('StorageService persists no provider credential', () {
+    final storage =
+        File('lib/services/storage_service.dart').readAsStringSync();
+    for (final banned in const [
+      'openaiApiKey',
+      'geminiKey',
+      'apiKey',
+      'providerKey',
+      'aicreditsKey',
+    ]) {
+      expect(
+        storage.contains(banned),
+        isFalse,
+        reason: 'StorageService must not persist "$banned". The app holds no '
+            'provider credential.',
+      );
+    }
+  });
 }
+
+// ---------------------------------------------------------------------------
+// The specific defect Malika found on 2026-09-27: AGENTS.md told sessions that
+// "the user enters their OpenAI key at runtime in Home > Settings", with an
+// "OpenAI / Gemini toggle" and "separate key fields". That is the shape of a
+// product where a CUSTOMER pastes a provider key into the app, which is exactly
+// what this architecture exists to prevent.
+//
+// I checked the code and found no such field — the docs were stale, not the
+// app. But "I checked once" is not a guard, so this pins it: if a key field
+// ever returns to any screen, this fails.
+// ---------------------------------------------------------------------------

@@ -1,0 +1,13 @@
+# Cal Matters' OWN proxy worker. Deliberately separate from the shared
+# cal-matters-gemini-proxy that Asha's brain also uses, so a change here has
+# ZERO blast radius on Asha. Same Workers free plan; no cost.
+name = "calmatters-proxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+# Separate KV namespace from the shared worker's, so quota/breaker/accounting
+# state cannot bleed between the two companies.
+[[kv_namespaces]]
+binding = "QUOTA"
+id = "REPLACE_WITH_CALMATTERS_KV_ID"
