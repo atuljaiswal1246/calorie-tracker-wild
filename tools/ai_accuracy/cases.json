@@ -12,7 +12,8 @@
     "bowl that a scan could fairly call either kadhi or dal is 'medium'.",
     "Anything I could not name honestly was deleted, not guessed at.",
     "Batch 2 added 5 more openly licensed, human-reviewed meals, chosen for dish BREADTH: 8 of the 16 candidates were bhindi, exactly the trap batch 1 hit with chole bhature, so only one bhindi was taken.",
-    "Batch 3 added 5 more openly licensed, human-reviewed meals. THE TRAP, THIRD TIME: of 18 candidates 8 were masala dosa and 7 were idli, so only 5 distinct dishes were taken. THE HONEST LIMIT: because the queries were breakfast items, all five are South-Indian breakfast. That is a real bias in the corpus; batch 4 must target curries, eggs and non-breakfast home cooking before any overall score is quoted."
+    "Batch 3 added 5 more openly licensed, human-reviewed meals. THE TRAP, THIRD TIME: of 18 candidates 8 were masala dosa and 7 were idli, so only 5 distinct dishes were taken. THE HONEST LIMIT: because the queries were breakfast items, all five are South-Indian breakfast. That is a real bias in the corpus; batch 4 must target curries, eggs and non-breakfast home cooking before any overall score is quoted.",
+    "Batch 4 added 5 more human-reviewed, non-breakfast meals. THE TRAP, FOURTH TIME: of 20 candidates 14 were chana/chole/chole-bhature, because three search terms were chole-based. Three of the five kept are therefore the same legume family - recorded here rather than hidden. Batch 5 must search one dish at a time to escape it. Batch 4 also adds the corpus's only NON-VEGETARIAN case, which was a real gap: our users are not all vegetarian and nothing else tested that."
   ],
   "cases": [
     {
@@ -534,6 +535,221 @@
             "Dal"
           ],
           "kcal": 90,
+          "grams": 100
+        }
+      ]
+    },
+    {
+      "id": "chole_papad_plate",
+      "image": "tools/ai_accuracy/photos/chana_masala_mohammed_spice_of_life_2024_05_27_jpg.jpg",
+      "note": "A white plate from above: chole in a small steel bowl with two papad triangles beside it. Clean, home-style, plainly identifiable.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Chole",
+          "aliases": [
+            "Chana Masala",
+            "Chole",
+            "Chana",
+            "Chana Curry",
+            "Chole Bhature"
+          ],
+          "kcal": 250,
+          "grams": 150
+        },
+        {
+          "name": "Papad",
+          "aliases": [
+            "Papad",
+            "Papadum",
+            "Papdi"
+          ],
+          "kcal": 90,
+          "grams": 30
+        }
+      ]
+    },
+    {
+      "id": "chana_masala_pan",
+      "image": "tools/ai_accuracy/photos/chana_masala_jpg.jpg",
+      "note": "A close overhead view of chana masala cooking in a pan, garnished with coriander. 'Medium' because there is no plate or bowl for scale, so the portion is an estimate.",
+      "confidence": "medium",
+      "truth": [
+        {
+          "name": "Chana Masala",
+          "aliases": [
+            "Chole",
+            "Chana",
+            "Chole Bhature",
+            "Chana Masala",
+            "Chana Curry"
+          ],
+          "kcal": 280,
+          "grams": 180
+        }
+      ]
+    },
+    {
+      "id": "chole_puri_halwa_thali",
+      "image": "tools/ai_accuracy/photos/chole_puri_halwa_jpg.jpg",
+      "note": "A steel thali from above: chole, a puri, and a portion of gajar halwa. Three clearly separate items.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Chole",
+          "aliases": [
+            "Chana Masala",
+            "Chole",
+            "Chana"
+          ],
+          "kcal": 250,
+          "grams": 150
+        },
+        {
+          "name": "Puri",
+          "aliases": [
+            "Puri",
+            "Puri Bhaji",
+            "Bread"
+          ],
+          "kcal": 180,
+          "grams": 60
+        },
+        {
+          "name": "Gajar Halwa",
+          "aliases": [
+            "Halwa",
+            "Gajar Halwa",
+            "Carrot Halwa"
+          ],
+          "kcal": 200,
+          "grams": 100
+        }
+      ]
+    },
+    {
+      "id": "rajma_brinjal_masala",
+      "image": "tools/ai_accuracy/photos/brinjal_rajma_masala_jpg.jpg",
+      "note": "A white plate from above: kidney beans with brinjal pieces in a brown masala. 'Medium' because rajma-with-brinjal and plain rajma are a judgement call from the photo alone.",
+      "confidence": "medium",
+      "truth": [
+        {
+          "name": "Rajma",
+          "aliases": [
+            "Kidney Beans",
+            "Rajma Curry",
+            "Rajma Masala",
+            "Rajah",
+            "Kulthi"
+          ],
+          "kcal": 260,
+          "grams": 180
+        },
+        {
+          "name": "Brinjal",
+          "aliases": [
+            "Baingan",
+            "Aubergine",
+            "Eggplant"
+          ],
+          "kcal": 40,
+          "grams": 60
+        }
+      ]
+    },
+    {
+      "id": "non_veg_thali",
+      "image": "tools/ai_accuracy/photos/non_veg_platter_bf36f68d.jpg",
+      "note": "The corpus's only NON-VEGETARIAN case, which is a real gap: our users are not all vegetarian and nothing else tested that. The photographer's own Commons description is the ground truth here, and it lists MORE than I first labelled: 'plain rice, dal, rajma, fish with mustard, chicken curry, carrot and cucumber salad, pickle, green chili, papad, and kheer'. My first label named only four items, which would have scored real food as invented. Using the photographer's description rather than my eye, because on a crowded plate my eye is the weaker authority.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Rice",
+          "aliases": [
+            "Steamed Rice",
+            "White Rice",
+            "Plain Rice"
+          ],
+          "kcal": 210,
+          "grams": 200
+        },
+        {
+          "name": "Dal",
+          "aliases": [
+            "Yellow Dal",
+            "Sambar",
+            "Kadhi"
+          ],
+          "kcal": 100,
+          "grams": 150
+        },
+        {
+          "name": "Rajma",
+          "aliases": [
+            "Kidney Beans",
+            "Rajma Curry",
+            "Kulthi"
+          ],
+          "kcal": 120,
+          "grams": 80
+        },
+        {
+          "name": "Fish Curry",
+          "aliases": [
+            "Fish with Mustard",
+            "Machher Jhol",
+            "Fish"
+          ],
+          "kcal": 200,
+          "grams": 120
+        },
+        {
+          "name": "Chicken Curry",
+          "aliases": [
+            "Chicken",
+            "Non Veg Curry",
+            "Meat Curry"
+          ],
+          "kcal": 300,
+          "grams": 150
+        },
+        {
+          "name": "Carrot and Cucumber Salad",
+          "aliases": [
+            "Salad",
+            "Kachumber",
+            "Carrot Salad"
+          ],
+          "kcal": 40,
+          "grams": 80
+        },
+        {
+          "name": "Pickle",
+          "aliases": [
+            "Achar",
+            "Pickle"
+          ],
+          "kcal": 20,
+          "grams": 20
+        },
+        {
+          "name": "Papad",
+          "aliases": [
+            "Papadum",
+            "Papad",
+            "Papdi"
+          ],
+          "kcal": 90,
+          "grams": 30
+        },
+        {
+          "name": "Kheer",
+          "aliases": [
+            "Rice Pudding",
+            "Kheer",
+            "Payasam"
+          ],
+          "kcal": 180,
           "grams": 100
         }
       ]

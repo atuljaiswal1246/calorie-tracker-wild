@@ -166,6 +166,40 @@ BATCH3_QUERIES = [
     'filetype:bitmap "payasam"',
 ]
 
+# Batch 4: DELIBERATELY NON-BREAKFAST. Batch 3 accepted five South-Indian
+# breakfast photos and the corpus score moved for reasons that had nothing to do
+# with the app - which is the whole reason the corpus rule exists. Every query
+# here is a lunch/dinner dish, plus the region coverage batches 1-3 missed
+# (Kashmiri, Awadhi, Bengali, Gujarati, Goan, Hyderabadi, Kerala, Punjabi).
+BATCH4_QUERIES = [
+    'filetype:bitmap "chana masala"',
+    'filetype:bitmap "chole" curry',
+    'filetype:bitmap "rajma" curry',
+    'filetype:bitmap "butter chicken"',
+    'filetype:bitmap "chicken curry" bowl',
+    'filetype:bitmap "rogan josh"',
+    'filetype:bitmap "egg curry"',
+    'filetype:bitmap "shahi paneer"',
+    'filetype:bitmap "paneer butter masala"',
+    'filetype:bitmap "gobi curry"',
+    'filetype:bitmap "dal tadka"',
+    'filetype:bitmap "tarka dal"',
+    'filetype:bitmap "eggs bhurji"',
+    'filetype:bitmap "methi sabzi"',
+    'filetype:bitmap "tindora"',
+    'filetype:bitmap "kashmiri dum aloo"',
+    'filetype:bitmap "awadhi kebab"',
+    'filetype:bitmap "bengali fish curry"',
+    'filetype:bitmap "gujarati dal"',
+    'filetype:bitmap "goan pork"',
+    'filetype:bitmap "hyderabadi biryani"',
+    'filetype:bitmap "kerala fish curry"',
+    'filetype:bitmap "dhaba dal"',
+    'filetype:bitmap "punjabi chole"',
+    'filetype:bitmap "khichdi"',
+    'filetype:bitmap "poha"',
+]
+
 def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
     seen, out = set(), []
     for q in (queries or QUERIES):
@@ -222,7 +256,13 @@ def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
 def download(cand: dict) -> dict | None:
     os.makedirs(PHOTO_DIR, exist_ok=True)
     name = re.sub(r"[^a-z0-9]+", "_", cand["title"].lower().replace("file:", "")).strip("_")
-    name = name[:60] + ".jpg"
+    # A short digest of the source URL, so two different Commons files whose
+    # titles normalise to the same slug cannot overwrite each other. Found on
+    # 2026-09-28: three downloads of the same-named platter silently shared one
+    # path, and the duplicate-cleanup then deleted the file the accepted record
+    # pointed at. Filenames must be a function of the source, not just the title.
+    tag = hashlib.sha256(cand["url"].encode()).hexdigest()[:8]
+    name = f"{name[:52]}_{tag}.jpg"
     path = os.path.join(PHOTO_DIR, name)
     try:
         req = urllib.request.Request(cand["url"], headers={"User-Agent": UA})
@@ -245,11 +285,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=5, help="photos to add in this batch")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES}
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
