@@ -117,6 +117,35 @@ void main() {
             '${bad.join('\n')}');
   });
 
+  test('no photo is left undecided', () {
+    // 14 photos sat in the manifest fetched-but-never-reviewed, and an undecided
+    // photo is indistinguishable from an accepted one. A photo is now either used
+    // by a case, rejected with a reason, or DECLARED not-used with a reason.
+    // Deleting the limbo silently would have been the same mistake in reverse:
+    // the next batch would re-propose them with no memory of why.
+    final used = cases
+        .map((raw) => (raw as Map<String, dynamic>)['image'] as String)
+        .toSet();
+    final limbo = <String>[];
+    for (final raw in photos) {
+      final p = raw as Map<String, dynamic>;
+      final file = p['file'] as String;
+      if (used.contains(file)) continue;
+      if (p['rejected'] == true || p['not_used'] == true) {
+        final reason = (p['reject_reason'] ?? p['not_used_reason']) as String?;
+        if (reason == null || reason.trim().isEmpty) {
+          limbo.add('$file: set aside with no reason');
+        }
+        continue;
+      }
+      limbo.add('$file: fetched, never accepted, never rejected, never declared '
+          'not-used. An undecided photo is not evidence and not a decision.');
+    }
+    expect(limbo, isEmpty,
+        reason: 'Every manifest photo must be used, rejected with a reason, or '
+            'declared not-used with a reason.\n\n${limbo.join('\n')}\n');
+  });
+
   test('the fetcher cannot delete a file a record depends on', () {
     // The exact line that caused three cases to point at nothing. If this ever
     // goes back to an unconditional os.remove, the next batch is a broken corpus.

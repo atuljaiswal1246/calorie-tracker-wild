@@ -453,7 +453,9 @@
       "sha256": "a0feb73a035eceb1b9181f268c79e28058851e8cc61697b4ec882e892bcbaf7a",
       "stored_px": "3024x4032",
       "reviewed": false,
-      "dhash": 867489288535897099
+      "dhash": 867489288535897099,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Chana Masala, P\u00e3o S\u00edrio e prato com Batata e Br\u00f3colis, 2023-10-18.jpg",
@@ -472,7 +474,9 @@
       "sha256": "368a1b11b1a6eb17930a6e10508db805cd291a5bfd68ff52accbace4deaf0e30",
       "stored_px": "3000x4000",
       "reviewed": false,
-      "dhash": 4423958875794366692
+      "dhash": 4423958875794366692,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Cafe Whitney - 2021-10-17 - Sarah Stierch 04.jpg",
@@ -1019,7 +1023,9 @@
       "sha256": "9b3f0719e4400d828c8a696bdbb7c50fb579f31fdf46911be570f9c3a0bca7c9",
       "dhash": 2739194949713932819,
       "stored_px": "2842x2842",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Valley Bar + Bottle - 2021-06-27 - Sarah Stierch 01.jpg",
@@ -1038,7 +1044,9 @@
       "sha256": "8846c06ff52218b9279381d43320575150897bd3741200a459320c1f8eb4213d",
       "dhash": 7093306379175628,
       "stored_px": "4032x3024",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Mutton Biryani, Singapore.jpg",
@@ -1057,7 +1065,9 @@
       "sha256": "8b0c95d7d2ac12afbfc99c90b818567123ec07e0249a916105ca777fa97e008e",
       "dhash": 2032919232080059279,
       "stored_px": "4038x2696",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Plate of Biryani Rice.jpg",
@@ -1076,7 +1086,9 @@
       "sha256": "17c918a2a638eb8de5aea3b83062b05b177fd099e52f096a1569d0aa2b195bdd",
       "dhash": 12748651175126256202,
       "stored_px": "872x654",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Fish curry rice Thali (25430429261).jpg",
@@ -1095,7 +1107,9 @@
       "sha256": "33e4c952ebf4be64395ead45e97d42b3a9094dcf4d0073b262dcb2893be6953a",
       "dhash": 2026117933639109661,
       "stored_px": "3648x2736",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Mas riha Maldives.jpg",
@@ -1114,7 +1128,9 @@
       "sha256": "bc36065782893732c3bb74438471498e5f0ffdb2ae13e9f9f43fb05eafb4d7cf",
       "dhash": 10354735813390802636,
       "stored_px": "1032x791",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Aloo gobi kurma.JPG",
@@ -1133,7 +1149,9 @@
       "sha256": "40f3796c7c028c4f7fdf547c98e49e712cb40281ca33139cd60634e71984544f",
       "dhash": 14979900607627542414,
       "stored_px": "2848x4272",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Bengali aloo chiken.jpg",
@@ -1152,7 +1170,9 @@
       "sha256": "0f21589262e0ac510d1c854792ea1266274f8f27a58ad595b66f171c22b8254c",
       "dhash": 1085179234715756145,
       "stored_px": "1920x2560",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Kofta Curry (cropped).JPG",
@@ -1171,7 +1191,9 @@
       "sha256": "3a7dde328aed56631ad54e3addeff8c08b24d555778319bd23abe963b7912636",
       "dhash": 16782829602431362160,
       "stored_px": "1621x1462",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Lauki Kofta Curry.JPG",
@@ -1190,7 +1212,9 @@
       "sha256": "3dcbcc972939c53afbe4aacb0b01eb5413bde7975ef702bfd7e56c24590126a7",
       "dhash": 4359157414376862585,
       "stored_px": "1080x1920",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Bowl of Vietnamese chicken curry with potatoes.jpg",
@@ -1209,7 +1233,9 @@
       "sha256": "ba7b927707e25f32dd7976a439d78de52e4f72dfbd7a2a7ed0e486a49aa2d29f",
       "dhash": 4177226010743600368,
       "stored_px": "1200x1800",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "title": "File:Chicken Curry 01.jpg",
@@ -1228,7 +1254,9 @@
       "sha256": "48ae3b5f1a80e5e356bdb13233256d7c222cfe1faedc72557b39f032ea6dc6d4",
       "dhash": 5580637685632495730,
       "stored_px": "3024x4032",
-      "reviewed": false
+      "reviewed": false,
+      "not_used": true,
+      "not_used_reason": "Fetched and never reviewed, so it is not evidence. Left in the manifest DECLARED as not-used rather than left unreviewed, because an undecided photo is indistinguishable from an accepted one and this file is the record of what the corpus is made of."
     },
     {
       "file": "assets/onboarding/food_palak_paneer.jpg",
