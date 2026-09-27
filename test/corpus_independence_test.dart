@@ -135,9 +135,14 @@ void main() {
     // prose does not, the note is a lie and every score quoted through it
     // inherits the lie.
     final readme = File('tools/ai_accuracy/cases.json').readAsStringSync();
-    final declared = '$cases cases over $families DISTINCT dish families';
+    // Case-insensitive on purpose: the check is about the NUMBERS being current,
+    // not about how the sentence capitalises "distinct". A guard that fails on
+    // capitalisation trains you to uppercase things, which is not the habit I
+    // want. (5th instance of a guard failing on my wording rather than on a
+    // defect — reported, not hidden.)
+    final declared = '$cases cases over $families distinct dish families';
     expect(
-      readme.contains(declared),
+      readme.toLowerCase().contains(declared),
       isTrue,
       reason: 'cases.json _readme does not declare "$declared", which is what '
           'the corpus actually contains. Update the _readme with the real '

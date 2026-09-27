@@ -112,6 +112,33 @@ OK_LICENCE = re.compile(r"\b(CC0|Public domain|CC BY(?:-SA)?\s*\d|Public domain|
 BAD_LICENCE = re.compile(r"(non-?free|fair use|copyright(ed)?\s+by|all rights reserved)", re.I)
 
 
+# BATCH 5 — one query per DISH CLASS that cases.json does not already contain.
+#
+# The trap, three times now: 8 of 16 candidates were bhindi, 8 of 18 were masala
+# dosa, and 4x chole. Each batch fixed it by hand and it came back, because a
+# dish-shaped query returns dish-shaped results. So this set is built from the
+# corpus's own gap list rather than from what is easy to find, and it takes ONE
+# query per missing class: egg, biryani, khichdi, fish curry, sarson da saag,
+# aloo gobi, kofta, chicken curry. Eight queries, eight different classes, so a
+# duplicate cannot dominate this batch even if every query returns its own dish
+# twice.
+#
+# Deliberately NOT queried: anything mapping to dal, chole, paneer or sambar in
+# tools/ai_accuracy.py DISH_CLASS. A tenth photo of dal does not move a 13-class
+# corpus to 20, it only makes the median better. That is the trap wearing a
+# productive hat.
+BATCH5_QUERIES = [
+    'filetype:bitmap "omelette" plate',
+    'filetype:bitmap biryani plate',
+    'filetype:bitmap khichdi bowl',
+    'filetype:bitmap "fish curry" bowl',
+    'filetype:bitmap "sarson da saag"',
+    'filetype:bitmap "aloo gobi"',
+    'filetype:bitmap kofta curry',
+    'filetype:bitmap "chicken curry" bowl',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -253,6 +280,42 @@ def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
     return out
 
 
+# ------------------------------------------------------------- DUPLICATE GUARD
+# The trap is not only in the SEARCH, it is in the DOWNLOAD: the fish-curry query
+# returned five near-identical "Fish curry rice Thali" files by one uploader, and
+# the omelette query returned two restaurant menu photographs. Five near-copies of
+# one dish is a corpus that reads as 5 and measures as 1, and a median over it is
+# a median over a photographer's habit.
+#
+# So the fetcher now MEASURES similarity instead of trusting titles: a 64-bit
+# difference hash per photo, and a photo within NEAR_DUP_DISTANCE of one already
+# accepted (this batch OR the existing corpus) is rejected with a printed reason.
+# --max-per-query and --per-author caps stop one query, or one prolific uploader,
+# from dominating a batch. Review still happens: this is a floor, not a judge.
+
+NEAR_DUP_DISTANCE = 8          # Hamming distance on 64 bits; ~0 same, 8 very close
+
+
+def dhash(path: str) -> int | None:
+    try:
+        from PIL import Image
+        with Image.open(path) as im:
+            im = im.convert("L").resize((9, 8), Image.LANCZOS)
+            px = list(im.getdata())
+    except Exception:                                  # noqa: BLE001
+        return None
+    bits = 0
+    for row in range(8):
+        for col in range(8):
+            bits = (bits << 1) | (1 if px[row * 9 + col] > px[row * 9 + col + 1] else 0)
+    return bits
+
+
+def hamming(a: int, b: int) -> int:
+    return bin(a ^ b).count("1")
+
+
+
 def download(cand: dict) -> dict | None:
     os.makedirs(PHOTO_DIR, exist_ok=True)
     name = re.sub(r"[^a-z0-9]+", "_", cand["title"].lower().replace("file:", "")).strip("_")
@@ -278,18 +341,29 @@ def download(cand: dict) -> dict | None:
     return {**cand, "file": os.path.relpath(path, ROOT),
             "bytes": len(blob),
             "sha256": hashlib.sha256(blob).hexdigest(),
+            "dhash": dhash(path),
             "stored_px": f"{cand['width']}x{cand['height']}"}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=5, help="photos to add in this batch")
+    ap.add_argument("--max-per-query", type=int, default=2,
+                    help="at most this many accepted photos from ONE query. A "
+                         "dish-shaped query returns the same dish; without a cap "
+                         "one query can be the whole batch.")
+    ap.add_argument("--per-author", type=int, default=2,
+                    help="at most this many accepted photos from ONE uploader in "
+                         "this batch. One prolific photographer's habit is not a "
+                         "sample of Indian home cooking.")
+    ap.add_argument("--no-near-dup", action="store_true",
+                    help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES}
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
@@ -302,17 +376,62 @@ def main() -> int:
         with open(MANIFEST, encoding="utf-8") as fh:
             existing = json.load(fh).get("photos", [])
 
+    # Known photos, for the near-duplicate floor. Older records predate the hash.
+    known = [(p.get("file"), p.get("dhash")) for p in existing if p.get("dhash")]
+    for p in existing:
+        if p.get("file") and not p.get("dhash"):
+            h = dhash(os.path.join(ROOT, p["file"]))
+            if h is not None:
+                p["dhash"] = h
+                known.append((p["file"], h))
+
     added = 0
+    per_query: dict[str, int] = {}
+    per_author: dict[str, int] = {}
     for cand in cands:
         if added >= args.limit:
             break
-        if any(p["file"] == cand["title"] for p in existing):
+        # Dedupe on TITLE. This compared a photo's file path against a
+        # candidate's title, so it never matched anything and a second fetch of
+        # the same URL re-downloaded over a file the manifest already pointed at.
+        if any(p.get("title") == cand["title"] for p in existing):
+            print(f"  - skip (already have it): {cand['title'][:56]}")
+            continue
+        if per_query.get(cand["query"], 0) >= args.max_per_query:
+            print(f"  - skip (query cap): {cand['title'][:56]}")
+            continue
+        if per_author.get(cand["author"], 0) >= args.per_author:
+            print(f"  - skip (author cap): {cand['title'][:56]} "
+                  f"by {cand['author'][:28]}")
             continue
         got = download(cand)
         if not got:
             continue
+        if not args.no_near_dup and got.get("dhash") is not None:
+            for other_file, other_hash in known:
+                if hamming(got["dhash"], other_hash) <= NEAR_DUP_DISTANCE:
+                    print(f"  - skip (near-duplicate of {os.path.basename(other_file)}, "
+                          f"hamming "
+                          f"{hamming(got['dhash'], other_hash)}): {cand['title'][:40]}")
+                    # Only delete a file no record depends on. Found 2026-09-28:
+                    # the download path is a digest of the URL, so re-fetching a
+                    # photo we already had wrote the SAME path, and the
+                    # near-duplicate branch then removed the file the manifest
+                    # pointed at. Three accepted photos vanished and three cases
+                    # were left pointing at nothing. Deleting is the dangerous
+                    # half of a duplicate check, so it now asks first.
+                    if other_file != got["file"] and not any(
+                            p.get("file") == got["file"] for p in existing):
+                        os.remove(os.path.join(ROOT, got["file"]))
+                    got = None
+                    break
+        if not got:
+            continue
         got["reviewed"] = False     # a human (me) must LOOK at it before it counts
         existing.append(got)
+        known.append((got["file"], got["dhash"]))
+        per_query[cand["query"]] = per_query.get(cand["query"], 0) + 1
+        per_author[cand["author"]] = per_author.get(cand["author"], 0) + 1
         added += 1
         print(f"  + {got['file']}")
         print(f"      {got['licence']} | {got['author'][:44]}")

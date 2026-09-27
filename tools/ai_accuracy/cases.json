@@ -1,5 +1,6 @@
 {
   "_readme": [
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 27 cases over 22 distinct dish families; 18 distinct dish CLASSES; 33 coverage classes. The 20-meal bar is judged on 18.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -30,18 +31,30 @@
     "family; test/corpus_independence_test.dart executes it rather than re-deriving",
     "it, and fails if these declared numbers stop matching the file.",
     "",
-    "A DISH NAME IS NOT A DISH CLASS. Correcting the number I reported at 02:45 as",
-    "\"17 distinct families\": 17 is the count of distinct dish NAMES. Grouped by the",
-    "judgement a scan actually has to make, the same 22 cases are 13 distinct dish CLASSES",
-    "- Dal / Dal Makhani / Urad Dal are one class, Chole / Chana Masala one,",
-    "Palak Paneer / Matar Paneer one - and dal, chole and sambar alone hold 14 of the",
-    "22 cases. Against a bar of 20 MEALS we are at 13, not 17, and 13 is the number",
-    "the bar is judged on.",
+    "\"17 distinct families\": 17 was the count of distinct dish NAMES at 22 cases.",
+    "Grouped by the judgement a scan actually has to make, that corpus was 13",
+    "distinct dish CLASSES - Dal / Dal Makhani / Urad Dal are one class,",
+    "Chole / Chana Masala one, Palak Paneer / Matar Paneer one, mutton / chicken /",
+    "dum biryani one - and dal, chole and sambar alone held 14 of its 22 cases.",
+    "BATCH 5 CLOSED PART OF THE GAP, from free photos and no model budget:",
+    "27 cases / 22 distinct dish names / 18 distinct dish CLASSES / 33 coverage",
+    "classes. New classes: khichdi, biryani, sarson da saag, aloo gobi, kofta.",
+    "The bar is 20 MEALS, so 18 of 20 - two classes short, from 13.",
     "A third number, printed so the conservative one cannot be picked for me:",
     "COVERAGE = 26 distinct classes across EVERY labelled item, because a thali holds",
     "four judgements and class_of() only sees the first non-staple one.",
     "22 cases / 17 names / 13 case-level classes / 26 coverage classes. The harness",
-    "prints all four and says which one the bar is judged on."
+    "prints all four and says which one the bar is judged on.",
+    "",
+    "BATCH 5 (2026-09-28): 24 candidates fetched, 6 looked at, 5 ACCEPTED and",
+    "13 rejected with the reason recorded in photos.json. The batch was built",
+    "from the gap, not from what was easy: BATCH5_QUERIES is one query per",
+    "dish class the corpus lacked, and the fetcher grew a near-duplicate",
+    "check (64-bit dHash, Hamming <= 8) plus per-query and per-author caps",
+    "BEFORE fetching, because the fish-curry query offered five near-identical",
+    "files by one uploader. New classes: khichdi, biryani, sarson da saag,",
+    "aloo gobi, kofta. Two candidates were rejected for a truth I could not",
+    "name honestly, which is the rule working, not the rule being awkward."
   ],
   "cases": [
     {
@@ -779,6 +792,126 @@
           ],
           "kcal": 180,
           "grams": 100
+        }
+      ]
+    },
+    {
+      "id": "khichuri_platter",
+      "image": "tools/ai_accuracy/photos/khichuri_platter_jpg_a2877bbd.jpg",
+      "note": "Gujarati khichuri on a steel-and-ceramic plate, from above: a bowl of khichdi, three khakra, one dry vegetable sabzi. The small steel katori of thin dal/sauce is NOT in the truth: I could not name it honestly, and a guess in the truth column is how an earlier baseline was wrong by 37.7%.",
+      "truth": [
+        {
+          "name": "Khichuri",
+          "aliases": [
+            "Khichdi",
+            "Khichri",
+            "Rice and Dal"
+          ],
+          "kcal": 250
+        },
+        {
+          "name": "Khakra",
+          "aliases": [
+            "Baked Crackers",
+            "Biscuits",
+            "Crackery"
+          ],
+          "kcal": 110
+        },
+        {
+          "name": "Dry Vegetable Sabzi",
+          "aliases": [
+            "Sabzi",
+            "Dry Curry",
+            "Shaak"
+          ],
+          "kcal": 100
+        }
+      ]
+    },
+    {
+      "id": "mutton_biryani_home_plate",
+      "image": "tools/ai_accuracy/photos/a_home_made_plate_of_mutton_biryani_served_with_chic_0d6ce913.jpg",
+      "note": "Home-cooked plate from above: a large plate of mutton biryani with mutton pieces and a whole potato, a small glass bowl of extra mutton gravy, and cucumber slices. The extra gravy bowl is counted inside the biryani figure, not as a second dish.",
+      "truth": [
+        {
+          "name": "Mutton Biryani",
+          "aliases": [
+            "Biryani",
+            "Mutton Pulao",
+            "Dum Biryani"
+          ],
+          "kcal": 650
+        },
+        {
+          "name": "Cucumber",
+          "aliases": [
+            "Salad",
+            "Kucumber Slices",
+            "Cucumber Salad"
+          ],
+          "kcal": 15
+        }
+      ]
+    },
+    {
+      "id": "sarson_da_saag_makki_roti",
+      "image": "tools/ai_accuracy/photos/makki_di_roti_te_sarson_da_saag_jpg_c8724356.jpg",
+      "note": "One steel bowl of sarson da saag and one makki di roti, shot from above. Countable, and the classic winter pairing - a dish class the corpus had no case for at all.",
+      "truth": [
+        {
+          "name": "Sarson Da Saag",
+          "aliases": [
+            "Sarso Ka Saag",
+            "Sarson Ka Saag",
+            "Mustard Greens Curry",
+            "Saag"
+          ],
+          "kcal": 180
+        },
+        {
+          "name": "Makki Di Roti",
+          "aliases": [
+            "Makki Roti",
+            "Cornmeal Roti",
+            "Roti"
+          ],
+          "kcal": 120
+        }
+      ]
+    },
+    {
+      "id": "aloo_gobi_sabji",
+      "image": "tools/ai_accuracy/photos/aloo_ghobhi_sabji_jpg_bac4cf41.jpg",
+      "note": "One white bowl of aloo gobi on a newspaper, close to above. A single-dish case, which the corpus barely had: most of its cases are thalis, so a one-bowl scan was never measured.",
+      "truth": [
+        {
+          "name": "Aloo Gobi",
+          "aliases": [
+            "Aloo Ghobhi",
+            "Potato Cauliflower",
+            "Gobhi",
+            "Cauliflower Curry"
+          ],
+          "kcal": 160
+        }
+      ]
+    },
+    {
+      "id": "kofta_curry_twelve",
+      "image": "tools/ai_accuracy/photos/kofta_curry_jpg_09054202.jpg",
+      "note": "Twelve kofta in a red gravy on a square plate, from above. The count is deliberate: this is a COUNTING case as well as a naming one, and counting is where the app has been weakest.",
+      "truth": [
+        {
+          "name": "Kofta Curry",
+          "aliases": [
+            "Meatball Curry",
+            "Kofta",
+            "Kofte",
+            "Malai Kofta",
+            "Reshmi Kofta"
+          ],
+          "kcal": 500
         }
       ]
     }

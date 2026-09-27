@@ -315,6 +315,17 @@ DISH_CLASS = {
     "sambar": "sambar", "kadhi": "kadhi", "rajma": "rajma",
     "baingan bharta": "baingan", "lauki ki sabzi": "lauki",
     "masala dosa": "dosa", "rava idli": "idli", "idli": "idli",
+    # batch 5. Mutton/chicken/dum biryani are ONE class: treating them as
+    # different would inflate the class count, and the class count is the
+    # number the 20-meal bar is judged on.
+    "biryani": "biryani", "mutton biryani": "biryani", "chicken biryani": "biryani",
+    "dum biryani": "biryani", "veg biryani": "biryani", "vegetable biryani": "biryani",
+    "khichuri": "khichdi", "khichdi": "khichdi", "khichri": "khichdi",
+    "sarson da saag": "sarson da saag", "sarso ka saag": "sarson da saag",
+    "sarson ka saag": "sarson da saag", "sarson_ka_saag": "sarson da saag",
+    "aloo gobi": "aloo gobi", "aloo ghobhi": "aloo gobi", "aloo_gobhi": "aloo gobi",
+    "kofta curry": "kofta", "kofta": "kofta", "malai kofta": "kofta",
+    "khakra": "khakra",
     "uthappam": "uthappam", "vada": "vada", "chickpea salad": "legume salad",
 }
 
