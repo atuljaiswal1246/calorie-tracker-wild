@@ -62,6 +62,7 @@ import base64
 import json
 import os
 import re
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -126,6 +127,45 @@ def image_prompt(ref: str | None = None) -> str:
         if "Analyze this food photo" in block:
             return block
     raise SystemExit("could not find the image prompt in " + (ref or "the working tree"))
+
+
+
+
+# ---------------------------------------------------------------- STUB MODE
+# M1's second obligation is "run it twice, old prompt vs new prompt, side by
+# side", and that code path had NEVER been executed - the one paid run in the
+# morning is too expensive to discover a bug in it. So the path is exercised with
+# a synthetic response: the loop, the scoring, both printed blocks, the A/B table
+# and the JSON all run exactly as they would for real, and the model is never
+# called.
+#
+# The stub's numbers are MEANINGLESS as accuracy, and the banner says so on every
+# run. A stub that printed a plausible median without saying it was synthetic
+# would be a trap with a table.
+
+STUB_BANNER = ("STUB MODE: every response below is SYNTHETIC. No provider was "
+               "called and no money was spent. The numbers are meaningless as "
+               "accuracy - this run exists to prove the A/B path executes.")
+
+# The key names are the APP's, taken from the prompt in
+# lib/services/openai_service.dart: "calories", "protein", "carbs", "fat".
+# They were wrong in the first version of this stub (kcal / protein_g / ...) and
+# the stub returned 0 kcal for every case, which is how a fake response is
+# caught: a stub that scored plausibly would have hidden the mismatch. score_case
+# reads exactly the keys the app's prompt asks for, so the stub speaks the same
+# schema the app does.
+STUB_ITEM = {"name": "Dal", "calories": 300, "protein": 10, "carbs": 40,
+             "fat": 8, "confidence": 0.7}
+
+
+def stub_result(_prompt, *_a, **_k):
+    return ({"items": [dict(STUB_ITEM)], "total_kcal": STUB_ITEM["calories"]},
+            "STUB (no model)", 0, None)
+
+
+def prompt_fingerprint(prompt: str) -> dict:
+    return {"chars": len(prompt),
+            "sha256_12": hashlib.sha256(prompt.encode()).hexdigest()[:12]}
 
 
 
@@ -697,7 +737,7 @@ def summarise(rows: list[dict]) -> dict:
 
 def run(label: str, prompt: str, cases: list[dict], device_id: str,
         repeat: int = 1, provider: str = "proxy",
-        force_tier: str | None = None, charge=None) -> dict:
+        force_tier: str | None = None, charge=None, stub: bool = False) -> dict:
     rows, served = [], set()
     for case in cases:
         path = os.path.join(ROOT, case["image"])
@@ -708,12 +748,14 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
             t0 = time.time()
             retries, model = 0, "?"
             try:
-                if provider == "free":
+                if stub:
+                    (result, model, _prov, usage), retries = stub_result(prompt), 0
+                elif provider == "free":
                     (result, model), retries = with_retry(ask_free, prompt, path)
                 else:
                     (result, model, _prov, usage), retries = with_retry(
                         ask_proxy, prompt, path, device_id, force_tier)
-                if charge is not None and provider != "free" and usage:
+                if charge is not None and not stub and provider != "free" and usage:
                     charge(price(usage)["cost_usd"])
                 served.add(model)
                 row = score_case(case, result)
@@ -722,7 +764,7 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
                 row["model"] = model
                 row["retries"] = retries
                 row["transport"] = TRANSPORT_NOTE[provider]
-                if provider != "free":
+                if provider != "free" and not stub and usage:
                     row["usage"] = price(usage)
                 rows.append(row)
                 cost = (f"  ${row['usage']['cost_usd']:.6f}" if "usage" in row else "")
@@ -973,6 +1015,11 @@ def main() -> int:
     ap.add_argument("--skip-preflight", action="store_true",
                     help="escape hatch only. Without /health you have not "
                          "earned the right to spend.")
+    ap.add_argument("--stub", action="store_true",
+                    help="exercise the whole A/B path with a SYNTHETIC response: "
+                         "no provider call, no spend. Proves --compare runs before "
+                         "spending the owner's money on it. The numbers are "
+                         "meaningless as accuracy and the banner says so.")
     ap.add_argument("--corpus", action="store_true",
                     help="print the corpus independence report and exit. Costs "
                          "nothing: it reads cases.json and never calls a model.")
@@ -1000,11 +1047,14 @@ def main() -> int:
         print_independence(cases)
         return 0
 
+    if args.stub:
+        print(STUB_BANNER)
+
     if args.self_test:
         return self_test()
 
     # ---- PEHLE /HEALTH, PHIR SCAN ----
-    if not args.skip_preflight:
+    if not args.skip_preflight and not args.stub:
         gate = run_preflight(device)
         print(f"PREFLIGHT: {gate['verdict']}")
         print(f"  live tiers        : {gate.get('live_tiers')}")
@@ -1029,13 +1079,24 @@ def main() -> int:
           f"NOT met by a wide margin - quote a score with all three numbers, "
           f"never the case count alone.")
     route = f"forced:{args.force_tier}" if args.force_tier else "app-default"
-    current = run("shipped (working tree)", image_prompt(), cases, device,
-                  args.repeat, args.provider, args.force_tier, charge)
-    out = {"provider": args.provider, "route": route, "shipped": current}
+    shipped_prompt = image_prompt()
+    current = run("shipped (working tree)", shipped_prompt, cases, device,
+                  args.repeat, args.provider, args.force_tier, charge, args.stub)
+    out = {"provider": args.provider, "route": route, "stub": bool(args.stub),
+           "shipped": current,
+           "shipped_prompt": prompt_fingerprint(shipped_prompt)}
     if args.compare:
-        out["compare"] = run(f"pre-fix @{args.compare}",
-                             image_prompt(args.compare), cases, device,
-                             args.repeat, args.provider, args.force_tier, charge)
+        pre_prompt = image_prompt(args.compare)
+        out["compare_prompt"] = prompt_fingerprint(pre_prompt)
+        out["prompts_differ"] = pre_prompt != shipped_prompt
+        print(f"\nPROMPTS: shipped {out['shipped_prompt']['chars']} chars "
+              f"({out['shipped_prompt']['sha256_12']}) vs "
+              f"@{args.compare} {out['compare_prompt']['chars']} chars "
+              f"({out['compare_prompt']['sha256_12']}) -> "
+              f"{'DIFFERENT, so the A/B compares two prompts' if out['prompts_differ'] else 'IDENTICAL, so this A/B would compare the app with itself and prove NOTHING'}")
+        out["compare"] = run(f"pre-fix @{args.compare}", pre_prompt, cases, device,
+                             args.repeat, args.provider, args.force_tier, charge,
+                             args.stub)
 
     print_block(current)
     if "compare" in out:

@@ -22,7 +22,7 @@ assume the product got more accurate. It did not. The evidence got better.
 |---|---|---|
 | 1a | 20 measured real Indian meals | **MET** — 31 cases over **22 distinct dish classes** |
 | 1b | one repeatable command, one table | **MET** — `python3 tools/ai_accuracy.py`, prompt extracted from the Dart source so it cannot drift from the app |
-| 2 | side by side, old prompt vs new | **BUILT, NEVER RUN** — `--compare <git-ref>` exists and is tested; it has never produced two columns |
+| 2 | side by side, old prompt vs new | **MECHANISM NOW VERIFIED, STILL NEVER RUN FOR REAL** — `--stub` executes the whole A/B path (both prompts extracted and fingerprinted, both sides scored, the A/B table, the JSON) with **zero** provider calls, and `test/compare_path_test.dart` drives it. What is still missing is a run with a real model on both sides. |
 | 3 | baseline committed | **NOT MET** — `baseline_batch4_2026-09-28.json` exists but its number is **WITHDRAWN**: the run could not complete, and re-running is exactly what the CEO ordered me to stop doing |
 
 ## The corpus, with its producer
