@@ -10,7 +10,8 @@
     "not laboratory measurements. 'confidence' is my honest read of how",
     "defensible the label is: a thali I can name item by item is 'high'; a",
     "bowl that a scan could fairly call either kadhi or dal is 'medium'.",
-    "Anything I could not name honestly was deleted, not guessed at."
+    "Anything I could not name honestly was deleted, not guessed at.",
+    "Batch 2 added 5 more openly licensed, human-reviewed meals, chosen for dish BREADTH: 8 of the 16 candidates were bhindi, exactly the trap batch 1 hit with chole bhature, so only one bhindi was taken."
   ],
   "cases": [
     {
@@ -223,6 +224,137 @@
           ],
           "kcal": 240,
           "grams": 80
+        }
+      ]
+    },
+    {
+      "id": "bhindi_masala_rice",
+      "image": "tools/ai_accuracy/photos/bhindi_masala_49657981033_jpg.jpg",
+      "note": "White oval plate from above: a mound of white rice and bhindi masala (okra in a red gravy, coriander and green chilli).",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Rice",
+          "aliases": [
+            "Steamed Rice",
+            "White Rice",
+            "Plain Rice"
+          ],
+          "kcal": 210,
+          "grams": 200
+        },
+        {
+          "name": "Bhindi Masala",
+          "aliases": [
+            "Bhindi",
+            "Okra",
+            "Bhindi Curry",
+            "Masala Bhindi",
+            "Lady Finger"
+          ],
+          "kcal": 180,
+          "grams": 150
+        }
+      ]
+    },
+    {
+      "id": "baingan_bharta",
+      "image": "tools/ai_accuracy/photos/baingan_ka_bhurta_cropped_jpg.jpg",
+      "note": "One white plate, overhead: a mound of roasted mashed eggplant with visible seeds and green chilli. A single dish.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Baingan Bharta",
+          "aliases": [
+            "Baingan",
+            "Bharta",
+            "Eggplant",
+            "Baingan Ka Bharta",
+            "Aubergine"
+          ],
+          "kcal": 120,
+          "grams": 150
+        }
+      ]
+    },
+    {
+      "id": "lauki_curry",
+      "image": "tools/ai_accuracy/photos/bottle_gourd_curry_jpg.jpg",
+      "note": "A steel bowl on a plain blue background, shot from above: pale green bottle-gourd cubes in a thin yellow-brown gravy.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Lauki Ki Sabzi",
+          "aliases": [
+            "Bottle Gourd",
+            "Lauki",
+            "Doodhi",
+            "Bottle Gourd Curry",
+            "Gourd Curry"
+          ],
+          "kcal": 110,
+          "grams": 200
+        }
+      ]
+    },
+    {
+      "id": "matar_paneer_bowl",
+      "image": "tools/ai_accuracy/photos/matar_paneer_jpg.jpg",
+      "note": "A yellow bowl of matar paneer (paneer strips and green peas in an orange-red gravy). Loose peas and a block of paneer sit beside the bowl as styling, and are NOT labelled - a person photographing their lunch would log the bowl. That choice is why this case is 'medium'.",
+      "confidence": "medium",
+      "truth": [
+        {
+          "name": "Matar Paneer",
+          "aliases": [
+            "Paneer",
+            "Paneer Curry",
+            "Matar",
+            "Peas Paneer",
+            "Shaahi Paneer"
+          ],
+          "kcal": 280,
+          "grams": 200
+        }
+      ]
+    },
+    {
+      "id": "chapati_dal_bhindi_plate",
+      "image": "tools/ai_accuracy/photos/bhendi_chapati_and_dal_rice_jpg.jpg",
+      "note": "A square plate: two chapati, a chopped green bhindi sabzi and a yellow dal. NOTE: the file is named '...and_dal_rice' but there is NO rice in the photo - I labelled from the image, not the filename. There is also a small dark item at the plate edge I cannot identify, so it is left unlabelled rather than guessed.",
+      "confidence": "medium",
+      "truth": [
+        {
+          "name": "Roti",
+          "aliases": [
+            "Chapati",
+            "Roti",
+            "Flatbread",
+            "Phulka"
+          ],
+          "kcal": 240,
+          "grams": 80
+        },
+        {
+          "name": "Dal",
+          "aliases": [
+            "Yellow Dal",
+            "Dal Tadka",
+            "Kadhi"
+          ],
+          "kcal": 100,
+          "grams": 150
+        },
+        {
+          "name": "Bhindi Sabzi",
+          "aliases": [
+            "Bhindi",
+            "Okra",
+            "Bhindi Masala",
+            "Sabzi",
+            "Lady Finger"
+          ],
+          "kcal": 120,
+          "grams": 100
         }
       ]
     }

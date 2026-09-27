@@ -83,6 +83,31 @@ SINGLE_QUERIES = [
     'filetype:bitmap "pickle" bowl',
 ]
 
+# Batch 2: dishes batch 1 does NOT already hold, so the corpus keeps widening
+# instead of deepening on whatever the search happens to return most of.
+BATCH2_QUERIES = [
+    'filetype:bitmap "bhindi masala"',
+    'filetype:bitmap "baingan bharta" bowl',
+    'filetype:bitmap "lauki" curry',
+    'filetype:bitmap "matar paneer"',
+    'filetype:bitmap "paneer bhurji"',
+    'filetype:bitmap "khichdi"',
+    'filetype:bitmap "pulao" plate',
+    'filetype:bitmap "jeera rice"',
+    'filetype:bitmap "plain rice" bowl',
+    'filetype:bitmap "dal fry"',
+    'filetype:bitmap "moong dal"',
+    'filetype:bitmap "masoor dal" bowl',
+    'filetype:bitmap "chana dal" bowl',
+    'filetype:bitmap "aloo paratha"',
+    'filetype:bitmap "besan chilla"',
+    'filetype:bitmap "paneer paratha"',
+    'filetype:bitmap "egg curry"',
+    'filetype:bitmap "chicken curry" bowl',
+    'filetype:bitmap "raita" bowl',
+    'filetype:bitmap "bhindi fry"',
+]
+
 OK_LICENCE = re.compile(r"\b(CC0|Public domain|CC BY(?:-SA)?\s*\d|Public domain|CC BY 2\.0|CC BY 3\.0|CC BY-SA 2\.0)", re.I)
 BAD_LICENCE = re.compile(r"(non-?free|fair use|copyright(ed)?\s+by|all rights reserved)", re.I)
 
@@ -188,11 +213,12 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=5, help="photos to add in this batch")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    cands = candidates(queries=SINGLE_QUERIES if args.set == "single" else QUERIES)
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES}
+    cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
         for c in cands[:25]:
