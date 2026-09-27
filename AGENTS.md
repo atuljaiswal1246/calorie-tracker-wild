@@ -32,15 +32,29 @@ Settings provider toggle) sent tonight's work to one provider **by accident
 instead of by decision.** Documentation that lies about the architecture is not
 neutral — it steers the next session.
 
-### 3. CLOUDFLARE BOUNDARY — Asha's setup is not mine
-Never touch Asha's model routing, per-user budget/plan logic, secrets list, the
-deployment her brain runs on, or her `x-jarvis` headers. Cal Matters gets its
-**own** Worker (`calmatters-proxy`) with its own secrets and its own KV.
-**Protocol before any Cloudflare change:** announce to Jarvis first, then record
-a real Asha turn answering, then change, then record the same number again, and
-put both side by side. "I didn't touch it" must be *provable*, not asserted.
-*Why:* the shared Worker carried my `x-cm-force-provider` and `/health` fields
-onto her path. Isolation is cheaper than trust.
+### 3. CLOUDFLARE BOUNDARY — ONE worker, shared with Asha
+
+**There is ONE door. Asha and Cal Matters run on the same Cloudflare Worker and
+the same key — the one Asha already uses.** Do **not** create a second Worker, a
+second key, or a new secret. Not tomorrow, not "just for a test", not to avoid a
+deploy. If it seems necessary, **ask — do not act.**
+*Why:* the owner lifted a BLOCKED on 2026-09-27 that existed only because I was
+trying to build `calmatters-proxy`; Cloudflare secrets are write-only, so that
+Worker could never have been given a key anyway. The isolation I was attempting
+was unreachable, and the shared Worker was the intended design all along.
+
+**EVERY change to the shared Worker follows one protocol, in this order:**
+1. **Before:** write down a real Asha turn answering — provider, model, seconds,
+   **3/3 probes**. Announce it to Jarvis first.
+2. **Then** make the change.
+3. **After:** take the **same** number again.
+4. Put **both side by side** in the report.
+
+**Never write "I did not touch Asha's setup" without both numbers.** An
+unmeasured claim of harmlessness is not a measurement.
+*Why:* my `x-cm-force-provider` and `/health` fields did land on her path on the
+shared Worker, and "I only added read-only diagnostics" is exactly the reasoning
+that makes a shared resource unsafe.
 
 ### 4. AN EMPTY RESULT IS NOT A FINDING
 A command with no output has told me nothing. Before reporting an absence, show

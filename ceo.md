@@ -74,10 +74,18 @@ The seven, in one line each:
 2. **One door, one key, and the model is not chosen** — the app holds no key and
    offers no provider choice; the Worker holds the key and picks the model. Read
    `/health` to learn who answered; never hardcode a provider, key or model id.
-3. **Cloudflare boundary** — Asha's setup is not mine. Cal Matters has its own
-   Worker, `calmatters-proxy`, with its own secrets and KV. Announce to Jarvis,
-   record a real Asha turn before and after any change, and put both numbers side
-   by side.
+3. **Cloudflare boundary — ONE door, shared with Asha.** There is **ONE door**:
+   Asha and Cal Matters run on the **same** Cloudflare Worker and the
+   **same** key — the one Asha already uses. Never create a second Worker, a
+   second key or a new secret; if it seems necessary, ask, do not act. (I once
+   tried to build a separate `calmatters-proxy` Worker; the owner refused it and
+   lifted my BLOCKED, and Cloudflare secrets being write-only meant it could
+   never have had a key anyway.)
+   **Every change to the shared Worker:** record a real Asha turn **before**
+   (provider, model, seconds, 3/3 probes, announced to Jarvis), make the change,
+   then record the **same** number again, and put both side by side. Never claim
+   I did not touch Asha's setup without both numbers.
+
 4. **An empty result is not a finding** — check the exit code, never read stdout.
    `tools/kv_get.py` prints VALUE / MISSING / ERROR. macOS has no `timeout`.
 5. **No big decision before a right test** — one real call, one image, one model
