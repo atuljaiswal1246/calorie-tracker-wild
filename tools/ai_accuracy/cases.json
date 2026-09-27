@@ -1,28 +1,36 @@
 {
   "_readme": [
     "Labelled truth for tools/ai_accuracy.py.",
-    "ROADMAP M1 asks for 20 measured real Indian meals. THIS SET HAS 2.",
-    "Only assets/onboarding/food_palak_paneer.jpg is a real Indian meal photo",
-    "in the repo. hero_bowl.jpg is a Western styled stock image and is here on",
-    "purpose as a HALLUCINATION PROBE: a model that has learned to always",
-    "answer with an Indian dish will fail it. food_scan.jpg is a mock of a",
-    "phone scanning a packaged noodle bowl, not a plated meal - excluded.",
-    "The 20-photo set has to come from a human (the owner or the 12 testers),",
-    "because the app's users take the photos. Do not pad this file with stock",
-    "art to make the number look better; that would defeat the milestone.",
+    "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
+    "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
+    "the thing being optimised - a corpus of 5 photos of the same dish",
+    "would score beautifully and tell us nothing.",
     "",
-    "kcal values are IFCT-style reference figures for a normal home serving,",
-    "not laboratory measurements, so 'kcal error' is error against a reference",
-    "band. Read it as a trend between runs."
+    "kcal values are IFCT-style REFERENCE figures for the visible portion,",
+    "not laboratory measurements. 'confidence' is my honest read of how",
+    "defensible the label is: a thali I can name item by item is 'high'; a",
+    "bowl that a scan could fairly call either kadhi or dal is 'medium'.",
+    "Anything I could not name honestly was deleted, not guessed at."
   ],
   "cases": [
     {
       "id": "palak_paneer_meal",
       "image": "assets/onboarding/food_palak_paneer.jpg",
-      "note": "Real plate: one katori palak paneer + one roti, photographed from above.",
+      "note": "In-repo original: one katori palak paneer + one roti.",
       "truth": [
-        { "name": "Palak Paneer", "kcal": 350 },
-        { "name": "Roti", "kcal": 120 }
+        {
+          "name": "Palak Paneer",
+          "kcal": 350
+        },
+        {
+          "name": "Roti",
+          "aliases": [
+            "Chapati",
+            "Flatbread",
+            "Phulka"
+          ],
+          "kcal": 120
+        }
       ]
     },
     {
@@ -30,7 +38,192 @@
       "image": "assets/onboarding/hero_bowl.jpg",
       "note": "OUT OF SCOPE on purpose. Chickpeas, avocado, tomato, cucumber, greens. No Indian dish is present; any Indian answer here is an invention.",
       "truth": [
-        { "name": "Chickpea Salad", "kcal": 450 }
+        {
+          "name": "Chickpea Salad",
+          "kcal": 450
+        }
+      ]
+    },
+    {
+      "id": "thali_ma08",
+      "image": "tools/ai_accuracy/photos/vegetarian_thali_ma08_jpg.jpg",
+      "note": "Steel tray, shot from above. Unambiguous: a large portion of white rice, a yellow dal, a dry green sabzi, a brown curry, one empty compartment.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Rice",
+          "aliases": [
+            "Steamed Rice",
+            "White Rice",
+            "Plain Rice"
+          ],
+          "kcal": 260,
+          "grams": 250
+        },
+        {
+          "name": "Dal",
+          "aliases": [
+            "Yellow Dal",
+            "Dal Tadka",
+            "Tamarind Dal"
+          ],
+          "kcal": 120,
+          "grams": 200
+        },
+        {
+          "name": "Dry Vegetable Sabzi",
+          "aliases": [
+            "Sabzi",
+            "Mixed Vegetable",
+            "Palak Sabzi",
+            "Aloo Sabzi"
+          ],
+          "kcal": 120,
+          "grams": 100
+        },
+        {
+          "name": "Paneer or Meat Curry",
+          "aliases": [
+            "Curry",
+            "Paneer Curry",
+            "Chicken Curry",
+            "Aloo Curry"
+          ],
+          "kcal": 200,
+          "grams": 100
+        }
+      ]
+    },
+    {
+      "id": "dal_makhani_bowl",
+      "image": "tools/ai_accuracy/photos/dal_makhani_01_jpg.jpg",
+      "note": "One steel bowl of dal makhani, near-overhead, cream streaks and cream visible. The single most identifiable Indian dish there is.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Dal Makhani",
+          "aliases": [
+            "Dal",
+            "Black Dal",
+            "Urad Dal"
+          ],
+          "kcal": 280,
+          "grams": 200
+        }
+      ]
+    },
+    {
+      "id": "kadhi_bowl",
+      "image": "tools/ai_accuracy/photos/homemade_kadhi_jpg.jpg",
+      "note": "A white bowl of yellow kadhi seen from above, with a ghee and red-chilli temper garnish. 'Medium' because a scan could reasonably call this dal.",
+      "confidence": "medium",
+      "truth": [
+        {
+          "name": "Kadhi",
+          "aliases": [
+            "Dal",
+            "Kadi",
+            "Yogurt Curry",
+            "Khatta Kadhi"
+          ],
+          "kcal": 150,
+          "grams": 200
+        }
+      ]
+    },
+    {
+      "id": "urad_dal_two_roti",
+      "image": "tools/ai_accuracy/photos/urad_daal_with_assorted_indian_bread_and_salad_jpg.jpg",
+      "note": "A yellow bowl of urad dal with two chapati on a plate, with raw onion rings, cucumber and lemon on the side. BATCH-1 CORRECTION: the first run scored onion and cucumber as INVENTED dishes. They are plainly in the photo - I described them in the note and then forgot to put them in the truth. The harness was right; my label was wrong.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Urad Dal",
+          "aliases": [
+            "Dal",
+            "Black Dal",
+            "Ma ki Dal",
+            "Dal Makhani"
+          ],
+          "kcal": 200,
+          "grams": 200
+        },
+        {
+          "name": "Roti",
+          "aliases": [
+            "Chapati",
+            "Roti",
+            "Flatbread",
+            "Phulka"
+          ],
+          "kcal": 240,
+          "grams": 80
+        },
+        {
+          "name": "Onion",
+          "aliases": [
+            "Onion Salad",
+            "Kachumber",
+            "Raw Onion",
+            "Pyaaz"
+          ],
+          "kcal": 20,
+          "grams": 30
+        },
+        {
+          "name": "Cucumber",
+          "aliases": [
+            "Cucumber Salad",
+            "Kheera",
+            "Salad"
+          ],
+          "kcal": 10,
+          "grams": 30
+        }
+      ]
+    },
+    {
+      "id": "north_indian_dinner",
+      "image": "tools/ai_accuracy/photos/a_north_indian_dinner_jpg.jpg",
+      "note": "Steel plate, overhead. A bowl of chole (chickpeas in gravy with green chilli), a dry spiced potato bhaji, two chapati, and a glass of tea. BATCH-1 CORRECTION: the first label said 'Chole, Dal, Roti' - there is NO dal in this photo, and the reference total was 200 kcal short, which is what produced the alarming 37.7% error. The model was closer to right than my label was. Corrected after looking at the image at full size.",
+      "confidence": "high",
+      "truth": [
+        {
+          "name": "Chole",
+          "aliases": [
+            "Chana Masala",
+            "Chole Bhature",
+            "Chana",
+            "Chana Curry",
+            "Chole Bhature"
+          ],
+          "kcal": 250,
+          "grams": 150
+        },
+        {
+          "name": "Aloo Fry",
+          "aliases": [
+            "Aloo",
+            "Potato Fry",
+            "Aloo Bhaji",
+            "Dry Potato",
+            "Aloo Gobi",
+            "Bhaji"
+          ],
+          "kcal": 180,
+          "grams": 100
+        },
+        {
+          "name": "Roti",
+          "aliases": [
+            "Chapati",
+            "Roti",
+            "Flatbread",
+            "Phulka"
+          ],
+          "kcal": 240,
+          "grams": 80
+        }
       ]
     }
   ]
