@@ -332,6 +332,8 @@ DISH_CLASS = {
     "boiled egg": "egg", "egg curry": "egg", "anda": "egg",
     "veg pulao": "pulao", "pulao": "pulao", "vegetable pulao": "pulao",
     "kheer": "kheer", "chahao kheer": "kheer", "payasam": "kheer",
+    # batch 7. Gajar halwa and any other halwa are one class, like biryani.
+    "gajar ka halwa": "halwa", "gajar halwa": "halwa", "halwa": "halwa",
     "boondi raitha": "raitha", "raitha": "raitha", "raita": "raitha",
     "uthappam": "uthappam", "vada": "vada", "chickpea salad": "legume salad",
 }
@@ -376,6 +378,12 @@ def independence(cases: list[dict]) -> dict:
         k = class_of(c)
         ccounts[k] = ccounts.get(k, 0) + 1
     crepeated = {k: v for k, v in ccounts.items() if v > 1}
+    # CONCENTRATION. A corpus can meet a bar and still be one dish: at 30 cases
+    # the top four classes held 13 (43%), so a median over it is largely a median
+    # over dal and chole. Printed on every run so nobody reads the class count as
+    # a distribution.
+    top = sorted(ccounts.values(), reverse=True)[:4]
+    top_share = sum(top) / len(cases) if cases else 0.0
     return {
         "cases": len(cases),
         "classes": len(ccounts),
@@ -383,6 +391,8 @@ def independence(cases: list[dict]) -> dict:
         "coverage": sorted(coverage),
         "class_counts": dict(sorted(ccounts.items(), key=lambda kv: -kv[1])),
         "cases_in_repeated_class": sum(crepeated.values()),
+        "worst_class_count": max(ccounts.values()) if ccounts else 0,
+        "top4_share": top_share,
         "families": len(counts),
         "repeated_families": dict(sorted(repeated.items(), key=lambda kv: -kv[1])),
         "cases_in_repeated_family": sum(repeated.values()),
@@ -408,6 +418,10 @@ def print_independence(cases: list[dict]) -> dict:
           f"labelled item (a thali holds four judgements, class_of sees one). "
           f"Reported so the conservative number cannot be picked for me: the "
           f"20-meal bar is judged on {r['classes']}, not on this one.")
+    print(f"CONCENTRATION: the top 4 classes hold {r['top4_share'] * 100:.0f}% of "
+          f"the corpus (worst single class {r['worst_class_count']} cases). Meeting "
+          f"the class bar is not the same as being a SAMPLE: a median here is "
+          f"partly a median over whichever dishes were easiest to find.")
     if r["over_cap"]:
         print(f"  ** {len(r['over_cap'])} family/families are over the cap of "
               f"{FAMILY_REPEAT_CAP} - the search trap is coming back **")

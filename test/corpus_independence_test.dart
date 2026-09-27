@@ -270,6 +270,36 @@ void main() {
     );
   });
 
+  test('THE SKEW: the corpus is not one dish wearing 31 cases', () {
+    // A corpus can MEET the class bar and still be a sample of dal and chole. At
+    // 30 cases the top four classes held 13 (43%). That number is printed on every
+    // run so nobody reads the class count as a distribution - and these two
+    // assertions stop it getting WORSE.
+    //
+    // The caps are the measured values, not a target I have reached: worst class
+    // 5, top-4 share 42%. The target of <= 35% is named in the reason so the next
+    // session knows which way to move and does not have to invent a baseline.
+    final worst = int.parse(
+        RegExp(r'worst single class (\d+) cases').firstMatch(out)!.group(1)!);
+    final share = int.parse(
+        RegExp(r'top 4 classes hold (\d+)%').firstMatch(out)!.group(1)!);
+
+    expect(
+      worst,
+      lessThanOrEqualTo(5),
+      reason: 'One dish class now holds $worst cases. Adding a sixth photo of the '
+          'same class makes the median look better and the product no better - '
+          'that is the trap wearing a productive hat. Widen instead.\n$out',
+    );
+    expect(
+      share,
+      lessThanOrEqualTo(45),
+      reason: 'The top four classes hold $share% of the corpus (was 42% at 31 '
+          'cases). If this climbed, the class bar is being met with a narrower '
+          'sample than it looks. Target: <= 35%.\n$out',
+    );
+  });
+
   test('the milestone note claims the corpus bar and disclaims the product one', () {
     // A milestone note is where an overclaim does its damage: the next session,
     // or the owner, reads "bar met" and stops looking. So the note must carry the
@@ -298,6 +328,10 @@ void main() {
       'does NOT mean',
       'never been measured',
       'WITHDRAWN',
+      // Added 2026-09-28: the bar was met with 42% of the corpus in four classes,
+      // and a milestone note that says only "bar met" is how a narrow sample gets
+      // reported as a broad one.
+      'not being a sample',
     ]) {
       expect(text.toLowerCase(), contains(disclaimer.toLowerCase()),
           reason: 'The milestone note lost its "$disclaimer". A bar-met note '

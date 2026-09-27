@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 30 cases over 25 distinct dish families; 21 distinct dish CLASSES; 37 coverage classes. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 31 cases over 26 distinct dish families; 22 distinct dish CLASSES; 38 coverage classes; top-4 classes hold 42%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -65,7 +65,22 @@
     "MEASURED: 30 cases / 25 distinct dish names / 21 distinct dish CLASSES / 35",
     "coverage classes. The bar is 20 MEALS, so it is MET with one class spare,",
     "and it is met honestly: egg bhurji and omelette are one class, mutton and",
-    "chicken biryani are one class, so a batch cannot buy the bar with synonyms."
+    "chicken biryani are one class, so a batch cannot buy the bar with synonyms.",
+    "",
+    "BATCH 7 (2026-09-28): the SKEW, not the count. 13 of 30 cases were four",
+    "classes (dal x5, chole x4, paneer x2, sambar x2) = 43% of the corpus, so a",
+    "median over it is largely a median over dal and chole. Five classes were",
+    "targeted; Commons returned one usable photograph.",
+    "  accepted 1  gajar halwa (a second dessert class; kheer was the only one)",
+    "  rejected 3  a styled Bengali banana-leaf fish thali with three",
+    "               unnameable items, an unidentifiable pale protein curry, and",
+    "               a sweets-shop shot that repeats the halwa class",
+    "  not_used 1  fetched, never looked at",
+    "So 21 -> 22 classes and the skew barely moved. Reported as it is: I am not",
+    "inflating a batch by accepting photographs I cannot label. The skew guard",
+    "pins the CURRENT concentration so it cannot worsen, and names <= 35% as the",
+    "target for a future batch instead of pretending it has been reached.",
+    "SKEW: 13 of 31 cases are four classes (dal x5, chole x4, paneer x2, sambar x2) = 42%. The bar is met, the SAMPLE is not yet even, and both facts belong in every number quoted from this corpus."
   ],
   "cases": [
     {
@@ -1008,6 +1023,32 @@
             "Chahao Kheer"
           ],
           "kcal": 220
+        }
+      ]
+    },
+    {
+      "id": "gajar_halwa_bowl",
+      "image": "tools/ai_accuracy/photos/delicious_gajar_ka_halwa_jpg_698fbbb2.jpg",
+      "note": "A glass bowl of gajar ka halwa with two cashews on top, on a blue plate, three tomato slices beside it, shot from above. One clearly readable dish plus a garnish - the shape of case the corpus barely had, and a second dessert class after kheer.",
+      "truth": [
+        {
+          "name": "Gajar Ka Halwa",
+          "aliases": [
+            "Carrot Halwa",
+            "Gajar Halwa",
+            "Halwa",
+            "Gajar",
+            "Carrot Pudding"
+          ],
+          "kcal": 220
+        },
+        {
+          "name": "Tomato",
+          "aliases": [
+            "Tomato Slices",
+            "Salad"
+          ],
+          "kcal": 15
         }
       ]
     }

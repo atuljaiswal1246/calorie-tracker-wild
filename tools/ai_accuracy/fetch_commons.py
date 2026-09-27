@@ -166,6 +166,32 @@ BATCH6_QUERIES = [
 ]
 
 
+# BATCH 7 — break the SKEW, not the count.
+#
+# The bar is met at 21 classes, but 13 of 30 cases are four classes: dal x5,
+# chole x4, paneer x2, sambar x2. That is 43% of the corpus, and it means a
+# median over it is substantially a median over dal and chole. The next
+# milestone is not a bigger number, it is a flatter distribution - and widening
+# the corpus is the one piece of M1 work that costs nothing at all.
+#
+# So: five classes the corpus has none of, all of them things a home kitchen in
+# India actually eats. None of them is dal, chole, paneer or sambar, because
+# adding a sixth dal makes the median look better and the product no better.
+#   chicken curry, fish curry, methi sabzi, raita, gajar halwa
+# bhindi do pyaz is in the list on purpose even though it lands in the existing
+# bhindi class: it dilutes nothing on the class axis but it does add the dal-
+# free, chole-free meal a real evening has.
+
+BATCH7_QUERIES = [
+    'filetype:bitmap "chicken curry" home plate',
+    'filetype:bitmap "fish curry" bowl indian',
+    'filetype:bitmap "methi sabzi"',
+    'filetype:bitmap "boondi raita" bowl',
+    'filetype:bitmap "gajar halwa"',
+    'filetype:bitmap "bhindi do pyaz"',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -386,11 +412,11 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES}
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
