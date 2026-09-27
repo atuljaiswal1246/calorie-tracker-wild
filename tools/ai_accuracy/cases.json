@@ -1,0 +1,37 @@
+{
+  "_readme": [
+    "Labelled truth for tools/ai_accuracy.py.",
+    "ROADMAP M1 asks for 20 measured real Indian meals. THIS SET HAS 2.",
+    "Only assets/onboarding/food_palak_paneer.jpg is a real Indian meal photo",
+    "in the repo. hero_bowl.jpg is a Western styled stock image and is here on",
+    "purpose as a HALLUCINATION PROBE: a model that has learned to always",
+    "answer with an Indian dish will fail it. food_scan.jpg is a mock of a",
+    "phone scanning a packaged noodle bowl, not a plated meal - excluded.",
+    "The 20-photo set has to come from a human (the owner or the 12 testers),",
+    "because the app's users take the photos. Do not pad this file with stock",
+    "art to make the number look better; that would defeat the milestone.",
+    "",
+    "kcal values are IFCT-style reference figures for a normal home serving,",
+    "not laboratory measurements, so 'kcal error' is error against a reference",
+    "band. Read it as a trend between runs."
+  ],
+  "cases": [
+    {
+      "id": "palak_paneer_meal",
+      "image": "assets/onboarding/food_palak_paneer.jpg",
+      "note": "Real plate: one katori palak paneer + one roti, photographed from above.",
+      "truth": [
+        { "name": "Palak Paneer", "kcal": 350 },
+        { "name": "Roti", "kcal": 120 }
+      ]
+    },
+    {
+      "id": "chickpea_salad_probe",
+      "image": "assets/onboarding/hero_bowl.jpg",
+      "note": "OUT OF SCOPE on purpose. Chickpeas, avocado, tomato, cucumber, greens. No Indian dish is present; any Indian answer here is an invention.",
+      "truth": [
+        { "name": "Chickpea Salad", "kcal": 450 }
+      ]
+    }
+  ]
+}
