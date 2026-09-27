@@ -147,7 +147,8 @@ def _looks_rate_limited(text: str) -> bool:
             in low or "quota" in low or "resource_exhausted" in low)
 
 
-def ask_proxy(prompt: str, image_path: str, device_id: str) -> dict:
+def ask_proxy(prompt: str, image_path: str, device_id: str,
+               force_tier: str | None = None) -> dict:
     """Production path. Raises RateLimited if the upstream refuses."""
     with open(image_path, "rb") as fh:
         b64 = base64.b64encode(fh.read()).decode()
@@ -165,7 +166,10 @@ def ask_proxy(prompt: str, image_path: str, device_id: str) -> dict:
         ENDPOINT, data=json.dumps(payload).encode(), method="POST",
         headers={"Content-Type": "application/json",
                  "x-device-id": device_id,
-                 "User-Agent": "Mozilla/5.0 Chrome/120.0"})
+                 "User-Agent": "Mozilla/5.0 Chrome/120.0",
+                 # Only when explicitly testing ONE tier. The app never sends
+                 # this header, so a forced run is not measuring the app.
+                 **({"x-cm-force-provider": force_tier} if force_tier else {})})
     with urllib.request.urlopen(req, timeout=120) as resp:
         served = resp.headers.get("x-cm-served-model", "?")
         provider = resp.headers.get("x-cm-provider", "?")
@@ -214,6 +218,8 @@ def ask_free(prompt: str, image_path: str) -> tuple[dict, str]:
     out = (proc.stdout or "") + (proc.stderr or "")
     if proc.returncode != 0 or not out.strip():
         raise RuntimeError(f"free model produced nothing (exit {proc.returncode})")
+    if _is_out_of_funds(out):
+        raise OutOfFunds(out[-300:])
     if _looks_rate_limited(out):
         raise RateLimited(out[-300:])
     raw = out
@@ -230,6 +236,17 @@ def ask_free(prompt: str, image_path: str) -> tuple[dict, str]:
 
 class RateLimited(RuntimeError):
     """The model refused for quota reasons. This is a condition, not a result."""
+
+
+class OutOfFunds(RuntimeError):
+    """402 / no balance / no credits. A MONEY condition, not a result."""
+
+
+def _is_out_of_funds(text: str) -> bool:
+    low = text.lower()
+    return ("insufficient balance" in low or "insufficient credits" in low
+            or "insufficient_quota" in low or "402" in low
+            or "billing" in low or "quota exceeded" in low)
 
 
 def with_retry(fn, *args):
@@ -292,7 +309,41 @@ def score_case(case: dict, result: dict) -> dict:
     }
 
 
-UNMEASURED = "UNMEASURED - free model rate-limited"
+UNMEASURED = "UNMEASURED"
+# The reason MUST match the actual condition. An earlier version hard-coded
+# "free model rate-limited" and printed that while the real cause was 402
+# Insufficient Balance on every tier - a money outage mislabelled as a
+# rate limit, which is precisely the kind of wrong number this harness exists
+# to prevent.
+UNMEASURED_RL = "UNMEASURED - rate limited (429)"
+UNMEASURED_FUNDS = "UNMEASURED - provider out of funds (402)"
+UNMEASURED_UPSTREAM = "UNMEASURED - all upstreams failed (502)"
+
+# ROUTE-AWARE LABELS, added 2026-09-28 after a real incident.
+#
+# I reported "the scanner is down for every user" from measurements taken with
+# `x-cm-force-provider` on each named tier. The app does NOT send that header and
+# does NOT walk the tiers the way I did. Forcing tiers tells you about those
+# tiers; it says nothing about the route users actually take. The owner measured
+# the app's real route working (deepseek-flash, vision) at 01:20 while my tier
+# probes were 402-ing, and my "outage" was a statement about my own probe.
+#
+# So these are now DIFFERENT labels and must never be collapsed:
+UNMEASURED_APP_ROUTE = "UNMEASURED - the app's own route failed (502, all upstreams)"
+UNMEASURED_FORCED_TEMPLATE = "UNMEASURED - forced tier {tier} failed ({reason})"
+
+
+def forced_label(tier: str, status) -> str:
+    """A failure of a FORCED tier. Says nothing about the app's route."""
+    if status == 402 or status is None:
+        why = "out of funds"
+    elif status == 429:
+        why = "rate limited"
+    elif status == 502:
+        why = "all upstreams failed"
+    else:
+        why = f"HTTP {status}"
+    return UNMEASURED_FORCED_TEMPLATE.format(tier=tier or "unnamed", reason=why)
 
 
 def summarise(rows: list[dict]) -> dict:
@@ -300,8 +351,9 @@ def summarise(rows: list[dict]) -> dict:
     scored = [r for r in rows if r.get("status") == "answered"]
     unmeasured = [r for r in rows if r.get("status") != "answered"]
     if not scored:
+        reasons = sorted({r.get("status", UNMEASURED) for r in unmeasured})
         return {"meals": len(rows), "scored": 0, "unmeasured": len(unmeasured),
-                "verdict": UNMEASURED}
+                "verdict": "; ".join(reasons) if reasons else UNMEASURED}
     inv = sum(len(r["invented"]) for r in scored)
     miss = sum(len(r["missed"]) for r in scored)
     gen = sum(len(r["generic"]) for r in scored)
@@ -319,13 +371,16 @@ def summarise(rows: list[dict]) -> dict:
         "median_kcal_error_pct": med(errs),
         "median_atwater_pct": med(atws),
         "median_latency_s": round(med(lat), 1) if med(lat) else None,
-        "verdict": (f"PARTIAL - {len(unmeasured)} of {len(rows)} scans {UNMEASURED}"
+        "verdict": (("PARTIAL - " + "; ".join(sorted(
+                        {r.get("status", UNMEASURED) for r in unmeasured}))
+                    + f" ({len(unmeasured)} of {len(rows)})")
                     if unmeasured else "all scans answered"),
     }
 
 
 def run(label: str, prompt: str, cases: list[dict], device_id: str,
-        repeat: int = 1, provider: str = "proxy") -> dict:
+        repeat: int = 1, provider: str = "proxy",
+        force_tier: str | None = None) -> dict:
     rows, served = [], set()
     for case in cases:
         path = os.path.join(ROOT, case["image"])
@@ -340,7 +395,7 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
                     (result, model), retries = with_retry(ask_free, prompt, path)
                 else:
                     (result, model, _prov, usage), retries = with_retry(
-                        ask_proxy, prompt, path, device_id)
+                        ask_proxy, prompt, path, device_id, force_tier)
                 served.add(model)
                 row = score_case(case, result)
                 row["latency_s"] = round(time.time() - t0, 1)
@@ -359,11 +414,45 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
                       f"  retries={retries}  {row['latency_s']}s{cost}")
                 if row["invented"]:
                     print(f"      INVENTED: {', '.join(row['invented'])}")
+            except OutOfFunds:
+                row = {**{k: None for k in
+                          ("pred_kcal", "kcal_error_pct", "atwater_pct")},
+                       "id": case["id"], "run": attempt + 1,
+                       "status": UNMEASURED_FUNDS, "model": "all-tiers",
+                       "retries": len(RETRY_SLEEPS),
+                       "latency_s": round(time.time() - t0, 1),
+                       "invented": [], "missed": [], "generic": [],
+                       "recalled": [], "n_pred": 0,
+                       "n_truth": len(case["truth"]), "truth_kcal": 0}
+                rows.append(row)
+                print(f"  {case['id']:<24} r{attempt + 1} {UNMEASURED_FUNDS}")
+            except urllib.error.HTTPError as exc:
+                if force_tier:
+                    reason = forced_label(force_tier, exc.code)
+                elif exc.code == 502:
+                    reason = UNMEASURED_APP_ROUTE
+                elif exc.code == 429:
+                    reason = UNMEASURED_RL
+                elif exc.code == 402:
+                    reason = UNMEASURED_FUNDS
+                else:
+                    reason = f"UNMEASURED - HTTP {exc.code}"
+                row = {**{k: None for k in
+                          ("pred_kcal", "kcal_error_pct", "atwater_pct")},
+                       "id": case["id"], "run": attempt + 1,
+                       "status": reason, "model": "all-tiers",
+                       "retries": len(RETRY_SLEEPS),
+                       "latency_s": round(time.time() - t0, 1),
+                       "invented": [], "missed": [], "generic": [],
+                       "recalled": [], "n_pred": 0,
+                       "n_truth": len(case["truth"]), "truth_kcal": 0}
+                rows.append(row)
+                print(f"  {case['id']:<24} r{attempt + 1} {reason}")
             except RateLimited:
                 row = {**{k: None for k in
                           ("pred_kcal", "kcal_error_pct", "atwater_pct")},
                        "id": case["id"], "run": attempt + 1,
-                       "status": UNMEASURED, "model": FREE_MODEL,
+                       "status": UNMEASURED_RL, "model": FREE_MODEL,
                        "retries": len(RETRY_SLEEPS),
                        "latency_s": round(time.time() - t0, 1),
                        "invented": [], "missed": [], "generic": [],
@@ -371,7 +460,7 @@ def run(label: str, prompt: str, cases: list[dict], device_id: str,
                        "n_truth": len(case["truth"]), "truth_kcal": 0}
                 rows.append(row)
                 print(f"  {case['id']:<24} r{attempt + 1} {FREE_MODEL:<28} "
-                      f"{UNMEASURED} (after {len(RETRY_SLEEPS)} retries)")
+                      f"{UNMEASURED_RL} (after {len(RETRY_SLEEPS)} retries)")
             except Exception as exc:                  # noqa: BLE001
                 print(f"  ! {case['id']} run{attempt + 1}: {exc}", file=sys.stderr)
     return {"label": label, "provider": provider,
@@ -387,7 +476,7 @@ def print_block(res: dict) -> None:
     print(f"    models   : {', '.join(res['served_models']) or 'none answered'}")
     for r in res["rows"]:
         if r.get("status") != "answered":
-            print(f"  {r['id']:<24} {UNMEASURED}")
+            print(f"  {r['id']:<24} {r.get('status', UNMEASURED)}")
             continue
         print(f"  {r['id']:<24} r{r.get('run')} {r.get('model', '?'):<28}"
               f" kcal {r['pred_kcal']:>5} (ref {r['truth_kcal']:>5})"
@@ -469,6 +558,11 @@ def main() -> int:
                     help="runs per case; the upstream is NOT deterministic, so a "
                          "single run cannot distinguish a fix from luck")
     ap.add_argument("--device-id", default=None)
+    ap.add_argument("--force-tier", default=None,
+                    help="measure ONE tier via x-cm-force-provider. The app does "
+                         "NOT send this header, so a forced run never describes "
+                         "the app's route and its failures are labelled as a "
+                         "forced tier, never as an app outage.")
     ap.add_argument("--cost", action="store_true",
                     help="price the scans: cost per scan, cost per photo, and "
                          "per-person monthly projection")
@@ -479,14 +573,16 @@ def main() -> int:
     device = args.device_id or f"ceo-acc-{int(time.time())}"
 
     print(f"cases: {len(cases)}  x{args.repeat} run(s)   provider: {args.provider}")
+    print(f"ROUTE: {'FORCED TIER ' + args.force_tier + ' (the app never sends this header)' if args.force_tier else 'the app\'s own default route - what users actually hit'}")
     print(f"bar in ROADMAP M1 is 20 meals - the set is short, see cases.json")
+    route = f"forced:{args.force_tier}" if args.force_tier else "app-default"
     current = run("shipped (working tree)", image_prompt(), cases, device,
-                  args.repeat, args.provider)
-    out = {"provider": args.provider, "shipped": current}
+                  args.repeat, args.provider, args.force_tier)
+    out = {"provider": args.provider, "route": route, "shipped": current}
     if args.compare:
         out["compare"] = run(f"pre-fix @{args.compare}",
                              image_prompt(args.compare), cases, device,
-                             args.repeat, args.provider)
+                             args.repeat, args.provider, args.force_tier)
 
     print_block(current)
     if "compare" in out:
