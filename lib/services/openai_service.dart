@@ -111,9 +111,28 @@ class OpenAIService {
             ? 'image/webp'
             : 'image/jpeg';
 
+    // The shape below is a SCHEMA, not an answer. It deliberately contains NO
+    // realistic-looking numbers. A concrete example (e.g. a "Dal Makhani 250
+    // kcal / 12 / 30 / 8" sample) is a copy magnet: measured on a real
+    // palak-paneer photo, the model returned that example's exact numbers and
+    // invented a Naan that was not in the picture. Schema-only + an explicit
+    // "estimate from THIS photo" instruction gave photo-derived numbers
+    // (300g, 450 kcal, P20/C30/F30) and no hallucinated side dish.
     final prompt = '''
-Analyze this food photo. Return ONLY valid JSON:
-{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0,"calcium":140.0,"iron":2.5,"vitaminC":0.0}]}
+Analyze this food photo and return ONLY valid JSON with this exact shape:
+
+{"mealType": "<breakfast|lunch|dinner|snack>",
+ "items": [
+   {"name": "<specific Indian dish name>",
+    "servingSizeGrams": <integer>,
+    "calories": <integer kcal for the whole serving>,
+    "protein": <grams>, "carbs": <grams>, "fat": <grams>,
+    "fiber": <grams>, "sugar": <grams>, "sodium": <mg>,
+    "calcium": <mg>, "iron": <mg>, "vitaminC": <mg>}
+ ]}
+
+The shape above is a SCHEMA, not an answer. Every value MUST be estimated from
+THIS photo. Never reuse any number or dish name from this instruction.
 
 If no food visible: {"mealType":"snack","items":[]}
 
@@ -125,6 +144,7 @@ Rules:
 - sodium = mg for the full serving
 - calcium/iron/vitaminC = mg for the full serving — estimate from the typical nutrient content of the dish (e.g. dal and paneer are calcium-rich, leafy greens are iron-rich). If you cannot estimate a value, output 0.
 - Indian household serving sizes. Only include visible foods.
+- List ONLY food actually visible in the photo. Do not add sides, breads or drinks that are not clearly visible — a missing side is better than an invented one.
 - If the photo shows ONE food (a single bowl of sabzi, one roti, etc.), return it as the ONLY item — do not add guesses about side dishes that are not clearly visible.
 - NAMES MUST BE SPECIFIC: identify the exact dish by its traditional name (e.g. "Aloo Gobi", "Bhindi Fry", "Mixed Vegetable Curry", "Chana Masala", "Baingan Bharta", "Palak Paneer"). NEVER return generic labels like "Vegetable Curry", "Veg Sabzi", "Curry", "Side Dish" or "Vegetables" unless the photo truly shows an unidentifiable mixed dish; prefer the most specific name you can.
 - If the food is a mixed dish of many items (a thali), still return each visible item separately, but each with a specific name.
@@ -204,11 +224,26 @@ Rules:
   Future<({List<FoodItem> items, String? mealType})> _callTextApi(
     String foodName,
   ) async {
+    // Schema-only, for the same reason as the image prompt: a concrete sample
+    // ("Dal Makhani 250 kcal / 12 / 30 / 8") gets echoed back as the answer
+    // for whatever food was asked for.
     final prompt = '''
 Estimate nutrition for this food: $foodName
 
-Return ONLY valid JSON:
-{"mealType":"lunch","items":[{"name":"Dal Makhani","servingSizeGrams":200,"calories":250,"protein":12.0,"carbs":30.0,"fat":8.0,"fiber":5.0,"sugar":3.0,"sodium":450.0,"calcium":140.0,"iron":2.5,"vitaminC":0.0}]}
+Return ONLY valid JSON with this exact shape:
+
+{"mealType": "<breakfast|lunch|dinner|snack>",
+ "items": [
+   {"name": "$foodName",
+    "servingSizeGrams": <integer>,
+    "calories": <integer kcal for the whole serving>,
+    "protein": <grams>, "carbs": <grams>, "fat": <grams>,
+    "fiber": <grams>, "sugar": <grams>, "sodium": <mg>,
+    "calcium": <mg>, "iron": <mg>, "vitaminC": <mg>}
+ ]}
+
+The shape above is a SCHEMA, not an answer. Every value MUST be estimated for
+"$foodName" itself. Never reuse any number from this instruction.
 
 Rules:
 - mealType = breakfast/lunch/dinner/snack
