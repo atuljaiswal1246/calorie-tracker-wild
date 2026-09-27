@@ -77,5 +77,6 @@ somewhere else is a net loss, because the invention is invisible to the user.
 
 **12 cases x 3 runs per arm = 36 scans per arm. **0 breakfast, 12 non-breakfast.****
 
+**Distinct dish families in that corpus: 11 of 12 cases (dal x2).** So the case count OVERSTATES the evidence: 2 of 12 cases share a family, and a family's error is weighted once per case. Median error here is a median over cases, not over 11 independent judgements.
 *These figures are not comparable with any other run unless the corpus is
 the same. Quote the corpus with the score, always.*

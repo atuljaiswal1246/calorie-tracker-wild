@@ -89,5 +89,6 @@ the one failure a user cannot detect for themselves.
 
 **2 cases x 5 runs = 10 scans. **0 breakfast, 2 non-breakfast.****
 
+**Distinct dish families in that corpus: 2 of 2 cases — no family repeats, so the case count and the fact count are the same number here.**
 *These figures are not comparable with any other run unless the corpus is
 the same. Quote the corpus with the score, always.*

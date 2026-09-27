@@ -28,6 +28,12 @@ const _corpusMarkers = <String>[
   'cases',        // how many
   'breakfast',    // the composition
   'corpus',       // or an explicit reference to the corpus
+  // Added 2026-09-28. A case count is not a fact count: the corpus is 22 cases
+  // over 17 distinct dish families, and three families repeat, so a median over
+  // cases is a median over cases. Quoting only the case count is how "22 cases"
+  // became a sample size in my own notes. test/corpus_independence_test.dart
+  // owns the counting; this one owns the rule that the number travels with it.
+  'distinct',     // how many DISTINCT dishes, not just how many cases
 ];
 
 void main() {

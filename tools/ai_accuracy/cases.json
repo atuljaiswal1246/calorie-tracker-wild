@@ -13,7 +13,22 @@
     "Anything I could not name honestly was deleted, not guessed at.",
     "Batch 2 added 5 more openly licensed, human-reviewed meals, chosen for dish BREADTH: 8 of the 16 candidates were bhindi, exactly the trap batch 1 hit with chole bhature, so only one bhindi was taken.",
     "Batch 3 added 5 more openly licensed, human-reviewed meals. THE TRAP, THIRD TIME: of 18 candidates 8 were masala dosa and 7 were idli, so only 5 distinct dishes were taken. THE HONEST LIMIT: because the queries were breakfast items, all five are South-Indian breakfast. That is a real bias in the corpus; batch 4 must target curries, eggs and non-breakfast home cooking before any overall score is quoted.",
-    "Batch 4 added 5 more human-reviewed, non-breakfast meals. THE TRAP, FOURTH TIME: of 20 candidates 14 were chana/chole/chole-bhature, because three search terms were chole-based. Three of the five kept are therefore the same legume family - recorded here rather than hidden. Batch 5 must search one dish at a time to escape it. Batch 4 also adds the corpus's only NON-VEGETARIAN case, which was a real gap: our users are not all vegetarian and nothing else tested that."
+    "Batch 4 added 5 more human-reviewed, non-breakfast meals. THE TRAP, FOURTH TIME: of 20 candidates 14 were chana/chole/chole-bhature, because three search terms were chole-based. Three of the five kept are therefore the same legume family - recorded here rather than hidden. Batch 5 must search one dish at a time to escape it. Batch 4 also adds the corpus's only NON-VEGETARIAN case, which was a real gap: our users are not all vegetarian and nothing else tested that.",
+    "",
+    "INDEPENDENCE (2026-09-28). \"22 cases\" is NOT 22 facts. Three dish families",
+    "repeat here, so their errors carry 3x the weight of a family that appears once:",
+    "dal x3 (thali_ma08, chapati_dal_bhindi_plate, non_veg_thali),",
+    "chole x3 (north_indian_dinner, chole_papad_plate, chole_puri_halwa_thali),",
+    "sambar x2 (idli_sambar_chutney_plate, tamil_uthappam).",
+    "So: 22 cases over 17 DISTINCT dish families; 8 of 22 cases sit in a repeated",
+    "family; only 14 cases are the sole case of their family.",
+    "The bar in ROADMAP M1 is 20 MEALS = 20 distinct dishes. 17 < 20, so the bar is",
+    "NOT met, and any score quoted from this corpus must carry BOTH numbers.",
+    "Per-batch, the same way: batch 1 = 7 cases / 7 families; batch 2 (median 15.4%)",
+    "= 12 / 11; batch 3 (median 20.0%) = 17 / 15.",
+    "Producer: tools/ai_accuracy.py --corpus, which is the ONE definition of a",
+    "family; test/corpus_independence_test.dart executes it rather than re-deriving",
+    "it, and fails if these declared numbers stop matching the file."
   ],
   "cases": [
     {

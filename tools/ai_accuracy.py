@@ -272,6 +272,70 @@ def make_cost_guard(ceiling_usd: float):
     return charge, state
 
 
+
+# ---------------------------------------------------------------- CORPUS
+# "22 cases" is not 22 facts. I searched dish by dish to escape the duplicate
+# trap, and then the corpus itself carried the trap: three dish families appear
+# more than once, so those errors get weighted 3x while a single-case family
+# gets 1x. A median over that is a median over a corpus I built, not over meals.
+# The owner's bar is 20 MEALS. Measured 2026-09-28, tools/ai_accuracy/cases.json
+# at 22 cases: 17 distinct dish families, 8 cases inside a repeated family.
+#
+# THIS IS THE ONE DEFINITION of a family. The Dart guard executes this function
+# rather than re-implementing it, so the note and the guard cannot disagree.
+
+STAPLE_SIDES = {
+    "roti", "chapati", "flatbread", "phulka", "paratha", "thepla", "bajra roti",
+    "rice", "plain rice", "bread", "idli", "dosa", "uttapam", "uthappam",
+    "semolina", "upma", "poha", "besan sev", "salad", "papad", "curd",
+    "yogurt", "dahi", "rasam", "chutney",
+}
+
+# A family is the dish a case is really ABOUT: its most prominent non-staple
+# item. A thali and a bowl of the same dal are the same judgement twice.
+FAMILY_REPEAT_CAP = 3
+
+
+def family_of(case: dict) -> str:
+    names = [t.get("name", "").strip().lower() for t in case.get("truth", [])]
+    for n in names:
+        if n and n not in STAPLE_SIDES:
+            return n
+    return names[0] if names else "?"
+
+
+def independence(cases: list[dict]) -> dict:
+    counts: dict[str, int] = {}
+    for c in cases:
+        counts[family_of(c)] = counts.get(family_of(c), 0) + 1
+    repeated = {k: v for k, v in counts.items() if v > 1}
+    sole = [c["id"] for c in cases if counts[family_of(c)] == 1]
+    worst = max(counts.values()) if counts else 0
+    return {
+        "cases": len(cases),
+        "families": len(counts),
+        "repeated_families": dict(sorted(repeated.items(), key=lambda kv: -kv[1])),
+        "cases_in_repeated_family": sum(repeated.values()),
+        "sole_case_of_its_family": len(sole),
+        "worst_family_count": worst,
+        "over_cap": {k: v for k, v in counts.items() if v > FAMILY_REPEAT_CAP},
+    }
+
+
+def print_independence(cases: list[dict]) -> dict:
+    r = independence(cases)
+    print(f"CORPUS: {r['cases']} cases over {r['families']} distinct dish "
+          f"families; {r['cases_in_repeated_family']} of {r['cases']} cases sit "
+          f"in a family that appears more than once")
+    if r["repeated_families"]:
+        print("  repeated: " + ", ".join(
+            f"{k} x{v}" for k, v in r["repeated_families"].items()))
+    if r["over_cap"]:
+        print(f"  ** {len(r['over_cap'])} family/families are over the cap of "
+              f"{FAMILY_REPEAT_CAP} - the search trap is coming back **")
+    return r
+
+
 # ---------------------------------------------------------------- transports
 FREE_MODEL = "opencode-go/space-bunny-free"
 
@@ -817,6 +881,9 @@ def main() -> int:
     ap.add_argument("--skip-preflight", action="store_true",
                     help="escape hatch only. Without /health you have not "
                          "earned the right to spend.")
+    ap.add_argument("--corpus", action="store_true",
+                    help="print the corpus independence report and exit. Costs "
+                         "nothing: it reads cases.json and never calls a model.")
     ap.add_argument("--self-test", action="store_true",
                     help="prove the preflight gate: a fake all-suspended /health "
                          "must produce ZERO provider calls")
@@ -836,6 +903,10 @@ def main() -> int:
     # breakers can be split away from the app's. Blast radius of a measurement
     # run must not include a user.
     device = args.device_id or MEASUREMENT_DEVICE_ID
+
+    if args.corpus:
+        print_independence(cases)
+        return 0
 
     if args.self_test:
         return self_test()
@@ -859,7 +930,11 @@ def main() -> int:
 
     print(f"cases: {len(cases)}  x{args.repeat} run(s)   provider: {args.provider}")
     print(f"ROUTE: {'FORCED TIER ' + args.force_tier + ' (the app never sends this header)' if args.force_tier else 'the app\'s own default route - what users actually hit'}")
-    print(f"bar in ROADMAP M1 is 20 meals - the set is short, see cases.json")
+    ind = print_independence(cases)
+    print(f"bar in ROADMAP M1 is 20 MEALS = 20 distinct dishes. We have "
+          f"{ind['families']} distinct families across {ind['cases']} cases, so "
+          f"the bar is NOT met on the honest measure - quote a score with both "
+          f"numbers, never the case count alone.")
     route = f"forced:{args.force_tier}" if args.force_tier else "app-default"
     current = run("shipped (working tree)", image_prompt(), cases, device,
                   args.repeat, args.provider, args.force_tier, charge)

@@ -176,5 +176,6 @@ I do not spend anything.**
 
 **7 cases for the accuracy figures, 5 paid scans for the cost figures. **0 breakfast, 7 non-breakfast.****
 
+**Distinct dish families in that corpus: 7 of 7 cases — no family repeats, so the case count and the fact count are the same number here.**
 *These figures are not comparable with any other run unless the corpus is
 the same. Quote the corpus with the score, always.*
