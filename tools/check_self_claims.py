@@ -137,6 +137,38 @@ def _suite_line(text: str) -> int | None:
     m = re.search(r"\*\*(\d+) tests pass", text)
     return int(m.group(1)) if m else None
 
+def measured_by() -> str:
+    """WHICH TOOL produced the number. Read from the toolchain, never typed.
+
+    QA Lead's rule, on 2026-09-29, and it is the one I broke: BEFORE YOU BUILD A
+    CHECK ON A FIELD, FIND OUT WHO WRITES IT. They built a check on /health's
+    `build` and the payload had been saying `build_source: "the environment"` all
+    along - one key away - so the field was a configuration pin and the check
+    stood on nothing.
+
+    So: "166 issues, 0 errors" is a claim about a TOOLCHAIN, and my block named
+    no tool at all. The count is tool-version dependent - it has moved in this
+    repo before - so a reader six months from now cannot tell whether 166 means
+    the same thing it meant tonight, or whether the analyzer changed underneath a
+    baseline that still says 166.
+
+    Read from the tool, so it cannot be a guess. And if the tool cannot be run,
+    say so rather than printing nothing: an absent producer is a hole in the
+    claim, not a formatting detail.
+    """
+    try:
+        out = subprocess.run(["flutter", "--version"], cwd=str(ROOT),
+                             capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return (f"flutter --version DID NOT RUN ({type(exc).__name__}) - the "
+                f"count below has no recorded producer")
+    line = (out.stdout or "").strip().splitlines()
+    if not line:
+        return "flutter --version produced NO OUTPUT - the count below has no "\
+               "recorded producer"
+    return line[0].strip()
+
+
 def measured_against() -> str:
     """WHICH tree this measurement was taken on. Read from git, never typed.
 
@@ -182,7 +214,8 @@ def render(analyze: dict, tests: int | None, prior_suite_line: str = "") -> str:
         "hand: these lines are claims, and a hand-edited claim is a memory._",
         "",
         f"_Snapshot: measured at {time.strftime('%Y-%m-%d %H:%M:%S %Z')} against "
-        f"**{measured_against()}**. This is a SNAPSHOT, not a live reading - the "
+        f"**{measured_against()}** by `{measured_by()}`. This is a SNAPSHOT, "
+        f"not a live reading - the "
         "tree has moved since, and the state named here described the tree at that "
         "moment only. Re-run with `--write` to refresh it. A number without its "
         "instance is a rumour; an instance without its moment is a pin._",
