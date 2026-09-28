@@ -1080,6 +1080,12 @@ def main() -> int:
                          "no provider call, no spend. Proves --compare runs before "
                          "spending the owner's money on it. The numbers are "
                          "meaningless as accuracy and the banner says so.")
+    ap.add_argument("--preflight-only", action="store_true",
+                    help="run the money gate and STOP, without scanning anything. "
+                         "Costs nothing: it reads /health and the Worker's err_* "
+                         "keys, and calls no provider. The owner's first question "
+                         "in the morning is \"can we run?\", and this answers it "
+                         "with a measurement instead of a hope.")
     ap.add_argument("--corpus", action="store_true",
                     help="print the corpus independence report and exit. Costs "
                          "nothing: it reads cases.json and never calls a model.")
@@ -1127,6 +1133,11 @@ def main() -> int:
                   f"Not 'UNMEASURED': this is a budget stop, and it needs a "
                   f"decision, not a retry.")
             return 3
+    if args.preflight_only:
+        print("PREFLIGHT-ONLY: the gate has spoken and NO scan was run. Zero "
+              "provider calls, zero spend. Whether to spend is the owner's "
+              "decision; this command only tells them what it would cost.")
+        return 0 if gate["ok"] else 3
     print(f"SPEND CEILING: ${args.max_cost_usd:.4f} for this run")
     charge, _money = make_cost_guard(args.max_cost_usd)
 
