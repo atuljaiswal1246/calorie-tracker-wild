@@ -27,7 +27,32 @@
 //
 // WHY IT SURVIVED AS LONG AS IT DID, and this is the part worth keeping: every
 // real run of that tool was either all-passing or loudly broken, so the
-// contradiction lived in a middle case that nothing ever produced. And the
+// contradiction lived in a middle case that nothing ever produced.
+//
+// AND WHY THIS REPO STRUCTURALLY CANNOT HAVE THAT CLASS, measured rather than
+// assumed - because "we are fine" is exactly the sentence nobody checked.
+// Probe run 2026-09-29 00:13 IST, this machine, this working tree, the probe
+// file written and deleted inside the same command:
+//
+//     $ flutter test test/zz_probe_no_tests_test.dart   # main(), no test()
+//       No tests ran.
+//       No tests were found.
+//       REAL EXIT=79
+//
+// `flutter test` scores a module with no tests as a NON-ZERO exit. The unittest
+// runner scores the same module exit 0 - a pass. That difference, not any care
+// taken here, is the structural reason 23 of 492 files there could sit
+// unexecuted and green while this repo's tests cannot.
+//
+// NOT PINNED BY A TEST HERE, and the reason is the point: pinning it would mean
+// running `flutter test` from inside a `flutter test`, so every suite execution
+// would pay a nested toolchain start to re-confirm somebody else's exit code -
+// a property of the RUNNER, not of this repo. The measurement above carries its
+// producer, its minute and its tree, which is what a claim needs to be
+// checkable by the next session. A guard that costs a toolchain start on every
+// run to re-read a constant is a cost with no new evidence.
+//
+// And the
 // first version of the test written to catch it asserted on the SOURCE -
 // `expect(src, isNot(contains('verdict in ("PASS", "SKIP")')))` - a string that
 // does not exist in the file because the code writes VERDICT_PASS,
