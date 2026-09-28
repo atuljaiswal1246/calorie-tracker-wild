@@ -99,6 +99,10 @@ CHECKERS = (
     # because the next session trusts it. `check` on a path that is clean is a
     # real execution of the refusal path, not a source scan for its name.
     _script("tools/guard_uncommitted.py", "--self-test"),
+    # The Play listing must describe the app we ship. It is a Play-submission
+    # risk, and it is a claim with no machine behind it — two features the app
+    # cannot open. Local, no network, no model.
+    _script("tools/check_store_listing.py"),
     _script("tools/check_external_claims.py", network=True),
     _script("tools/check_self_claims.py", "--skip-suite"),
     _git("rev-parse", "--short", "HEAD"),
