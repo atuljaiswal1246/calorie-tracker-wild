@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 46 cases over 35 distinct dish families; 30 distinct dish CLASSES; 45 coverage classes; top-4 classes hold 28%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 30, with ten classes spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 47 cases over 36 distinct dish families; 31 distinct dish CLASSES; 47 coverage classes; top-4 classes hold 28%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 31, with eleven classes spare.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -221,7 +221,36 @@
     "The principle was already in this repo's own tool and simply had not been applied",
     "here: ai_accuracy.py carries the comment 'When the free model is rate-limited, that is",
     "not a result'. It was written for model calls and the fetcher's search path was never",
-    "brought under it. This is the same lesson one code path over."
+    "brought under it. This is the same lesson one code path over.",
+    "",
+    "BATCH 14 (2026-09-28): THE QUERIES WERE THE PROBLEM, AND A CONTROL SAID SO. Batch",
+    "13 also returned zero, so three batches have now returned zero for three",
+    "DIFFERENT reasons and a control query is the only reason I know which is which:",
+    "  CONTROL, known-good, worked in batch 12 ..... 1 candidate   <- the API is fine",
+    "  'filetype:bitmap \"mushroom curry\" bowl gravy'  0         <- batch 13's wording",
+    "  'filetype:bitmap \"mushroom curry\"' ........... 3         <- same dish, fewer words",
+    "  'mushroom curry' (no filetype filter) ........ 3",
+    "  'khakra gujarati' (no filetype filter) ....... 0         <- this one is thin",
+    "So batch 13's cause was MY query construction. filetype:bitmap plus a quoted",
+    "phrase plus two form words is over-constrained, and batch 13's premise - widen the",
+    "dish FORM - widened the query into uselessness. The dish was there the whole time.",
+    "8 queries, 19 candidates, 5 downloaded.",
+    "  accepted 1  beans and potato in a steel bowl - a dry sabzi, not a gravy, with",
+    "               visible potato cubes, a dried red chilli and cumin. French beans'",
+    "               first case; the class has been declared and empty since batch 9",
+    "  rejected 3  two OPENED, both because the pixels do not show the dish the title",
+    "               promises: 'mushroom poori' is a street plate of onion, carrot,",
+    "               chilli sauce and poori with NO MUSHROOM VISIBLE, and one is raw",
+    "               green beans at market. One rejected on the filename WITHOUT being",
+    "               opened - a Latin species binomial with a field-record suffix is a",
+    "               botanical record - recorded as not-looked, not judged-and-failed",
+    "  not_used 1  'curry chicken green beans' names two non-staple components, so the",
+    "               class would be decided by my typing order; decidable from the title",
+    "MUSHROOM IS STILL EMPTY, and now for an honest reason rather than a throttle: the",
+    "dish is demonstrably on Commons - three candidates the moment the form words came",
+    "off - but what comes back is street food and botanical records rather than a plate",
+    "of mushroom curry. Only KHAKRA has now come back empty from every angle, which",
+    "makes it the one real candidate for a genuine absence."
   ],
   "cases": [
     {
@@ -1478,6 +1507,31 @@
             "Dahi Raita"
           ],
           "kcal": 120
+        }
+      ]
+    },
+    {
+      "id": "beans_potato_bowl",
+      "image": "tools/ai_accuracy/photos/dry_beans_curry_jpg_7c44ee2d.jpg",
+      "note": "A shallow steel bowl of a cooked dry beans preparation: chopped green beans cut short, visible cubes of boiled potato, one dried red chilli and cumin seeds. It is a dry sabzi rather than a gravy curry, and the photograph is a close view into the bowl on a stovetop. The beans are the dish and the potato is a second component, so class_of takes the beans. Medium rather than high because the photograph is a bowl being cooked rather than a plated serving, so there is no portion context. French beans' first case; the class has been declared and empty since batch 9.",
+      "truth": [
+        {
+          "name": "French Beans",
+          "aliases": [
+            "Green Beans",
+            "Beans Curry",
+            "Beans Poriyal",
+            "Gavar Phali"
+          ],
+          "kcal": 130
+        },
+        {
+          "name": "Potato",
+          "aliases": [
+            "Aloo",
+            "Boiled Potato"
+          ],
+          "kcal": 90
         }
       ]
     }

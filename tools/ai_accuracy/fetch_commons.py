@@ -361,6 +361,38 @@ BATCH13_QUERIES = [
 ]
 
 
+# BATCH 14 -- the queries were the problem, and a control is what proved it.
+#
+# Batch 13 also returned 0, but for a THIRD and completely different reason, and the
+# control query is the only reason I know which one:
+#
+#   CONTROL, known-good, worked in batch 12 ....... 1 candidate   <- the API is fine
+#   'filetype:bitmap "mushroom curry" bowl gravy'  0 candidates   <- batch 13's wording
+#   'filetype:bitmap "mushroom curry"' ........... 3 candidates   <- same dish, fewer words
+#   'mushroom curry' (no filetype filter) ........ 3 candidates
+#   'khakra gujarati' (no filetype filter) ....... 0 candidates   <- this one really is thin
+#
+# So the cause was MY query construction, not Commons. `filetype:bitmap` plus a quoted
+# phrase plus two form words is over-constrained, and batch 13's whole premise - widen
+# the dish FORM - widened the query into uselessness. The dish was there the whole time.
+#
+# Three batches have now returned zero for three DIFFERENT reasons: a rate limit, an
+# over-constrained query, and (for khakra) possibly a genuine absence. Only the third
+# is a fact about the food, and separating them took a control every time.
+#
+# These queries drop the form words and keep the filter that demonstrably works.
+BATCH14_QUERIES = [
+    'filetype:bitmap "mushroom curry"',
+    'filetype:bitmap "mushroom masala"',
+    'filetype:bitmap mushroom sabzi',
+    'filetype:bitmap "beans curry"',
+    'filetype:bitmap "french beans"',
+    'filetype:bitmap "green beans" curry',
+    'filetype:bitmap khakra',
+    'filetype:bitmap khakro',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -624,14 +656,15 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12", "batch13"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12", "batch13", "batch14"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
     sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES, "batch10": BATCH10_QUERIES,
     "batch11": BATCH11_QUERIES,
     "batch12": BATCH12_QUERIES,
-    "batch13": BATCH13_QUERIES}
+    "batch13": BATCH13_QUERIES,
+    "batch14": BATCH14_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     if SEARCH_FAILURES:
         # Distinct exit code, and a message that cannot be skimmed past. A batch that

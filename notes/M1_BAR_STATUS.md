@@ -20,7 +20,7 @@ assume the product got more accurate. It did not. The evidence got better.
 
 | # | obligation | state |
 |---|---|---|
-| 1a | 20 measured real Indian meals | **MET** — 46 cases over **30 distinct dish classes** |
+| 1a | 20 measured real Indian meals | **MET** — 47 cases over **31 distinct dish classes** |
 | 1b | one repeatable command, one table | **MET** — `python3 tools/ai_accuracy.py`, prompt extracted from the Dart source so it cannot drift from the app |
 | 2 | side by side, old prompt vs new | **MECHANISM NOW VERIFIED, STILL NEVER RUN FOR REAL** — `--stub` executes the whole A/B path (both prompts extracted and fingerprinted, both sides scored, the A/B table, the JSON) with **zero** provider calls, and `test/compare_path_test.dart` drives it. What is still missing is a run with a real model on both sides. |
 | 3 | baseline committed | **NOT MET** — `baseline_batch4_2026-09-28.json` exists but its number is **WITHDRAWN**: the run could not complete, and re-running is exactly what the CEO ordered me to stop doing |
@@ -30,9 +30,9 @@ assume the product got more accurate. It did not. The evidence got better.
 ```
 python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, costs nothing
 ```
-- 46 cases · 35 distinct dish names · **30 distinct dish classes** · 45 coverage classes
-- bar: 20 meals = 20 distinct dishes. **30, met with ten classes spare.**
-- how it got there: 13 at 02:45 → 18 after batch 5 → 22 after batches 6-7 → 28 after batch 11 → 30 after batch 12. Ten free
+- 47 cases · 36 distinct dish names · **31 distinct dish classes** · 47 coverage classes
+- bar: 20 meals = 20 distinct dishes. **31, met with eleven classes spare.**
+- how it got there: 13 at 02:45 → 18 after batch 5 → 22 after batches 6-7 → 28 after batch 11 → 30 after batch 12 → 31 after batch 14. Ten free
   Wikimedia photographs, all attributed, all with licence and SHA-256, **zero
   model budget**.
 - every photo was looked at before it was accepted; 23 were rejected with the
@@ -73,7 +73,7 @@ python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, c
   loose minced meat), **chole/rajma** (chickpea against kidney bean), **biryani/pulao**
   (the meat is the boundary and it is visible), **bhindi/lauki** (okra against bottle
   gourd). The pairs are deliberately **disjoint**, so the arithmetic is exact:
-  **30 classes as measured, and 25 if a reviewer folds all five** — and 25 is still
+  **31 classes as measured, and 26 if a reviewer folds all five** — and 26 is still
   inside the card's own 18-22 band. So the bar is not resting on how anyone treats kadhi
   against dal, and the honest sentence is both numbers, never 27 alone.
 - **A class count is also a claim about photographs, and that claim was unchecked
@@ -81,11 +81,11 @@ python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, c
   names, so a re-encoded copy of a dish the corpus already holds inflates the class
   count without changing a single byte-hash. Measured by
   `tools/ai_accuracy/test_the_corpus_photographs_are_distinct.py` on the corpus as
-  committed: **46 cases, 46 open, 0 byte-identical pairs, 0 pairs within
+  committed: **47 cases, 47 open, 0 byte-identical pairs, 0 pairs within
   `NEAR_DUP_DISTANCE`, and the closest pair in the whole corpus is hamming 13 against
   a floor of 8** across 990 comparisons. So the repeated families — baingan, uthappam,
   aloo gobi, kofta — are different photographs of the same dish, not the same
-  photograph twice, and the 30 above is not counting one plate twice. Guarded in the
+  photograph twice, and the 31 above is not counting one plate twice. Guarded in the
   suite by `test/corpus_photographs_distinct_test.dart`, with a 5-of-5 bite proof
   including a re-encoded-copy breach.
 
@@ -102,7 +102,7 @@ python3 tools/ai_accuracy.py --repeat 1           # preflight runs first; MONEY 
 python3 tools/ai_accuracy.py --compare <last-good-commit> --repeat 1
 
 # 3. commit the baseline JSON and quote FOUR numbers, never one:
-#    46 cases / 35 names / 30 classes / 45 coverage, AND the concentration, and
+#    47 cases / 36 names / 31 classes / 47 coverage, AND the concentration, and
 #    the median with all of them
 python3 tools/ai_accuracy.py --corpus              # after the run, to re-declare
 ```
@@ -117,8 +117,8 @@ Stop conditions, all of them mine, none of them negotiable at 3am:
 
 ## What is not mine to decide
 
-- The corpus is 30 classes and barely leans: dal (5), chole (4), then a flat run
-  at 2 (paneer, bhindi, baingan) — 13 of 46 cases, so the top four hold **28%**.
+- The corpus is 31 classes and barely leans: dal (5), chole (4), then a flat run
+  at 2 (paneer, bhindi, baingan) — 13 of 47 cases, so the top four hold **28%**.
   Batch 8 took it 42% -> 34% and hit the ≤35% target, sizing the batch by
   13/(31+N); batches 9 and 10 widened instead of flattening and took it to 31%.
   The bar is met; the sample is not yet even, and a median over this corpus is
