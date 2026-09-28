@@ -428,6 +428,35 @@ BATCH18_QUERIES = [
 ]
 
 
+# BATCH 19 -- the three singletons batch 18 named as failures, retried with the mechanism
+# that batch 17 proved works.
+#
+# Batch 18 was sized to move the concentration and yielded four of the eight it planned.
+# It named its own failures: gajar halwa, kheer and pulao returned nothing that survived
+# the per-query cap, while idli, vada, jalebi and samosa came back immediately. That
+# asymmetry is the clue - the four that worked are the four whose NAMES are the dish, and
+# the three that failed are names a person is more likely to caption differently.
+#
+# So this round does not try more spellings of gajar halwa. It changes the INSTRUMENT, the
+# way batch 17 did: `incategory:` asks "what is filed under Indian sweets" rather than
+# "what text matches these four words", and in batch 17 that is what surfaced Gol dhokla,
+# khandvi, muthia and methi muthiya where the text search had been returning an 1784 map.
+#
+# Four singletons are also added by the mechanism rather than the name, because the
+# mechanism is now the better instrument and the class bar is met with thirteen spare, so
+# there is nothing to gain from being clever about names.
+BATCH19_QUERIES = [
+    'filetype:bitmap uthappam breakfast',                                # the control
+    'filetype:bitmap incategory:"Indian sweets" gajar halwa',
+    'filetype:bitmap incategory:"Indian sweets" kheer',
+    'filetype:bitmap incategory:"Indian rice dishes" pulao',
+    'filetype:bitmap incategory:"Indian sweets" halwa',
+    'filetype:bitmap incategory:"Indian snacks" papad',
+    'filetype:bitmap incategory:"Indian curries" egg',
+    'filetype:bitmap incategory:"Indian breads" paratha',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',
