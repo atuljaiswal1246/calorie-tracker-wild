@@ -190,3 +190,94 @@ never opened. A rule that fails on real data was never a rule. The one I shipped
 cannot judge a photograph you did not fetch — cannot be evaded by arithmetic. The second: batch 1's
 model column reads `0 (in-repo originals)`, and an exact-string check failed it, so the check reads
 the leading token and the reason survives.
+
+---
+
+## 5. Query yield - what the corpus actually costs in photographs
+
+**Every figure in this section is computed from `photos.json` and `query_results.json` by**
+**`tools/ai_accuracy/test_the_query_yield_figure_is_measured.py`, which fails if any of them drifts.**
+
+**PRECISION: 44 of 107 reviewed photographs became cases = 41%.** The other 63 were
+rejected on the record, each with a reason. This number has never been stated in this
+file before, and it is the honest denominator for everything above: a batch of 5
+downloads is worth about 0 cases, not 5.
+
+**AND THE SAMPLE FOR THE OBVIOUS NEXT QUESTION IS FAR TOO SMALL.** It is natural to
+ask whether a query returning more pages is a better query. Among the queries that
+have a recorded page count there are only 11 judged photographs across 3 distinct
+page counts, and the spread runs the WRONG WAY for it - 8 pages scored 71%, 7 pages
+scored 0%, 1 page scored 50%. That is noise, not a relationship, and it is recorded
+here as a number rather than promoted to a rule. The record only began at batch 25,
+so this table cannot answer the question for another 20 batches at one run per batch.
+
+### The queries that produced cases, ranked
+
+| Query | Accepted | Judged |
+|---|---|---|
+| `filetype:bitmap biryani plate` | 2 | 6 |
+| `filetype:bitmap "sarson da saag"` | 2 | 5 |
+| `filetype:bitmap kofta curry` | 2 | 4 |
+| `filetype:bitmap "egg bhurji"` | 2 | 3 |
+| `filetype:bitmap "beans curry"` | 2 | 2 |
+| `filetype:bitmap "omelette" plate` | 1 | 4 |
+| `filetype:bitmap "chicken curry" bowl` | 1 | 3 |
+| `filetype:bitmap "mushroom masala"` | 1 | 3 |
+| `filetype:bitmap "aloo gobi"` | 1 | 2 |
+| `filetype:bitmap "bottle gourd curry"` | 1 | 2 |
+| `filetype:bitmap "gajar halwa"` | 1 | 2 |
+| `filetype:bitmap "shimla mirch" masala indian` | 1 | 2 |
+| `filetype:bitmap "veg pulao" plate` | 1 | 2 |
+| `filetype:bitmap kheer bowl` | 1 | 2 |
+| `filetype:bitmap "aloo gobi" curry` | 1 | 1 |
+| `filetype:bitmap "amla pickle"` | 1 | 1 |
+| `filetype:bitmap "baingan bharta"` | 1 | 1 |
+| `filetype:bitmap "bhindi masala"` | 1 | 1 |
+| `filetype:bitmap "capsicum masala"` | 1 | 1 |
+| `filetype:bitmap "chicken curry"` | 1 | 1 |
+| `filetype:bitmap "gulab jamun"` | 1 | 1 |
+| `filetype:bitmap "karela curry"` | 1 | 1 |
+| `filetype:bitmap "masala dosa" plate` | 1 | 1 |
+| `filetype:bitmap "medu vada"` | 1 | 1 |
+| `filetype:bitmap "methi curry"` | 1 | 1 |
+| `filetype:bitmap "mushroom fry"` | 1 | 1 |
+| `filetype:bitmap "potato raita"` | 1 | 1 |
+| `filetype:bitmap "rajma curry"` | 1 | 1 |
+| `filetype:bitmap gajar halwa` | 1 | 1 |
+| `filetype:bitmap idli` | 1 | 1 |
+| `filetype:bitmap jalebi` | 1 | 1 |
+| `filetype:bitmap jalebi indian sweets` | 1 | 1 |
+| `filetype:bitmap keema curry` | 1 | 1 |
+| `filetype:bitmap khakhra` | 1 | 1 |
+| `filetype:bitmap kheer` | 1 | 1 |
+| `filetype:bitmap samosa` | 1 | 1 |
+| `filetype:bitmap samosa indian plate` | 1 | 1 |
+| `filetype:bitmap uthappam breakfast` | 1 | 1 |
+| `filetype:bitmap uttapam kerala` | 1 | 1 |
+
+**32 queries downloaded photographs and produced NO case at all.** They are the
+expensive ones - a download, a licence, a SHA-256 and a review, for nothing - and the
+rejection reason on each one is the only record of why. The largest are:
+
+| Query | Rejected |
+|---|---|
+| `filetype:bitmap "fish curry" bowl` | 4 |
+| `filetype:bitmap "capsicum curry"` | 2 |
+| `filetype:bitmap "chicken curry" home plate` | 2 |
+| `filetype:bitmap "mushroom curry"` | 2 |
+| `filetype:bitmap khichdi bowl` | 2 |
+| `filetype:bitmap omelette indian` | 2 |
+| `filetype:bitmap "chicken biryani"` | 1 |
+| `filetype:bitmap "corn curry"` | 1 |
+| `filetype:bitmap "dum biryani" plate` | 1 |
+| `filetype:bitmap "egg curry"` | 1 |
+
+**WHAT THE ZERO-YIELD LIST ACTUALLY SHOWS, and it is not a vocabulary problem.** Reading
+the rejection reasons rather than the titles: the recurring causes are a photograph of
+the INGREDIENT rather than the dish, a RESTAURANT BUFFET or thali where the query's dish
+is one of many, and a photograph whose own title names a DIFFERENT CUISINE. The last one
+is the expensive mistake - the khichuri accepted as khichdi would have been a wrong
+answer rather than a missing one - and it is the only one of the three that no amount
+of query tuning can prevent, because the file's title is the archive's own claim and
+the frame has to be read to contradict it.
+
