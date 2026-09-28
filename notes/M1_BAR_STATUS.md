@@ -65,6 +65,20 @@ python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, c
   owner the scanner improved because I added photographs.
 - **Meeting a class-count bar is not being a sample.** 26% of the corpus is four
   classes; the number to watch next is the concentration, not the class count.
+- **The bar says 20 real INDIAN meals, and that had never been examined.** Every other
+  check asks whether a class is distinct; none asked whether the meal is Indian at all.
+  Measured across all 53 cases: **3 truth names carry no Indian marker on their own** —
+  `Mushroom` (1 case, the batch 16 dry fry whose Indian-ness rests on the caption) and
+  `Chicken Curry` (2 cases, a dish that exists across Thai, Indonesian, British and Indian
+  cuisines). So **50 of 53 are Indian by name** and the bar is not threatened, but a
+  headline claim of "real Indian meals" should say which three rest on something weaker
+  than the dish name. Declared in `test_the_dish_classes_are_distinct.py` and checked in
+  both directions, because the first version of that check only walked the declaration
+  and a new such case left it green.
+- **I suspected five such names and three were in no case at all** — `Legume Salad`,
+  `Halwa` and `Egg` are in `DISH_CLASS` and appear in zero cases. The suspicion list was
+  longer than the finding, which is the usual direction of that error, and the count is
+  three.
 - **A class count is a count of KEYS, and two keys can be one dish.** Every class guard
   here counts the distinct `DISH_CLASS` keys the corpus hits, so a synonym pair is two
   keys for one dish and the count says 2 where a person would say 1. Five pairs are

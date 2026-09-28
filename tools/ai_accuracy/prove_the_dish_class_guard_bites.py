@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import re
+import re
 import shutil
 import subprocess
 import sys
@@ -90,16 +91,30 @@ def _shrink_the_adjacency_list(root: Path) -> None:
 
 
 def _drop_the_folded_figure_from_the_note(root: Path) -> None:
-    _patch(root, NOTE, "22 if a reviewer folds all five", "22 if you squint")
+    # The anchor tracks the note: at 33 measured classes the fold figure is 28, and an
+    # anchor left at 22 fails as "breach text not found" - which reads like a broken
+    # breach rather than a stale one. A mis-targeted breach is its own small trap.
+    _patch(root, NOTE, "28 if a reviewer folds all five", "28 if you squint")
 
 
 def _put_a_stale_class_count_back(root: Path) -> None:
     """The exact defect found on 2026-09-28: the note said 27 in its summary and 25 in
     its analysis, three paragraphs apart, and corpus_independence_test.dart passed 12 of
     12 throughout, because it re-derives the counts from cases.json and cannot notice
-    that the prose disagrees with the data it describes."""
-    _patch(root, NOTE, "The corpus is 27 classes and barely leans",
-           "The corpus is 25 classes and barely leans")
+    that the prose disagrees with the data it describes.
+
+    The anchor is the PHRASE, not the number, and that is the fix: this anchor was a
+    literal class count and it has now gone stale three times - 22, 27, 28 - each time
+    failing as "breach text not found", which reads like a broken breach rather than a
+    stale one. Anchoring on a phrase that does not change when the corpus grows is the
+    difference between a proof that needs editing every batch and one that does not.
+    """
+    n = root / NOTE
+    t = n.read_text(encoding="utf-8")
+    m = re.search(r"The corpus is (\d+) classes and barely leans", t)
+    assert m, "the analysis line is gone; this breach needs a new anchor"
+    n.write_text(t.replace(m.group(0), "The corpus is 19 classes and barely leans", 1),
+                 encoding="utf-8")
 
 
 def _remove_the_adjacency_words_from_the_note(root: Path) -> None:

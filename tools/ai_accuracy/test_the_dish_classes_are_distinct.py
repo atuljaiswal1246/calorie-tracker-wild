@@ -95,6 +95,41 @@ ADJACENT_CLASSES: dict[tuple[str, str], dict] = {
 }
 
 
+# Cases whose DISH NAME alone does not establish that the meal is Indian. The corpus's
+# bar is 20 measured real Indian meals, so this is a caveat on a headline claim rather
+# than a defect - and it is a DECLARED list so it cannot grow or rot unnoticed.
+#
+# Each entry says what the case rests on instead, because "not Indian" is almost never
+# the finding; the honest finding is "we know this from the photograph or the caption,
+# not from the name".
+#
+# MEASURED 2026-09-28 over all 53 cases. I began by suspecting five names; three of them
+# - Legume Salad, Halwa and Egg - are in DISH_CLASS and appear in NO case at all, so the
+# real figure is three. The suspicion list was longer than the finding, which is the usual
+# direction of that error.
+# The two structures are separate on purpose, and keeping them in one was the bug this
+# check caught in me: a dict keyed by CASE ID cannot be matched against truth NAMES.
+#   NAMES_WITHOUT_AN_INDIAN_MARKER - the truth strings that do not establish a cuisine
+#   NOT_INDIAN_BY_NAME             - the cases those strings appear in, with the reason
+NAMES_WITHOUT_AN_INDIAN_MARKER: set[str] = {"Mushroom", "Chicken Curry"}
+
+NOT_INDIAN_BY_NAME: dict[str, str] = {
+    "button_mushroom_fry_plate":
+        "a dry fry with no masala, onion, rice or roti in frame. Indian-ness rests on "
+        "'mushroom fry' being a standard Indian home dish - a claim about the CAPTION, "
+        "recorded as medium confidence when the case was accepted in batch 16.",
+    "chicken_curry_white_dish":
+        "'Chicken Curry' exists across Thai, Indonesian, British and Indian cuisines, so "
+        "the name does not establish the cuisine. The photograph may well show an Indian "
+        "one; the truth string does not say so.",
+    "non_veg_thali":
+        "a thali of nine labelled items, one of which is 'Chicken Curry' with the same "
+        "four-cuisine problem. The thali as a whole is plainly an Indian meal - dal, "
+        "rajma, kheer, papad, pickle - so this is the weakest of the three and is listed "
+        "because a truth string inside a case is part of the case.",
+}
+
+
 def _cases() -> list[dict]:
     return json.loads(CASES.read_text(encoding="utf-8"))["cases"]
 
@@ -257,6 +292,56 @@ class DishClassesAreDistinctTests(unittest.TestCase):
                     "would_fold_to", spec,
                     f"the {a}/{b} pair does not say which class it would fold into, so "
                     f"the alternative count cannot be computed from the declaration.")
+
+
+    def test_the_cases_whose_NAME_does_not_establish_an_Indian_meal_are_declared(self):
+        """The corpus's bar is 20 measured REAL INDIAN MEALS, and that has never been
+        examined. Every other check here asks whether a class is distinct; none asks
+        whether the meal is Indian at all.
+
+        MEASURED 2026-09-28 across all 53 cases: three truth names carry no Indian
+        marker on their own - `Mushroom` (1 case, the batch 16 dry fry whose Indian-ness
+        rests on the caption) and `Chicken Curry` (2 cases, a dish that exists across
+        Thai, Indonesian, British and Indian cuisines). Three of 53, so the bar is not
+        threatened - fifty remain Indian by name - but a headline claim of "real Indian
+        meals" should say which cases rest on something weaker than the dish name.
+
+        I listed FIVE names when I started measuring, and three of them - `Legume Salad`,
+        `Halwa` and `Egg` - are in DISH_CLASS but appear in NO case at all. That is the
+        check doing its job on me: a plausible-sounding list of doubts is worth less than
+        the count, and the count is three.
+
+        Checked in both directions, like the declared gaps in the ledger: a new
+        non-Indian-by-name case must be declared, and a declaration that is no longer
+        needed must go - otherwise the caveat is either silently widened or silently
+        forgotten.
+        """
+        cases = _cases()
+        found = {c["id"] for c in cases
+                 for t in c["truth"] if t.get("name") in NAMES_WITHOUT_AN_INDIAN_MARKER}
+        self.assertTrue(
+            NOT_INDIAN_BY_NAME,
+            "the NOT_INDIAN_BY_NAME list is empty, so this check is passing on nothing. "
+            "If every case's name now establishes an Indian meal, delete this test WITH "
+            "the list rather than leave it green on an empty declaration.")
+        # SET EQUALITY, and it took a blind breach to learn why. The first version of
+        # this check walked the DECLARATION and asked whether each declared id was still
+        # found - one direction only - so adding a new Chicken Curry case, which is
+        # exactly the case this check exists to catch, left it green. A guard that only
+        # catches one direction is half a guard, and I had written that sentence into the
+        # ledger's declared-dash check an hour earlier and then repeated the mistake here.
+        self.assertEqual(
+            found, set(NOT_INDIAN_BY_NAME),
+            f"the cases whose truth names do not establish an Indian meal are "
+            f"{sorted(found)}, but the declaration names {sorted(NOT_INDIAN_BY_NAME)}. "
+            f"Both directions are required: a new such case must be declared, and a "
+            f"declaration that is no longer needed must go. Either one alone lets the "
+            f"caveat be silently widened or silently forgotten.")
+        self.assertLessEqual(
+            len(found), 10,
+            f"{len(found)} of {len(cases)} cases now rest on something weaker than the "
+            f"dish name ({sorted(found)}). The bar is 20 Indian meals; at this rate the "
+            f"caveat is doing more work than the claim.")
 
 
 if __name__ == "__main__":
