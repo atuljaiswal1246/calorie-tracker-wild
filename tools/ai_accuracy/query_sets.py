@@ -386,8 +386,6 @@ BATCH15_QUERIES = [
 BATCH17_QUERIES = [
     'filetype:bitmap uthappam breakfast',                       # the control, proven 12/14/15/16
     'filetype:bitmap khakhra',
-    'filetype:bitmap incategory:"Gujarati cuisine" khakra',
-    'filetype:bitmap incategory:"Indian snacks" khakra',
     'filetype:bitmap "gujarati snack"',
 ]
 
@@ -447,15 +445,30 @@ BATCH18_QUERIES = [
 # there is nothing to gain from being clever about names.
 BATCH19_QUERIES = [
     'filetype:bitmap uthappam breakfast',                                # the control
-    'filetype:bitmap incategory:"Indian sweets" gajar halwa',
-    'filetype:bitmap incategory:"Indian sweets" kheer',
-    'filetype:bitmap incategory:"Indian rice dishes" pulao',
-    'filetype:bitmap incategory:"Indian sweets" halwa',
-    'filetype:bitmap incategory:"Indian snacks" papad',
-    'filetype:bitmap incategory:"Indian curries" egg',
-    'filetype:bitmap incategory:"Indian breads" paratha',
 ]
 
+
+# RETRACTED 2026-09-28: every `incategory:` query in this file was REMOVED, because
+# none of the categories it named exists. Verified against the Commons API with
+# fetch_commons.category_exists() and recorded in verified_categories.json:
+#
+#   exist ...... Indian cuisine, Vegetarian cuisine, Sweets
+#   DO NOT USE . Gujarati cuisine, Indian sweets, Indian rice dishes, Indian snacks,
+#                Indian curries, Indian breads, Indian desserts, Indian sweets and snacks
+#
+# The one that matters is "Gujarati cuisine", because batch 17 reported it as the
+# MECHANISM by which the khakhra was found. It does not exist. So `incategory:` with a
+# non-existent category does NOT return zero - it changes the search in a way that was
+# never understood - and the Gujarati snacks that query returned came from somewhere I
+# cannot now account for.
+#
+# What actually found the khakhra was the DOUBLE-K SPELLING on its own, with no category
+# in the query at all. That finding stands. The "mechanism finding" that sat beside it does
+# not, and it is retracted here rather than quietly deleted, because a claim that was
+# published and then falsified is worth more in the record than a claim that was never
+# made. test_a_search_category_must_exist.py is what makes this class of error visible
+# next time: it reads this file, and a category that is not in the verified file - or
+# that is recorded as NOT EXISTING - is a red guard rather than a plausible-looking query.
 
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15

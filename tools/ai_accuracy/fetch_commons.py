@@ -130,6 +130,40 @@ def api(params: dict) -> dict:
     raise last or RuntimeError("rate limited")
 
 
+
+def category_exists(name: str) -> bool | None:
+    """Does this Commons category actually exist? True, False, or None if unanswerable.
+
+    WHY THIS EXISTS. Batch 19 used `incategory:"Indian sweets"` and
+    `incategory:"Indian rice dishes"` - names I INVENTED - and got zero candidates, in
+    exactly the shape a dish that does not exist would produce. Four batches in this
+    corpus have now returned zero, and three of them were me: a 429, an over-constrained
+    query, and a made-up category. An instrument whose name is wrong is indistinguishable
+    from an empty world, so the name has to be checkable BEFORE it is used to conclude
+    anything.
+
+    Returns None rather than False when the API could not be asked, so a throttle is never
+    recorded as "this category does not exist" - which would be the same mistake one
+    level down.
+
+    `Category:` is namespaced because Commons and Wikipedia share the API surface and
+    only the former's categories are being asked about here.
+    """
+    try:
+        data = api({"action": "query", "format": "json", "titles": f"Category:{name}"})
+    except Exception as exc:                                  # noqa: BLE001
+        print(f"  ! could not verify category {name!r}: {exc}")
+        return None
+    pages = data.get("query", {}).get("pages", {}) or {}
+    for page in pages.values():
+        if "missing" in page:
+            return False
+        if page.get("pageid"):
+            return True
+    return False
+
+
+
 def clean(text: str) -> str:
     text = re.sub(r"<[^>]+>", " ", text or "")
     return re.sub(r"\s+", " ", html.unescape(text)).strip()
