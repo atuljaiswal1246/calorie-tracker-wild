@@ -53,9 +53,59 @@ String? _findPython() {
   return null;
 }
 
+
 void main() {
   final src = File(toolPath).readAsStringSync();
   final py = _findPython();
+
+group('the COUNT is the instrument', () {
+    // Learned from outside on 2026-09-29 (QA Lead, 232a5193): ADDING A CHECK AND
+    // GETTING THE SAME RESULT IS THE MOST DANGEROUS OUTCOME, BECAUSE IT LOOKS
+    // LIKE SUCCESS. The count is the instrument, and an unchanged count after
+    // adding an assertion means the assertion is not in the guard.
+    //
+    // The specific hole this closes in MY runner: `all checkers passed` is a claim
+    // about a SET. Nothing pinned that the set the runner iterated was the set it
+    // declared, so a checker added to CHECKERS and silently dropped by run_all -
+    // by a filter, a typo, a swallowed exception - would leave a clean table with
+    // one row missing and no sentence anywhere saying so.
+    test('every DECLARED checker produces a row', () {
+      final r = Process.runSync(py!, [toolPath, '--skip-network', '--json']);
+      expect(r.exitCode, isNot(0),
+          reason: 'precondition: the run must be honest about its own state');
+      final d = jsonDecode(r.stdout as String) as Map<String, dynamic>;
+      final ran = (d['checks'] as List).length;
+
+      // How many are declared? Read it from the module itself rather than from a
+      // constant here, because a hard-coded number in the TEST is a number that
+      // goes stale the moment someone adds a checker - which is the exact failure
+      // this group exists to catch.
+      final probe = Process.runSync(py!, ['-c',
+        'import sys; sys.path.insert(0,"tools");'
+        'import check_all_claims as m; print(len(m.CHECKERS))']);
+      final declared = int.parse((probe.stdout as String).trim());
+
+      expect(ran, declared,
+          reason: '$ran row(s) ran but $declared checker(s) are declared. A '
+              'declared checker that produced no row is invisible: the table '
+              'looks complete and "all checkers passed" would be a claim about a '
+              'set nobody can see.');
+    });
+
+    test('the header says how many checkers it is running', () {
+      // The count has to TRAVEL with the result, not be inferable by counting.
+      final r = Process.runSync(py!, [toolPath, '--skip-network']);
+      final out = r.stdout as String;
+      final m = RegExp(r'running (\d+) claim checker').firstMatch(out);
+      expect(m, isNotNull,
+          reason: 'the run must print how many checkers it is running, or the '
+              'reader is left counting rows to find out whether one is '
+              'missing:\n${out.substring(0, 300)}');
+      expect(int.parse(m!.group(1)!), greaterThan(0),
+          reason: '"running 0 checkers" and then "all checkers passed" is the '
+              'most dangerous shape a claim runner can have.');
+    });
+  });
 
   group('the runner cannot pass by doing nothing', () {
     test('the exit code is a function of the ROWS, not a constant', () {

@@ -214,7 +214,17 @@ def run_all(skip_network, as_json):
     """
     rows = []
     if not as_json:
-        print("running the claim checkers. each row appears when that checker "
+        # THE COUNT IS THE INSTRUMENT, so it travels with the result. Learned from
+        # outside on 2026-09-29 (QA Lead, 232a5193): adding a check and getting
+        # the same result is the most dangerous outcome, because it looks like
+        # success. A runner that prints "all checkers passed" without saying how
+        # many checkers passed is a claim about a set nobody can see.
+        #
+        # So the count goes in the header AND a checker that is declared but
+        # silently dropped is now a visible discrepancy rather than a clean
+        # table with one row missing from it.
+        print(f"running {len(CHECKERS)} claim checker(s). each row appears when "
+              "that checker "
               "finishes; a missing row is a checker still running.\n")
     for check in CHECKERS:
         row = run_checker(check, skip_network)
