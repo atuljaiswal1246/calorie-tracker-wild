@@ -126,6 +126,13 @@ CHECKERS = (
     # I have reported that in report after report, which is what this row exists
     # to stop: a finding I describe every twenty minutes is a comment.
     _script("tools/check_release_is_the_tree.py"),
+    # Can a shipped artefact be traced to a tree? 12 release notes existed and
+    # not one named a commit, so the owner's Desktop held a build no document
+    # in this repo could trace. Text notes only - the first version swept two
+    # APKs and reported a binary as untraceable, which is crying wolf in a new
+    # costume. Both this and the staleness check read git, so they cannot
+    # disagree with each other.
+    _script("tools/check_release_notes_trace.py"),
     # The Play listing must describe the app we ship. It is a Play-submission
     # risk, and it is a claim with no machine behind it — two features the app
     # cannot open. Local, no network, no model.
