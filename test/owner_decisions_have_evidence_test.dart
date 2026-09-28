@@ -91,6 +91,14 @@ const _decisions = <List<String>>[
     'process',
   ],
   [
+    'LOCKED SCREENS: eight screens the owner said not to change',
+    'owner, 2026-09-15 (AGENTS.md)',
+    'test/goldens/paywall.png',
+    'test/locked_screens_golden_digests_test.dart',
+    'lockedGoldenDigests',
+    'data',
+  ],
+  [
     'CORPUS INTEGRITY: every case has its photo on disk',
     'CEO, 2026-09-28',
     'tools/ai_accuracy.py',
@@ -140,8 +148,8 @@ void main() {
     expect(_decisions.every((r) => r.length == 6), isTrue,
         reason: 'Every row needs six columns: decision, who, implementation, '
             'evidence test, symbol, and the kind of evidence.');
-    expect(_decisions, hasLength(9),
-        reason: 'The number of paired decisions changed from 9. A row was added '
+    expect(_decisions, hasLength(10),
+        reason: 'The number of paired decisions changed from 10. A row was added '
             'or removed. If it was removed, say in a commit which decision lost '
             'its evidence and why. If one was added, make sure its test really '
             'exercises the symbol named.');
@@ -160,11 +168,17 @@ void main() {
     // declaration is checked against what the file does, and the table must
     // cover all three kinds - so the set cannot be satisfied entirely by string
     // greps, or entirely by one technique.
-    const markers = {
+    // 'data' accepts either way of reading a real artefact. I first narrowed it
+    // to readAsStringSync and the locked-screens test failed for reading PNG
+    // BYTES, which is the correct way to digest a PNG. The two options were: bend
+    // the digest test into reading its PNGs as text, or fix the over-narrow
+    // definition. Fixing it is the honest one - the rule is "touches the real
+    // artefact", and how it reads bytes is not the point.
+    const markers = <String, List<String>?>{
       'function': null, // it must call the pure function named in the row
-      'widget': 'testWidgets(',
-      'process': 'Process.runSync',
-      'data': 'readAsStringSync',
+      'widget': ['testWidgets('],
+      'process': ['Process.runSync'],
+      'data': ['readAsStringSync', 'readAsBytesSync'],
     };
     final problems = <String>[];
     final seen = <String>{};
@@ -186,11 +200,11 @@ void main() {
         }
         continue;
       }
-      final marker = markers[kind]!;
-      if (!src.contains(marker)) {
+      final options = markers[kind]!;
+      if (!options.any(src.contains)) {
         problems.add('$decision: declared "$kind" evidence but $evidence never '
-            'uses $marker. Declare what it really is instead of bending the '
-            'file to the label.');
+            'uses any of ${options.join(' / ')}. Declare what it really is '
+            'instead of bending the file to the label.');
       }
     }
     expect(problems, isEmpty, reason: problems.join('\n'));
