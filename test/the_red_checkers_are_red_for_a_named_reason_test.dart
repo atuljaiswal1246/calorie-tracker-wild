@@ -42,6 +42,29 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+/// Clip for a FAILURE MESSAGE, and it can never throw.
+///
+/// Learned from outside on 2026-09-29: a guard is exercised in the broken state
+/// and trusted in the fixed one, so its message has to be safe in exactly the
+/// state nobody tests - the one that means FIXED. QA Lead found a check whose
+/// failure message indexed `unclaimed[0]` inside a Python f-string; Python builds
+/// those eagerly, so the instant the claim was made and the list emptied, the
+/// check raised IndexError instead of PASSING.
+///
+/// The same defect in Dart, and it was in this file. `expect`'s `reason:` is
+/// evaluated EAGERLY on every run, pass or fail, so `reason: out.substring(0,
+/// 400)` throws a RangeError the moment the output is shorter than 400 chars -
+/// which is what a healthy tool prints. Proved here, not assumed:
+///
+///     expect(1, 1, reason: '"$out".substring(0, 400)')   // out is 19 chars
+///     -> RangeError (end): Invalid value: Not in inclusive range 0..19: 400
+///
+/// A TRIVIALLY TRUE assertion, crashed by its own explanation.
+String _clip(String s, [int n = 400]) {
+  final flat = s.replaceAll('\n', ' | ');
+  return flat.length <= n ? flat : '${flat.substring(0, n)}...';
+}
+
 const _listing = 'tools/check_store_listing.py';
 const _privacy = 'tools/check_privacy_processors.py';
 const _decisions = 'notes/OWNER_DECISIONS_PENDING.md';
@@ -87,9 +110,9 @@ void main() {
       // deliverable.
       final out = '${run(_listing).stdout}${run(_listing).stderr}';
       expect(out, contains('Meal Plans'),
-          reason: 'the Meal Plans claim is one of the two:\n${out.substring(0, 300)}');
+          reason: 'the Meal Plans claim is one of the two:\n${_clip(out, 300)}');
       expect(out, contains('Fasting Tracker'),
-          reason: 'the Fasting claim is the other:\n${out.substring(0, 300)}');
+          reason: 'the Fasting claim is the other:\n${_clip(out, 300)}');
     });
 
     test('it walks a REAL import path and reports how much it read', () {
@@ -100,7 +123,7 @@ void main() {
       expect(m, isNotNull,
           reason: 'the checker must report how much of the app it walked, or '
               '"no reachable file mentions X" is unfalsifiable:\n'
-              '${out.substring(0, 300)}');
+              '${_clip(out, 300)}');
       expect(int.parse(m!.group(1)!), greaterThan(50),
           reason: 'only ${m.group(1)} dart files reachable - a NEEDLE TOO SHORT '
               'to find a screen that is not there');
@@ -114,10 +137,10 @@ void main() {
       expect(out, contains('DORMANT'),
           reason: 'MealPlanScreen is real code that is unreachable, and that is '
               'a different decision from building Fasting:\n'
-              '${out.substring(0, 300)}');
+              '${_clip(out, 300)}');
       expect(out, contains('NOT SHIPPED'),
           reason: 'no reachable file implements FastingScreen at all:\n'
-              '${out.substring(0, 300)}');
+              '${_clip(out, 300)}');
     });
   });
 

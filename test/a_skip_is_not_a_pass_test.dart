@@ -79,6 +79,29 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+/// Clip for a FAILURE MESSAGE, and it can never throw.
+///
+/// Learned from outside on 2026-09-29: a guard is exercised in the broken state
+/// and trusted in the fixed one, so its message has to be safe in exactly the
+/// state nobody tests - the one that means FIXED. QA Lead found a check whose
+/// failure message indexed `unclaimed[0]` inside a Python f-string; Python builds
+/// those eagerly, so the instant the claim was made and the list emptied, the
+/// check raised IndexError instead of PASSING.
+///
+/// The same defect in Dart, and it was in this file. `expect`'s `reason:` is
+/// evaluated EAGERLY on every run, pass or fail, so `reason: out.substring(0,
+/// 400)` throws a RangeError the moment the output is shorter than 400 chars -
+/// which is what a healthy tool prints. Proved here, not assumed:
+///
+///     expect(1, 1, reason: '"$out".substring(0, 400)')   // out is 19 chars
+///     -> RangeError (end): Invalid value: Not in inclusive range 0..19: 400
+///
+/// A TRIVIALLY TRUE assertion, crashed by its own explanation.
+String _clip(String s, [int n = 400]) {
+  final flat = s.replaceAll('\n', ' | ');
+  return flat.length <= n ? flat : '${flat.substring(0, n)}...';
+}
+
 const _runner = 'tools/check_all_claims.py';
 
 /// One runner row as the runner itself builds it. The field the verdict is read
@@ -168,13 +191,13 @@ void main() {
       // capital letter — which teaches the next reader that this test is noise.
       expect(out.toLowerCase(), contains('a skip is not a pass'),
           reason: 'the skipped checker must be named as not verified:\n'
-              '${out.substring(0, 400)}');
+              '${_clip(out, 400)}');
       expect(out, isNot(contains('RESULT: all checkers passed')),
           reason: 'this run skipped a claim, so the word "all" is false:\n'
-              '${out.substring(0, 400)}');
+              '${_clip(out, 400)}');
       expect(r.exitCode, isNot(0),
           reason: 'a run that did not check everything must not report '
-              'success. It exited ${r.exitCode}.\n${out.substring(0, 400)}');
+              'success. It exited ${r.exitCode}.\n${_clip(out, 400)}');
     });
   });
 
@@ -230,12 +253,12 @@ void main() {
     test('the run prints rows at all', () {
       expect(verdicts(), isNotEmpty,
           reason: 'a run with no rows has told nobody anything:\n'
-              '${out.substring(0, 400)}');
+              '${_clip(out, 400)}');
     });
 
     test('no row in a run where nothing could run is a PASS', () {
       expect(verdicts().contains('PASS'), isFalse,
-          reason: 'nothing ran, so nothing passed:\n${out.substring(0, 400)}');
+          reason: 'nothing ran, so nothing passed:\n${_clip(out, 400)}');
     });
 
     test('a missing checker is an ERROR row, not a dropped row', () {
@@ -244,12 +267,12 @@ void main() {
       expect(verdicts().where((v) => v == 'ERROR').length,
           greaterThanOrEqualTo(1),
           reason: 'every repo checker is missing in this tree, so every one of '
-              'them must be a named ERROR row:\n${out.substring(0, 400)}');
+              'them must be a named ERROR row:\n${_clip(out, 400)}');
     });
 
     test('the run exits 1 when every checker is missing', () {
       expect(r.exitCode, 1,
-          reason: 'exited ${r.exitCode}:\n${out.substring(0, 400)}');
+          reason: 'exited ${r.exitCode}:\n${_clip(out, 400)}');
     });
 
     test('a SKIP is not what a missing file is reported as', () {
@@ -259,7 +282,7 @@ void main() {
       // the flag a way to hide a broken repo.
       expect(out, contains('FileNotFoundError'),
           reason: 'a missing child must name the exception it hit:\n'
-              '${out.substring(0, 400)}');
+              '${_clip(out, 400)}');
     });
   });
 
@@ -274,6 +297,76 @@ void main() {
       expect(src, contains('_script("tools/check_privacy_processors.py")'),
           reason: 'the privacy claim must be checkable without a network, or a '
               'dropped connection becomes a way to pass it.');
+    });
+  });
+
+  group('a failure message is safe in the state that means FIXED', () {
+    // QA Lead's principle, from their own report: THE STATE NOBODY EVER TESTS IS
+    // THE STATE THAT MEANS FIXED. A guard is exercised in the broken state and
+    // trusted in the fixed one, so its message has to be safe in exactly the
+    // state where there is nothing left to name.
+    //
+    // Their check indexed `unclaimed[0]` inside a Python f-string. Python builds
+    // f-strings eagerly, so the instant the claim was made and the list emptied,
+    // the check raised IndexError instead of PASSING - and the next person would
+    // have filed that as "the guard is flaky".
+    //
+    // The same defect in Dart, and it was in THIS FILE, eight times. Dart
+    // evaluates `reason:` eagerly too, so `reason: out.substring(0, 400)` throws
+    // a RangeError whenever the output is shorter than 400 characters - which is
+    // what a healthy tool prints.
+
+    test('_clip cannot throw, at any boundary', () {
+      // The boundary is where a truncation helper dies: exactly n, and one over.
+      expect(_clip(''), '');
+      expect(_clip('a'), 'a');
+      expect(_clip('x' * 10), 'x' * 10);
+      expect(_clip('x' * 400), 'x' * 400);
+      expect(_clip('x' * 401), '${'x' * 400}...');
+      expect(_clip('y' * 100000).length, 403);
+    });
+
+    test('_clip flattens newlines so a table stays readable on one line', () {
+      expect(_clip('a\nb\nc'), 'a | b | c');
+    });
+
+    test('a trivially TRUE assertion with a short reason does not throw', () {
+      // The proof, run every time. Before _clip, this raised
+      // RangeError (end): Not in inclusive range 0..19: 400 - on an assertion
+      // that could not have failed.
+      final out = 'all checkers passed'; // 19 characters: a FIXED product
+      Object? caught;
+      try {
+        expect(1, 1, reason: 'looked at: ${_clip(out, 400)}');
+      } catch (e) {
+        caught = e;
+      }
+      expect(caught, isNull,
+          reason: 'the message itself threw: $caught. A guard whose explanation '
+              'can crash it is not a guard in the state that means fixed.');
+    });
+
+    test('no reason in MY suite truncates with substring()', () {
+      // A vocabulary check on purpose, and the last line of defence: the class
+      // is a literal one, so a sweep is the cheapest guard against it creeping
+      // back in. The behavioural proof is the test above. Comment lines are
+      // exempt so the two files that DOCUMENT this bug can quote it.
+      final offenders = <String>[];
+      for (final f in Directory('test').listSync().whereType<File>()) {
+        if (!f.path.endsWith('.dart')) continue;
+        final lines = f.readAsStringSync().split('\n');
+        for (var i = 0; i < lines.length; i++) {
+          final line = lines[i];
+          if (line.trimLeft().startsWith('//')) continue;
+          final m = RegExp(r'reason:\s*(.*)').firstMatch(line);
+          if (m != null && m.group(1)!.contains('.substring(')) {
+            offenders.add('${f.path.split('/').last}:${i + 1}');
+          }
+        }
+      }
+      expect(offenders, isEmpty,
+          reason: 'these reason strings can throw RangeError when the output is '
+              'short - which is what a FIXED tool prints:\n${offenders.join('\n')}');
     });
   });
 
