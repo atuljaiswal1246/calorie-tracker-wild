@@ -280,13 +280,45 @@ def preflight(health: dict, tier_reasons: dict | None = None) -> dict:
     spent = float(paid.get("est_cost_usd_today") or 0)
     ok = bool(live) and not any(
         "OUT OF MONEY" in r or "UNKNOWN" in r for r in reasons)
+
+    # A blanket "no budget" is an OVERCLAIM when a tier is merely UNKNOWN.
+    #
+    # Measured 2026-09-28 17:05 IST: the preflight printed
+    #   aicredits: UNKNOWN - kv read failed (exit 1)
+    #   MONEY BLOCKED - no budget
+    # and the reader took away "all three tiers are out of money". Running the
+    # same probe by hand, in the same directory, returned
+    #   {"status":402,"detail":"...Insufficient Balance..."}
+    # so that tier WAS out of money — but the run cost the reader a distinction
+    # between "we know it is blocked" and "we could not read it", and the second
+    # is the one that must never be folded into the first. UNKNOWN is not a
+    # finding (standing order 4); it is the absence of one.
+    #
+    # The gate is unchanged and still fails closed: an UNKNOWN tier blocks the
+    # run, exactly as before. Only the LABEL becomes honest about how much is
+    # known, because the owner's money decision is sized from this line.
+    out_of_money = [r for r in reasons if "OUT OF MONEY" in r]
+    unknown = [r for r in reasons if "UNKNOWN" in r]
+    if ok:
+        verdict = "CLEAR TO SCAN"
+    elif unknown and not out_of_money:
+        verdict = (f"MONEY STATE UNKNOWN on {len(unknown)} tier(s) — nothing "
+                   f"measured, nothing assumed. NOT CLEAR TO SCAN.")
+    elif unknown:
+        verdict = (f"MONEY BLOCKED on {len(out_of_money)} tier(s); MONEY STATE "
+                   f"UNKNOWN on {len(unknown)} more. Blocked, but the blocked "
+                   f"count is a floor, not a total.")
+    else:
+        verdict = MONEY_BLOCKED
     return {
         "ok": ok,
         "live_tiers": live,
         "spent_today_usd": spent,
         "billed_today": paid.get("requests_billed"),
         "reasons": reasons,
-        "verdict": "CLEAR TO SCAN" if ok else MONEY_BLOCKED,
+        "out_of_money": out_of_money,
+        "unknown": unknown,
+        "verdict": verdict,
     }
 
 
@@ -1216,9 +1248,19 @@ def main() -> int:
         for r in gate["reasons"]:
             print(f"  - {r}")
         if not gate["ok"]:
-            print(f"\n{MONEY_BLOCKED} — ZERO provider calls will be made. "
+            # Print the GATE'S verdict, not a fixed sentence. The fixed sentence
+            # said "no budget" even on a run where a tier's state could not be
+            # read at all, which is the one distinction the owner's money
+            # decision is sized from. The gate fails closed either way: an
+            # unreadable tier still blocks the run, and zero calls are made.
+            unknown = gate.get("unknown") or []
+            print(f"\n{gate['verdict']} — ZERO provider calls will be made. "
                   f"Not 'UNMEASURED': this is a budget stop, and it needs a "
                   f"decision, not a retry.")
+            if unknown:
+                print(f"  {len(unknown)} tier(s) could not be READ, not "
+                      f"measured as empty. Their money state is unknown and is "
+                      f"NOT counted in the blocked figure above.")
             return 3
     if args.preflight_only:
         print("PREFLIGHT-ONLY: the gate has spoken and NO scan was run. Zero "
