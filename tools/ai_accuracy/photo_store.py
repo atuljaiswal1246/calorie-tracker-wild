@@ -73,6 +73,52 @@ def hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
 
 
+_FRAME_TOKEN = re.compile(r"^(?:dsc|dscn|img|pict|photo|frame|shot)?[\s_\-]?\d{3,5}$", re.I)
+_SPLIT = re.compile(r"[\s_\-]+")
+
+
+def frame_stem(title: str) -> str:
+    """A Commons title reduced to a frame-stripped, lowercased stem.
+
+    WHY, measured 2026-09-28. Batch 28 downloaded a photograph already rejected in batch
+    26, and that commit claimed the near-duplicate guard "compares against ACCEPTED
+    photographs and a rejected one was never in the corpus to compare against". THAT WAS
+    FALSE: both entries carry a dhash, the guard's `known` list takes every photo that has
+    one, and the hamming distance is 20 against a threshold of 8 - so it compared them and
+    correctly decided they were not the same picture.
+
+    What they are, read in full rather than truncated: "...DSC 0028.jpg" and
+    "...DSC 0029.jpg" - two consecutive frames of one meal, one photographer, one sitting.
+    Different SHA-256, different URL, and 20 bits of a 64-bit difference hash apart because
+    the camera moved. Measured for contrast: re-encoding the SAME file at quality 95, 70,
+    60 and at 50-60% scale moves the hash by 0 or 1. So "same picture twice" and "next
+    frame of the same scene" are far apart, and NEAR_DUP_DISTANCE = 8 sits correctly
+    between them.
+
+    WHICH IS WHY THE THRESHOLD IS NOT RAISED. Tuning a guard's number until a case stops
+    being reported is the same fault as reshaping a record to match a disproved instrument,
+    and it would start rejecting photographs of genuinely different dishes. Two titles that
+    differ only by a frame counter are one series whatever the pixels say, and that is
+    decidable from the title with no threshold at all.
+
+    IT STRIPS EXACTLY ONE TRAILING TOKEN, and a test found that rather than me. The first
+    version matched a run of digits at the end, which is not idempotent -
+    "CameraZOOM-20150614100720279" lost four digits, then four more. Three to five digits
+    and not two, because "Paneer Tikka 28" and "Paneer Tikka 29" are two dishes.
+
+    It lives here, beside NEAR_DUP_DISTANCE, because a second copy of a definition is the
+    two-copies fault - the same one argparse's `choices` and the query-set registry were.
+    """
+    name = (title or "").strip()
+    if name.lower().startswith("file:"):
+        name = name[5:]
+    name = re.sub(r"\.(jpg|jpeg|png|tiff?|webp)$", "", name, flags=re.I)
+    parts = [p for p in _SPLIT.split(name.strip()) if p]
+    if len(parts) > 1 and _FRAME_TOKEN.match(parts[-1]):
+        parts = parts[:-1]
+    return " ".join(parts).strip(" _-,").lower()
+
+
 def save_manifest(manifest: dict) -> None:
     """Write photos.json back WHOLE - every top-level key it did not create included.
 
