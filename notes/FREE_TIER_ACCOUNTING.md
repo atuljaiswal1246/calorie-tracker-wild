@@ -119,9 +119,9 @@ reconciled against `photos.json` it was wrong by 18 — not because it was misty
 | | count |
 |---|---|
 | rejected column, summed over all twenty-one batches | **100** |
-| rejections on record inside `photos[]` (batches 8–21 flag them there) | 54 |
+| rejections on record inside `photos[]` (batches 8–21 flag them there) | 52 |
 | rejections recovered from git history into the top-level `rejected` array | 24 |
-| **total rejections the tree can account for** | **78** |
+| **total rejections the tree can account for** | **76** |
 | **claimed but with no surviving record** | **18** |
 
 **The cause, named at the call site rather than inferred.** `fetch_commons.py` read
