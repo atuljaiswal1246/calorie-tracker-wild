@@ -479,6 +479,32 @@ BATCH21_QUERIES = [
 ]
 
 
+# BATCH 22 -- the card's own content again: more cases in singleton classes.
+#
+# The concentration is 25% and the note says watch it, so this batch is sized the same way
+# batch 18 was: one case per singleton class, never touching dal or chole.
+#
+#     55 + 6 = 61 cases, top 4 still 14  ->  14/61 = 23%
+#
+# The targets are the twelve classes still holding exactly one case, minus the ones a
+# prior batch filled. The instrument is now known: plain two-word `filetype:bitmap`
+# queries work, `incategory:` returns nothing at all, and a control is REQUIRED by
+# test_every_query_set_carries_a_control.py - so this set would go red without one.
+#
+# Chole bhature and dal makhani were deliberately left out: chole already holds 4 cases
+# and dal 5, and growing the two largest classes is the regression batches 8 and 10 were
+# built to remove.
+BATCH22_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    'filetype:bitmap rajma',
+    'filetype:bitmap lauki',
+    'filetype:bitmap makai',
+    'filetype:bitmap "sarson da saag"',
+    'filetype:bitmap "kadi pakora"',
+    'filetype:bitmap "khichdi"',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

@@ -35,6 +35,7 @@ memory. Where a figure is a claim about a vendor's plan rather than about us, th
 | 19 | 09-28 | 8 | 1 | 0 | 0 | 0 | **$0.00** |
 | 20 | 09-28 | 7 | 1 | 0 | 0 | 0 | **$0.00** |
 | 21 | 09-28 | 5 | — | 2 | 2 | 0 | **$0.00** |
+| 22 | 09-28 | 7 | — | 1 | 4 | 0 | **$0.00** |
 
 **The reason every row is zero is one fact, and it is the whole accounting:** the corpus photographs
 come from **Wikimedia Commons** over its public API, which is open data and charges nothing, and
@@ -93,7 +94,7 @@ not, because a dash in a column of numbers reads as a rendering artefact rather 
 | cell | batches | why it cannot be measured |
 |---|---|---|
 | `queries` | 1, 2, 3, 4 | These predate the fetch log. The batches were run and reviewed by hand, and nobody wrote down how many queries went out. |
-| `candidates` | 15, 16, 17, 18, 21 | The run printed how many photographs it **added** and I kept that, but not the total it **found**. The API results are gone; re-running would find a different snapshot, not the one from that afternoon, so a number produced now would be a different measurement wearing the same batch's name. Batch 19 IS measured, not a gap: the run printed one candidate and it is in the table. |
+| `candidates` | 15, 16, 17, 18, 21, 22 | The run printed how many photographs it **added** and I kept that, but not the total it **found**. The API results are gone; re-running would find a different snapshot, not the one from that afternoon, so a number produced now would be a different measurement wearing the same batch's name. Batch 19 IS measured, not a gap: the run printed one candidate and it is in the table. |
 
 **So the rule is: a dash here is a permanent, named gap — never a number reconstructed after the
 fact and never a silent blank.** `test_free_tier_ledger.py` parses the table, collects every
@@ -118,10 +119,10 @@ reconciled against `photos.json` it was wrong by 18 — not because it was misty
 
 | | count |
 |---|---|
-| rejected column, summed over all twenty-one batches | **100** |
-| rejections on record inside `photos[]` (batches 8–21 flag them there) | 52 |
+| rejected column, summed over all twenty-two batches | **104** |
+| rejections on record inside `photos[]` (batches 8–22 flag them there) | 56 |
 | rejections recovered from git history into the top-level `rejected` array | 24 |
-| **total rejections the tree can account for** | **76** |
+| **total rejections the tree can account for** | **80** |
 | **claimed but with no surviving record** | **18** |
 
 **The cause, named at the call site rather than inferred.** `fetch_commons.py` read
