@@ -61,7 +61,57 @@ void main() {
 group('the COUNT is the instrument', () {
     // Learned from outside on 2026-09-29 (QA Lead, 232a5193): ADDING A CHECK AND
     // GETTING THE SAME RESULT IS THE MOST DANGEROUS OUTCOME, BECAUSE IT LOOKS
-    // LIKE SUCCESS. The count is the instrument, and an unchanged count after
+    // A CHECKER THAT EXISTS BUT IS NEVER WIRED is invisible to every count above,
+  // because all of them read CHECKERS - the same list the runner walks. Two were
+  // sitting in tools/ unwired on 2026-09-29, one of them a guard I had described
+  // in report after report, and the count read a confident 11 the whole time.
+  //
+  // This is the sharp half of "two instruments reading the same source cannot
+  // disagree": they cannot, and that is exactly why they cannot notice a shared
+  // blind spot. The disagreement has to come from OUTSIDE the pair. This test is
+  // the outside instrument, and it reads the DIRECTORY rather than the list.
+  test('every checker in tools/ is either wired in, or on the list with a reason',
+      () {
+    final src = File('tools/check_all_claims.py').readAsStringSync();
+    final wired = RegExp(r'_script\("(tools/[^"]+)"')
+        .allMatches(src)
+        .map((m) => m.group(1)!.split('/').last)
+        .toSet();
+
+    // Named on BOTH sides on purpose: a checker is exempt only if the reason it
+    // is exempt is written next to it, so this list cannot grow silently.
+    const exempt = {
+      // The runner itself. It is what runs the rows; it cannot be one of them.
+      'check_all_claims.py',
+      // Judges roles in ANOTHER company's tree. Wiring it here would make a red
+      // in this runner depend on a tree we do not control and cannot clear.
+      'check_landings.py',
+    };
+
+    final onDisk = Directory('tools')
+        .listSync()
+        .whereType<File>()
+        .map((f) => f.uri.pathSegments.last)
+        .where((n) => n.startsWith('check_') && n.endsWith('.py'))
+        .toSet();
+
+    final orphans = onDisk.difference(wired).difference(exempt);
+    expect(orphans, isEmpty,
+        reason: 'these checkers exist and would pass forever without ever '
+            'running, because a count of CHECKERS cannot see them: '
+            '${orphans.toList()}\n'
+            'Either wire them into CHECKERS or move them to the exempt set here '
+            'WITH the reason. A guard nobody runs is a comment.');
+
+    // And prove the needle on a known positive: the detector must actually be
+    // able to see an unwired checker, or the empty result above means nothing.
+    expect(onDisk.contains('check_release_is_the_tree.py'), isTrue);
+    expect(wired.contains('check_release_is_the_tree.py'), isTrue,
+        reason: 'if this stopped being wired, the detector above would need '
+            're-testing before its green could be believed.');
+  });
+
+  // LIKE SUCCESS. The count is the instrument, and an unchanged count after
     // adding an assertion means the assertion is not in the guard.
     //
     // The specific hole this closes in MY runner: `all checkers passed` is a claim

@@ -133,6 +133,19 @@ CHECKERS = (
     # costume. Both this and the staleness check read git, so they cannot
     # disagree with each other.
     _script("tools/check_release_notes_trace.py"),
+    # Does a commit that CLAIMS a verification say HOW it was verified?
+    # Found 2 of my own commits saying "brain-verified" with no method. It was
+    # written 2026-09-28 and wired in here 2026-09-29: it was a guard I
+    # described in report after report that did not RUN with the others. That
+    # is QA Lead's class exactly - a tool sitting in the tree that nobody runs -
+    # and I found it by asking a question my count guard had blinded me to.
+    _script("tools/check_commit_claims.py"),
+    # tools/check_landings.py is DELIBERATELY not wired here. It judges roles in
+    # ANOTHER company's tree, so adding it would make a red in MY runner depend
+    # on a tree I do not control and cannot clear. It belongs in that runner.
+    # Written down so a future session does not "fix" the omission by wiring it
+    # and inheriting a red it has no way to make green.
+
     # The Play listing must describe the app we ship. It is a Play-submission
     # risk, and it is a claim with no machine behind it — two features the app
     # cannot open. Local, no network, no model.
