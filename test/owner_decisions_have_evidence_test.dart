@@ -149,6 +149,47 @@ void main() {
             '${problems.join('\n')}\n');
   });
 
+  test('the human-readable note exists and matches the table', () {
+    // A table only a test can read is not a report. notes/OWNER_DECISIONS.md is
+    // generated from this file by tools/write_owner_decisions.py, and this runs
+    // that script in --check mode, so the two cannot drift: adding a row without
+    // regenerating, or editing the note by hand, both fail here.
+    final note = File('notes/OWNER_DECISIONS.md');
+    expect(note.existsSync(), isTrue,
+        reason: 'The owner should not have to open a Dart file to find out what '
+            'is verified. Run tools/write_owner_decisions.py.');
+
+    final text = note.readAsStringSync();
+    final missing = <String>[];
+    for (final row in _decisions) {
+      if (!text.contains(row[0])) {
+        missing.add(row[0]);
+      }
+    }
+    expect(missing, isEmpty,
+        reason: 'Decisions in the table that the note does not mention:\n'
+            '${missing.join('\n')}\nRegenerate with '
+            'tools/write_owner_decisions.py');
+
+    // And the note must carry an honest gap for every row. A row with no known gap
+    // is a row nobody has examined, and the note says so itself.
+    final gaps = RegExp(r'known gap: (.+)').allMatches(text).map((m) => m.group(1)!).toList();
+    final emptyGaps = gaps.where((g) => g.startsWith('none recorded')).toList();
+    expect(emptyGaps, isEmpty,
+        reason: 'These decisions have no recorded known gap, which usually means '
+            'nobody looked. Write the gap down - "none" is not the same as '
+            '"nothing to worry about".');
+    expect(gaps.length, _decisions.length,
+        reason: 'The note has ${gaps.length} gaps for ${_decisions.length} rows.');
+  });
+
+  test('the note is in sync, not just present', () {
+    final r = Process.runSync('python3', ['tools/write_owner_decisions.py', '--check']);
+    expect(r.exitCode, 0,
+        reason: 'notes/OWNER_DECISIONS.md is stale: '
+            '${(r.stdout as String)}${r.stderr as String}');
+  });
+
   test('the table is not allowed to shrink quietly', () {
     // Order 9 is only as good as the list behind it. If a row is deleted, the
     // count moves and this fails - the same trick as the locked-surface list,
