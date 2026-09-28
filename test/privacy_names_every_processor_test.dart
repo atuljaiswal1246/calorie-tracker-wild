@@ -114,6 +114,42 @@ void main() {
             'the fix belongs in the page, not in the checker.');
   });
 
+  test('it checks the two INTERNAL copies too, not just the hosted page', () {
+    // The same wrong claim was in three places. A guard that watches one file
+    // lets the finding out the other two doors — and the owner fills the Play
+    // data-safety form from AGENTS.md, not from the hosted page.
+    final out = output();
+    expect(out, contains('PRIVACY_POLICY.md'));
+    expect(out, contains('AGENTS.md'));
+    expect(out, contains('Internal copies'),
+        reason: 'the copy-check section is missing entirely');
+  });
+
+  test('it quotes the exact DECLARING line, so the owner can see what to fix', () {
+    // AGENTS.md contains the word "OpenRouter" somewhere, so a whole-file check
+    // reported it "complete" while the sentence that becomes the declaration
+    // still read "photos (sent to AICredits for analysis)". The check must look
+    // at the declaring line, and print it.
+    final out = output();
+    expect(out, matches(RegExp(r'sent to AICredits for analysis')),
+        reason: 'the declaring sentence is not quoted, so a reader cannot see '
+            'which text the verdict is about:\n$out');
+    expect(out, isNot(matches(RegExp(r'AGENTS\.md\s+complete'))),
+        reason: 'AGENTS.md cannot be complete: its data-safety line names only '
+            'AICredits. A "complete" here is a whole-file false pass.');
+  });
+
+  test('it does not report a processor missing from a line that names none', () {
+    // The overcorrection: matching on the word "photo" alone swept in every
+    // image path in the file, and then reported AICredits missing from a line
+    // that never mentioned a processor. Both halves are required now — the line
+    // must name a processor AND say what is sent.
+    final out = output();
+    expect(out, isNot(contains('MISSING aicredits')),
+        reason: 'aicredits is named in both files; reporting it missing means '
+            'the line filter is matching on the wrong half:\n$out');
+  });
+
   test('the live provider really is openrouter — read, not assumed', () {
     // This one is skipped when there is no network, because a network failure
     // is not evidence about the provider. It is here so that when it DOES run,

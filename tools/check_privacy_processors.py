@@ -51,6 +51,15 @@ TERMS = ROOT / "public" / "terms.html"
 WORKER = ROOT / "cloudflare_worker" / "worker.js"
 WORKER_URL = "https://cal-matters-gemini-proxy.atuljaiswal1246.workers.dev"
 
+# The user-facing document, and the internal copies that the Play Console is
+# filled from. The first version of this checker guarded public/privacy.html
+# alone, which meant the SAME wrong claim survived in two more places:
+# PRIVACY_POLICY.md (the repo copy) and AGENTS.md's data-safety section, which
+# says "photos (sent to AICredits for analysis)". A guard that watches one file
+# is a guard that lets the finding through the other two doors.
+USER_FACING = [POLICY]
+DECLARED_COPIES = [ROOT / "PRIVACY_POLICY.md", ROOT / "AGENTS.md"]
+
 # The policy must name the company's CONSUMER-FACING name, not the secret's
 # variable name. The Worker calls its secret OPENROUTER_KEY; the company a user
 # could complain to is OpenRouter. Keeping both spellings here means a policy
@@ -101,13 +110,49 @@ def _reachable_tiers() -> tuple[set[str], list[str]]:
     return tiers, evidence
 
 
+# A "declaring line" is one that NAMES a processor AND says what is sent to it.
+# Matching on "photo|image" alone swept in every image path in the file and then
+# reported a processor missing from a line that never mentioned any — which is
+# how a file that says "AICredits" plainly got reported as naming no processor
+# at all. Both halves are required, and the line is reported so a reader can see
+# that the filter chose it rather than guessed.
+_SENT = re.compile(r"photo|image|picture|scan|analys|analys|process|retai|"
+                   r"upload|send|sent", re.I)
+_NAME = re.compile(
+    r"\b(" + "|".join(sorted(
+        {n for names in PROCESSOR_NAMES.values() for n in names},
+        key=len, reverse=True)) + r")\b", re.I)
+
+
+def _declaring_lines(text: str) -> list[str]:
+    """Lines that name a processor AND say what is sent to it."""
+    out = []
+    for ln in text.splitlines():
+        ln = ln.strip().lstrip("-*| ").strip()
+        if not ln or _NAME.search(ln) is None or _SENT.search(ln) is None:
+            continue
+        out.append(ln)
+    return out
+
+
+def _quote_one(lines: list[str]) -> str:
+    if not lines:
+        return "(no declaring line found - nothing to quote)"
+    ln = lines[0]
+    return (ln[:110] + "...") if len(ln) > 110 else ln
+
+
+def _strip_markup(raw: str) -> str:
+    """Plain text a reader could see. A name inside an HTML comment is not a
+    promise, and counting it as one would let a commented-out name pass."""
+    no_comments = re.sub(r"<!--.*?-->", " ", raw, flags=re.S)
+    return re.sub(r"<[^>]+>", " ", no_comments)
+
+
 def _policy_text() -> str:
     if not POLICY.exists():
         return ""
-    raw = POLICY.read_text(encoding="utf-8", errors="replace")
-    # Strip tags so a name that only appears in a comment or an attribute is not
-    # counted as a promise made to a reader.
-    return re.sub(r"<[^>]+>", " ", raw)
+    return _strip_markup(POLICY.read_text(encoding="utf-8", errors="replace"))
 
 
 def _live_health(timeout: float = 20.0) -> dict | None:
@@ -190,11 +235,48 @@ def main() -> int:
         print("declaration and the behaviour disagree. Name every processor, or")
         print("describe the mechanism (one door, model chosen server-side, any")
         print("of several processors) — which stays true as the rotation changes.")
+    else:
+        print(f"PASS: the policy names all {len(tiers)} processors the Worker can "
+              f"serve ({', '.join(sorted(tiers))}).")
+
+    # The same claim, restated where Play Console is actually filled from. A
+    # corrected hosted page with a stale repo copy still puts the wrong name in
+    # the declaration, so these are checked for the same coverage.
+    print("\nInternal copies of the same declaration (Play Console is filled "
+          "from these):")
+    stale_copies = []
+    for path in DECLARED_COPIES:
+        if not path.exists():
+            print(f"  {path.name:<22} ABSENT (nothing to check)")
+            continue
+        text = _strip_markup(path.read_text(encoding="utf-8", errors="replace"))
+        # The DECLARING LINES, not the whole file. AGENTS.md passes a whole-file
+        # test today because it contains the word "OpenRouter" in a comment about
+        # backups — while the sentence the owner copies into the data-safety form
+        # still reads "photos (sent to AICredits for analysis)". A file-level
+        # match is the vocabulary trap again: the file mentions the right word
+        # somewhere while the claim stays wrong.
+        claims = _declaring_lines(text)
+        gaps = [t for t in sorted(tiers)
+                if not any(n.lower() in " ".join(claims).lower()
+                           for n in PROCESSOR_NAMES.get(t, [t]))]
+        where = _quote_one(claims)
+        if gaps:
+            print(f"  {path.name:<22} MISSING {', '.join(gaps)}")
+            print(f"  {'':<22} in its declaring line: {where}")
+            stale_copies.append((path.name, gaps))
+        else:
+            print(f"  {path.name:<22} complete")
+
+    if stale_copies:
+        print()
+        for name, gaps in stale_copies:
+            print(f"  - {name} still omits {', '.join(gaps)} from the line the "
+                  f"declaration is written from.")
+        print("  Fixing the hosted page alone does not fix the declaration.")
         return 1
 
-    print(f"PASS: the policy names all {len(tiers)} processors the Worker can "
-          f"serve ({', '.join(sorted(tiers))}).")
-    return 0
+    return 0 if not missing else 1
 
 
 if __name__ == "__main__":
