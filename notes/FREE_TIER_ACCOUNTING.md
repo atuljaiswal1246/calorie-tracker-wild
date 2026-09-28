@@ -73,7 +73,41 @@ Google publishes none, and the AI Studio page is login-gated to the owner's acco
 - If the owner buys a Pexels key, the video path starts spending requests against a 200/hour cap, and
   that cap becomes a real ceiling that belongs beside the corpus's other documented limits.
 
-**The guard for this file is the same one that guards the corpus:** `test/corpus_independence_test.dart`
-reads the DECLARED counts and fails when they go stale. It cannot see money, so the money column above
-is asserted by the next person who runs a batch — which is why every batch's commit message repeats
-`0 model calls, 0 rupees` rather than trusting this file to remember it.
+**The guard for this file is its own, because a ledger nobody checks is a document.**
+`tools/ai_accuracy/test_free_tier_ledger.py` reads the table above and checks it against the
+artefacts, and `test/free_tier_ledger_test.dart` runs that module inside the Flutter suite so it
+cannot be skipped by anyone who does not know it exists. What it checks:
+
+- every row's batch numbers are consecutive with no gap or repeat;
+- every row's accepted total, summed across all batches, **equals `len(cases)`** — so a row cannot
+  be invented, dropped or double-counted, and the ledger cannot drift from the corpus;
+- no batch is credited with more accepted + rejected than it fetched;
+- every row still claims **zero model calls and $0.00**, and a row that stops claiming it fails
+  **by name** rather than the file quietly becoming a different document;
+- **`tools/ai_accuracy.py --corpus` runs with the network poisoned** — the falsifier this section
+  names, executed rather than described. If the producer ever needs the network it is reaching a
+  model, and "0 model calls" across every batch is then a lie;
+- the admission below, and the labour paragraph, are still in the file. Tidying the honesty out
+  fails the guard.
+
+**What it still cannot see, and this is the whole remaining gap: it cannot see money.** A dollar
+figure cannot be asserted from inside the repo — it is a statement about spend on the outside
+world. So the money column above is asserted by the next person who runs a batch, which is why
+every batch's commit message repeats `0 model calls, 0 rupees` rather than trusting this file to
+remember it. The checkable part of "free" — that nothing in the loop calls a model — is now
+machine-checked; the *spend* is still a human claim, and pretending otherwise would be the same
+defect one level down.
+
+**The bite proof:** `tools/ai_accuracy/prove_the_ledger_guard_bites.py` breaches each of those
+checks in a throwaway copy of this repo's layout and asserts the named test goes red — **8 of 8,
+including a breach that installs a producer which really does call `urlopen`**, because a poison
+check that passes for an unrelated reason (a bad path, a missing import) looks exactly like a
+poison check that worked. A guard that has only ever been green is a comment.
+
+**Two of the eight breaches caught rules I had written wrong**, which is the reason the proof
+exists and not just the test. I first asserted "rejected ≥ accepted past batch 1"; it went **red on
+batch 8**, which fetched 94 candidates, accepted 7 and rejected 4 and left the other 83 fetched but
+never opened. A rule that fails on real data was never a rule. The one I shipped instead — you
+cannot judge a photograph you did not fetch — cannot be evaded by arithmetic. The second: batch 1's
+model column reads `0 (in-repo originals)`, and an exact-string check failed it, so the check reads
+the leading token and the reason survives.
