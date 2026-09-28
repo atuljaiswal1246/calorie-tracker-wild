@@ -328,6 +328,39 @@ BATCH12_QUERIES = [
 ]
 
 
+# BATCH 13 -- the last three empty classes, and the dish FORM rather than the name.
+#
+# Batch 12 widened the NAMES (khakro, dhingra, gavar phali) and filled uthappam and
+# raitha but not khakra, mushroom or french beans. Its own commit named the next move:
+# change the dish FORM.
+#
+# There is a real trade-off here and it is worth writing down before the results, because
+# it is the reason this round might fail in a new way. A wider form - "a whole thali" -
+# finds the dish more often, but a thali is a COMPOSITE: class_of takes the first
+# non-staple item, so on a Gujarati thali the class would be decided by whichever
+# vegetable I happened to list first. That is the four-component-plate fault batch 10
+# rejected. So this round widens the form WITHOUT going composite: bowl, gravy, curry,
+# sabzi and fry words, which are still single dishes but photograph differently from a
+# close-up.
+#
+# And the standing commitment from batch 12 is kept: if this comes back thin, the result
+# is that these three stay EMPTY, recorded with the measured reason, rather than a case
+# manufactured to fill a key. A class filled with a photograph that does not show the
+# class is worse than an empty class, because the empty one is honest.
+BATCH13_QUERIES = [
+    'filetype:bitmap "mushroom curry" bowl gravy',
+    'filetype:bitmap "mushroom masala" gravy',
+    'filetype:bitmap "mushroom fry" indian',
+    'filetype:bitmap "beans curry" bowl',
+    'filetype:bitmap "french beans" masala gravy',
+    'filetype:bitmap "beans poriyal" bowl',
+    'filetype:bitmap khakra rotli',
+    'filetype:bitmap "dal khichdi" gujarati',
+    'filetype:bitmap khakra thepla gujarati',
+    'filetype:bitmap "gavar phali" sabzi',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -416,7 +449,26 @@ BATCH4_QUERIES = [
     'filetype:bitmap "poha"',
 ]
 
+SEARCH_FAILURES: list[tuple[str, str]] = []
+
+
 def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
+    # Queries that could not be SEARCHED AT ALL, as opposed to queries that were
+    # searched and returned nothing. These are different facts about the world and the
+    # difference is the whole point of this list.
+    #
+    # Found 2026-09-28, and it is the exact trap this repo already has a rule about: an
+    # empty result is not a negative finding. Batch 13 printed "openly licensed
+    # candidates: 0" for ten queries that were ALL HTTP 429 - rate-limited - including
+    # a query that had returned results two batches earlier. The exception was caught
+    # per-query, one line was printed, and the batch carried on, so a fact about US
+    # (we were throttled) was about to be written into a case record as a fact about
+    # the DISHES (Commons has no photograph of a khakra). The three classes would have
+    # been declared permanently unfillable on the strength of a throttle.
+    #
+    # So the failures are counted, and main() refuses to report a batch as a zero when
+    # any query never got to be asked.
+    SEARCH_FAILURES.clear()
     seen, out = set(), []
     for q in (queries or QUERIES):
         try:
@@ -428,7 +480,10 @@ def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
                 "iiurlwidth": "1000",
             })
         except Exception as exc:                      # noqa: BLE001
-            print(f"  ! search failed for {q!r}: {exc}")
+            # Recorded, not just printed. A query that was never asked is not a query
+            # that found nothing, and the batch must not be able to say otherwise.
+            SEARCH_FAILURES.append((q, f"{type(exc).__name__}: {exc}"))
+            print(f"  ! search FAILED for {q!r}: {exc}")
             continue
         time.sleep(1.5)          # Commons rate-limits bursts with HTTP 429
         for page in (data.get("query", {}).get("pages", {}) or {}).values():
@@ -569,14 +624,28 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12", "batch13"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
     sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES, "batch10": BATCH10_QUERIES,
     "batch11": BATCH11_QUERIES,
-    "batch12": BATCH12_QUERIES}
+    "batch12": BATCH12_QUERIES,
+    "batch13": BATCH13_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
+    if SEARCH_FAILURES:
+        # Distinct exit code, and a message that cannot be skimmed past. A batch that
+        # learned nothing must not look like a batch that found nothing, because the
+        # second one gets written into a case record and the first one gets retried.
+        throttled = sum(1 for _, e in SEARCH_FAILURES if "429" in e)
+        print(f"\n!! {len(SEARCH_FAILURES)} of {len(sets.get(args.set, QUERIES))} queries "
+              f"could not be searched at all ({throttled} of them HTTP 429 rate-limited).")
+        print("!! THIS BATCH LEARNED NOTHING about the dishes. The candidate count below is "
+              "NOT evidence that these foods lack photographs - it is evidence that we were "
+              "not allowed to ask. Retry later; do not record a zero from this run.")
+        for q, e in SEARCH_FAILURES:
+            print(f"     not asked: {q}  ({e})")
+        return 3
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
         for c in cands[:25]:
