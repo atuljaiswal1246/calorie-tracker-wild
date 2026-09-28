@@ -68,6 +68,11 @@ const _orders = <List<String>>[
     'the full suite runs once, with the owner',
     '10. never run the full suite; scoped tests only',
   ],
+  [
+    'NEVER DISCARD UNCOMMITTED WORK',
+    'guard_uncommitted.py',
+    '11. never discard work I did not write; save, look, then decide',
+  ],
 ];
 
 void main() {

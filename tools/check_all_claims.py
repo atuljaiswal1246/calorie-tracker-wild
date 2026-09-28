@@ -93,6 +93,12 @@ def _git(*args):
 CHECKERS = (
     _script("tools/ai_accuracy.py", "--self-test"),
     _script("tools/ai_accuracy.py", "--corpus"),
+    # Order 11's own machine, asked a question it can answer without a working
+    # tree being dirty: does the guard still run, and does it still know the
+    # destructive verbs? A guard that has quietly rotted is worse than no guard,
+    # because the next session trusts it. `check` on a path that is clean is a
+    # real execution of the refusal path, not a source scan for its name.
+    _script("tools/guard_uncommitted.py", "--self-test"),
     _script("tools/check_external_claims.py", network=True),
     _script("tools/check_self_claims.py", "--skip-suite"),
     _git("rev-parse", "--short", "HEAD"),

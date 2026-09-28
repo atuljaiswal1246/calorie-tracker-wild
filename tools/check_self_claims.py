@@ -136,7 +136,7 @@ def _suite_line(text: str) -> int | None:
     m = re.search(r"\*\*(\d+) tests pass", text)
     return int(m.group(1)) if m else None
 
-def render(analyze: dict, tests: int | None) -> str:
+def render(analyze: dict, tests: int | None, prior_suite_line: str = "") -> str:
     verdict = ("**No issues found**" if analyze["issues"] == 0
                else f"**{analyze['issues']} issues, "
                     f"{analyze['errors']} errors** — zero errors is the bar; the "
@@ -152,8 +152,28 @@ def render(analyze: dict, tests: int | None) -> str:
         lines.append(f"- `flutter test` → {tests} tests ran (INFORMATIONAL: the "
                      f"count has varied between runs on an unchanged tree, so "
                      f"nothing is asserted on it)")
+    elif prior_suite_line:
+        # NOT MEASURED IS NOT ABSENT. With --skip-suite I have no suite number,
+        # so I keep the line that is already there and mark it unverified. A
+        # generator that deletes a claim it did not re-measure is a generator
+        # that erases evidence, and "no output" would then read as "no tests".
+        # That is the empty-result trap, in a file whose whole job is claims.
+        lines.append(prior_suite_line.rstrip())
+        lines[-1] += "  [NOT RE-MEASURED this run — `flutter test` was skipped]"
     lines.append(BLOCK_END)
     return "\n".join(lines)
+
+
+def _prior_suite_line(text: str) -> str:
+    """The existing `flutter test` line inside the generated block, if any."""
+    start = text.find(BLOCK_START)
+    end = text.find(BLOCK_END)
+    if start == -1 or end == -1:
+        return ""
+    for line in text[start:end].splitlines():
+        if "`flutter test`" in line:
+            return line
+    return ""
 
 
 def main() -> int:
@@ -188,7 +208,7 @@ def main() -> int:
             print(f"  test -> {tests} tests")
 
     text = AGENTS.read_text(encoding="utf-8")
-    block = render(analyze, tests)
+    block = render(analyze, tests, _prior_suite_line(text))
     if args.write:
         if BLOCK_START in text and BLOCK_END in text:
             text = re.sub(re.escape(BLOCK_START) + r".*?" + re.escape(BLOCK_END),
