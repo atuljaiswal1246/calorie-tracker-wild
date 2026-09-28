@@ -1,3 +1,8 @@
+PROVENANCE: version 0.9.7 was declared in pubspec.yaml at commit c7cf853f (found with `git log -S`, not typed). That is the commit at which the
+version number was set - NOT a claim about which tree any shipped artefact was
+built from. The artefact on disk is checked separately by
+tools/check_release_is_the_tree.py, which reads the APK's own manifest.
+
 A smarter reminder: Cal Matters now learns when you usually log each meal and nudges you only if you haven't logged it — once per meal, never at night.
 
 Also sharper throughout: more consistent spacing and corners across every screen, tied to one design system.

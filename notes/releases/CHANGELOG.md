@@ -6,6 +6,8 @@ testing**; `tools/publish.py <aab> <track> [notes-file]`.
 ---
 
 ## 0.9.10 (15) — 2026-09-23 — closed testing
+
+*Version 0.9.10 was declared in `pubspec.yaml` at commit `59e157dd` — found with `git log -S`, not typed. That is the version bump, not a claim about which tree a shipped artefact was built from; `tools/check_release_is_the_tree.py` checks that separately by reading the APK's own manifest.*
 Three fixes reported from device testing.
 
 **Capture — never stuck with an incomplete meal.**
@@ -29,6 +31,8 @@ Uploaded via `tools/publish.py`; read back `alpha completed ['15'] 0.9.10`.
 ---
 
 ## 0.9.9 (14) — 2026-09-21 — live on closed testing
+
+*Version 0.9.9 was declared in `pubspec.yaml` at commit `8d023ac5` — found with `git log -S`, not typed. That is the version bump, not a claim about which tree a shipped artefact was built from; `tools/check_release_is_the_tree.py` checks that separately by reading the APK's own manifest.*
 Two themes: the way in (pricing) and Home.
 
 **Pricing: paywall removed from the funnel; 7-day trial + soft lock.**
@@ -65,11 +69,17 @@ gets a fresh 7 days).
 ---
 
 ## 0.9.8 (13) — 2026-09-21 — live on closed testing
+
+*Version 0.9.8 was declared in `pubspec.yaml` at commit `22b4cb18` — found with `git log -S`, not typed. That is the version bump, not a claim about which tree a shipped artefact was built from; `tools/check_release_is_the_tree.py` checks that separately by reading the APK's own manifest.*
 - Home design-system pass (spacing, Material Symbols, type scale).
 - Test build with the paywall bypassed + Settings "TEST BUILD" banner.
 
 ## 0.9.7 (12) — 2026-09-19 — live on closed testing
+
+*Version 0.9.7 was declared in `pubspec.yaml` at commit `c7cf853f` — found with `git log -S`, not typed. That is the version bump, not a claim about which tree a shipped artefact was built from; `tools/check_release_is_the_tree.py` checks that separately by reading the APK's own manifest.*
 - Widgets (ring + meal), undo-delete, meal nudge, sound test.
 
 ## 0.9.6 (11) — 2026-09-16
+
+*Version 0.9.6 was declared in `pubspec.yaml` at commit `07c39639` — found with `git log -S`, not typed. That is the version bump, not a claim about which tree a shipped artefact was built from; `tools/check_release_is_the_tree.py` checks that separately by reading the APK's own manifest.*
 - Water widget pulled (one-tap background action did not run on a real device).

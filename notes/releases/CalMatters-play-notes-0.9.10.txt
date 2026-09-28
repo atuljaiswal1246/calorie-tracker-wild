@@ -1,1 +1,6 @@
+PROVENANCE: version 0.9.10 was declared in pubspec.yaml at commit 59e157dd (found with `git log -S`, not typed). That is the commit at which the
+version number was set - NOT a claim about which tree any shipped artefact was
+built from. The artefact on disk is checked separately by
+tools/check_release_is_the_tree.py, which reads the APK's own manifest.
+
 Missed a dish in your meal scan? Tap "Add item" and search for it — perfect for thalis where the AI may skip a side. Tap any item's portion to change it (50g, 100g, 200g…), and the calories and macros update instantly. The Home calorie ring now shows what you've eaten, so it fills as you log through the day.

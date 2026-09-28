@@ -1,3 +1,8 @@
+PROVENANCE: version 0.9.6 was declared in pubspec.yaml at commit 07c39639 (found with `git log -S`, not typed). That is the commit at which the
+version number was set - NOT a claim about which tree any shipped artefact was
+built from. The artefact on disk is checked separately by
+tools/check_release_is_the_tree.py, which reads the APK's own manifest.
+
 Hi! New build (0.9.6) is on the testing link — please update when you get a chance.
 
 Two things to try, both new:

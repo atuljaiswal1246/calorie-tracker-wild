@@ -1,1 +1,6 @@
+PROVENANCE: version 0.9.8 was declared in pubspec.yaml at commit 22b4cb18 (found with `git log -S`, not typed). That is the commit at which the
+version number was set - NOT a claim about which tree any shipped artefact was
+built from. The artefact on disk is checked separately by
+tools/check_release_is_the_tree.py, which reads the APK's own manifest.
+
 A new Home, rebuilt around what matters most: calories left at a glance, with protein, carbs and fat right beside it. One-tap Scan food, plus Gallery and Quick picks. Water and steps now live in Today's habits, daily quests are clearer, and your recent meals are one swipe away. New Trophy tab for achievements; Insights now lives in Progress.
