@@ -309,8 +309,15 @@ def self_test() -> int:
             print(f"FAIL: {f}")
         return 1
     print("")
-    print("guard_uncommitted self-test: the guard refuses uncommitted work, "
-          "leaves it on disk, and saves a patch before anything may be discarded")
+    # NAME THE WORLD. Learned from outside on 2026-09-29: a one-line answer with
+    # one meaning and two worlds is a fault, because the reader cannot tell which
+    # one produced it. This self-test ran in a THROWAWAY repo, and two different
+    # repos produce this identical line - so the line now says which tree it
+    # exercised. A self-test whose summary cannot be attributed is a summary
+    # about nothing in particular.
+    print(f"guard_uncommitted self-test in {root}: the guard refuses uncommitted "
+          "work, leaves it on disk, and saves a patch before anything may be "
+          "discarded")
     return 0
 
 
@@ -387,10 +394,13 @@ def main(argv: list[str] | None = None, root_override: Path | None = None) -> in
 
     dirty = dirty_paths(root, paths)
     if not dirty:
-        print(f"SAFE: nothing uncommitted in {', '.join(paths)}.")
+        # WHICH WORLD. The bare filename is a throwaway temp name and identifies
+        # nothing: the same line comes out of any repo on any machine. A reader
+        # who is told "nothing uncommitted" needs to know which tree was checked.
+        print(f"SAFE: nothing uncommitted in {', '.join(paths)}  [repo: {root}]")
         return EXIT_SAFE
 
-    print("REFUSED: uncommitted changes in a file I did not write.")
+    print(f"REFUSED: uncommitted changes in a file I did not write  [repo: {root}]")
     for d in dirty:
         print(f"  modified: {d}")
     print("")
