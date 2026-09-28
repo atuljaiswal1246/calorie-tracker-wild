@@ -31,6 +31,7 @@
 // from this tree, which is the owner's call and not a code change. A guard that
 // can only be made green by pretending is worse than one that cannot.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -89,5 +90,42 @@ void main() {
     expect(src, contains('_script("tools/check_release_is_the_tree.py")'),
         reason: 'this has to run with everything else, or it becomes the same '
             'comment it was written to replace.');
+  });
+
+  test('a DIRECTION is never printed so that it can be quoted as a value', () {
+    // I wrote "129 commits behind" into every report between 02:45 and 05:0x.
+    // It is 140 now, because I landed 11 commits in the interval - including the
+    // ones fixing the very thing the number measured. So the number changed while
+    // I was describing it, which is the definition of a direction and not a
+    // value, and a wrong number is ACTIONABLE: it sends a role after something
+    // that is not there.
+    //
+    // The count is still printed - it is true and useful. What is pinned here is
+    // the LABEL, because the failure is reading it, not computing it.
+    final out = '${Process.runSync('python3', [_tool]).stdout}';
+    expect(out, contains('DIRECTION'),
+        reason: 'the total-commit count grows every time anyone commits. It has '
+            'to say so where it is printed, not only in a docstring nobody opens '
+            'before quoting the figure:\n$out');
+    expect(out, contains('a VALUE'),
+        reason: 'and the stable count - the one that moves only when product '
+            'code moves - has to be marked as the value, so the two cannot be '
+            'confused by whoever reads this at 6am:\n$out');
+  });
+
+  test('the direction and the value are different numbers, and that is the point',
+      () {
+    // Prove the discrimination on the real instance rather than asserting it in
+    // prose: the two counts must differ, because tools/ and test/ commits landed
+    // tonight and none of them can ship inside an APK.
+    final r = Process.runSync('python3', [_tool, '--json']);
+    final d = jsonDecode('${r.stdout}') as Map<String, dynamic>;
+    final a = (d['artefacts'] as List).first as Map<String, dynamic>;
+    final value = (a['behind_product_commits'] as List).length;
+    final direction = a['commits_since_built_total'] as int;
+    expect(direction, greaterThan(value),
+        reason: 'the total is larger than the product-only count precisely '
+            'because commits that cannot ship were also counted. If these ever '
+            'matched, one of them has stopped being the thing I think it is.');
   });
 }

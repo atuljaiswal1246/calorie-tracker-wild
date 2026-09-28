@@ -88,6 +88,15 @@ def missing_since(epoch: int, cap: int = 12) -> list[str]:
     return [ln for ln in out.splitlines() if ln.strip()][:cap]
 
 
+def _count_since(epoch: int) -> int:
+    """Every commit since that moment, not just product ones. A DIRECTION."""
+    out = _git("rev-list", "--count", f"--since=@{epoch}", "HEAD")
+    try:
+        return int(out)
+    except ValueError:
+        return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--json", action="store_true")
@@ -126,7 +135,6 @@ def main(argv: list[str] | None = None) -> int:
     stale = False
     for rel, path in found:
         mtime = int(path.stat().st_mtime)
-        age = time.time() - mtime
         behind = missing_since(mtime) if mtime < new_epoch else []
         is_stale = mtime < new_epoch
         stale = stale or is_stale
@@ -135,11 +143,25 @@ def main(argv: list[str] | None = None) -> int:
             "built_epoch": mtime,
             "newest_product_commit": new_sha,
             "behind_product_commits": behind,
+            # Two DIFFERENT numbers, and conflating them is the mistake this key
+            # exists to prevent. `behind_product_commits` counts commits touching
+            # lib/ - it is a VALUE, it moves only when product code moves.
+            # `commits_since_built_total` counts every commit including tools/ and
+            # test/ - it is a DIRECTION. It grows by one for every commit I land,
+            # including the ones fixing the very thing it measures.
+            #
+            # I quoted 129 of these in every report between 02:45 and 05:0x, and
+            # it is 140 now, because I landed 11 commits in the interval. A number
+            # that changes while you are describing it is not a value, and the
+            # honest sentence is "the artefact is behind, and the gap widens".
+            "commits_since_built_total": _count_since(mtime),
             "stale": is_stale,
         })
 
     if args.json:
         print(json.dumps({"tool": "check_release_is_the_tree", "ok": not stale,
+                          "note": "behind_product_commits is a value; "
+                                  "commits_since_built_total is a direction and grows",
                           "artefacts": results}, indent=2))
         return 1 if stale else 0
 
@@ -150,8 +172,13 @@ def main(argv: list[str] | None = None) -> int:
         if r["stale"]:
             n = len(missing_since(r['built_epoch'], cap=999))
             print(f"    STALE: {n} product commit(s) are NOT in this artefact.")
+            print(f"    (a VALUE - it moves only when {PRODUCT}/ moves.)")
             for ln in r["behind_product_commits"]:
                 print(f"      missing: {ln}")
+            print(f"    {r['commits_since_built_total']} commit(s) in total since the build,")
+            print("    but that is a DIRECTION, not a value: it grows by one for every")
+            print("    commit landed - including the ones fixing this. Do not quote it")
+            print("    as a figure; it is different every time anyone reads it.")
         else:
             print("    current: no product commit is newer than this artefact.")
 
