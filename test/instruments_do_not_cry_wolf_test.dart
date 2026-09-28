@@ -138,12 +138,14 @@ void main() {
     expect(out, contains(h), reason: 'the real hash was not found:\n$out');
   });
 
-  test('a hash that is not an object is still NOT A COMMIT', () {
+  test('a hash that is not an object is not accepted as a landing', () {
     // The fix above must not have become "accept any hex token".
     final out = landings([null, 'done: 581620f']);
-    expect(out, contains('NOT A COMMIT'),
+    expect(out, isNot(contains('LANDED')),
         reason: 'a fabricated hash passed as a landing:\n$out');
     expect(out, contains('581620f'));
+    expect(out, contains('FAIL'),
+        reason: 'a role claiming a non-existent hash must not be cleared:\n$out');
   });
 
   test('a shared repo must NOT let a commit be attributed to a role', () {
@@ -157,6 +159,24 @@ void main() {
     expect(out, contains('shared'),
         reason: 'the reason a commit cannot be attributed must be in the '
             'output, so a reader is not left guessing:\n$out');
+  });
+
+  test('a hash in no repo is NOT FOUND ANYWHERE — not an accusation', () {
+    // One repo is an assumption. That company has several repos and registered
+    // worktrees, and a role can commit in any of them, so "not an object in the
+    // parent repo" was never a fact about the ROLE — only about that one repo.
+    // The verdict must say which repos were searched, and must be phrased as a
+    // statement about the hash. An accusation dressed as a measurement is how a
+    // monitor ends up destroying a working role's trust in it.
+    final out = landings(['landed 64befd6']);
+    expect(out, contains('NOT FOUND ANYWHERE'),
+        reason: 'a hash missing from one repo was reported as a role failure:\n$out');
+    expect(out, contains('searched'),
+        reason: 'the output must state the search scope, or NOT FOUND means '
+            'nothing:\n$out');
+    expect(out, contains('not an accusation'),
+        reason: 'the reason must be in the output so a reader is not left '
+            'treating a hash problem as a person problem:\n$out');
   });
 
   test('a real commit named by the role is credited WITH git\'s own subject', () {

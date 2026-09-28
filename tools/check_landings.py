@@ -103,6 +103,33 @@ def last_reply(sid: str, timeout: float = 20.0) -> tuple[str | None, int | None,
     return None, None, ""
 
 
+# ONE REPO IS AN ASSUMPTION, AND I MADE IT TWICE.
+# That company has several git repos under it and five registered worktrees, and
+# a role can legitimately commit in any of them. My checker looked only at the
+# parent repo, so "not a valid object name" meant "not in THAT repo" while I
+# reported it as "this role did not commit" - which is a bigger claim, and
+# possibly false. The honest verdict for a hash that is in none of the known
+# repos is NOT FOUND ANYWHERE, not NOT A COMMIT, and the difference matters: one
+# is a fact about the world, the other is an accusation about a person.
+def candidate_repos(extra: list[str] | None = None) -> list[Path]:
+    """Every git repo we can legitimately look in, parent first."""
+    out: list[Path] = []
+    base = OTHER_REPO
+    if base.exists():
+        out.append(base)
+        for d in sorted(base.rglob(".git")):
+            if "/node_modules/" in str(d):
+                continue
+            p = d.parent
+            if p not in out and p != base:
+                out.append(p)
+    for e in extra or []:
+        p = Path(e).expanduser()
+        if p.exists():
+            out.append(p)
+    return out
+
+
 def is_commit(repo: Path, h: str) -> bool:
     p = subprocess.run(["git", "cat-file", "-t", h], cwd=str(repo),
                        capture_output=True, text=True)
@@ -166,15 +193,26 @@ def main() -> int:
         # ALARM, and it is why the order now demands the hash be in the FINAL
         # message - not to be polite, but so the check has something to check.
         claimed = HASH.findall(txt)
-        cands = [h for h in claimed if is_commit(OTHER_REPO, h)]
-        if cands:
-            h = cands[0]
-            print(f"  {role:<20} LANDED  {at}  {h}  {subject_of(OTHER_REPO, h)[:56]}")
+        repos = candidate_repos()
+        found = None
+        for h in claimed:
+            for r in repos:
+                if is_commit(r, h):
+                    found = (h, r)
+                    break
+            if found:
+                break
+        if found:
+            h, r = found
+            where = "" if r == OTHER_REPO else f"  [{r.name}]"
+            print(f"  {role:<20} LANDED  {at}  {h}  {subject_of(r, h)[:46]}{where}")
             rows.append((role, "LANDED", h))
         elif claimed:
-            print(f"  {role:<20} NOT A COMMIT  {at}  it said {claimed[0]}, which "
-                  f"is not an object in that repo")
-            rows.append((role, "NOT A COMMIT", claimed[0]))
+            print(f"  {role:<20} NOT FOUND ANYWHERE  {at}  it said "
+                  f"{claimed[0]}; searched {len(repos)} repo(s), including every "
+                  f"worktree parent - so this is a fact about the hash, not an "
+                  f"accusation about the role")
+            rows.append((role, "NOT FOUND", claimed[0]))
             bad.append(role)
         else:
             print(f"  {role:<20} NO HASH  {at}  no hash in its last spoken turn. "
