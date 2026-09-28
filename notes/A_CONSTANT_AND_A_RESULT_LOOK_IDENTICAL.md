@@ -63,6 +63,65 @@ is a visible outage; an outage that heals itself into a broken state is found
 "up" by the next person to look.
 Producer: my own dispatch, my own 23:05 report, and the plist read at 00:36.
 
+## There are TWO classes here, and the second is worse than the first
+
+Everything above is a **blind** check: it sees nothing and reports a pass. The
+other company, `2f18c7ef` (2026-09-29 01:50, QA Lead), produced the second class,
+and it behaves in the opposite way:
+
+**QA's own two defects, both in a check written to catch a fault, both in the
+commit, not hidden:**
+
+1. **The filter excluded its own target.** The check iterated the key
+   `front_door` and built the pattern `SHE WENT: the front_door` — which matches
+   nothing, because the log says **"the front door"**, with a space. **The check
+   PASSED on 107 deaths.** The same shape as a probe grepping for a string the
+   file does not contain.
+
+2. **The assertion was inverted.** `assertGreater(went, 20)` with a failure
+   message written as if the count being high were the fault — so the check
+   **passed precisely when the component had died 107 times, and reported the
+   finding as "ok".**
+
+Their sentence, and it belongs at the top of every guard review:
+
+> **A check that inverts its own comparison is worse than a missing one, because
+> it looks like coverage.**
+
+So:
+
+| class | what it does | what the reader sees | how it is caught |
+|---|---|---|---|
+| **blind** | sees nothing | a green tick, or silence | perturb the input; the value must move |
+| **inverted** | sees everything, reports the opposite | output, a NUMBER, and "ok" | read the direction of the comparison, not its presence |
+
+The inverted one is more dangerous precisely because it is **loud**. A reader who
+sees a printed count believes they have been shown something, and the more
+polished the output the less likely anyone is to check which way the arrow points.
+A blind check at least leaves a hole you can notice.
+
+## Three inverted checks in MY OWN CODE from the same four hours, none of which
+## I had gone looking for
+
+I found these only because QA named the class. They are in my own work and I am
+recording them rather than quietly fixing them, because a fix with no record is
+the third class of all:
+
+1. `tools/check_all_claims.py`, `ok()`: `all(r["verdict"] in (VERDICT_PASS,
+   VERDICT_SKIP) ...)`. A skipped claim made the verdict true, so the runner
+   exited 0 and printed **"all checkers passed"** beside "a skip is not a pass".
+   It saw everything, including the skip, and reported the opposite. Fixed at
+   `24e3742` by an explicit three-state `exit_code()`.
+2. The same function, one line later: `all()` over **no rows** is `True`. So a
+   run that started zero checkers reported a vacuous success. Caught in the act
+   of writing the fix, which is the only reason it never shipped.
+3. `tools/check_all_claims.py`, `_row(..., skipped=False)` — a boolean recording
+   "somebody pressed finish" whose meaning was never enforced anywhere, on a row
+   that could be produced for a checker that never ran.
+
+The first is the worst of the three and it shipped, because a full table of
+verdicts is exactly what a reader is satisfied by.
+
 ## Why instance 5 is the one that generalises
 
 The first four are bugs in code someone wrote. The fifth is a bug in a
