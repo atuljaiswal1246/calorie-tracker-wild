@@ -73,50 +73,46 @@ def hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
 
 
-_FRAME_TOKEN = re.compile(r"^(?:dsc|dscn|img|pict|photo|frame|shot)?[\s_\-]?\d{3,5}$", re.I)
-_SPLIT = re.compile(r"[\s_\-]+")
-
-
-def frame_stem(title: str) -> str:
-    """A Commons title reduced to a frame-stripped, lowercased stem.
-
-    WHY, measured 2026-09-28. Batch 28 downloaded a photograph already rejected in batch
-    26, and that commit claimed the near-duplicate guard "compares against ACCEPTED
-    photographs and a rejected one was never in the corpus to compare against". THAT WAS
-    FALSE: both entries carry a dhash, the guard's `known` list takes every photo that has
-    one, and the hamming distance is 20 against a threshold of 8 - so it compared them and
-    correctly decided they were not the same picture.
-
-    What they are, read in full rather than truncated: "...DSC 0028.jpg" and
-    "...DSC 0029.jpg" - two consecutive frames of one meal, one photographer, one sitting.
-    Different SHA-256, different URL, and 20 bits of a 64-bit difference hash apart because
-    the camera moved. Measured for contrast: re-encoding the SAME file at quality 95, 70,
-    60 and at 50-60% scale moves the hash by 0 or 1. So "same picture twice" and "next
-    frame of the same scene" are far apart, and NEAR_DUP_DISTANCE = 8 sits correctly
-    between them.
-
-    WHICH IS WHY THE THRESHOLD IS NOT RAISED. Tuning a guard's number until a case stops
-    being reported is the same fault as reshaping a record to match a disproved instrument,
-    and it would start rejecting photographs of genuinely different dishes. Two titles that
-    differ only by a frame counter are one series whatever the pixels say, and that is
-    decidable from the title with no threshold at all.
-
-    IT STRIPS EXACTLY ONE TRAILING TOKEN, and a test found that rather than me. The first
-    version matched a run of digits at the end, which is not idempotent -
-    "CameraZOOM-20150614100720279" lost four digits, then four more. Three to five digits
-    and not two, because "Paneer Tikka 28" and "Paneer Tikka 29" are two dishes.
-
-    It lives here, beside NEAR_DUP_DISTANCE, because a second copy of a definition is the
-    two-copies fault - the same one argparse's `choices` and the query-set registry were.
-    """
-    name = (title or "").strip()
-    if name.lower().startswith("file:"):
-        name = name[5:]
-    name = re.sub(r"\.(jpg|jpeg|png|tiff?|webp)$", "", name, flags=re.I)
-    parts = [p for p in _SPLIT.split(name.strip()) if p]
-    if len(parts) > 1 and _FRAME_TOKEN.match(parts[-1]):
-        parts = parts[:-1]
-    return " ".join(parts).strip(" _-,").lower()
+# A CAMERA-FRAME-COUNTER RULE WAS TRIED HERE ON 2026-09-28 AND REMOVED, and this note is
+# left in the place the code was, because a rule removed without a reason becomes a rule
+# somebody re-adds.
+#
+# WHAT IT WAS. `frame_stem(title)` stripped a trailing camera counter - "...DSC 0028.jpg"
+# and "...DSC 0029.jpg" - and the fetcher skipped a candidate whose stem matched one already
+# held, on the theory that two adjacent frames of one meal are one photograph.
+#
+# WHY IT WAS WRONG, and the corpus's own data is the evidence. Every collision the rule
+# finds in this corpus is between two DIFFERENT pictures, and the perceptual hash - the
+# same instrument that defines near-duplicate in this repo, at NEAR_DUP_DISTANCE = 8 - says
+# so unambiguously:
+#
+#     File:Bottle Gourd Curry.jpg  vs  File:Bottle gourd Curry.jpg   hamming 31
+#         both are ACCEPTED CASES - lauki_curry and lauki_chana_curry
+#     ...Mohali 2016-08-06 8213.JPG vs  ...8227.JPG                  hamming 35
+#     ...West Bengal DSC 0028.jpg  vs  ...DSC 0029.jpg               hamming 20
+#
+# Not one of those is a frame of another. The rule would have skipped three real
+# photographs, two of which are CASES in this corpus, on the strength of a FILENAME
+# INFERENCE that was never measured against the images. That is the same fault as reading
+# a green /health and calling the product healthy - committed by me, about myself, one
+# round after writing down that I would not do it.
+#
+# The rule also smuggled in a second one. It lowercased the stem, so "Bottle Gourd Curry"
+# and "Bottle gourd Curry" collided - two DIFFERENT files whose titles differ only in the
+# first letter's case. One rule about frame counters had become two rules, one of them
+# wrong.
+#
+# WHAT REPLACES IT. Not a cleverer title rule - test_two_cases_are_never_the_same_picture.py,
+# which checks the invariant that actually protects the case count: no two CASES may be
+# within NEAR_DUP_DISTANCE of each other, and no two case titles may collide under the
+# exact-title dedupe the fetcher applies. Measured today: 0 pairs within distance 8 among
+# 67 cases. A title heuristic cannot protect a count that depends on pictures; a
+# measurement can.
+#
+# IF SOMEONE WANTS THIS BACK, the precondition is a MEASURED near-duplicate - a pair of
+# photographs whose hamming distance is inside NEAR_DUP_DISTANCE and whose titles differ
+# only by a counter. There is not one in this corpus, and the next batch that finds one can
+# write the rule with a case to point at instead of a filename that looks suggestive.
 
 
 def save_manifest(manifest: dict) -> None:

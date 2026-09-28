@@ -54,7 +54,7 @@ API = "https://commons.wikimedia.org/w/api.php"
 # second copy of that threshold is a second definition, and two definitions drift until
 # the guard and the fetcher disagree about what a duplicate is.
 from photo_store import (MANIFEST, NEAR_DUP_DISTANCE, PHOTO_DIR, UA,  # noqa: F401,E402
-                         dhash, download, frame_stem, hamming, save_manifest)
+                         dhash, download, hamming, save_manifest)
 
 # The query sets moved to query_sets.py (2026-09-28). This file reached 781 lines - 19
 # under the 800-line rule - and every corpus batch adds to it, because a batch IS a query
@@ -453,16 +453,7 @@ def main() -> int:
         if any(p.get("title") == cand["title"] for p in existing):
             print(f"  - skip (already have it): {cand['title'][:56]}")
             continue
-        # The same check on the FRAME-STRIPPED stem, which is what catches a second frame
-        # of a series shot in one sitting. Measured 2026-09-28: "...DSC 0028.jpg" and
-        # "...DSC 0029.jpg" are one meal, two frames, different SHA-256, hamming 20 - so
-        # the perceptual guard correctly calls them different pictures and this is the rule
-        # that stops the second download. See photo_store.frame_stem for why the threshold
-        # is NOT raised instead.
-        if any(frame_stem(p.get("title") or "") == frame_stem(cand["title"])
-               for p in existing if p.get("title")):
-            print(f"  - skip (same series, another frame): {cand['title'][:56]}")
-            continue
+
         if per_query.get(cand["query"], 0) >= args.max_per_query:
             print(f"  - skip (query cap): {cand['title'][:56]}")
             continue
