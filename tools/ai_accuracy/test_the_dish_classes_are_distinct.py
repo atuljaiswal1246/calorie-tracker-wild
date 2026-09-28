@@ -92,6 +92,17 @@ ADJACENT_CLASSES: dict[tuple[str, str], dict] = {
                "(lauki). Their calories differ.",
         "would_fold_to": "bhindi",
     },
+    # NOTE, 2026-09-28: a (methi malai, methi) pair was declared here with batch 27 and
+    # then DELETED, because the guard refused it and the guard was right. `methi` is not a
+    # class in this corpus: batch 24's "methi curry" query returned a photograph that was
+    # rejected, so no case has ever landed in a methi class. A pair declares that two
+    # classes are deliberately kept SEPARATE, and declaring one against a class that is not
+    # in the sample is a decision nobody is reading - the exact thing
+    # test_both_halves_of_every_declared_adjacent_pair_are_actually_in_use exists to
+    # refuse. What batch 27 actually established is narrower and is recorded where it
+    # belongs: methi malai is its own declared class because the frame holds peas AND
+    # fenugreek. Whether it is later paired with a methi case is a question for the batch
+    # that first produces one.
     ("bottle gourd curry", "lauki"): {
         "why": "Added 2026-09-28 with batch 25, and it is the same decision as the "
                "bhindi/lauki pair above, arrived at from the other direction. The batch "

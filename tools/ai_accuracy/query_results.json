@@ -110,6 +110,55 @@
           }
         ]
       }
+    ],
+    "batch27": [
+      {
+        "recorded": "2026-09-28T15:46:44",
+        "queries": [
+          {
+            "query": "filetype:bitmap uthappam breakfast",
+            "pages": 1,
+            "kept": 1,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"gwar curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"soya curry\"",
+            "pages": 3,
+            "kept": 3,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"tinda curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"kacche kele curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"methi malai\"",
+            "pages": 3,
+            "kept": 2,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"amla murabba\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          }
+        ]
+      }
     ]
   }
 }

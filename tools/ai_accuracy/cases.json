@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 66 cases over 45 distinct dish families; 38 distinct dish CLASSES; 55 coverage classes; top-4 classes hold 23%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 38, with eighteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 67 cases over 46 distinct dish families; 39 distinct dish CLASSES; 56 coverage classes; top-4 classes hold 22%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 39, with nineteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -710,7 +710,60 @@
     "",
     "The yield is 1 of 4 and the arithmetic is the point: the round's real content is a",
     "rule written down an hour ago, tested properly, and withdrawn. Cheaper than",
-    "finding out in three more batches."
+    "finding out in three more batches.",
+    "",
+    "BATCH 27 (2026-09-28): A BATCH SIZED BY THE MEASURED PRECISION - and the prediction",
+    "fails for a reason that is NOT about precision.",
+    "  7 queries (control first), 2 downloaded, accepted 1, rejected 1",
+    "",
+    "DECLARED BEFORE THE FETCH, from the 41% precision figure batch 26 published:",
+    "  6 candidates x 0.41  ->  EXPECT 2 CASES",
+    "",
+    "AND FOUR OF THE SIX TARGET QUERIES RETURNED ZERO PAGES:",
+    "  pages=1  uthappam breakfast     <- the control",
+    "  pages=0  \"gwar curry\"           cluster bean",
+    "  pages=3  \"soya curry\"           soy chunk",
+    "  pages=0  \"tinda curry\"          round gourd",
+    "  pages=0  \"kacche kele curry\"    raw banana",
+    "  pages=3  \"methi malai\"          fenugreek and pea",
+    "  pages=0  \"amla murabba\"         candied amla",
+    "",
+    "Only 2 candidates existed. PRECISION IS NOT THE BINDING CONSTRAINT - PAGES",
+    "RETURNED IS. The precision figure was never applied to anything, because there was",
+    "nothing to apply it to. That took a declared prediction to see, which is the",
+    "argument for declaring them: the arithmetic can be right and the input can be",
+    "wrong, and only writing the number down separates the two.",
+    "",
+    "AND THE PREDICTION WAS BARELY FALSIFIABLE, which I am not going to dress up. The",
+    "ceiling was 2 - the batch could not return more than 2 cases - so I predicted 2 and",
+    "got 1. A prediction is only informative when the ceiling sits above it, and I did",
+    "not check the ceiling before writing the number. Same error as sizing a batch by a",
+    "precision figure without checking how many candidates it would actually see.",
+    "",
+    "THE TARGET LIST IS ALSO THE FINDING. Four of six new dishes - cluster bean, round",
+    "gourd, raw banana, candied amla - returned nothing against a control that returned",
+    "hits in the same run, so these are real zeros of the archive. The yield table said",
+    "the form that works is <legume or vegetable> + a preparation word, and three of",
+    "these are exactly that form and found nothing. So the form is NECESSARY AND NOT",
+    "SUFFICIENT - the third time this corpus has narrowed a rule written down one round",
+    "earlier, after batch 23 narrowed batch 22 and batch 26 retracted batch 25.",
+    "",
+    "  accepted 1  METHI MALAI MATAR - a yellow leaf-shaped dish of pale cream gravy",
+    "               with countable whole green peas, chopped fenugreek, a coriander",
+    "               sprig and two cashews. The frame holds peas AND fenugreek, so a",
+    "               DECLARED ADJACENT class rather than a second methi case - same call",
+    "               as chana and to dal in batch 26 where one bowl held two pulses. It",
+    "               does NOT become methi's second case.",
+    "",
+    "  rejected 1  'chicken soya curry' - REJECTED AS UNRESOLVABLE rather than as wrong.",
+    "               Soya chunks take the colour of the gravy completely and become",
+    "               uniformly red-orange, which is exactly what the pieces are, and",
+    "               chicken does the same; their shape is consistent with either, and",
+    "               COLOUR carries no information here. The title names both proteins.",
+    "               I will not label a photograph 'chicken' because the pieces look",
+    "               meaty, nor 'soya' because the query asked. A case whose one truth",
+    "               label cannot be established from the image is not a case, and a wrong",
+    "               label here is a wrong ANSWER rather than a missing one."
   ],
   "cases": [
     {
@@ -2355,6 +2408,23 @@
             "Steamed Rice"
           ],
           "kcal": 210
+        }
+      ]
+    },
+    {
+      "id": "methi_malai_matar_leaf_dish",
+      "image": "tools/ai_accuracy/photos/methi_malai_matar_jpg_a499b343.jpg",
+      "note": "A yellow leaf-shaped dish holding a pale cream gravy with countable whole green peas, chopped fenugreek leaves, a coriander sprig and two cashews, on a dark stone counter. High and unremarkable, which is what a good case looks like. The frame holds peas AND fenugreek, so this is a DECLARED ADJACENT class rather than a second methi case - the same call as chana and to dal in batch 26 where one bowl held two pulses, and for the same reason: a case claiming only methi would describe half the bowl, and a cream-pea curry and a dry fenugreek curry do not carry the same calories. So it does NOT become methi's second case; it is a class of its own.",
+      "truth": [
+        {
+          "name": "Methi Malai",
+          "aliases": [
+            "Methi Malai Matar",
+            "Fenugreek Cream",
+            "Methi Matar",
+            "Creamy Fenugreek"
+          ],
+          "kcal": 190
         }
       ]
     }

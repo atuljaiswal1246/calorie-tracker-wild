@@ -649,6 +649,42 @@ BATCH26_QUERIES = [
 ]
 
 
+# BATCH 27 -- SIZED BY THE MEASURED PRECISION, WITH THE YIELD PREDICTED IN ADVANCE.
+#
+# Batch 26's commit published the figure twenty-six batches ought to have had: 44 of 107
+# reviewed photographs became cases, 41%. So a download is worth about 0.4 cases, and
+# every batch estimate I have been making in my head was optimistic by roughly half. This
+# batch is the first one sized from it.
+#
+#     6 candidates x 0.41  ->  EXPECT 2 CASES, and I AM DECLARING THAT BEFORE THE RUN.
+#
+# I am recording the prediction because a prediction that is only ever made afterwards is
+# a story, and the number I keep being wrong about is this one. If the batch returns 4 I
+# am over-cautious and the 41% is too low for this query form. If it returns 0 the 41% is
+# too high. Either way the comparison is in the record and I cannot quietly move it.
+#
+# TARGETS, and the reason the list looks the way it does. Concentration has sat at 23% for
+# three batches because dal holds 5 cases and chole holds 4, so every target here is a
+# class that is NOT in the top four - four new dishes and two singletons gaining a second
+# case. Growing dal or chole would lower the class count's independence while raising the
+# number I am trying to move, which is the trade batches 8 and 10 were built to refuse.
+#
+# The query FORM is the one the yield table says works: <legume or vegetable> + a
+# preparation word. Every query in the ranked table that produced two cases out of two -
+# "beans curry", "kofta curry", "egg bhurji", "sarson da saag" - is that shape.
+BATCH27_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    'filetype:bitmap "gwar curry"',             # cluster bean - a new class
+    'filetype:bitmap "soya curry"',             # soy chunk - a new class
+    'filetype:bitmap "tinda curry"',            # round gourd - a new class
+    'filetype:bitmap "kacche kele curry"',      # raw banana - a new class
+    'filetype:bitmap "methi malai"',            # fenugreek cream - methi, 1 -> 2
+    'filetype:bitmap "amla murabba"',           # candied amla - amla, 1 -> 2
+]
+
+# DECLARED IN ADVANCE, before the fetch: expect 2 cases from 6 candidates (41% precision).
+DECLARED_EXPECTED_CASES_B27 = 2
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

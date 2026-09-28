@@ -40,6 +40,7 @@ memory. Where a figure is a claim about a vendor's plan rather than about us, th
 | 24 | 09-28 | 7 | 5 | 4 | 1 | 0 | **$0.00** |
 | 25 | 09-28 | 7 | 4 | 3 | 1 | 0 | **$0.00** |
 | 26 | 09-28 | 9 | 4 | 1 | 3 | 0 | **$0.00** |
+| 27 | 09-28 | 7 | 2 | 1 | 1 | 0 | **$0.00** |
 
 **The reason every row is zero is one fact, and it is the whole accounting:** the corpus photographs
 come from **Wikimedia Commons** over its public API, which is open data and charges nothing, and
@@ -123,10 +124,10 @@ reconciled against `photos.json` it was wrong by 18 — not because it was misty
 
 | | count |
 |---|---|
-| rejected column, summed over all twenty-six batches | **111** |
-| rejections on record inside `photos[]` (batches 8–26 flag them there) | 63 |
+| rejected column, summed over all twenty-seven batches | **112** |
+| rejections on record inside `photos[]` (batches 8–27 flag them there) | 64 |
 | rejections recovered from git history into the top-level `rejected` array | 24 |
-| **total rejections the tree can account for** | **87** |
+| **total rejections the tree can account for** | **88** |
 | **claimed but with no surviving record** | **18** |
 
 **The cause, named at the call site rather than inferred.** `fetch_commons.py` read
@@ -193,23 +194,27 @@ the leading token and the reason survives.
 
 ---
 
+---
+
 ## 5. Query yield - what the corpus actually costs in photographs
 
 **Every figure in this section is computed from `photos.json` and `query_results.json` by**
 **`tools/ai_accuracy/test_the_query_yield_figure_is_measured.py`, which fails if any of them drifts.**
 
-**PRECISION: 44 of 107 reviewed photographs became cases = 41%.** The other 63 were
+**PRECISION: 45 of 109 reviewed photographs became cases = 41%.** The other 64 were
 rejected on the record, each with a reason. This number has never been stated in this
 file before, and it is the honest denominator for everything above: a batch of 5
 downloads is worth about 0 cases, not 5.
 
-**AND THE SAMPLE FOR THE OBVIOUS NEXT QUESTION IS FAR TOO SMALL.** It is natural to
-ask whether a query returning more pages is a better query. Among the queries that
-have a recorded page count there are only 11 judged photographs across 3 distinct
-page counts, and the spread runs the WRONG WAY for it - 8 pages scored 71%, 7 pages
-scored 0%, 1 page scored 50%. That is noise, not a relationship, and it is recorded
-here as a number rather than promoted to a rule. The record only began at batch 25,
-so this table cannot answer the question for another 20 batches at one run per batch.
+**AND PRECISION IS NOT THE BINDING CONSTRAINT - PAGES RETURNED IS.** Measured 2026-09-28
+on batch 27, which was the first batch SIZED from the precision figure. It predicted
+41%-precision arithmetic, and four of its six target queries returned ZERO pages, so
+only two candidates existed and the precision was never applied to anything. Among the
+queries with a recorded page count there are now 13 judged photographs across
+4 distinct page counts - still far too few to claim a relationship, and the
+spread still does not point one way. So the figure above is a RATIO, not a yield model:
+what a batch returns is bounded first by how many of its queries find anything at all, and
+only then by what fraction of those downloads survive review.
 
 ### The queries that produced cases, ranked
 
@@ -240,6 +245,7 @@ so this table cannot answer the question for another 20 batches at one run per b
 | `filetype:bitmap "masala dosa" plate` | 1 | 1 |
 | `filetype:bitmap "medu vada"` | 1 | 1 |
 | `filetype:bitmap "methi curry"` | 1 | 1 |
+| `filetype:bitmap "methi malai"` | 1 | 1 |
 | `filetype:bitmap "mushroom fry"` | 1 | 1 |
 | `filetype:bitmap "potato raita"` | 1 | 1 |
 | `filetype:bitmap "rajma curry"` | 1 | 1 |
@@ -255,7 +261,7 @@ so this table cannot answer the question for another 20 batches at one run per b
 | `filetype:bitmap uthappam breakfast` | 1 | 1 |
 | `filetype:bitmap uttapam kerala` | 1 | 1 |
 
-**32 queries downloaded photographs and produced NO case at all.** They are the
+**33 queries downloaded photographs and produced NO case at all.** They are the
 expensive ones - a download, a licence, a SHA-256 and a review, for nothing - and the
 rejection reason on each one is the only record of why. The largest are:
 
@@ -280,4 +286,11 @@ is the expensive mistake - the khichuri accepted as khichdi would have been a wr
 answer rather than a missing one - and it is the only one of the three that no amount
 of query tuning can prevent, because the file's title is the archive's own claim and
 the frame has to be read to contradict it.
+
+**A FOURTH CAUSE, added 2026-09-28 and worth more than the other three: a photograph whose
+central truth label CANNOT BE RESOLVED FROM THE FRAME.** Batch 27 rejected a file titled
+'chicken soya curry' because soya chunks take the colour of a gravy completely and the
+chicken does the same, so nothing in the image settles which protein it is. That is not a
+tuning problem at all - it is a photograph that cannot support the label a case needs, and
+no query change will ever produce a different answer for it.
 

@@ -449,7 +449,13 @@ DISH_CLASS = {
     # differ enough in calories that folding them would be dishonest in the direction
     # that matters. Declared for the same reason as every other key here - a class that
     # arrives from the DISH_CLASS.get(n, n) fallback is a filename, not a decision.
-    "chana and to dal": "chana and to dal", "chana dal": "chana and to dal",
+    "chana and to dal": "chana and to dal",
+    # methi malai, added 2026-09-28 with batch 27. A DECLARED ADJACENT class, NOT a second
+    # methi case: the photograph holds peas and fenugreek in one cream gravy, so a case
+    # claiming only methi would describe half the bowl, and a cream-pea curry and a dry
+    # fenugreek curry do not carry the same calories. Same call as bottle gourd curry and
+    # chana and to dal.
+    "methi malai": "methi malai", "methi malai matar": "methi malai", "chana dal": "chana and to dal",
     "chana": "chana and to dal", "to dal": "chana and to dal",
     "gulab jamun": "gulab jamun", "gulaab jamun": "gulab jamun",
     "lauki": "lauki", "legume salad": "legume salad", "paneer": "paneer",
