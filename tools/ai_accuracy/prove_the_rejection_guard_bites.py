@@ -26,6 +26,7 @@ TEST = "tools/ai_accuracy/test_the_rejection_record_survives.py"
 PHOTOS = "tools/ai_accuracy/photos.json"
 LEDGER = "notes/FREE_TIER_ACCOUNTING.md"
 COPIED = (TEST, PHOTOS, LEDGER, "tools/ai_accuracy/fetch_commons.py",
+          "tools/ai_accuracy/photo_store.py",
           "tools/ai_accuracy.py", "tools/ai_accuracy/cases.json")
 
 
@@ -81,7 +82,12 @@ def _shrink_the_on_record_total(root: Path) -> None:
 def _restore_the_destructive_write(root: Path) -> None:
     """The real defect, reinstated verbatim: the fetch path rebuilds photos.json from
     only `_note` and `photos`, so a key it did not create cannot survive a fetch."""
-    p = root / "tools" / "ai_accuracy" / "fetch_commons.py"
+    # photo_store.py, NOT fetch_commons.py: the photo store was cut out into its own
+    # module on 2026-09-28 and the body this breach reinstates now lives there. A breach
+    # that edits a file the function has left is a breach that asserts on a string in
+    # the wrong place, and the assertion error reads like a broken breach rather than a
+    # mis-targeted one - the same trap B13 in the limits guard documents.
+    p = root / "tools" / "ai_accuracy" / "photo_store.py"
     src = p.read_text(encoding="utf-8")
     marker = "    with open(MANIFEST, \"w\", encoding=\"utf-8\") as fh:\n        json.dump(manifest, fh, indent=2)"
     assert marker in src, "save_manifest's body changed; update this breach"

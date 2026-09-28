@@ -35,10 +35,12 @@ import urllib.request
 
 # this file lives at <repo>/tools/ai_accuracy/fetch_commons.py
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-PHOTO_DIR = os.path.join(ROOT, "tools", "ai_accuracy", "photos")
-MANIFEST = os.path.join(ROOT, "tools", "ai_accuracy", "photos.json")
+# PHOTO_DIR, MANIFEST and UA now live in photo_store.py, which owns everything about a
+# photograph as a FILE. They are imported below rather than defined here, because a
+# second definition of a path is how a writer and a reader end up disagreeing about
+# where the file is - and I wrote that lesson down an hour ago while fixing exactly
+# that shape in save_manifest().
 API = "https://commons.wikimedia.org/w/api.php"
-UA = "CalMattersAccuracyHarness/1.0 (openly licensed test fixture collection)"
 
 # Overhead-friendly subjects: a plate or bowl a camera can look straight into.
 QUERIES = [
@@ -107,6 +109,19 @@ BATCH2_QUERIES = [
     'filetype:bitmap "raita" bowl',
     'filetype:bitmap "bhindi fry"',
 ]
+
+# The photo store moved to photo_store.py (2026-09-28) when this file reached 786 lines
+# and the next batch's queries would have pushed it over the 800-line rule. The concern
+# is one coherent thing - a photograph as a FILE rather than as a search result - and it
+# had its own reasons to change. These names are re-imported rather than left behind so
+# that `from fetch_commons import dhash, hamming, NEAR_DUP_DISTANCE` keeps working: a cut
+# that forces every caller to be rewritten is a relocation with a bill attached.
+#
+# NEAR_DUP_DISTANCE, dhash() and hamming() have exactly ONE home, which is the point. A
+# second copy of that threshold is a second definition, and two definitions drift until
+# the guard and the fetcher disagree about what a duplicate is.
+from photo_store import (MANIFEST, NEAR_DUP_DISTANCE, PHOTO_DIR, UA,  # noqa: F401,E402
+                         dhash, download, hamming, save_manifest)
 
 OK_LICENCE = re.compile(r"\b(CC0|Public domain|CC BY(?:-SA)?\s*\d|Public domain|CC BY 2\.0|CC BY 3\.0|CC BY-SA 2\.0)", re.I)
 BAD_LICENCE = re.compile(r"(non-?free|fair use|copyright(ed)?\s+by|all rights reserved)", re.I)
@@ -568,78 +583,6 @@ def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
 # accepted (this batch OR the existing corpus) is rejected with a printed reason.
 # --max-per-query and --per-author caps stop one query, or one prolific uploader,
 # from dominating a batch. Review still happens: this is a floor, not a judge.
-
-NEAR_DUP_DISTANCE = 8          # Hamming distance on 64 bits; ~0 same, 8 very close
-
-
-def dhash(path: str) -> int | None:
-    try:
-        from PIL import Image
-        with Image.open(path) as im:
-            im = im.convert("L").resize((9, 8), Image.LANCZOS)
-            px = list(im.getdata())
-    except Exception:                                  # noqa: BLE001
-        return None
-    bits = 0
-    for row in range(8):
-        for col in range(8):
-            bits = (bits << 1) | (1 if px[row * 9 + col] > px[row * 9 + col + 1] else 0)
-    return bits
-
-
-def hamming(a: int, b: int) -> int:
-    return bin(a ^ b).count("1")
-
-
-def save_manifest(manifest: dict) -> None:
-    """Write photos.json back WHOLE - every top-level key it did not create included.
-
-    This used to be an inline `json.dump({"_note": ..., "photos": existing})` at the
-    end of main(), and that is precisely how the rejection record was destroyed: a
-    literal dict rebuilt from the two keys the fetcher happened to know about, so
-    every fetch run deleted the top-level `rejected` array that apply_batch1..3 had
-    filled in. 24 records and their reasons were gone from the tree and survived only
-    in git history. Nothing errored and nothing warned.
-
-    So the rule this function exists to enforce: a writer mutates the keys it owns and
-    writes the object it was given. It never reconstructs the file from a subset of it.
-    Extracted as a function (rather than left inline) so that
-    test_the_rejection_record_survives.py can call the REAL write path with a sentinel
-    key and prove it survives - a test against a copy of this logic would prove
-    nothing, which is the same defect one level down.
-    """
-    with open(MANIFEST, "w", encoding="utf-8") as fh:
-        json.dump(manifest, fh, indent=2)
-
-
-
-def download(cand: dict) -> dict | None:
-    os.makedirs(PHOTO_DIR, exist_ok=True)
-    name = re.sub(r"[^a-z0-9]+", "_", cand["title"].lower().replace("file:", "")).strip("_")
-    # A short digest of the source URL, so two different Commons files whose
-    # titles normalise to the same slug cannot overwrite each other. Found on
-    # 2026-09-28: three downloads of the same-named platter silently shared one
-    # path, and the duplicate-cleanup then deleted the file the accepted record
-    # pointed at. Filenames must be a function of the source, not just the title.
-    tag = hashlib.sha256(cand["url"].encode()).hexdigest()[:8]
-    name = f"{name[:52]}_{tag}.jpg"
-    path = os.path.join(PHOTO_DIR, name)
-    try:
-        req = urllib.request.Request(cand["url"], headers={"User-Agent": UA})
-        blob = urllib.request.urlopen(req, timeout=120).read()
-    except Exception as exc:                      # noqa: BLE001
-        print(f"  ! download failed {cand['title']}: {exc}")
-        return None
-    if len(blob) < 8000:
-        print(f"  ! suspiciously small, skipped: {cand['title']}")
-        return None
-    with open(path, "wb") as fh:
-        fh.write(blob)
-    return {**cand, "file": os.path.relpath(path, ROOT),
-            "bytes": len(blob),
-            "sha256": hashlib.sha256(blob).hexdigest(),
-            "dhash": dhash(path),
-            "stored_px": f"{cand['width']}x{cand['height']}"}
 
 
 def main() -> int:

@@ -123,21 +123,32 @@ class RejectionRecordSurvivesTests(unittest.TestCase):
         line that rebuilt the file from two keys.
         """
         sys.path.insert(0, str(REPO / "tools" / "ai_accuracy"))
-        import fetch_commons
+        # Patch photo_store, NOT fetch_commons. Found 2026-09-28 the hard way: when the
+        # photo store was cut out of fetch_commons into its own module, this test kept
+        # patching fetch_commons.MANIFEST - a RE-EXPORTED name, which is a copy and not
+        # a reference. save_manifest reads photo_store.MANIFEST, so the patch did
+        # nothing and the test wrote its sentinel manifest straight into the REAL
+        # photos.json: 100 photographs down to 1 and rejected[] from 24 to 1. It was
+        # caught by git status, and restored from git in one command.
+        #
+        # The lesson is the same one this whole guard exists for, turned on itself: a
+        # test that redirects a path must patch the module that READS it, and a
+        # re-export is a copy. A cut that moves a function must move its patch point.
+        import photo_store
 
         scratch = Path(tempfile.mkdtemp(prefix="manifest-roundtrip-"))
         try:
-            real = fetch_commons.MANIFEST
+            real = photo_store.MANIFEST
             sentinel = {"sentinel": "a key the fetcher did not create and must not drop"}
             m = {"_note": "n", "photos": [{"file": "x.jpg"}], "rejected": [{"file": "r.jpg"}]}
             m.update(sentinel)
-            fetch_commons.MANIFEST = str(scratch / "photos.json")
+            photo_store.MANIFEST = str(scratch / "photos.json")
             try:
-                fetch_commons.save_manifest(m)
-                with open(fetch_commons.MANIFEST, encoding="utf-8") as fh:
+                photo_store.save_manifest(m)
+                with open(photo_store.MANIFEST, encoding="utf-8") as fh:
                     back = json.load(fh)
             finally:
-                fetch_commons.MANIFEST = real
+                photo_store.MANIFEST = real
             self.assertEqual(back.get("sentinel"), sentinel["sentinel"],
                              "save_manifest() dropped a top-level key it did not create. "
                              "This is the exact defect that destroyed the rejection "

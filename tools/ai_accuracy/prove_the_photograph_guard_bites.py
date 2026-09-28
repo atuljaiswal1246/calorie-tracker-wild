@@ -29,7 +29,8 @@ TEST = "tools/ai_accuracy/test_the_corpus_photographs_are_distinct.py"
 CASES = "tools/ai_accuracy/cases.json"
 # The scratch tree needs the test, the corpus, and fetch_commons (imported for the
 # dHash definition) plus the images the corpus points at.
-COPIED = (TEST, CASES, "tools/ai_accuracy/fetch_commons.py")
+COPIED = (TEST, CASES, "tools/ai_accuracy/fetch_commons.py",
+          "tools/ai_accuracy/photo_store.py")
 
 
 def _scratch() -> Path:
