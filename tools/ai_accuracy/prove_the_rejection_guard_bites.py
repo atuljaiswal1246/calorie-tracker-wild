@@ -26,6 +26,7 @@ TEST = "tools/ai_accuracy/test_the_rejection_record_survives.py"
 PHOTOS = "tools/ai_accuracy/photos.json"
 LEDGER = "notes/FREE_TIER_ACCOUNTING.md"
 COPIED = (TEST, PHOTOS, LEDGER, "tools/ai_accuracy/fetch_commons.py",
+          "tools/ai_accuracy/query_sets.py",
           "tools/ai_accuracy/photo_store.py",
           "tools/ai_accuracy.py", "tools/ai_accuracy/cases.json")
 

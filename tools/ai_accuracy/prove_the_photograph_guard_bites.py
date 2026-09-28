@@ -30,6 +30,7 @@ CASES = "tools/ai_accuracy/cases.json"
 # The scratch tree needs the test, the corpus, and fetch_commons (imported for the
 # dHash definition) plus the images the corpus points at.
 COPIED = (TEST, CASES, "tools/ai_accuracy/fetch_commons.py",
+          "tools/ai_accuracy/query_sets.py",
           "tools/ai_accuracy/photo_store.py")
 
 
