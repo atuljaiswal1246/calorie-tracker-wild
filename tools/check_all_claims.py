@@ -68,6 +68,7 @@ import argparse
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 # Resolved from __file__, not from os.getcwd(), so the tool finds the same repo
@@ -320,6 +321,79 @@ def print_report(rows, commit, as_json):
     print("RESULT: " + result)
 
 
+HISTORY = ".agent-logs/claim-history.jsonl"
+
+
+def record_run(rows, code: int) -> None:
+    """Append ONE line per run. The point is the N in M, not the line.
+
+    Learned from outside on 2026-09-29: the other company's monitor printed one
+    line per sample, so a two-minute total failure and a two-hour clean run looked
+    identical in the record. The number nobody had was the only one that mattered -
+    not "it works", but "it worked N times in M, over a window that includes the
+    restarts". This repo had the same gap and did not know it: every claim number
+    in a report tonight was a single sample, and I re-ran the money gate by hand
+    five times precisely because one sample could not tell me whether a tier had
+    recovered.
+
+    Append-only, one JSON object per line, gitignored - so it cannot be mistaken
+    for evidence by a reviewer, and so a truncated write costs one run rather than
+    the history. Never spends: this records what the run already decided.
+    """
+    path = ROOT / HISTORY
+    path.parent.mkdir(parents=True, exist_ok=True)
+    entry = {
+        "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "epoch": int(time.time()),
+        "commit": next((r["first_line"] for r in rows
+                        if r["name"] == GIT_CHECK and r["verdict"] == VERDICT_PASS), None),
+        "exit_code": code,
+        "verdicts": {r["name"]: r["verdict"] for r in rows},
+    }
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(entry) + "\n")
+
+
+def print_history() -> int:
+    """N in M. How many of the last M runs were clean, and which checks moved."""
+    path = ROOT / HISTORY
+    if not path.exists():
+        print("no recorded history yet - run with --record first.")
+        print("One sample is not a rate, and a rate is what a reader needs.")
+        return 0
+    bad_lines = 0
+    runs = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            runs.append(json.loads(line))
+        except ValueError:
+            # A truncated tail must not silently shorten the denominator, which
+            # would turn "5 of 5" into "5 of 4" without anyone noticing.
+            bad_lines += 1
+    if not runs:
+        print("history file has no readable run.")
+        return 1
+    clean = [r for r in runs if r.get("exit_code") == 0]
+    print(f"claim history: {len(clean)} of {len(runs)} recorded runs exited 0")
+    print(f"  window: {runs[0].get('at')}  ->  {runs[-1].get('at')}")
+    if bad_lines:
+        print(f"  {bad_lines} unreadable line(s) - the denominator excludes them, "
+              f"on purpose")
+    for r in runs[-10:]:
+        notclean = {k: v for k, v in (r.get("verdicts") or {}).items()
+                    if v != VERDICT_PASS}
+        state = "clean" if not notclean else ", ".join(
+            f"{k.split('/')[-1]}={v}" for k, v in notclean.items())
+        print(f"  {r.get('at')}  exit={r.get('exit_code')}  {state}")
+    if len(runs) < 5:
+        print("")
+        print(f"Only {len(runs)} run(s) recorded. That is a sample, not a rate.")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Run every claim checker in the repo and exit once.")
@@ -329,7 +403,17 @@ def main():
                          "is not a pass.")
     ap.add_argument("--json", action="store_true",
                     help="print machine-readable JSON instead of the table")
+    ap.add_argument("--record", action="store_true",
+                    help="append this run's verdicts to the history file, so the "
+                         "next reader can ask how many of the last M runs were "
+                         "clean instead of reading one row")
+    ap.add_argument("--history", action="store_true",
+                    help="print the recorded history and exit without running a "
+                         "single checker")
     args = ap.parse_args()
+
+    if args.history:
+        return print_history()
 
     rows = run_all(args.skip_network, args.json)
     print_report(rows, git_commit(rows), args.json)
@@ -337,7 +421,10 @@ def main():
     # skipped and is therefore unverified. 0 = everything ran and passed. A
     # caller that only reads the exit code must still be able to tell a full
     # pass from a partial one.
-    return exit_code(rows)
+    code = exit_code(rows)
+    if args.record:
+        record_run(rows, code)
+    return code
 
 
 if __name__ == "__main__":
