@@ -1,0 +1,67 @@
+GOAL
+Write ONE new tool, tools/check_all_claims.py, that runs every "is this still
+true?" checker in the repo and prints one table with a single exit code. Right now
+each checker is run by hand and the results live only in my reports.
+
+EXACT FILES TO CREATE (and nothing else)
+  tools/check_all_claims.py
+  test/check_all_claims_test.dart
+Do NOT edit any other file. Do NOT edit AGENTS.md, ceo.md, or any existing test.
+
+WHAT IT MUST DO
+Run, in this order, each as a subprocess, and report the exit code of each:
+  1. tools/ai_accuracy.py --self-test          (the money gate; must not spend)
+  2. tools/ai_accuracy.py --corpus            (corpus independence; no model call)
+  3. tools/check_external_claims.py           (fetches hosted pages; needs network)
+  4. tools/check_self_claims.py --skip-suite  (analyze baseline; no test run)
+  5. git rev-parse --short HEAD               (so the table names the commit)
+Print a table: one row per checker, with the checker's name, its exit code, and the
+FIRST LINE of its stdout. Then print the git commit short hash. Then:
+  exit 0 if every checker's exit code is 0
+  exit 1 if any is non-zero
+A checker that cannot be run (missing file, OSError, timeout of 600s) must be
+REPORTED as "ERROR <exception>" and must make the overall exit 1. Never print
+"ok" for something that did not run.
+
+FLAGS
+  --skip-network   skips checker 3 (for a machine with no network)
+  --json           print machine-readable JSON instead of the table
+
+CONSTRAINTS - these are the reasons this task exists
+  - NO ABSENCE IS A PASS. If a checker produced no output, that is not success.
+    Anything other than exit 0 plus output is a failure.
+  - Do not add retries, do not add timeouts other than the 600s above, and do not
+    add network calls of your own. You are running checkers, not inventing checks.
+  - No new pip dependencies. Standard library only (subprocess, sys, json, argparse,
+    os, pathlib).
+  - The tool must be safe to run at any hour: it must never scan, never call a
+    model, and never write to disk.
+
+THE TEST you write (test/check_all_claims_test.dart) must not run the network
+checker. It must:
+  - assert the tool's source contains "return 1" (a runner that cannot fail is a
+    formality) and that it handles a missing checker rather than crashing
+  - assert that the list of checkers it runs names ai_accuracy.py --self-test and
+    check_self_claims.py, by reading tools/check_all_claims.py as text
+  - assert it has a --skip-network flag and a --json flag
+  - be plain Dart + flutter_test, like the other tests in this repo
+
+VERIFICATION COMMAND (run this; it must pass before you claim done)
+  cd /Users/neharohilla/Desktop/calorie_tracker
+  python3 tools/check_all_claims.py --skip-network
+  echo "exit=$?"
+  echo "(0 = every offline checker passed; 1 is acceptable ONLY if you can say
+   which checker failed and why)"
+  /opt/anaconda3/bin/python3 -c "import ast;ast.parse(open('tools/check_all_claims.py').read())"
+  flutter test test/check_all_claims_test.dart
+
+FORBIDDEN
+  - editing any file other than the two named above
+  - touching the shared Cloudflare Worker, any key, or anything under ~/Desktop/Jarvis
+  - running ai_accuracy.py WITHOUT --self-test or --corpus (those two only; a plain
+    run would attempt to spend money)
+  - claiming a checker passed if you did not see its output
+
+REPORT BACK
+The verification output, the two file paths, and anything you could not do and why.
+If a requirement above is wrong, say so instead of guessing.
