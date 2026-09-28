@@ -34,6 +34,29 @@ class CaptureScreen extends StatefulWidget {
   State<CaptureScreen> createState() => _CaptureScreenState();
 }
 
+/// What one scan produced. THREE outcomes, three states, decided in one place.
+///
+/// 2026-09-28: this used to be decided inline in a setState block, and the
+/// inline version set the abstain flag and then unset it two lines later, so
+/// `_unrecognised` could never be true. The owner's decision - a wrong number is
+/// worse than no number, so the app says "I don't recognise this dish" and hands
+/// over the keyboard - has therefore been DEAD since it shipped in 3dded85, and
+/// the guard missed it because the guard only checked that the strings and the
+/// field EXISTED. A flag that is set and immediately cleared looks identical to
+/// a flag that works, in a source file, to any test that greps.
+///
+/// So the decision is a pure function and it is unit-tested on all three
+/// branches. An abstention WINS over items, because the model's most dangerous
+/// answer is a confident dish it did not recognise.
+enum ScanOutcome { answered, abstained, noFood }
+
+@visibleForTesting
+ScanOutcome scanOutcome({required bool unrecognised, required int itemCount}) {
+  if (unrecognised) return ScanOutcome.abstained;
+  if (itemCount <= 0) return ScanOutcome.noFood;
+  return ScanOutcome.answered;
+}
+
 class _CaptureScreenState extends State<CaptureScreen> {
 
   final _picker = ImagePicker();
@@ -352,21 +375,24 @@ class _CaptureScreenState extends State<CaptureScreen> {
         }
       }
 
+      // ABSTAIN, not fail. The model told us it does not know this dish, and a
+      // made-up dish is the one error the user cannot catch - so say so plainly
+      // and hand them the keyboard. scanOutcome() is a pure function precisely so
+      // that the three branches can be tested; the previous inline version set
+      // _unrecognised = true and then false two lines later, which made the whole
+      // feature unreachable and which no grep-based guard could see.
+      final outcome = scanOutcome(
+        unrecognised: result.unrecognised,
+        itemCount: enrichedItems.length,
+      );
       setState(() {
         _items = enrichedItems.isNotEmpty ? enrichedItems : null;
         _analyzing = false;
         if (result.mealType != null) _mealType = result.mealType!;
-        if (result.unrecognised) {
-          // ABSTAIN, not fail. The model told us it does not know this dish, and
-          // a made-up dish is the one error the user cannot catch. Say so
-          // plainly and hand them the keyboard.
-          _unrecognised = true;
-          _error = null;
-        _unrecognised = false;
-        } else if (enrichedItems.isEmpty) {
-          _unrecognised = false;
-          _error = 'No food detected. Try another photo.';
-        }
+        _unrecognised = outcome == ScanOutcome.abstained;
+        _error = outcome == ScanOutcome.noFood
+            ? 'No food detected. Try another photo.'
+            : null;
       });
     } catch (e) {
       if (!mounted) return;
