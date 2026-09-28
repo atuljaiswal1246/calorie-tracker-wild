@@ -46,6 +46,19 @@ import 'asha_screen.dart';
 import 'quick_picks_screen.dart';
 import 'settings_screen.dart';
 
+/// What the trial gate does with a locked surface. A pure function on purpose:
+/// the decision is the part that must never be wrong, and a decision buried in a
+/// build method cannot be tested without pumping a 3,000-line screen.
+enum GateDecision { open, paywall }
+
+/// The owner's rule (2026-09-21): a limited account - one whose 7-day trial has
+/// ended - keeps manual logging, Home, habits and history, and loses AI scan,
+/// Gallery, Quick picks, Barcode, Progress and Trophy. One boolean decides it, so
+/// it is one boolean that can be tested seven times over.
+@visibleForTesting
+GateDecision gateDecision({required bool limited}) =>
+    limited ? GateDecision.paywall : GateDecision.open;
+
 class HomeScreen extends StatefulWidget {
   final StorageService storage;
   final AuthService auth;
@@ -350,11 +363,10 @@ class _HomeScreenState extends State<HomeScreen> {
         'mood': mood,
       });
     }
-    Navigator.of(context)
-        .push(MaterialPageRoute(
-          builder: (_) => CaptureScreen(storage: widget.storage),
-        ))
-        .then((saved) {
+    // GATED. This route is the shortest path in the app - one tap on a home
+    // screen widget - so it is the one a trial-ended user would use to get a
+    // locked surface for nothing.
+    _pushGated<bool>(CaptureScreen(storage: widget.storage)).then((saved) {
       if (saved == true) _load();
     });
   }
@@ -432,12 +444,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final picked = await picker.pickImage(source: source);
     if (picked == null) return;
     if (!mounted) return;
-    final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => CaptureScreen(
-          storage: widget.storage,
-          initialImage: File(picked.path),
-        ),
+    // Through _pushGated even though the caller already used _gate: the call-site
+    // gate is a convenience that stops work before the paywall, and this is the
+    // backstop that cannot be forgotten. Two places to remember is how the widget
+    // route ended up ungated.
+    final saved = await _pushGated<bool>(
+      CaptureScreen(
+        storage: widget.storage,
+        initialImage: File(picked.path),
       ),
     );
     if (saved == true) _load();
@@ -453,14 +467,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (picked.isEmpty) return;
     if (!mounted) return;
     final files = picked.map((x) => File(x.path)).toList();
-    final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => CaptureScreen(
-          storage: widget.storage,
-          initialImage: files.length == 1 ? files.first : null,
+    final saved = await _pushGated<bool>(
+      CaptureScreen(
+        storage: widget.storage,
+        initialImage: files.length == 1 ? files.first : null,
           initialImages: files.length > 1 ? files : null,
         ),
-      ),
     );
     if (saved == true) _load();
   }
@@ -548,12 +560,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       return;
                     }
                     HapticFeedback.lightImpact();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            AchievementsScreen(storage: widget.storage),
-                      ),
-                    );
+                    // Through _pushGated like every other locked surface. The
+                    // early return above is kept so a limited user gets the
+                    // paywall before a haptic tells them something happened.
+                    _pushGated<void>(AchievementsScreen(storage: widget.storage));
                     return;
                   }
                   if (i == 1 && _limited) {
@@ -867,21 +877,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openBarcodeScanner() async {
     if (!mounted) return;
-    await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => BarcodeScannerScreen(storage: widget.storage),
-      ),
-    );
+    await _pushGated<bool>(BarcodeScannerScreen(storage: widget.storage));
     _load();
   }
 
   Future<void> _openQuickPicks() async {
     if (!mounted) return;
-    final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => QuickPicksScreen(storage: widget.storage),
-      ),
-    );
+    final saved =
+        await _pushGated<bool>(QuickPicksScreen(storage: widget.storage));
     if (saved == true) _load();
   }
 
@@ -1503,6 +1506,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool get _limited =>
       widget.storage.isLimited(authEmail: widget.auth.currentUser?.email);
+
+  /// The ONLY way to open a surface the trial locks.
+  ///
+  /// 2026-09-28: the gate used to live at each call site, and a call site that
+  /// forgot it became a free premium feature. The widget's one-tap deep link
+  /// (`_openLogFromWidget`, reached from the uri handler on both cold start and
+  /// warm start) pushed `CaptureScreen` directly, so a user whose 7-day trial had
+  /// ended could tap the home-screen widget and land in the AI scan with no
+  /// paywall - the exact surface the owner's decision locks. It was found by
+  /// reading the ROUTES rather than the screens, after a grep of the screens
+  /// wrongly suggested the locks were missing entirely.
+  ///
+  /// Central so the next route cannot forget. `[T]` so callers can still await the
+  /// result. The decision itself is `gateDecision()` at the top of this file,
+  /// which is unit-tested - this method is the wiring, and the wiring is checked
+  /// structurally in test/trial_gate_routes_test.dart.
+  Future<T?> _pushGated<T>(Widget page) {
+    if (gateDecision(limited: _limited) == GateDecision.paywall) {
+      _openPricing();
+      return Future<T?>.value();
+    }
+    return Navigator.of(context)
+        .push<T>(MaterialPageRoute<T>(builder: (_) => page));
+  }
 
   /// Premium actions route to the paywall once the trial has ended.
   void _gate(VoidCallback action) {
