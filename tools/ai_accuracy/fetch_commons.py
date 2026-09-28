@@ -68,7 +68,7 @@ from photo_store import (MANIFEST, NEAR_DUP_DISTANCE, PHOTO_DIR, UA,  # noqa: F4
 # to be rewritten is a relocation with a bill attached.
 from query_sets import (BATCH10_QUERIES, BATCH11_QUERIES, BATCH12_QUERIES,  # noqa: F401
                         BATCH13_QUERIES, BATCH14_QUERIES, BATCH15_QUERIES,
-                        BATCH16_QUERIES, BATCH17_QUERIES, BATCH18_QUERIES, BATCH19_QUERIES, BATCH21_QUERIES, BATCH22_QUERIES, BATCH23_QUERIES, BATCH24_QUERIES,
+                        BATCH16_QUERIES, BATCH17_QUERIES, BATCH18_QUERIES, BATCH19_QUERIES, BATCH21_QUERIES, BATCH22_QUERIES, BATCH23_QUERIES, BATCH24_QUERIES, BATCH25_QUERIES,
                         BATCH2_QUERIES, BATCH3_QUERIES,
                         BATCH4_QUERIES, BATCH5_QUERIES, BATCH6_QUERIES,
                         BATCH7_QUERIES, BATCH8_QUERIES, BATCH9_QUERIES,
@@ -171,6 +171,25 @@ def clean(text: str) -> str:
 
 SEARCH_FAILURES: list[tuple[str, str]] = []
 
+# What each query ACTUALLY RETURNED, keyed by the query text: how many pages the search
+# gave back before any filtering, how many survived into the candidate list, and the
+# error if it never got to be asked. `pages` is None for a query that was not asked, and
+# that is the whole point of keeping it distinct from 0.
+#
+# WHY THIS EXISTS, and it is a gap in the ACCOUNTING rather than in the corpus. The
+# ledger's `candidates` column carries a dash for eight of twenty-four batches, and the
+# declared reason was "unmeasured". It was not unknowable: the number was in hand at the
+# moment the search returned, and it was printed and then discarded. So a reader of the
+# ledger could not tell "this query found nothing" from "this query was never asked" -
+# which is the same distinction SEARCH_FAILURES exists to protect, one level up, and it
+# was the shape of all four false zeros in this corpus.
+#
+# `pages` is recorded BEFORE filtering, deliberately. `kept` counts candidates that
+# survived the licence and duplicate filters, so it can be 0 on a perfectly healthy query
+# whose results were all already in the corpus. Only `pages` answers the question the
+# ledger is asking, which is whether the SEARCH found anything at all.
+QUERY_OUTCOMES: dict[str, dict] = {}
+
 
 def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
     # Queries that could not be SEARCHED AT ALL, as opposed to queries that were
@@ -189,6 +208,7 @@ def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
     # So the failures are counted, and main() refuses to report a batch as a zero when
     # any query never got to be asked.
     SEARCH_FAILURES.clear()
+    QUERY_OUTCOMES.clear()
     seen, out = set(), []
     for q in (queries or QUERIES):
         try:
@@ -203,10 +223,20 @@ def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
             # Recorded, not just printed. A query that was never asked is not a query
             # that found nothing, and the batch must not be able to say otherwise.
             SEARCH_FAILURES.append((q, f"{type(exc).__name__}: {exc}"))
+            QUERY_OUTCOMES[q] = {"pages": None, "kept": 0, "error": f"{type(exc).__name__}"}
             print(f"  ! search FAILED for {q!r}: {exc}")
             continue
         time.sleep(1.5)          # Commons rate-limits bursts with HTTP 429
-        for page in (data.get("query", {}).get("pages", {}) or {}).values():
+        _pages = (data.get("query", {}).get("pages", {}) or {})
+        # HOW MANY PAGES THE SEARCH RETURNED, recorded before any filtering. This is the
+        # number the ledger's `candidates` column has been carrying as a dash for eight
+        # of twenty-four batches, and the dash was not because the number is unknowable -
+        # it was because nobody wrote it down at the moment it was known. A query that
+        # was asked and returned nothing left no trace whatsoever, so a zero and a query
+        # that was never asked looked identical in the record, which is the same defect
+        # as SEARCH_FAILURES itself, one level up.
+        QUERY_OUTCOMES[q] = {"pages": len(_pages), "kept": 0, "error": None}
+        for page in _pages.values():
             title = page.get("title", "")
             if title in seen:
                 continue
@@ -232,6 +262,7 @@ def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
             if (info.get("width") or 0) < 800:
                 continue
             seen.add(title)
+            QUERY_OUTCOMES[q]["kept"] += 1
             out.append({
                 "title": title,
                 "url": info.get("thumburl") or info.get("url"),
@@ -256,6 +287,60 @@ def candidates(limit_per_query: int = 8, queries=None) -> list[dict]:
 # accepted (this batch OR the existing corpus) is rejected with a printed reason.
 # --max-per-query and --per-author caps stop one query, or one prolific uploader,
 # from dominating a batch. Review still happens: this is a floor, not a judge.
+
+
+QUERY_RECORD = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "query_results.json")
+
+
+def _write_query_record(batch: str, queries: list[str]) -> None:
+    """Append what each query in this batch actually returned to query_results.json.
+
+    APPEND, never overwrite: a record of what the search returned on the day is evidence
+    about that day, and a later run of the same batch name is a DIFFERENT measurement. So
+    each entry is keyed by batch AND carries its own timestamp, and re-running a batch
+    adds a run rather than replacing the last one. Overwriting would make the file a
+    statement about the most recent run, which is precisely the moving-window fault the
+    /health reader was rebuilt to avoid - a fact read through whatever happened to be
+    written last.
+
+    Written even when the batch was throttled and main() is about to return 3. That is
+    the run most worth recording: it is the one where a careless reader would see a count
+    of 0 and write it up as a fact about three dishes.
+    """
+    run = {
+        "recorded": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "queries": [{"query": q,
+                     "pages": QUERY_OUTCOMES.get(q, {}).get("pages"),
+                     "kept": QUERY_OUTCOMES.get(q, {}).get("kept"),
+                     "error": QUERY_OUTCOMES.get(q, {}).get("error")}
+                    for q in queries],
+    }
+    data = {"_what_this_is":
+            "What each query in each batch ACTUALLY RETURNED, recorded at fetch time by "
+            "fetch_commons.py. `pages` is the search's own hit count before any filtering, "
+            "`kept` is what survived the licence and duplicate filters, and `pages` is null "
+            "for a query that was never asked - which is a different fact from zero, and the "
+            "distinction all four false zeros in this corpus turned on. Each batch holds a "
+            "LIST of runs with timestamps, so a later run adds evidence rather than "
+            "overwriting the measurement of an earlier day.",
+            "runs": {}}
+    if os.path.exists(QUERY_RECORD):
+        try:
+            with open(QUERY_RECORD, encoding="utf-8") as fh:
+                data = json.load(fh)
+        except (OSError, json.JSONDecodeError):
+            pass                      # a corrupt record must not stop a fetch
+    data.setdefault("runs", {}).setdefault(batch, []).append(run)
+    tmp = QUERY_RECORD + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False, indent=2)
+    os.replace(tmp, QUERY_RECORD)      # atomic: never a half-written record
+    zeros = sum(1 for r in run["queries"] if r["pages"] == 0)
+    unasked = sum(1 for r in run["queries"] if r["pages"] is None)
+    print(f"  recorded per-query results for {batch}: "
+          f"{zeros} returned nothing, {unasked} were never asked "
+          f"-> {os.path.basename(QUERY_RECORD)}")
 
 
 def main() -> int:
@@ -293,7 +378,8 @@ def main() -> int:
             "batch21": BATCH21_QUERIES,
             "batch22": BATCH22_QUERIES,
             "batch23": BATCH23_QUERIES,
-            "batch24": BATCH24_QUERIES}
+            "batch24": BATCH24_QUERIES,
+            "batch25": BATCH25_QUERIES}
     ap.add_argument("--set", choices=sorted(sets), default="mixed",
                     help="which query list to run. The choices are the keys of the "
                          "registry above, so a set is runnable as soon as it is added.")
@@ -301,6 +387,7 @@ def main() -> int:
 
     print("searching Wikimedia Commons ...")
     cands = candidates(queries=sets.get(args.set, QUERIES))
+    _write_query_record(args.set, sets.get(args.set, QUERIES))
     if SEARCH_FAILURES:
         # Distinct exit code, and a message that cannot be skimmed past. A batch that
         # learned nothing must not look like a batch that found nothing, because the

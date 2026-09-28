@@ -566,6 +566,24 @@ BATCH24_QUERIES = [
 ]
 
 
+# BATCH 25 -- the first batch whose per-query results are RECORDED rather than guessed.
+#
+# This set exists to exercise the record on a batch that is expected to be partly empty,
+# because a record only proves anything on a run where something came back zero. Targets
+# are singletons, with the lauki family deliberately retried in a form batch 24 has not
+# tried - lauki is a declared gap after three failures, and a gap that quietly starts
+# filling itself without a record is a gap nobody would notice had closed.
+BATCH25_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    'filetype:bitmap "lauki sabzi"',
+    'filetype:bitmap "bottle gourd curry"',
+    'filetype:bitmap "ratan jot salad"',        # expected thin: a rare dish
+    'filetype:bitmap "amla pickle"',
+    'filetype:bitmap "chicken biryani"',
+    'filetype:bitmap "gulab jamun"',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

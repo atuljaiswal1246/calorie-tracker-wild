@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 62 cases over 41 distinct dish families; 34 distinct dish CLASSES; 51 coverage classes; top-4 classes hold 24%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 34, with fourteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 65 cases over 44 distinct dish families; 37 distinct dish CLASSES; 54 coverage classes; top-4 classes hold 23%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 37, with seventeen classes spare. EVERY DECLARED CLASS HAS A CASE.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -585,7 +585,76 @@
     "               sabzi. The same refusal as the vegetable pulao, for the same reason:",
     "               the title is a CLAIM and the frame is the EVIDENCE, and where they",
     "               disagree the frame wins. On the title alone it would have created a",
-    "               gobi class out of a filename."
+    "               gobi class out of a filename.",
+    "",
+    "BATCH 25 (2026-09-28): THE FIRST RECORDED RUN - and the record immediately paid",
+    "for itself by closing a gap I had declared permanent the batch before.",
+    "  7 queries (control first), 4 downloaded, accepted 3, rejected 1",
+    "",
+    "THE ACCOUNTING HAD A HOLE AND I HAD ACCEPTED IT AS UNKNOWABLE. The ledger's",
+    "`candidates` column carried a dash for eight of twenty-four batches, declared",
+    "'unmeasured'. The number was in hand when the search returned; the fetcher",
+    "printed it and discarded it. So the ledger could not tell a query that found",
+    "nothing from a query that was NEVER ASKED - the exact distinction all four false",
+    "zeros here turned on (a 429, an over-constrained query, an invented category, and",
+    "a category form that returns nothing; not one was a fact about a dish).",
+    "",
+    "fetch_commons.py now records per query: `pages` (the search's own hit count",
+    "BEFORE filtering), `kept` (what survived the licence and duplicate filters), and",
+    "`error` with `pages: null` for a query that was never asked. A new guard fails if",
+    "a run where every query returned zero is treated as a finding, if an errored",
+    "query claims a page count, or if kept exceeds pages.",
+    "",
+    "THE FIRST RECORD, verbatim:",
+    "  pages= 1 kept=1  filetype:bitmap uthappam breakfast      <- the control",
+    "  pages= 0 kept=0  filetype:bitmap \"lauki sabzi\"",
+    "  pages= 8 kept=8  filetype:bitmap \"bottle gourd curry\"",
+    "  pages= 0 kept=0  filetype:bitmap \"ratan jot salad\"",
+    "  pages= 8 kept=7  filetype:bitmap \"amla pickle\"",
+    "  pages= 8 kept=7  filetype:bitmap \"chicken biryani\"",
+    "  pages= 8 kept=6  filetype:bitmap \"gulab jamun\"",
+    "Two zeros with the control POSITIVE in the same run, so both are real zeros of",
+    "what Commons can reach. The control was a convention I followed by remembering",
+    "until a guard made it a check; the record has now made it a fact about the run.",
+    "",
+    "AND IT CLOSED A GAP I DECLARED PERMANENT IN BATCH 24:",
+    "  lauki (bare) ......... a gourd photograph, the INGREDIENT",
+    "  \"lauki sabzi\" ....... 0",
+    "  \"lauki curry\" ....... 0",
+    "  \"bottle gourd curry\"  8      <- THE ENGLISH NAME, same day, same instrument",
+    "8 against 0 with the control positive. The gap was never in the corpus and never",
+    "in lauki: it was in my QUERY. Commons indexes the English name and not the",
+    "transliterated one as a dish. A gap I could have declared forever, closed by",
+    "spelling the dish the way the archive spells it.",
+    "",
+    "  accepted 3  BOTTLE GOURD CURRY - translucent pale-green gourd cooked down in a",
+    "               light masala with countable chickpeas, mustard seed, cumin and a",
+    "               dried red chilli. Lentil AND gourd together, so a declared ADJACENT",
+    "               class rather than a second gourd-only case: the photograph shows",
+    "               both and a case claiming one would describe half the frame.",
+    "  accepted 3  AMLA PICKLE - whole round unpeeled amla, golden-brown in brine with",
+    "               mustard seed, chilli flakes and a dried red chilli. Whole and",
+    "               unpeeled is what distinguishes it from a sliced murabba. New class.",
+    "  accepted 3  GULAB JAMUN - two syrup-soaked balls in pale amber syrup on white",
+    "               boards with rose petals and saffron. New class, and the only",
+    "               photograph in the corpus composed as a deliberate STILL LIFE rather",
+    "               than a record of a meal. A stylist's shot and a home photograph are",
+    "               not the same difficulty, and the corpus now holds both - worth",
+    "               knowing before anyone reads a median across it.",
+    "",
+    "  rejected 1  'biryani home' - a mound of rice, white at the edges and yellow",
+    "               through the middle. Rejected on the YELLOW and the grain: a",
+    "               biryani's colour comes from saffron laid over the rice BEFORE",
+    "               cooking and is even across the plate, while here the yellow sits in",
+    "               patches with white showing through, which is turmeric stirred in at",
+    "               the end. The grains are fused in places, and there is no meat, no",
+    "               fried onion, no saffron, no potato and no egg. A judgement about a",
+    "               photograph, recorded rather than asserted because it could be wrong",
+    "               - but a case whose class turns on a colour I am reading as",
+    "               diagnostic is weaker than the karela and the lauki, and the corpus",
+    "               does not need a weaker case in a class it already holds three of.",
+    "               'biryani' is declared and this would have been its first case,",
+    "               minted off a photograph I am not confident about."
   ],
   "cases": [
     {
@@ -2153,6 +2222,57 @@
             "Coconut Chutney"
           ],
           "kcal": 150
+        }
+      ]
+    },
+    {
+      "id": "lauki_chana_curry",
+      "image": "tools/ai_accuracy/photos/bottle_gourd_curry_jpg_a4cc08f2.jpg",
+      "note": "A mound of translucent pale-green gourd cooked down in a light masala on a steel plate, with countable round chickpeas, black mustard seed, cumin and a whole dried red chilli. The gourd is diced into soft irregular pieces rather than left in rings, which is what cooking it down does. FOUND ONLY AFTER THE ENGLISH NAME WAS TRIED: 'lauki' returned a gourd photograph, 'lauki sabzi' and 'lauki curry' both returned 0 across batches 23, 24 and 25, and 'bottle gourd curry' returned 8 on the same day with the control positive. The gap I declared permanent in batch 24 was a VOCABULARY failure, not a corpus gap. The dish is lentil and gourd together, so this is a declared ADJACENT class rather than a second case for gourd alone - the photograph shows both, and a case claiming only one would describe half the frame. Lauki's second case.",
+      "truth": [
+        {
+          "name": "Bottle Gourd Curry",
+          "aliases": [
+            "Lauki Curry",
+            "Lauki Sabzi",
+            "Doodhi Sabzi",
+            "Gourd Curry",
+            "Chana Lauki"
+          ],
+          "kcal": 160
+        }
+      ]
+    },
+    {
+      "id": "amla_pickle_jar",
+      "image": "tools/ai_accuracy/photos/amla_pickle_jpg_9ec4b82c.jpg",
+      "note": "A glass jar of whole round amla, golden-brown and glossy in brine, with visible mustard seed, chilli flakes and a whole dried red chilli, and a steel spoon standing in it. The fruit is whole and unpeeled, which is what distinguishes amla pickle from a sliced murabba, and the roundness is the whole point of the case. A new class.",
+      "truth": [
+        {
+          "name": "Amla Pickle",
+          "aliases": [
+            "Amla Achar",
+            "Gooseberry Pickle",
+            "Amla Murabba",
+            "Achar"
+          ],
+          "kcal": 90
+        }
+      ]
+    },
+    {
+      "id": "gulab_jamun_syrup",
+      "image": "tools/ai_accuracy/photos/gulaabjamun_jpg_f667c5df.jpg",
+      "note": "Two dark syrup-soaked balls in a white bowl of pale amber syrup, on white painted boards scattered with pink rose petals, with saffron strands floating on the surface. A new class, and worth naming that this is the only photograph in the corpus composed as a deliberate still life rather than a record of a meal - a stylist's shot and a home photograph are not the same difficulty, and the corpus now contains both, which is worth knowing before anyone reads a median across it.",
+      "truth": [
+        {
+          "name": "Gulab Jamun",
+          "aliases": [
+            "Gulaab Jamun",
+            "Jangiri",
+            "Motichoor"
+          ],
+          "kcal": 300
         }
       ]
     }

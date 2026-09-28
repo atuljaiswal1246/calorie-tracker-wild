@@ -431,6 +431,19 @@ DISH_CLASS = {
     # that arrives from a fallback is not a decision - it is a filename, and the guard
     # test_every_class_the_corpus_uses_is_a_declared_dish_class_key fails on exactly that.
     "karela": "karela", "karela curry": "karela", "bitter gourd": "karela",
+    # amla pickle and gulab jamun, added 2026-09-28 with batch 25, and declared for the
+    # same reason as karela: a class that arrives from the DISH_CLASS.get(n, n) fallback
+    # is a filename rather than a decision. 'bottle gourd curry' is deliberately NOT
+    # folded into 'lauki' - the photograph shows lentil AND gourd together, so it is a
+    # declared adjacent class rather than a second case for gourd alone.
+    "amla": "amla", "amla pickle": "amla", "amla achar": "amla",
+    # bottle gourd curry is a DECLARED ADJACENT class, not a second lauki case: the
+    # batch 25 photograph is gourd and chickpea together, and one class cannot hold both
+    # without a reviewer guessing which vegetable a photo is about. Declared here so the
+    # class is a decision rather than the DISH_CLASS.get(n, n) fallback, which is what
+    # test_every_class_the_corpus_uses_is_a_declared_dish_class_key fails on.
+    "bottle gourd curry": "bottle gourd curry",
+    "gulab jamun": "gulab jamun", "gulaab jamun": "gulab jamun",
     "lauki": "lauki", "legume salad": "legume salad", "paneer": "paneer",
 }
 

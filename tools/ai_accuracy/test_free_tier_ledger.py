@@ -109,6 +109,42 @@ class FreeTierLedgerTests(unittest.TestCase):
             f"cases.json holds {len(cases)} cases, so the table and the corpus have "
             f"drifted apart. The corpus is the fact; fix the ledger, not the cases")
 
+    def test_every_batch_row_is_readable_by_this_module(self):
+        """A row this module's own regex cannot match is a batch that does not exist as
+        far as the accounting is concerned, and it fails SILENTLY - the row is skipped,
+        the sums come out short, and the only symptom is an arithmetic complaint about
+        some other batch.
+
+        Measured 2026-09-28, and it was my own doing. I added batch 24 with seven cells
+        instead of eight - no money cell - and this module reported:
+
+            AssertionError: 62 != 65 : the ledger accepts 62 photographs ...
+
+        naming the TOTAL, never the row. So I spent the round looking for a wrong
+        accepted-count, when the batch was not miscounted, it was INVISIBLE. A missing
+        cell and a wrong number produce the same symptom, which is the same defect as the
+        em dash this module already handles: a value that is not there reads as a value
+        that is zero.
+
+        So every `| n |` line in the table must parse here, and the failure must name the
+        LINE and the cell count rather than a sum three batches away.
+        """
+        import re as _re
+        bad = []
+        for i, line in enumerate(LEDGER.read_text(encoding="utf-8").splitlines(), 1):
+            s = line.strip()
+            if not _re.match(r"^\|\s*\d+\s*\|", s):
+                continue
+            if not _ROW.match(s):
+                cells = len(s.strip("|").split("|"))
+                bad.append(f"line {i} has {cells} cells, this module's regex needs 8: {s!r}")
+        self.assertEqual(
+            bad, [],
+            f"these batch rows cannot be read by the ledger's own parser, so the batch is "
+            f"absent from the accounting rather than wrong in it - which fails silently "
+            f"and surfaces as a sum that is short by an amount nobody can trace to a "
+            f"row: {bad}")
+
     def test_no_batch_accepted_more_than_it_fetched(self):
         """The only direction the arithmetic actually runs in.
 

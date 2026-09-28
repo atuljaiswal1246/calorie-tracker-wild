@@ -92,6 +92,17 @@ ADJACENT_CLASSES: dict[tuple[str, str], dict] = {
                "(lauki). Their calories differ.",
         "would_fold_to": "bhindi",
     },
+    ("bottle gourd curry", "lauki"): {
+        "why": "Added 2026-09-28 with batch 25, and it is the same decision as the "
+               "bhindi/lauki pair above, arrived at from the other direction. The batch "
+               "25 photograph is a curry of bottle gourd AND chickpea together, countable "
+               "chickpeas in frame, and the lauki class already holds a gourd-only case. "
+               "One class cannot hold both without a reviewer having to guess which "
+               "vegetable a photo is about; two classes can, because the name says. "
+               "Calories differ per 100g between a gourd curry and a plain gourd sabzi, "
+               "which is the whole reason the count is a class count and not a dish count.",
+        "would_fold_to": "lauki",
+    },
 }
 
 

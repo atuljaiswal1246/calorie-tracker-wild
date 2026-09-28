@@ -1,0 +1,54 @@
+{
+  "_what_this_is": "PLACEHOLDER - overwritten by the batch 25 fetch below. Written only so this module can be proved to bite against a real run rather than a mock.",
+  "runs": {
+    "batch25": [
+      {
+        "recorded": "2026-09-28T15:28:17",
+        "queries": [
+          {
+            "query": "filetype:bitmap uthappam breakfast",
+            "pages": 1,
+            "kept": 1,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"lauki sabzi\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"bottle gourd curry\"",
+            "pages": 8,
+            "kept": 8,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"ratan jot salad\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"amla pickle\"",
+            "pages": 8,
+            "kept": 7,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"chicken biryani\"",
+            "pages": 8,
+            "kept": 7,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"gulab jamun\"",
+            "pages": 8,
+            "kept": 6,
+            "error": null
+          }
+        ]
+      }
+    ]
+  }
+}
