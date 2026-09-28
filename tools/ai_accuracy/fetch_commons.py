@@ -68,7 +68,7 @@ from photo_store import (MANIFEST, NEAR_DUP_DISTANCE, PHOTO_DIR, UA,  # noqa: F4
 # to be rewritten is a relocation with a bill attached.
 from query_sets import (BATCH10_QUERIES, BATCH11_QUERIES, BATCH12_QUERIES,  # noqa: F401
                         BATCH13_QUERIES, BATCH14_QUERIES, BATCH15_QUERIES,
-                        BATCH16_QUERIES, BATCH2_QUERIES, BATCH3_QUERIES,
+                        BATCH16_QUERIES, BATCH17_QUERIES, BATCH2_QUERIES, BATCH3_QUERIES,
                         BATCH4_QUERIES, BATCH5_QUERIES, BATCH6_QUERIES,
                         BATCH7_QUERIES, BATCH8_QUERIES, BATCH9_QUERIES,
                         QUERIES, SINGLE_QUERIES)
@@ -237,17 +237,28 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12", "batch13", "batch14", "batch15", "batch16"], default="mixed")
+
+    # ONE registry, and the CLI's choices are DERIVED from it. Found 2026-09-28 while
+    # adding batch 17: `sets` and argparse's `choices` were two hand-maintained lists of
+    # the same names, they had already drifted - batch 17 was in `sets` and not in
+    # `choices`, so `--set batch17` was rejected by the tool that contained it. That is
+    # the "the second implementation IS the defect" rule from
+    # a-gate-must-read-what-the-reader-reads, and it is exactly the shape of the two
+    # definitions drift this corpus has been fighting all day: a copy nobody chose. A new
+    # query set is now reachable the moment it is added here, with nothing else to forget.
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES,
+            "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES,
+            "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES,
+            "batch10": BATCH10_QUERIES, "batch11": BATCH11_QUERIES,
+            "batch12": BATCH12_QUERIES, "batch13": BATCH13_QUERIES,
+            "batch14": BATCH14_QUERIES, "batch15": BATCH15_QUERIES,
+            "batch16": BATCH16_QUERIES, "batch17": BATCH17_QUERIES}
+    ap.add_argument("--set", choices=sorted(sets), default="mixed",
+                    help="which query list to run. The choices are the keys of the "
+                         "registry above, so a set is runnable as soon as it is added.")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES, "batch10": BATCH10_QUERIES,
-    "batch11": BATCH11_QUERIES,
-    "batch12": BATCH12_QUERIES,
-    "batch13": BATCH13_QUERIES,
-    "batch14": BATCH14_QUERIES,
-    "batch15": BATCH15_QUERIES,
-    "batch16": BATCH16_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     if SEARCH_FAILURES:
         # Distinct exit code, and a message that cannot be skimmed past. A batch that

@@ -361,6 +361,37 @@ BATCH15_QUERIES = [
 #
 # The control is in the set again, first, for the reason batch 15 established: a control
 # run separately is a claim about a moment that has passed.
+# BATCH 17 -- khakra, the last empty class, by the two things never tried.
+#
+# Sixteen batches have searched khakra four ways: the dictionary word, the transliteration
+# (khakro), the compound ("khakra rotli"), and a neighbour ("gujarati khichdi"). Four
+# names, four non-dishes - a 1784 map, the Khakra Math Palace, the Ghaghara river, a tea
+# plantation in Java. Batch 15 established that this is a fact about the food being
+# UNSEARCHABLE rather than unphotographable, and batch 16 confirmed it with a synonym.
+#
+# So this round changes the MECHANISM rather than the word, which is the only thing left:
+#
+#   1. CATEGORY-SCOPED SEARCH. Every query so far has asked the full-text search box, which
+#      ranks a 1784 antique map highly for the word khakra because the map is full of
+#      place names. `incategory:` asks a different question - not "what text matches" but
+#      "what is filed under Gujarati cuisine", which is the question a dish should be
+#      asked. This is the same distinction as asking the reader instead of re-deriving
+#      what the reader does.
+#   2. THE DOUBLE-K SPELLING, khakhra, which no batch has tried.
+#
+# If both come back empty with the control answered, khakra is exhausted as a SEARCH
+# problem by every mechanism this harness has, and the honest next step is not another
+# query: it is a photograph from a human hand, or a decision to accept 30 of 33 declared
+# classes. That decision is not this role's to take silently.
+BATCH17_QUERIES = [
+    'filetype:bitmap uthappam breakfast',                       # the control, proven 12/14/15/16
+    'filetype:bitmap khakhra',
+    'filetype:bitmap incategory:"Gujarati cuisine" khakra',
+    'filetype:bitmap incategory:"Indian snacks" khakra',
+    'filetype:bitmap "gujarati snack"',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',
@@ -434,3 +465,7 @@ BATCH4_QUERIES = [
     'filetype:bitmap "khichdi"',
     'filetype:bitmap "poha"',
 ]
+
+# The registry lives in fetch_commons.main(), so a new set is added there too - one place,
+# deliberately: a query list that is not reachable by `--set` is a query list nobody runs.
+BATCH17_QUERIES_SET_NAME = "batch17"

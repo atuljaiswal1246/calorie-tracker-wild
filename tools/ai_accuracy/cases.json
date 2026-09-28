@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 48 cases over 37 distinct dish families; 32 distinct dish CLASSES; 48 coverage classes; top-4 classes hold 27%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 32, with twelve classes spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 49 cases over 38 distinct dish families; 33 distinct dish CLASSES; 48 coverage classes; top-4 classes hold 27%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 33, with thirteen classes spare. EVERY DECLARED CLASS NOW HAS A CASE.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -309,7 +309,34 @@
     "river all match, and its synonyms reach a tea plantation in Java. Four names, four",
     "non-dishes. The remaining honest options are a photograph from a human hand, or",
     "accepting a corpus with 29 of its 33 declared classes filled - a decision, not a",
-    "failure, and not mine to take silently."
+    "failure, and not mine to take silently.",
+    "",
+    "BATCH 17 (2026-09-28): KHAKRA, FOUND - AND A CORRECTION TO MY OWN CONCLUSION.",
+    "At the end of batch 16 this file said 'KHAKRA IS NOW EXHAUSTED AS A SEARCH",
+    "PROBLEM... Four names, four non-dishes.' Six queries had used four spellings of",
+    "one word in one search mechanism, and I generalised from that sample to the",
+    "population. The FIRST query of batch 17 - the double-k spelling, khakhra, which",
+    "no batch had tried - returned the dish.",
+    "",
+    "That is this whole line of work's lesson applied to my own conclusion: a negative",
+    "finding needs a control, and 'I tried N things' is not a control, it is a sample.",
+    "5 queries with the control first, 2 downloaded, accepted 1, rejected 1.",
+    "  accepted 1  KHAKHRA - broken shards of a thin crisp deep-golden fried disc with",
+    "               ajwain, fried onion and a papery flake. Unmistakable, and nothing",
+    "               else in the corpus resembles it. Khakra's first case; declared in",
+    "               batch 9, empty through batches 10-16",
+    "  rejected 1  'dhokla karachi' - a real Gujarati dish and NOT in DISH_CLASS, so",
+    "               it would manufacture a new UNDECLARED class through the fallback.",
+    "               Recorded as a CANDIDATE for a deliberate decision rather than added",
+    "               on the strength of one photograph",
+    "",
+    "AND THE MECHANISM FINDING, worth more than the photograph: the CATEGORY-SCOPED",
+    "query reached real Gujarati food where the text search had been returning an 1784",
+    "map. incategory:\"Gujarati cuisine\" khakra surfaced Gol dhokla, khandvi, muthia",
+    "and methi muthiya. So for a dish whose NAME IS A PROPER NOUN the right question is",
+    "not 'what text matches' but 'what is filed under the cuisine' - a different",
+    "instrument, not a better query. Sixteen batches had used one instrument and been",
+    "reading its failures as facts about the food."
   ],
   "cases": [
     {
@@ -1608,6 +1635,23 @@
             "Button Mushroom"
           ],
           "kcal": 180
+        }
+      ]
+    },
+    {
+      "id": "khakhra_broken_on_plate",
+      "image": "tools/ai_accuracy/photos/khakhra_jpg_73301a1a.jpg",
+      "note": "A white plate holding broken shards of a thin, crisp, deep-golden fried disc, with visible carom/ajwain seed, small fried onion pieces and one papery translucent flake, on a dark counter. The form, the fry colour, the ajwain and the onion are all characteristic of a Gujarati crispbread, which is khakhra, and nothing else in the corpus resembles it. Found by the DOUBLE-K SPELLING, which no earlier batch tried, after batch 16 recorded this class as an exhausted search problem - so the exhaustion was a fact about four spellings in one search mechanism, not about the food. Khakra's first case; declared in batch 9, empty through batches 10-16.",
+      "truth": [
+        {
+          "name": "Khakra",
+          "aliases": [
+            "Khakhra",
+            "Khachra",
+            "Khakro",
+            "Gujarati Crispbread"
+          ],
+          "kcal": 160
         }
       ]
     }
