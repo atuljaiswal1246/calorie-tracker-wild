@@ -432,6 +432,32 @@ BATCH15_QUERIES = [
 ]
 
 
+# BATCH 16 -- the last two empty classes, attacked by SYNONYM rather than by form.
+#
+# Batch 15 produced the first control-supported negative finding, and its reading was
+# precise: khakra "cannot be SEARCHED with the words available", because "khakra" is a
+# proper noun a 1784 map and a palace both match. So the answer is not another spelling
+# of khakra - it is a DIFFERENT NAME for the food, and I have never tried one.
+#
+#   khakra  -> mathari, and the bhakri it is eaten with, and farsi puri from the same
+#              Gujarati snack family. A dish is findable by its NEIGHBOURS.
+#   mushroom -> dhingra (the Hindi word, so the captions are in Hindi), and the visible
+#              FORMS - a mushroom has to be VISIBLE, and a sabzi or a fry shows it where
+#              a masala under a dosa does not.
+#
+# The control is in the set again, first, for the reason batch 15 established: a control
+# run separately is a claim about a moment that has passed.
+BATCH16_QUERIES = [
+    'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
+    'filetype:bitmap mathari',
+    'filetype:bitmap "gujarati bhakri"',
+    'filetype:bitmap "farsi puri"',
+    'filetype:bitmap dhingra',
+    'filetype:bitmap "mushroom sabzi"',
+    'filetype:bitmap "mushroom fry"',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -623,7 +649,7 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12", "batch13", "batch14", "batch15"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12", "batch13", "batch14", "batch15", "batch16"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
@@ -632,7 +658,8 @@ def main() -> int:
     "batch12": BATCH12_QUERIES,
     "batch13": BATCH13_QUERIES,
     "batch14": BATCH14_QUERIES,
-    "batch15": BATCH15_QUERIES}
+    "batch15": BATCH15_QUERIES,
+    "batch16": BATCH16_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     if SEARCH_FAILURES:
         # Distinct exit code, and a message that cannot be skimmed past. A batch that

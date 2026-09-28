@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 47 cases over 36 distinct dish families; 31 distinct dish CLASSES; 47 coverage classes; top-4 classes hold 28%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 31, with eleven classes spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 48 cases over 37 distinct dish families; 32 distinct dish CLASSES; 48 coverage classes; top-4 classes hold 27%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 32, with twelve classes spare.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -279,7 +279,37 @@
     "MUSHROOM REMAINS EMPTY for the fourth characterised reason: the dish is",
     "demonstrably on Commons but photographed as a dosa plate or a street platter where",
     "the mushroom cannot be identified. What a mushroom case needs is a photograph where",
-    "a mushroom is VISIBLE, and no query in three batches has produced one."
+    "a mushroom is VISIBLE, and no query in three batches has produced one.",
+    "",
+    "BATCH 16 (2026-09-28): THE LAST TWO EMPTY CLASSES, ATTACKED BY SYNONYM. Batch 15's",
+    "control-supported negative finding said khakra 'cannot be SEARCHED with the words",
+    "available', so this round stopped trying other spellings and used a DIFFERENT NAME",
+    "for the food: mathari, the bhakri it is eaten with, farsi puri, and dhingra (the",
+    "Hindi word for mushroom) plus the visible forms sabzi and fry - because a mushroom",
+    "case needs a photograph where a mushroom is VISIBLE. 7 queries with the control",
+    "first, 3 downloaded, accepted 1, rejected 2.",
+    "  accepted 1  BUTTON MUSHROOM FRY - whole button mushrooms, stems and caps",
+    "               unmistakable, lightly glazed with pepper. What batch 15 said the",
+    "               class needed and three batches failed to find. MEDIUM confidence,",
+    "               stated rather than buried: the mushrooms are certain, but the frame",
+    "               carries no Indian marker - no masala, no onion, no rice, no roti. The",
+    "               identification as an Indian preparation rests on 'mushroom fry'",
+    "               being a standard Indian home dish, which is a claim about the",
+    "               CAPTION and not about the picture, and the corpus's bar is Indian",
+    "               meals, so that is recorded as what it is",
+    "  rejected 2  'brig gen ashok dhingra exits a uh60 black hawk helicopter' - the",
+    "               query was `dhingra`, the Hindi word for mushroom, and the search",
+    "               returned a photograph of a BRIGADIER GENERAL NAMED ASHOK DHINGRA",
+    "               getting out of a helicopter. The Hindi word for mushroom is also",
+    "               an Indian SURNAME. A name search is not a dish search. And",
+    "               'githunguri tea farm' - a tea plantation in Java, which is what",
+    "               `mathari` returned",
+    "KHAKRA IS NOW EXHAUSTED AS A SEARCH PROBLEM, which is a different statement from",
+    "'khakra cannot be photographed': the word is a proper noun a map, a palace and a",
+    "river all match, and its synonyms reach a tea plantation in Java. Four names, four",
+    "non-dishes. The remaining honest options are a photograph from a human hand, or",
+    "accepting a corpus with 29 of its 33 declared classes filled - a decision, not a",
+    "failure, and not mine to take silently."
   ],
   "cases": [
     {
@@ -1561,6 +1591,23 @@
             "Boiled Potato"
           ],
           "kcal": 90
+        }
+      ]
+    },
+    {
+      "id": "button_mushroom_fry_plate",
+      "image": "tools/ai_accuracy/photos/button_mushroom_fry_jpg_b17ec9da.jpg",
+      "note": "Whole button mushrooms on a white plate, stems and caps unmistakable, lightly glazed and flecked with cracked pepper and a few fried spice fragments, with one loose fragment off to the side. This is what batch 15 said the class needed and three previous batches failed to find: a photograph where the mushroom is VISIBLE rather than hidden under a dosa or dissolved in a katori of gravy. MEDIUM confidence and the reason is stated rather than buried - the mushrooms are certain and the preparation is a dry fry, but the frame carries no Indian marker: no masala, no onion, no rice, no roti. The identification as an Indian preparation rests on 'mushroom fry' being a standard Indian home dish, which is a claim about the caption and not about the picture. The corpus's bar is Indian meals, so that is exactly what this is.",
+      "truth": [
+        {
+          "name": "Mushroom",
+          "aliases": [
+            "Dhingra",
+            "Mushroom Masala",
+            "Mushroom Fry",
+            "Button Mushroom"
+          ],
+          "kcal": 180
         }
       ]
     }
