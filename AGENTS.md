@@ -538,7 +538,20 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # for iOS buil
 - **Data safety form** (Play Console > App content): must declare — health/fitness data
   (calories/macros/weight), photos (sent to AICredits for analysis; NOT stored),
   email+display name if Google sign-in. Data is not shared/sold; encrypted in transit.
-  **Privacy policy LIVE on Firebase Hosting**: https://calorie-tracker-80a0b.web.app/privacy.html
+  **Hosted pages, all verified live** (checked 2026-09-28 by
+  `python3 tools/check_external_claims.py`, exit 0 = every page reachable AND every
+  URL written down here — the list is taken from the APP, not from this file, and
+  then this file is checked against it, so the two cannot quietly disagree about
+  what the product depends on):
+  - **privacy.html** → https://calorie-tracker-80a0b.web.app/privacy.html — opened
+    from `auth_screen.dart` and `pricing_screen.dart`, and named in the Play
+    data-safety form
+  - **terms.html** → https://calorie-tracker-80a0b.web.app/terms.html — opened from
+    the same two screens. It was live but **unwritten** until tonight: the app had
+    a tappable Terms link that no claim covered, so nothing had ever checked it.
+  - **delete-account.html** → https://calorie-tracker-80a0b.web.app/delete-account.html
+    — hosted for a store listing to point at; not opened by the app
+  - **index.html** → https://calorie-tracker-80a0b.web.app/ — the hosting root
   (Firebase project `calorie-tracker-80a0b`; hosting config in `firebase.json` serving the
   `public/` dir — privacy.html, terms.html, index.html; deploy with `firebase deploy --only hosting`
   from project root). Also a data-safety README copy at `PRIVACY_POLICY.md`.
