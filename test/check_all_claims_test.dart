@@ -101,7 +101,11 @@ group('the COUNT is the instrument', () {
           reason: 'the run must print how many checkers it is running, or the '
               'reader is left counting rows to find out whether one is '
               'missing:\n${out.substring(0, 300)}');
-      expect(int.parse(m!.group(1)!), greaterThan(0),
+      // The analyzer is right that `!` cannot promote a non-null here: `expect`
+      // does not narrow its argument, so the promotion is decoration. Match on
+      // null explicitly instead of asserting and then pretending.
+      final count = m == null ? -1 : int.parse(m.group(1)!);
+      expect(count, greaterThan(0),
           reason: '"running 0 checkers" and then "all checkers passed" is the '
               'most dangerous shape a claim runner can have.');
     });
