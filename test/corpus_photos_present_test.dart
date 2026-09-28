@@ -38,11 +38,25 @@ void main() {
   });
 
   test('every case points at a photo that exists on disk', () {
+    // OWNERHIP: existence is asserted HERE and nowhere else. A python module briefly
+    // asserted it too (tools/ai_accuracy/test_the_corpus_photographs_are_distinct.py);
+    // that was removed on 2026-09-28 because two owners for one check is how they
+    // drift. That module now owns only what is NOT here: undecodable/zero-byte,
+    // byte-identical duplicates, perceptual duplicates, and the reported margin.
     final missing = <String>[];
+    final empty = <String>[];
     for (final raw in cases) {
       final c = raw as Map<String, dynamic>;
       final image = c['image'] as String;
-      if (!File(image).existsSync()) missing.add('${c['id']} -> $image');
+      final f = File(image);
+      if (!f.existsSync()) {
+        missing.add('${c['id']} -> $image');
+      } else if (f.lengthSync() == 0) {
+        // A truncated download, or a file emptied by a bad merge. existsSync is
+        // TRUE for both, so before this line a zero-byte photograph passed this
+        // guard and the corpus counted it as evidence.
+        empty.add('${c['id']} -> $image (0 bytes)');
+      }
     }
     expect(
       missing,
@@ -54,6 +68,14 @@ void main() {
           'to the same URL-digest path and the near-duplicate branch then '
           'deleting the file the manifest pointed at.\n\n'
           '${missing.join('\n')}\n',
+    );
+    expect(
+      empty,
+      isEmpty,
+      reason: 'A case points at a ZERO-BYTE file. It exists, so the check above '
+          'passes it, and it is not a photograph of anything - the scorer gets '
+          'nothing and the corpus count stays flattering.\n\n'
+          '${empty.join('\n')}\n',
     );
   });
 

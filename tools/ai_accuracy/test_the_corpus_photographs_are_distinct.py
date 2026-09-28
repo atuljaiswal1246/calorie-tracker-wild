@@ -42,6 +42,28 @@ threshold is a second definition, and two definitions drift until the guard and 
 fetcher disagree about what a duplicate is — which is the fault this whole night has
 been paying for, in a new costume.
 
+OWNERSHIP, and this is the second version of it — the first was wrong, and the
+correction is the useful part. This module originally asserted "every case image
+exists and is not empty". That property was ALREADY owned by
+`test/corpus_photos_present_test.dart` ("every case points at a photo that exists on
+disk"), which had guarded it since earlier on 2026-09-28. I did not read that file
+before adding mine, so for one commit two guards asserted the same thing — and two
+owners for one check is how they drift.
+
+The duplicate is gone and the split is now disjoint:
+  * existence .............. test/corpus_photos_present_test.dart
+  * empty / undecodable .... this module, via dhash returning None. MEASURED: a
+                             missing file and a zero-byte file BOTH give None, so
+                             dropping the existence assertion here lost no coverage
+                             — that is why the trim is a trim and not a deletion.
+  * distinct bytes ........ this module
+  * perceptual distinctness this module
+  * the reported margin .... this module
+
+The zero-byte gap the dart file had — it called existsSync only, so a truncated
+download passed it — is closed IN the dart file, beside the existence check it belongs
+with. Putting it here would recreate the same overlap in the other direction.
+
 Run with: python3 tools/ai_accuracy/test_the_corpus_photographs_are_distinct.py
 Bite proof: tools/ai_accuracy/prove_the_photograph_guard_bites.py
 Guarded in the suite by: test/corpus_photographs_distinct_test.dart
@@ -83,32 +105,31 @@ def _path(case: dict) -> Path:
 
 
 class CorpusPhotographsAreDistinctTests(unittest.TestCase):
-    def test_every_case_image_exists_and_is_not_empty(self):
-        missing, empty = [], []
+    def test_every_case_image_is_a_picture_and_not_a_zero_byte_file(self):
+        """A file that exists is not a file that is an image, and a file that is an
+        image is not a file with any bytes in it. MEASURED while trimming this module:
+        dhash returns None for BOTH a missing file and a zero-byte one, so this single
+        check covers the empty case as well as the undecodable one — which is why the
+        old `exists and is not empty` assertion could be deleted outright rather than
+        moved, and why nothing was lost when it went.
+
+        The existence property itself is not checked here and must not be re-added:
+        it belongs to test/corpus_photos_present_test.dart, which owns it. This check
+        is about what the bytes ARE, which is a different question.
+        """
+        unopenable = []
         for c in _cases():
             p = _path(c)
-            if not p.exists():
-                missing.append((c["id"], c["image"]))
-            elif p.stat().st_size == 0:
-                empty.append((c["id"], c["image"]))
-        self.assertEqual(missing, [],
-                         f"these cases name an image that is not on disk: {missing}. A "
-                         f"case pointing at nothing inflates every count that reads "
-                         f"cases.json, and the declared-counts guard cannot see it")
-        self.assertEqual(empty, [],
-                         f"these cases name a zero-byte file: {empty}. An empty file is "
-                         f"not a photograph and opens to nothing")
-
-    def test_every_case_image_can_actually_be_opened(self):
-        """A file that exists is not a file that is an image. Measured across the
-        corpus as committed: 42 of 42 open, so this is preventive — but the failure
-        it catches (a truncated download, a .txt saved as .jpg) is invisible to a
-        count and to a hash alike."""
-        unopenable = [(c["id"], c["image"]) for c in _cases() if dhash(str(_path(c))) is None]
+            if dhash(str(p)) is None:
+                why = ("no file at " + c["image"]) if not p.exists() else (
+                    f"zero bytes ({p.stat().st_size} B)" if p.stat().st_size == 0
+                    else "not decodable as an image")
+                unopenable.append(f"{c['id']}: {why}")
         self.assertEqual(
             unopenable, [],
-            f"these case images could not be decoded, so they cannot be a photograph "
-            f"of anything: {unopenable}")
+            f"these case images cannot be a photograph of anything: {unopenable}. A "
+            f"truncated download, a .txt saved with a .jpg name, and an emptied file "
+            f"all pass an existsSync check and none of them is evidence.")
 
     def test_no_two_cases_are_byte_identical(self):
         by_digest: dict[str, list[str]] = {}

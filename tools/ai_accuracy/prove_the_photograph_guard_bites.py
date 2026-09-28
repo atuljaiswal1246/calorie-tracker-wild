@@ -6,11 +6,11 @@ thing in a throwaway copy of the repo layout and asserts the named test goes red
 
   python3 tools/ai_accuracy/prove_the_photograph_guard_bites.py
 
-Breach D is the one that matters. A re-encoded copy of a photograph has DIFFERENT
+Breach E is the one that matters. A re-encoded copy of a photograph has DIFFERENT
 BYTES and the SAME PICTURE, so it defeats a sha256 check completely and inflates the
-class count this card reports without changing a single byte-hash. Breach D builds
+class count this card reports without changing a single byte-hash. Breach E builds
 exactly that — photo A re-saved at a low JPEG quality and pasted over photo B — so
-the dHash check is proven to be doing work that the cheap check cannot. Without D,
+the dHash check is proven to be doing work that the cheap check cannot. Without E,
 the perceptual test is unproven and might be a slower restatement of sha256.
 
 Exits non-zero if ANY breach fails to turn the guard red.
@@ -93,12 +93,20 @@ def _re_encode_one_photo_over_another(root: Path) -> None:
 
 
 BREACHES = [
-    ("A. a case's photograph is deleted", "test_every_case_image_exists_and_is_not_empty",
+    # A and B used to name test_every_case_image_exists_and_is_not_empty, which was a
+    # duplicate of test/corpus_photos_present_test.dart and has been deleted. They now
+    # name the check that replaced it, and they are still two distinct mutations rather
+    # than one: a file that is ABSENT and a file that is PRESENT BUT EMPTY are
+    # different failures, and dhash returns None for both, so the surviving check
+    # catches each for its own reason.
+    ("A. a case's photograph is deleted",
+     "test_every_case_image_is_a_picture_and_not_a_zero_byte_file",
      _delete_an_image),
     ("B. a case's photograph is truncated to zero bytes",
-     "test_every_case_image_exists_and_is_not_empty", _zero_an_image),
+     "test_every_case_image_is_a_picture_and_not_a_zero_byte_file",
+     _zero_an_image),
     ("C. a case's photograph is replaced with something that is not a picture",
-     "test_every_case_image_can_actually_be_opened", _garbage_an_image),
+     "test_every_case_image_is_a_picture_and_not_a_zero_byte_file", _garbage_an_image),
     ("D. two cases point at the same file", "test_no_two_cases_are_byte_identical",
      _point_two_cases_at_one_image),
     ("E. one photograph is re-encoded over another: same picture, different bytes",
