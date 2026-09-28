@@ -273,6 +273,29 @@ BATCH10_QUERIES = [
 ]
 
 
+# BATCH 11 -- the six DECLARED class keys that no case reaches, measured not guessed.
+#
+# `python3 tools/ai_accuracy/test_the_dish_classes_are_distinct.py` prints this list:
+# capsicum, french beans, khakra, mushroom, raitha and uthappam are all in DISH_CLASS
+# and none of the 42 cases lands in any of them. A declared key with no case is a
+# promise the corpus is not keeping, and it is the cheapest possible win: the class
+# already exists as a decision, so a photograph here raises the class count WITHOUT
+# inventing a new category, keeps every dish family at one case - so the independence
+# figure does not get worse - and pushes the concentration down.
+#
+# The queries are tight for the reason batch 9 recorded: Commons is a global library
+# and an unsuffixed term finds the wrong cuisine. "mushroom curry bowl" returned a
+# THAI green curry. So every one carries "indian" or "home" or a regional word.
+BATCH11_QUERIES = [
+    'filetype:bitmap "mushroom masala" indian home',
+    'filetype:bitmap "shimla mirch" masala indian',
+    'filetype:bitmap "french beans" sabzi indian',
+    'filetype:bitmap uthappam south indian',
+    'filetype:bitmap "boondi raitha" indian',
+    'filetype:bitmap khakra gujarati',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -514,11 +537,12 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES, "batch10": BATCH10_QUERIES}
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES, "batch10": BATCH10_QUERIES,
+    "batch11": BATCH11_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:

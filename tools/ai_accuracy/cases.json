@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 42 cases over 32 distinct dish families; 27 distinct dish CLASSES; 45 coverage classes; top-4 classes hold 31%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 43 cases over 33 distinct dish families; 28 distinct dish CLASSES; 45 coverage classes; top-4 classes hold 30%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 28, with eight classes spare.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -142,7 +142,35 @@
     "The two policy rejections are recorded as NOT LOOKED rather than as",
     "judged-and-failed, because that is what happened - and because opening a",
     "photograph only to reject it on a class count is a minute of the owner's",
-    "laptop spent on an outcome arithmetic has already decided."
+    "laptop spent on an outcome arithmetic has already decided.",
+    "",
+    "BATCH 11 (2026-09-28): the six DECLARED class keys no case reached. The",
+    "target was measured, not chosen - test_the_dish_classes_are_distinct.py",
+    "prints DISH_CLASS keys the corpus never lands in: capsicum, french beans,",
+    "khakra, mushroom, raitha, uthappam. A declared key with no case is a promise",
+    "the corpus is not keeping, and it is the cheapest win there is: the class is",
+    "already a decision, so a photograph raises the count without inventing a",
+    "category, keeps every family at one case so independence does not worsen,",
+    "and lowers the concentration.",
+    "  6 queries, 6 candidates, 3 downloaded after the caps and the dHash check",
+    "  accepted 1  stuffed capsicum - the pepper is unambiguous; the filling is",
+    "               recorded as what it looks like and NOT asserted as paneer,",
+    "               because at that light rice and crumbled paneer are not",
+    "               separable and guessing would be a false label",
+    "  rejected 2  'uttpam and dal vada': the title claims uthappam but the pale",
+    "               portion is vegetable rice, and the two certain items are vada",
+    "               (already a class) and a staple chutney - so the class would be",
+    "               decided by which reading I picked. Uthappam stays empty.",
+    "               'different dinner nashik': the dominant item is garlic bread,",
+    "               which is not an Indian class, so it would manufacture a new",
+    "               UNDECLARED class through the fallback - the exact defect this",
+    "               batch's own guard exists to catch",
+    "FIVE OF THE SIX TARGET CLASSES ARE STILL EMPTY - khakra, mushroom, raitha,",
+    "uthappam, french beans - and that is the result, not something to hide. Batch",
+    "7 recorded the same shape: six queries, one usable photograph. Commons is",
+    "thin on these dishes, and the honest next move is a second round with",
+    "regional spellings rather than loosening the cuisine constraint that batch 9",
+    "proved is what makes a query find the wrong cuisine."
   ],
   "cases": [
     {
@@ -1325,6 +1353,23 @@
             "Green Chutney"
           ],
           "kcal": 40
+        }
+      ]
+    },
+    {
+      "id": "stuffed_capsicum_home",
+      "image": "tools/ai_accuracy/photos/stuffed_peppers_1337055553_jpg_688cd99e.jpg",
+      "note": "One whole green bell pepper on a white plate, stem and all, slit lengthwise and packed with a pale cooked filling in which corn kernels, diced carrot and green peas are individually visible, photographed in low light on a dark table. The pepper is unambiguous. The filling is a rice-and-vegetable mixture and I am not claiming paneer for it, because at this light I cannot tell whether the pale grains are rice or crumbled paneer - so the truth names the capsicum, which is what the class is decided on, and this note records what the filling looks like instead of guessing at it. Capsicum's first case; the class was declared and empty.",
+      "truth": [
+        {
+          "name": "Capsicum",
+          "aliases": [
+            "Shimla Mirch",
+            "Bell Pepper",
+            "Stuffed Capsicum",
+            "Capsicum Masala"
+          ],
+          "kcal": 180
         }
       ]
     }
