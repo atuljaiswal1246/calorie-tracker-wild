@@ -39,6 +39,7 @@ memory. Where a figure is a claim about a vendor's plan rather than about us, th
 | 23 | 09-28 | 7 | — | 2 | 2 | 0 | **$0.00** |
 | 24 | 09-28 | 7 | 5 | 4 | 1 | 0 | **$0.00** |
 | 25 | 09-28 | 7 | 4 | 3 | 1 | 0 | **$0.00** |
+| 26 | 09-28 | 9 | 4 | 1 | 3 | 0 | **$0.00** |
 
 **The reason every row is zero is one fact, and it is the whole accounting:** the corpus photographs
 come from **Wikimedia Commons** over its public API, which is open data and charges nothing, and
@@ -122,10 +123,10 @@ reconciled against `photos.json` it was wrong by 18 — not because it was misty
 
 | | count |
 |---|---|
-| rejected column, summed over all twenty-five batches | **108** |
-| rejections on record inside `photos[]` (batches 8–25 flag them there) | 60 |
+| rejected column, summed over all twenty-six batches | **111** |
+| rejections on record inside `photos[]` (batches 8–26 flag them there) | 63 |
 | rejections recovered from git history into the top-level `rejected` array | 24 |
-| **total rejections the tree can account for** | **84** |
+| **total rejections the tree can account for** | **87** |
 | **claimed but with no surviving record** | **18** |
 
 **The cause, named at the call site rather than inferred.** `fetch_commons.py` read

@@ -584,6 +584,71 @@ BATCH25_QUERIES = [
 ]
 
 
+# BATCH 26 -- PAIRED QUERIES, because batch 25 turned an anecdote into a hypothesis.
+#
+# Batch 25 measured, in one run with a positive control:
+#
+#     "lauki sabzi" ..... 0        "bottle gourd curry" .. 8
+#
+# Eight against nothing, and the conclusion I drew was that Commons indexes the ENGLISH
+# name and not the transliterated one. That is a CLAIM about a vocabulary, and one dish
+# is not a vocabulary - lauki could be an exception the way "gobi curry" turned out to be
+# a thali with no cauliflower in it.
+#
+# So this set is four PAIRS: the transliterated name beside the English name for the same
+# dish, in one batch, on one day, against one instrument. Either the hypothesis holds
+# across the pairs, in which case it is a rule worth writing down and the English forms
+# go into every future batch, or it does not, in which case lauki was a coincidence and
+# I have just said so.
+#
+# Lauki is repeated on purpose. It has been measured at 0 and at 8 in batch 25, so
+# re-running both forms is a WITHIN-BATCH REPLICATE of the original finding, which is
+# what stops a single result becoming a rule.
+# THE RESULT, AND IT FALSIFIED MY OWN HYPOTHESIS IN THE FIRST HOUR. Four pairs, one day,
+# one instrument, control positive - and the English name does NOT win:
+#
+#     "lauki sabzi"        0   vs  "bottle gourd curry"   8    English wins
+#     "makai curry"        0   vs  "corn curry"           1    English wins
+#     "capsicum curry"     7   vs  "bell pepper curry"    0    transliterated wins
+#     "beans curry"        8   vs  "green bean curry"     0    transliterated wins
+#
+# TWO OF FOUR. So "Commons indexes the English name and not the transliterated one" is
+# FALSE as a general rule, and lauki was a coincidence of that dish rather than a fact
+# about a vocabulary. I am recording the retraction because batch 25's note currently
+# states the rule in its own words, and a note that teaches a false rule is worse than
+# no note.
+#
+# What the pairs DO show, which is smaller and true: the transliterated names are not
+# dead, because both of the losing English queries returned 0 - "bell pepper curry" and
+# "green bean curry" are not in this archive either. And the two queries that worked
+# hardest are the ones naming a LEGUME plus "curry". So the working form is narrower
+# than either of the two rules I have now tested: it is not English-over-transliterated,
+# and it is not simply two words (batch 24 measured "corn curry" down to 1 hit while
+# "chicken biryani" returned 8). It is two words where the second is a PREPARATION and
+# the first names something the archive has photographs OF.
+#
+# The three accepted cases below also record the other half of the batch: of four
+# downloads, three were NOT the dish the query named. That is the bare-word rule from
+# batch 22 reappearing through a two-word query, which is worth knowing - "bottle gourd
+# curry" returned a Bengali thali with a FRIED PUNJABI SADAY, and "beans curry" returned
+# a chana and pigeon-pea dish with no bean in it at all.
+BATCH26_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    # pair 1 - lauki, replicating batch 25's finding inside this batch
+    'filetype:bitmap "lauki sabzi"',
+    'filetype:bitmap "bottle gourd curry"',
+    # pair 2 - sweet corn. The bare `makai` returned raw sweet corn in batch 22.
+    'filetype:bitmap "makai curry"',
+    'filetype:bitmap "corn curry"',
+    # pair 3 - capsicum. "capsicum curry" returned a restaurant buffet in batch 23.
+    'filetype:bitmap "capsicum curry"',
+    'filetype:bitmap "bell pepper curry"',
+    # pair 4 - french beans. "beans curry" returned raw green beans in batch 14.
+    'filetype:bitmap "beans curry"',
+    'filetype:bitmap "green bean curry"',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

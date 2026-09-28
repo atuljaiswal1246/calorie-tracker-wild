@@ -443,6 +443,14 @@ DISH_CLASS = {
     # class is a decision rather than the DISH_CLASS.get(n, n) fallback, which is what
     # test_every_class_the_corpus_uses_is_a_declared_dish_class_key fails on.
     "bottle gourd curry": "bottle gourd curry",
+    # chana and to dal, added 2026-09-28 with batch 26. A two-pulse dish, declared as one
+    # class covering BOTH: the photograph shows whole chickpeas and split pigeon peas in
+    # the same bowl, so a case claiming one would describe half the frame, and the two
+    # differ enough in calories that folding them would be dishonest in the direction
+    # that matters. Declared for the same reason as every other key here - a class that
+    # arrives from the DISH_CLASS.get(n, n) fallback is a filename, not a decision.
+    "chana and to dal": "chana and to dal", "chana dal": "chana and to dal",
+    "chana": "chana and to dal", "to dal": "chana and to dal",
     "gulab jamun": "gulab jamun", "gulaab jamun": "gulab jamun",
     "lauki": "lauki", "legume salad": "legume salad", "paneer": "paneer",
 }

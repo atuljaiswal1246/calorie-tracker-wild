@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 65 cases over 44 distinct dish families; 37 distinct dish CLASSES; 54 coverage classes; top-4 classes hold 23%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 37, with seventeen classes spare. EVERY DECLARED CLASS HAS A CASE.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 66 cases over 45 distinct dish families; 38 distinct dish CLASSES; 55 coverage classes; top-4 classes hold 23%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 38, with eighteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -654,7 +654,63 @@
     "               diagnostic is weaker than the karela and the lauki, and the corpus",
     "               does not need a weaker case in a class it already holds three of.",
     "               'biryani' is declared and this would have been its first case,",
-    "               minted off a photograph I am not confident about."
+    "               minted off a photograph I am not confident about.",
+    "",
+    "BATCH 26 (2026-09-28): THE BATCH THAT FALSIFIED THE RULE BATCH 25 WROTE DOWN, ONE",
+    "HOUR AFTER BATCH 25 WROTE IT DOWN IN ITS OWN WORDS.",
+    "  9 queries (the control, then four PAIRS), 4 downloaded, accepted 1, rejected 3",
+    "",
+    "Batch 25 measured \"lauki sabzi\" at 0 against \"bottle gourd curry\" at 8, with a",
+    "positive control, and concluded that Commons indexes the ENGLISH name and not the",
+    "transliterated one. One dish is not a vocabulary, so this batch ran four pairs in",
+    "one run, on one day, against one instrument:",
+    "  \"lauki sabzi\"       0  vs  \"bottle gourd curry\"  8   English wins",
+    "  \"makai curry\"       0  vs  \"corn curry\"          1   English wins",
+    "  \"capsicum curry\"    7  vs  \"bell pepper curry\"   0   transliterated wins",
+    "  \"beans curry\"       8  vs  \"green bean curry\"    0   transliterated wins",
+    "",
+    "TWO OF FOUR. The rule is FALSE as a general statement and lauki was a coincidence",
+    "of that dish. The retraction is recorded in this commit AND in query_sets.py next",
+    "to the claim, because the batch 25 note states the false rule in its own words and",
+    "a note that teaches a false rule is worse than no note. The one number carrying",
+    "the claim was real; what was wrong was generalising from one dish to a vocabulary",
+    "- the same move as reading a green /health and calling the product healthy.",
+    "",
+    "WHAT SURVIVES IS SMALLER AND TRUE. It is NOT English-over-transliterated (2 of 4).",
+    "It is NOT simply two words (batch 24 measured \"corn curry\" at 1 hit and \"chicken",
+    "biryani\" at 8). It is two words where the SECOND IS A PREPARATION and the FIRST",
+    "NAMES SOMETHING THE ARCHIVE HAS PHOTOGRAPHS OF. The transliterated names are not",
+    "dead either, because both losing English queries ALSO returned zero.",
+    "",
+    "AND THE MORE USEFUL HALF: of four downloads, THREE WERE NOT THE DISH THE QUERY",
+    "NAMED. The bare-word rule from batch 22 is reappearing through a TWO-word query, so",
+    "it was never about word count - it is about whether the noun is something that gets",
+    "photographed on its own.",
+    "",
+    "  accepted 1  CHANA AND TO DAL - a dark steel bowl of pale yellow split pigeon peas",
+    "               and whole chickpeas in a thick onion-and-tomato masala over white",
+    "               rice, dim warm light. MEDIUM, and the medium is a real ambiguity:",
+    "               the frame holds TWO pulses and the case names both, because a photo",
+    "               claiming only chana would describe half the bowl. Also the honest",
+    "               answer to 'beans curry' returning it - there is no green bean in",
+    "               the frame, so the query reached a legume dish by its TEXTURE and its",
+    "               yellow colour. Second time in two batches. The word was a bridge,",
+    "               not a description.",
+    "",
+    "  rejected 3  a Bengali festival thali with FRIED FISH on a skewer, returned by",
+    "               'bottle gourd curry' - no gourd curry in the frame. Its 8 pages are",
+    "               not 8 chances at the dish, they are 8 chances at three words.",
+    "             a vegetable pulao thali with a carved beetrose, returned by 'corn",
+    "               curry' - no curry in it and the corn is one of five ingredients.",
+    "             a restaurant thali with butter chicken AND beef vindaloo, returned by",
+    "               'capsicum curry' - no capsicum, and a DIFFERENT file from the same",
+    "               uploader as the batch 23 buffet, so the capsicum query keeps",
+    "               reaching one Melbourne restaurant and its 7 pages are not 7 chances",
+    "               at capsicum either.",
+    "",
+    "The yield is 1 of 4 and the arithmetic is the point: the round's real content is a",
+    "rule written down an hour ago, tested properly, and withdrawn. Cheaper than",
+    "finding out in three more batches."
   ],
   "cases": [
     {
@@ -2273,6 +2329,32 @@
             "Motichoor"
           ],
           "kcal": 300
+        }
+      ]
+    },
+    {
+      "id": "chana_to_dal_steel_bowl",
+      "image": "tools/ai_accuracy/photos/khaja_1_jpg_e377dc49.jpg",
+      "note": "A dark steel bowl of pale yellow split pigeon peas (to dal) and whole chickpeas (chana) in a thick onion-and-tomato masala, served over white rice in dim warm light. Accepted MEDIUM, and the medium is about a real ambiguity rather than a hedge: the frame holds TWO pulses and the case names both, so the class is 'chana and to dal' rather than either alone. A photo claiming only chana would describe half the bowl, and the calories of the two differ enough that folding them would be dishonest in the direction that matters. It is also the honest answer to 'beans curry' returning this file: there is no green bean in it, so the query reached a legume dish by its TEXTURE and its yellow colour. The second time in two batches that a two-word query has reached a legume dish without naming the legume - the word 'beans' was a bridge, not a description.",
+      "truth": [
+        {
+          "name": "Chana and To Dal",
+          "aliases": [
+            "Chana Dal",
+            "To Dal",
+            "Chana",
+            "Chole",
+            "Chana Aur Tanda Dal"
+          ],
+          "kcal": 220
+        },
+        {
+          "name": "Rice",
+          "aliases": [
+            "Plain Rice",
+            "Steamed Rice"
+          ],
+          "kcal": 210
         }
       ]
     }
