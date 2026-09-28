@@ -685,6 +685,61 @@ BATCH27_QUERIES = [
 # DECLARED IN ADVANCE, before the fetch: expect 2 cases from 6 candidates (41% precision).
 DECLARED_EXPECTED_CASES_B27 = 2
 
+# BATCH 28 -- SIZED BY THE ONE THING THE RECORD TAUGHT ME: how many queries come back
+# with anything at all.
+#
+# Batch 27 declared its expectation from the 41% precision figure and was wrong, and the
+# reason was written down: FOUR OF SIX target queries returned ZERO pages, so only two
+# candidates existed and the precision was never applied to anything. Pages returned is the
+# binding constraint, not precision.
+#
+# So this set is deliberately ASYMMETRIC: nine queries measured at zero pages in a run
+# whose control returned hits, and ONE query that has an unbroken measured record. That is
+# a bet stated in advance - most of this batch is expected to find nothing - and the
+# prediction is recorded so the bet can be scored rather than remembered:
+#
+#     9 dead queries x 0 pages  +  1 proven query
+#     EXPECT 1-2 CANDIDATES, and therefore 0-1 CASES.
+#
+# THE STOP-LIST IS THE REAL ARTEFACT, and it is the first product of query_results.json
+# that is worth more than the batch it came from. Nine queries, every one measured at zero
+# pages with a POSITIVE control in the same run, so none of them is a rate limit and none
+# is my instrument:
+#
+#     "lauki sabzi"        "makai curry"       "ratan jot salad"
+#     "bell pepper curry"  "green bean curry"  "gwar curry"
+#     "tinda curry"        "kacche kele curry" "amla murabba"
+#
+# They are listed, not deleted, because a stop-list nobody can read is a comment. And two
+# of them are the English-name losers from the batch 26 pairs, which is the strongest
+# evidence yet that "bell pepper" and "green bean" are not in this archive AT ALL - it is
+# not a spelling problem, those two dishes simply have no Commons photographs under those
+# names, so a future batch must not spend a query on them again.
+#
+# NOT re-queried blindly: "lauki sabzi" is in the list AND lauki now has a case, because
+# "bottle gourd curry" found it. The stop-list says the QUERY found nothing, not that the
+# DISH does not exist, and conflating those two is exactly the error that produced four
+# false findings in this corpus.
+BATCH28_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    # the one query with an unbroken measured record: 8 pages in two separate batches
+    'filetype:bitmap "bottle gourd curry"',
+    # --- the stop-list, re-run as a REPRODUCTION rather than a hope ---
+    'filetype:bitmap "lauki sabzi"',
+    'filetype:bitmap "makai curry"',
+    'filetype:bitmap "ratan jot salad"',
+    'filetype:bitmap "bell pepper curry"',
+    'filetype:bitmap "green bean curry"',
+    'filetype:bitmap "gwar curry"',
+    'filetype:bitmap "tinda curry"',
+    'filetype:bitmap "kacche kele curry"',
+    'filetype:bitmap "amla murabba"',
+]
+
+# DECLARED IN ADVANCE, before the fetch: 1-2 candidates, 0-1 cases. The bet is that nine
+# queries measured at zero pages with a positive control will measure at zero pages again.
+DECLARED_EXPECTED_CASES_B28 = (1, 2)
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

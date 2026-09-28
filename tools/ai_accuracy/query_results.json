@@ -159,6 +159,79 @@
           }
         ]
       }
+    ],
+    "batch28": [
+      {
+        "recorded": "2026-09-28T15:52:12",
+        "queries": [
+          {
+            "query": "filetype:bitmap uthappam breakfast",
+            "pages": 1,
+            "kept": 1,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"bottle gourd curry\"",
+            "pages": 8,
+            "kept": 8,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"lauki sabzi\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"makai curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"ratan jot salad\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"bell pepper curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"green bean curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"gwar curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"tinda curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"kacche kele curry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"amla murabba\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          }
+        ]
+      }
     ]
   }
 }

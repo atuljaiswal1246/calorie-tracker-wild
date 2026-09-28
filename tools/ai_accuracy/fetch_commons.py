@@ -68,7 +68,7 @@ from photo_store import (MANIFEST, NEAR_DUP_DISTANCE, PHOTO_DIR, UA,  # noqa: F4
 # to be rewritten is a relocation with a bill attached.
 from query_sets import (BATCH10_QUERIES, BATCH11_QUERIES, BATCH12_QUERIES,  # noqa: F401
                         BATCH13_QUERIES, BATCH14_QUERIES, BATCH15_QUERIES,
-                        BATCH16_QUERIES, BATCH17_QUERIES, BATCH18_QUERIES, BATCH19_QUERIES, BATCH21_QUERIES, BATCH22_QUERIES, BATCH23_QUERIES, BATCH24_QUERIES, BATCH25_QUERIES, BATCH26_QUERIES, BATCH27_QUERIES,
+                        BATCH16_QUERIES, BATCH17_QUERIES, BATCH18_QUERIES, BATCH19_QUERIES, BATCH21_QUERIES, BATCH22_QUERIES, BATCH23_QUERIES, BATCH24_QUERIES, BATCH25_QUERIES, BATCH26_QUERIES, BATCH27_QUERIES, BATCH28_QUERIES,
                         BATCH2_QUERIES, BATCH3_QUERIES,
                         BATCH4_QUERIES, BATCH5_QUERIES, BATCH6_QUERIES,
                         BATCH7_QUERIES, BATCH8_QUERIES, BATCH9_QUERIES,
@@ -381,7 +381,8 @@ def main() -> int:
             "batch24": BATCH24_QUERIES,
             "batch25": BATCH25_QUERIES,
             "batch26": BATCH26_QUERIES,
-            "batch27": BATCH27_QUERIES}
+            "batch27": BATCH27_QUERIES,
+            "batch28": BATCH28_QUERIES}
     ap.add_argument("--set", choices=sorted(sets), default="mixed",
                     help="which query list to run. The choices are the keys of the "
                          "registry above, so a set is runnable as soon as it is added.")

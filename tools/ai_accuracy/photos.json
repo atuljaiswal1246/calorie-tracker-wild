@@ -3104,6 +3104,30 @@
       "truth_confidence": "high",
       "review_note": "A yellow leaf-shaped dish holding a pale cream gravy with countable whole green peas, chopped fenugreek leaves, a coriander sprig and two cashews, on a dark stone counter.",
       "accepted_as": "methi_malai_matar_leaf_dish"
+    },
+    {
+      "title": "File:Rajbangshi Thali with rice, Taro leaf chhyaka, Bottle gourd curry and crispy fried dried Indian Carplet fishes, Siliguri, West Bengal DSC 0029.jpg",
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3d/Rajbangshi_Thali_with_rice%2C_Taro_leaf_chhyaka%2C_Bottle_gourd_curry_and_crispy_fried_dried_Indian_Carplet_fishes%2C_Siliguri%2C_West_Bengal_DSC_0029.jpg/1280px-Rajbangshi_Thali_with_rice%2C_Taro_leaf_chhyaka%2C_Bottle_gourd_curry_and_crispy_fried_dried_Indian_Carplet_fishes%2C_Siliguri%2C_West_Bengal_DSC_0029.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "description_url": "https://commons.wikimedia.org/wiki/File:Rajbangshi_Thali_with_rice,_Taro_leaf_chhyaka,_Bottle_gourd_curry_and_crispy_fried_dried_Indian_Carplet_fishes,_Siliguri,_West_Bengal_DSC_0029.jpg",
+      "commons_sha1": "d756639475bc69fb08a9a5b372e05e5d17fdaeae",
+      "width": 6016,
+      "height": 4000,
+      "author": "Souradeep Roy 1998",
+      "licence": "CC BY-SA 4.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "description": "This is a basic traditional Rajbangshi Thali that has rice accompanied by crispy fried dried Indian carplet fishes, green gourd, bottle gourd or Calabash curry, Taro leaf chhyaka and raw green chillies. (Right to left). Dried Indian carplet fishes locally known as Mourala fishes are fried with garlic, chillies, salt and turmeric. In a wok both red and green chillies and white zeera are fried in some oil with a tad bit of turmeric. To it is added peeled, finely chopped green gourd, bottle gourd or calabash with some seasoning. For the Chhyaka cloves of garlic, green chillies, ginger, black pepper and beaten rice flakes are all ground up together without water. They are then added to a wok with some salt and little or no oil. Then something called 'dhula water' is added. The stump of a seeded banana tree is dried and burned to ashes. This ash is called dhula. To this, water is added and the solution is passed through a strainer. The liquid we achieve after filtering the solution is called 'dhula water'. This needs to be prepared in advance. Then chopped Taro leaves are added and fried for five minutes or so. A cup of plain water is added to the wok along with half a cup of 'dhula water' and stirred and whisked continuously for 8-10 minutes on a medium flame. If 'dhula water' is not available one can use baking soda.",
+      "query": "filetype:bitmap \"bottle gourd curry\"",
+      "file": "tools/ai_accuracy/photos/rajbangshi_thali_with_rice_taro_leaf_chhyaka_bottle__dfef0cb9.jpg",
+      "bytes": 161335,
+      "sha256": "678da07f96305e3b3ed33838924cfdcc941bedfb1cc28accfe7d9410b5365675",
+      "dhash": 794065296235138710,
+      "stored_px": "6016x4000",
+      "reviewed": true,
+      "rejected": true,
+      "reject_reason": "OPENED, and REJECTED - it is the SAME photograph batch 26 already rejected under a different filename (...dfef0cb9 against ...0f192f0e): a Bengali festival meal with a mound of white rice, a dark green leafy dish, a yellow dal and small FRIED FISH on a skewer, and still no bottle gourd curry anywhere in the frame. Rejected on the same grounds as its twin. THE INTERESTING PART IS NOT THE PHOTOGRAPH, IT IS THAT THE FETCHER RETURNED IT AGAIN: the near-duplicate guard compares a photograph against ACCEPTED ones, and this file was rejected in batch 26 so it was never in the corpus to be compared against. So a query that keeps returning a photograph already judged worthless will keep returning it, and every one costs a review. That is a real hole in the guard and this batch found it. The fix is to record a rejection's perceptual hash as well as an acceptance's, so a known-bad photograph is recognised on sight - and that fix is deliberately NOT in this commit, because it belongs to photo_store.py and needs its own round and its own proof rather than riding along inside a corpus commit",
+      "opened": true,
+      "already_rejected_as": "rajbangshi_thali_with_rice_taro_leaf_chhyaka_bottle__0f192f0e.jpg",
+      "file_removed": true
     }
   ],
   "rejected": [
