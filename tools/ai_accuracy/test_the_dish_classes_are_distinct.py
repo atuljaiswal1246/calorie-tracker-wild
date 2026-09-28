@@ -127,6 +127,15 @@ NOT_INDIAN_BY_NAME: dict[str, str] = {
         "four-cuisine problem. The thali as a whole is plainly an Indian meal - dal, "
         "rajma, kheer, papad, pickle - so this is the weakest of the three and is listed "
         "because a truth string inside a case is part of the case.",
+    "chicken_curry_kadai":
+        "the same four-cuisine problem, listed in batch 24 rather than argued away. The "
+        "FRAME is stronger evidence than the two cases above - a steel kadai, and a "
+        "visible tadka of black mustard seed, curry leaves and a bay leaf in a "
+        "red-orange gravy, which is a recognisably Indian home preparation. That is "
+        "exactly why this is declared rather than waved through: the caveat is about what "
+        "the TRUTH STRING establishes, and 'Chicken Curry' still does not, however Indian "
+        "the photograph looks. A caveat that quietly widened to 'Indian if the photo looks "
+        "right' would stop being a caveat.",
 }
 
 

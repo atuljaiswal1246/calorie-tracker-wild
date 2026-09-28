@@ -536,6 +536,36 @@ BATCH23_QUERIES = [
 ]
 
 
+# BATCH 24 -- two words is NECESSARY, not sufficient, so vary the second word.
+#
+# Batch 23 closed the bracket from batch 22 and then immediately produced two real zeros
+# in the same batch, with the control POSITIVE in that batch - so they are zeros of what
+# the corpus can reach, not of the instrument:
+#
+#     "rajma curry" ... HIT      "lauki sabzi" ... ZERO
+#     "capsicum curry" HIT      "makai curry" .. ZERO
+#
+# So the rule is narrower than batch 22 stated it: ONE word finds the ingredient, TOO
+# MANY words find nothing, and two words find the dish only when the second word is one
+# the corpus has already seen working. "curry" has now worked four times
+# ("mushroom curry", "beans curry", "egg curry", "rajma curry"), so this batch leans on
+# it and stops guessing at "sabzi" and "masala", which are not measured.
+#
+# Targets: three singletons that gain a second case, and three classes that do not exist
+# yet. New classes are worth more than filled ones - they widen the count the bar is
+# judged on AND they lower the concentration, because a class with one case cannot enter
+# the top four.
+BATCH24_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    'filetype:bitmap "mushroom masala"',
+    'filetype:bitmap "lauki curry"',
+    'filetype:bitmap "gobi curry"',
+    'filetype:bitmap "karela curry"',
+    'filetype:bitmap "methi curry"',
+    'filetype:bitmap "chicken curry"',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

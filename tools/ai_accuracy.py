@@ -426,6 +426,11 @@ DISH_CLASS = {
     # the guard fails if one is ever removed.
     "baingan": "baingan", "bhindi": "bhindi",
     "chicken curry": "chicken curry", "dosa": "dosa",
+    # karela, added 2026-09-28 with batch 24's first genuinely new class in four batches.
+    # Declared here rather than left to the DISH_CLASS.get(n, n) fallback, because a class
+    # that arrives from a fallback is not a decision - it is a filename, and the guard
+    # test_every_class_the_corpus_uses_is_a_declared_dish_class_key fails on exactly that.
+    "karela": "karela", "karela curry": "karela", "bitter gourd": "karela",
     "lauki": "lauki", "legume salad": "legume salad", "paneer": "paneer",
 }
 
