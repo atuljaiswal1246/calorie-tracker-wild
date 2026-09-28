@@ -120,6 +120,12 @@ CHECKERS = (
     # 03:05, and a measurement made by a shell loop that is then discarded is
     # worth nothing by morning. This row is the instrument that says so again.
     _script("tools/check_tests_can_run.py"),
+    # Is the thing we would SHIP the thing we have written? Added 2026-09-29.
+    # The release APK is 129 commits behind the tree and its version number was
+    # bumped 11 hours AFTER it was built, so the name and the contents disagree.
+    # I have reported that in report after report, which is what this row exists
+    # to stop: a finding I describe every twenty minutes is a comment.
+    _script("tools/check_release_is_the_tree.py"),
     # The Play listing must describe the app we ship. It is a Play-submission
     # risk, and it is a claim with no machine behind it — two features the app
     # cannot open. Local, no network, no model.
