@@ -28,6 +28,22 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+/// Clip for a FAILURE MESSAGE, and it can never throw - see the identical helper
+/// and the full reasoning in a_skip_is_not_a_pass_test.dart.
+///
+/// It is here because of how this line came to exist. The sweep guard in
+/// a_skip_is_not_a_pass_test.dart flags any `reason:` string that calls
+/// `.substring(`, because `reason:` is evaluated EAGERLY and would throw a
+/// RangeError on a short output - which is what a HEALTHY tool prints. I landed
+/// that guard, and twenty minutes later I wrote this file with a bare
+/// `out.substring(0, 300)` in a reason. MY OWN INSTRUMENT CAUGHT ME LANDING THE
+/// EXACT DEFECT IT WAS WRITTEN FOR, one commit later, and nothing about the
+/// process noticed except the process.
+String _clip(String s, [int n = 400]) {
+  final flat = s.replaceAll('\n', ' | ');
+  return flat.length <= n ? flat : '${flat.substring(0, n)}...';
+}
+
 const _runner = 'tools/check_all_claims.py';
 final _history = File('.agent-logs/claim-history.jsonl');
 
@@ -168,6 +184,69 @@ void main() {
       // I asserted that first and the tool was right and I was wrong, which is
       // the same lesson from the other side - the assertion that is easiest to
       // write is rarely the one that is true.
+    });
+  });
+
+  group('the rate travels WITH the failure, not in a separate command', () {
+    // Learned from the other company's 6c1bbd6b on 2026-09-29: it prints N/M in
+    // its OWN output, so the number travels with the failure instead of being
+    // looked up afterwards. `--history` can print the rate, but a rate that needs
+    // a second command is the same gap one step on - and a failure that does not
+    // say how often it has happened reads as a first observation.
+    test('a FAILING run prints its own rate on the result line', () {
+      final before = _history.existsSync() ? _history.readAsStringSync() : '';
+      _history.parent.createSync(recursive: true);
+      _history.writeAsStringSync([
+        for (var i = 0; i < 4; i++)
+          jsonEncode({
+            'at': '2026-09-29T0$i:00:00+0530',
+            'epoch': 1756000000 + i,
+            'commit': 'abc12345',
+            'exit_code': 0,
+            'verdicts': {'tools/check_store_listing.py': 'PASS'},
+          }),
+      ].join('\n'));
+      addTearDown(() {
+        if (before.isEmpty) {
+          if (_history.existsSync()) _history.deleteSync();
+        } else {
+          _history.writeAsStringSync(before);
+        }
+      });
+
+      final r = Process.runSync('python3', [_runner, '--skip-network']);
+      final out = '${r.stdout}';
+      expect(out, contains('recorded:'),
+          reason: 'the run must carry its own rate:\n${_clip(out, 300)}');
+      expect(out, contains('4 of 4'),
+          reason: 'N in M, on the line the reader is already reading:\n'
+              '${_clip(out, 300)}');
+    });
+
+    test('with too little history it says NOTHING rather than a silly rate', () {
+      // "0 of 1" is a worse sentence than no sentence: it invites reading one
+      // sample as a rate, which is the failure mode of the whole feature.
+      final before = _history.existsSync() ? _history.readAsStringSync() : '';
+      _history.parent.createSync(recursive: true);
+      _history.writeAsStringSync(jsonEncode({
+        'at': '2026-09-29T01:00:00+0530',
+        'epoch': 1756000001,
+        'commit': 'abc12345',
+        'exit_code': 0,
+        'verdicts': {'tools/check_store_listing.py': 'PASS'},
+      }));
+      addTearDown(() {
+        if (before.isEmpty) {
+          if (_history.existsSync()) _history.deleteSync();
+        } else {
+          _history.writeAsStringSync(before);
+        }
+      });
+
+      final out = '${Process.runSync('python3', [_runner, '--skip-network']).stdout}';
+      expect(out, isNot(contains('recorded:')),
+          reason: 'one run is a sample, not a rate, and printing it as one is '
+              'worse than printing nothing:\n${_clip(out, 300)}');
     });
   });
 }

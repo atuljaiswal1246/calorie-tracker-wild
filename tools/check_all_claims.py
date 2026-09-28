@@ -319,9 +319,55 @@ def print_report(rows, commit, as_json):
     else:
         result = "all checkers passed"
     print("RESULT: " + result)
+    # THE NUMBER TRAVELS WITH THE FAILURE. Learned from outside on 2026-09-29: a
+    # monitor that prints one line per sample makes a two-minute total failure and
+    # a two-hour clean run the same shape of sentence, and the number nobody has
+    # is not "it works" but "it worked N times in M".
+    #
+    # `--history` (7e47ed4) can print that, but asking for it separately is how the
+    # number ends up looked-up-afterwards, which is the same gap one step on. So
+    # the rate is appended HERE, on the line a reader is already reading - and
+    # the N/M prints in the FAILING case too, which is the entire point: a
+    # failure that does not say how often it has happened reads as a first
+    # observation.
+    _rate = _rate_suffix()
+    if _rate:
+        print(_rate)
 
 
 HISTORY = ".agent-logs/claim-history.jsonl"
+
+
+def _read_history() -> list[dict]:
+    path = ROOT / HISTORY
+    if not path.exists():
+        return []
+    out = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.append(json.loads(line))
+        except ValueError:
+            continue  # a truncated tail; excluded, and counted in --history
+    return out
+
+
+def _rate_suffix() -> str | None:
+    """`recorded: N of M runs exited 0` - or None if there is nothing to say.
+
+    Deliberately quiet below 3 recorded runs: "0 of 1" is a worse sentence than no
+    sentence, because it invites reading one sample as a rate. The threshold is
+    the same one `--history` uses to say "that is a sample, not a rate"."""
+    runs = _read_history()
+    if len(runs) < 3:
+        return None
+    clean = sum(1 for r in runs if r.get("exit_code") == 0)
+    return (f"recorded: {clean} of {len(runs)} recorded runs exited 0"
+            + ("  (last 3 only: "
+               f"{sum(1 for r in runs[-3:] if r.get('exit_code') == 0)}/3)"
+               if len(runs) >= 3 else ""))
 
 
 def record_run(rows, code: int) -> None:

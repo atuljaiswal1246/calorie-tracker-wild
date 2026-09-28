@@ -222,12 +222,45 @@ print(m.exit_code(json.loads(sys.argv[1])))
       }
     });
 
-    test('it never starts a checker in a mode that writes to disk', () {
+    test('it never starts a CHECKER in a mode that writes to disk', () {
       // `--write` rewrites the generated block in AGENTS.md and `--record` stamps
       // notes/EXTERNAL_CLAIMS_LAST_CHECK.md. A runner that could rewrite the very
       // file its checkers verify is a runner that can launder a claim.
-      expect(src.contains('"--write"'), isFalse);
-      expect(src.contains('"--record"'), isFalse);
+      //
+      // SCOPED TO THE CHECKER LIST, and the scoping is the point rather than a
+      // convenience. This used to scan the whole source for the STRING
+      // '"--write"'. Then the runner grew a `--record` flag of its own - which
+      // appends a gitignored run-history line and touches no verified artefact -
+      // and the guard went red on it. Deleting the assertion would have been the
+      // easy fix and it would have deleted the guard.
+      //
+      // So the check now asks the question it always meant to ask: is any CHECKER
+      // ROW invoked with a writing flag? Reading the CHECKERS tuple itself cannot
+      // be fooled by a flag declared elsewhere, and it cannot fire on an
+      // unrelated addition either. Verified: 0 writing flags inside the tuple.
+      final start = src.indexOf('CHECKERS = (');
+      expect(start, greaterThan(-1), reason: 'the checker list is gone');
+      final end = src.indexOf('\n)', start);
+      expect(end, greaterThan(start),
+          reason: 'the checker list is unterminated - I am reading the wrong span');
+      final listSpan = src.substring(start, end);
+      for (final flag in ['"--write"', '"--record"']) {
+        expect(listSpan.contains(flag), isFalse,
+            reason: 'a CHECKER is invoked with $flag. A runner that can rewrite '
+                'the file its checkers verify can launder a claim.');
+      }
+    });
+
+    test('a writing flag on the RUNNER is allowed, and must not touch a claim',
+        () {
+      // The counterpart, so the narrowing above cannot quietly become "no writing
+      // anywhere": the runner itself is allowed a write mode, provided what it
+      // writes is gitignored runtime state and not a file some checker verifies.
+      final hist = File('.agent-logs/claim-history.jsonl').path;
+      final r = Process.runSync('git', ['check-ignore', '-q', hist]);
+      expect(r.exitCode, 0,
+          reason: 'the runner writes $hist, and it must be gitignored so a '
+              'reviewer never sees a file of numbers nothing can reproduce');
     });
   });
 
