@@ -42,6 +42,7 @@ memory. Where a figure is a claim about a vendor's plan rather than about us, th
 | 26 | 09-28 | 9 | 4 | 1 | 3 | 0 | **$0.00** |
 | 27 | 09-28 | 7 | 2 | 1 | 1 | 0 | **$0.00** |
 | 28 | 09-28 | 11 | 1 | 0 | 1 | 0 | **$0.00** |
+| 29 | 09-28 | 7 | 3 | 1 | 2 | 0 | **$0.00** |
 
 **The reason every row is zero is one fact, and it is the whole accounting:** the corpus photographs
 come from **Wikimedia Commons** over its public API, which is open data and charges nothing, and
@@ -125,10 +126,10 @@ reconciled against `photos.json` it was wrong by 18 — not because it was misty
 
 | | count |
 |---|---|
-| rejected column, summed over all twenty-eight batches | **113** |
-| rejections on record inside `photos[]` (batches 8–28 flag them there) | 65 |
+| rejected column, summed over all twenty-nine batches | **115** |
+| rejections on record inside `photos[]` (batches 8–29 flag them there) | 67 |
 | rejections recovered from git history into the top-level `rejected` array | 24 |
-| **total rejections the tree can account for** | **89** |
+| **total rejections the tree can account for** | **91** |
 | **claimed but with no surviving record** | **18** |
 
 **The cause, named at the call site rather than inferred.** `fetch_commons.py` read
@@ -199,25 +200,26 @@ the leading token and the reason survives.
 
 ---
 
+---
+
 ## 5. Query yield - what the corpus actually costs in photographs
 
 **Every figure in this section is computed from `photos.json` and `query_results.json` by**
 **`tools/ai_accuracy/test_the_query_yield_figure_is_measured.py`, which fails if any of them drifts.**
 
-**PRECISION: 45 of 110 reviewed photographs became cases = 40%.** The other 65 were
+**PRECISION: 46 of 113 reviewed photographs became cases = 40%.** The other 67 were
 rejected on the record, each with a reason. This is the honest denominator for everything
 above: a batch of 5 downloads is worth about 0 cases, not 5.
 
-**AND PRECISION IS NOT THE BINDING CONSTRAINT - PAGES RETURNED IS.** Measured 2026-09-28
-on batch 27, the first batch SIZED from the precision figure. It predicted 41%-precision
-arithmetic, and four of its six target queries returned ZERO pages, so only two candidates
-existed and the precision was never applied to anything. Batch 28 then tested the
-consequence directly: nine queries measured at zero, re-run as a reproduction against a
-positive control, and NINE OF NINE RETURNED ZERO AGAIN. Among the queries with a recorded
-page count there are now 14 judged photographs across 4 distinct page counts,
-still far too few to claim a relationship. So the figure above is a RATIO, not a yield
-model: what a batch returns is bounded first by how many of its queries find anything at
-all, and only then by what fraction of those downloads survive review.
+**AND PRECISION IS NOT THE BINDING CONSTRAINT - PAGES RETURNED IS.** Measured on batch 27,
+the first batch SIZED from the precision figure: it predicted 41%-precision arithmetic and
+four of its six target queries returned ZERO pages, so only two candidates existed and the
+precision was never applied to anything. Batch 28 tested the consequence directly - nine
+queries measured at zero, re-run against a positive control, and NINE OF NINE RETURNED ZERO
+AGAIN. Among the queries with a recorded page count there are now 17 judged photographs
+across 4 distinct page counts, still far too few to claim a relationship. So the
+figure above is a RATIO, not a yield model: a batch's return is bounded first by how many
+of its queries find anything at all, and only then by what survives review.
 
 ### The queries that produced cases, ranked
 
@@ -243,6 +245,7 @@ all, and only then by what fraction of those downloads survive review.
 | `filetype:bitmap "bhindi masala"` | 1 | 1 |
 | `filetype:bitmap "capsicum masala"` | 1 | 1 |
 | `filetype:bitmap "chicken curry"` | 1 | 1 |
+| `filetype:bitmap "dal tadka"` | 1 | 1 |
 | `filetype:bitmap "gulab jamun"` | 1 | 1 |
 | `filetype:bitmap "karela curry"` | 1 | 1 |
 | `filetype:bitmap "masala dosa" plate` | 1 | 1 |
@@ -264,7 +267,7 @@ all, and only then by what fraction of those downloads survive review.
 | `filetype:bitmap uthappam breakfast` | 1 | 1 |
 | `filetype:bitmap uttapam kerala` | 1 | 1 |
 
-**33 queries downloaded photographs and produced NO case at all.** They are the
+**35 queries downloaded photographs and produced NO case at all.** They are the
 expensive ones - a download, a licence, a SHA-256 and a review, for nothing - and the
 rejection reason on each one is the only record of why. The largest are:
 
@@ -283,24 +286,12 @@ rejection reason on each one is the only record of why. The largest are:
 
 **WHAT THE ZERO-YIELD LIST ACTUALLY SHOWS, and it is not a vocabulary problem.** Reading
 the rejection reasons rather than the titles: the recurring causes are a photograph of
-the INGREDIENT rather than the dish, a RESTAURANT BUFFET or thali where the query's dish
-is one of many, and a photograph whose own title names a DIFFERENT CUISINE. The last one
-is the expensive mistake - the khichuri accepted as khichdi would have been a wrong
-answer rather than a missing one - and it is the only one of the three that no amount
-of query tuning can prevent, because the file's title is the archive's own claim and
-the frame has to be read to contradict it.
-
-**TWO MORE CAUSES, both added 2026-09-28, and both worth more than query tuning.**
-
-1. A photograph whose central truth label CANNOT BE RESOLVED FROM THE FRAME. Batch 27
-   rejected a file titled 'chicken soya curry' because soya chunks take the colour of a
-   gravy completely and chicken does the same, so nothing in the image settles which
-   protein it is. No query change will ever produce a different answer for it.
-2. A photograph ALREADY JUDGED AND REJECTED, returned again under a different filename.
-   Batch 28's single download was the same image batch 26 had rejected (...dfef0cb9
-   against ...0f192f0e), because the near-duplicate guard compares against ACCEPTED
-   photographs and a rejected one was never in the corpus to compare against. So a query
-   that keeps returning a known-bad photograph keeps paying for a review. The fix -
-   record a rejection's perceptual hash as well as an acceptance's - is NOT yet made, and
-   saying so is more useful than implying the guard covers it.
+the INGREDIENT or the CROP rather than the dish, a RESTAURANT BUFFET or thali where the
+query's dish is one of many, a photograph whose own title names a DIFFERENT CUISINE, and a
+photograph whose central truth label CANNOT BE RESOLVED FROM THE FRAME. Batch 29 added the
+crop case: 'moong dal' returned a field of moong beans in bloom, because 'moong' is a crop,
+a bean and a dal at once. The cuisine case is the expensive mistake - the khichuri accepted
+as khichdi would have been a wrong ANSWER rather than a missing one - and it is the only one
+no amount of query tuning can prevent, because the file's title is the archive's own claim
+and only the frame can contradict it.
 

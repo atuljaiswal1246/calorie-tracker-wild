@@ -740,6 +740,48 @@ BATCH28_QUERIES = [
 # queries measured at zero pages with a positive control will measure at zero pages again.
 DECLARED_EXPECTED_CASES_B28 = (1, 2)
 
+# BATCH 29 -- AIMED AT A MEASURED WEAKNESS, not at a class that needs filling.
+#
+# The concentration figure is 22% and has not moved in two batches, and the reason is
+# visible in the top classes rather than in the tail:
+#
+#     dal ..... 5 cases from only 3 dish families - 'dal', 'dal makhani', 'urad dal'
+#     chole ... 4 cases from only 2 dish families - 'chole' and 'chana masala'
+#     sambar .. 3 cases from ONE family - 'sambar', three times
+#
+# Two of the three largest classes are inflated by the SAME dish appearing under two names.
+# Chana masala and chole are the same preparation - chickpea, onion, tomato, the same
+# masala - and dal makhani is a dal. So the corpus is partly counting one dish twice and
+# calling it independence, which is the exact failure the class work exists to prevent, and
+# it means the 22% understates how concentrated the corpus really is.
+#
+# THE FIX IS TO WIDEN THE FAMILIES INSIDE the existing top classes rather than to add more
+# cases to them. A new case of a dal makes dal 6 and the percentage worse; a new DAL -
+# moong dal, masoor dal, chana dal, dal tadka - keeps dal at 5 while making the five cases
+# five different dishes. Same arithmetic as batches 18 and 21, aimed this time at the
+# head of the distribution rather than its tail.
+#
+# CHANA IS DELIBERATELY ABSENT. "chana dal" would land in the chole class and make the
+# worst offender worse. I am not going to fix a concentration problem by making the
+# concentration worse, and the reason is in the note.
+#
+# The query form is the one the yield table says works: <legume> + a preparation word.
+BATCH29_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    'filetype:bitmap "moong dal"',             # a new dal - widens the dal family
+    'filetype:bitmap "masoor dal"',            # a new dal - widens the dal family
+    'filetype:bitmap "dal tadka"',             # a new dal - widens the dal family
+    'filetype:bitmap "masoor dal fry"',
+    'filetype:bitmap "moong dal khichdi"',
+    'filetype:bitmap "dal makhani bowl"',      # a real case for a family already counted
+]
+
+# DECLARED IN ADVANCE: 4 of these 6 are new families inside a top class, and the yield
+# table says a legume-plus-preparation query is the form that produces cases. Expect 2-3
+# candidates and 1-2 cases - and if 6 queries return zero again, the right conclusion is
+# that dal photography is not in this archive either, not that the queries were wrong.
+BATCH29_QUERIES_DECLARED_EXPECTED_CASES = (1, 2)
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

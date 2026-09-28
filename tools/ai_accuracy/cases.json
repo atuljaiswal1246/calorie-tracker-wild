@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 67 cases over 46 distinct dish families; 39 distinct dish CLASSES; 56 coverage classes; top-4 classes hold 22%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 39, with nineteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 68 cases over 47 distinct dish families; 39 distinct dish CLASSES; 56 coverage classes; top-4 classes hold 24%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 39, with nineteen classes spare. EVERY DECLARED CLASS HAS A CASE. NOTE 2026-09-28: the top-4 percentage ROSE from 22% to 24% in batch 29 while the dal class WIDENED from 3 dish families to 4. Both are true and both are reported: the batch added a sixth case to the head while making its five cases six... four distinct dals. The independence of the head improved and the concentration figure worsened, and only one of those is the figure the bar note leads with.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -763,7 +763,73 @@
     "               I will not label a photograph 'chicken' because the pieces look",
     "               meaty, nor 'soya' because the query asked. A case whose one truth",
     "               label cannot be established from the image is not a case, and a wrong",
-    "               label here is a wrong ANSWER rather than a missing one."
+    "               label here is a wrong ANSWER rather than a missing one.",
+    "",
+    "BATCH 29 (2026-09-28): AIMED AT A MEASURED WEAKNESS IN THE TOP CLASSES - and it",
+    "found the real one.",
+    "  7 queries (control first), 3 downloaded, accepted 1, rejected 2",
+    "",
+    "The concentration figure sat at 22% for two batches and the cause is in the HEAD of",
+    "the distribution, not the tail. Measured from the corpus:",
+    "  dal ..... 5 cases from only 3 dish families - 'dal', 'dal makhani', 'urad dal'",
+    "  chole ... 4 cases from only 2 dish families - 'chole' and 'chana masala'",
+    "  sambar .. 3 cases from ONE family - 'sambar', three times",
+    "",
+    "TWO OF THE THREE LARGEST CLASSES ARE INFLATED BY THE SAME DISH UNDER TWO NAMES.",
+    "Chana masala and chole are the same preparation - chickpea, onion, tomato, the same",
+    "masala - and dal makhani is a dal. So the corpus is partly counting one dish twice",
+    "and calling it independence, which is exactly the failure the class work exists to",
+    "prevent, and it means the 22% UNDERSTATES how concentrated this corpus really is.",
+    "",
+    "So the arithmetic was about FAMILIES, not the case count. Adding a case to dal makes",
+    "dal 6 and the percentage worse; adding a NEW DAL keeps dal at 5 while making the",
+    "five cases five different dishes. Same move as batches 18 and 21, aimed at the head.",
+    "CHANA WAS DELIBERATELY ABSENT: 'chana dal' would land in the chole class and make",
+    "the worst offender worse. Saying so in advance made the absence a decision.",
+    "",
+    "  pages=1  uthappam breakfast        <- the control",
+    "  pages=8  \"moong dal\"              8",
+    "  pages=8  \"masoor dal\"             8",
+    "  pages=8  \"dal tadka\"              8",
+    "  pages=0  \"masoor dal fry\"         0",
+    "  pages=0  \"moong dal khichdi\"      0",
+    "  pages=0  \"dal makhani bowl\"       0",
+    "",
+    "3 candidates against a predicted 2-3: the recall half was right, the first time that",
+    "has happened. The interesting half is not the count.",
+    "",
+    "  accepted 1  DAL TADKA - a white bowl of yellow dal with a red chilli oil pool",
+    "               around the rim, two whole dried red chillies, visible cumin seed,",
+    "               black mustard seed, slivered garlic and coriander, with red onions,",
+    "               a cut lemon and whole cardamom pods arranged around it. A textbook",
+    "               tadka, and a FOURTH FAMILY where the batch was sized for three. It",
+    "               matters that this is dal and not dal makhani: tadka is a plain dal",
+    "               finished with a tempered masala, makhani is reduced overnight with",
+    "               butter and cream, and the two carry different calories for the same",
+    "               bowl of lentils.",
+    "",
+    "  rejected 2  'green gram field' - a FIELD OF MOONG BEANS IN BLOOM shot from a",
+    "               vehicle cab. No dal, no meal: agricultural photography. 'moong' is a",
+    "               CROP, a BEAN and a DAL at once, and a query naming a crop reaches the",
+    "               field. So the batch 26 rule narrows AGAIN: two words is not sufficient",
+    "               when the FIRST word names a crop - and 'moong dal' is two words.",
+    "             '3 types of lentil' - three piles of RAW DRY LENTILS on white, shot as a",
+    "               reference chart for pulses. The same call as batch 22's dried kidney",
+    "               beans and batch 14's raw green beans.",
+    "",
+    "THE MEASURED WEAKNESS IS IN MY OWN QUERY FORM, not the archive: 3 of 6 target",
+    "queries returned zero pages and 2 of the 3 that returned pages returned raw",
+    "produce. 'Legume + preparation' works when the preparation is a COOKING METHOD -",
+    "curry, masala, tadka, bhurji - and fails when it is absent or is a compound noun",
+    "keeping the crop name in it. 'masoor dal fry' and 'moong dal khichdi' are real",
+    "dishes that both returned zero, and both put the crop word first, which is where",
+    "this archive's agricultural photography lives.",
+    "",
+    "'dal makhani bowl' also returned zero, and that is the one I would most have liked:",
+    "the dish is already a family in the corpus with no reason to fetch it again. The",
+    "batch was aimed at WIDENING the dal families, and I put a query in anyway. A query",
+    "whose dish is already represented cannot help the number it was aimed at, and the",
+    "record now says it cost one."
   ],
   "cases": [
     {
@@ -2425,6 +2491,23 @@
             "Creamy Fenugreek"
           ],
           "kcal": 190
+        }
+      ]
+    },
+    {
+      "id": "dal_tadka_red_chilli_oil",
+      "image": "tools/ai_accuracy/photos/dal_tadka_delhi_jpg_b5719d0a.jpg",
+      "note": "A white bowl of yellow dal with a red chilli oil pool around the rim, two whole dried red chillies laid across the surface, visible cumin seed, black mustard seed, slivered garlic and coriander, on a dark wooden table with two red onions, a cut lemon and whole cardamom pods arranged around it. A textbook tadka - the tempered spices are the point and they are countable. A FOURTH FAMILY inside the dal class, where the batch was sized for three. It matters that this is dal and not dal makhani: tadka is a plain dal finished with a tempered masala, makhani is a dal reduced overnight with butter and cream until thick and creamy, and the two carry different calories for the same bowl of lentils. One existing dal case is already dal makhani, so this is the OTHER preparation and not a second label for it.",
+      "truth": [
+        {
+          "name": "Dal Tadka",
+          "aliases": [
+            "Tadka Dal",
+            "Dal Bhuna",
+            "Jeera Dal",
+            "Dal Tarka"
+          ],
+          "kcal": 140
         }
       ]
     }

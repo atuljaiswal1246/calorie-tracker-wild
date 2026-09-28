@@ -431,6 +431,15 @@ DISH_CLASS = {
     # that arrives from a fallback is not a decision - it is a filename, and the guard
     # test_every_class_the_corpus_uses_is_a_declared_dish_class_key fails on exactly that.
     "karela": "karela", "karela curry": "karela", "bitter gourd": "karela",
+    # dal tadka, added 2026-09-28 with batch 29, and the reason for the note is the point:
+    # labelled "Dal Tadka" it measured as its OWN 40th class, because DISH_CLASS carries
+    # 'dal' and 'dal makhani' and 'urad dal' but no plain-English entry for a dal finished
+    # with a tempered masala. So the class count rose from 39 to 40 on a class that exists
+    # only because a name was missing from a dict - and the M1 bar would then be reported as
+    # met on a number that includes it. Declared here so the count means what it says. The
+    # same photograph labelled "Tadka Dal" would have become a 41st, which is the fork this
+    # repo has been bitten by four times.
+    "dal tadka": "dal", "tadka dal": "dal", "dal bhuna": "dal", "jeera dal": "dal",
     # amla pickle and gulab jamun, added 2026-09-28 with batch 25, and declared for the
     # same reason as karela: a class that arrives from the DISH_CLASS.get(n, n) fallback
     # is a filename rather than a decision. 'bottle gourd curry' is deliberately NOT

@@ -20,7 +20,7 @@ assume the product got more accurate. It did not. The evidence got better.
 
 | # | obligation | state |
 |---|---|---|
-| 1a | 20 measured real Indian meals | **MET** — 67 cases over **39 distinct dish classes** — and every declared class now has a case |
+| 1a | 20 measured real Indian meals | **MET** — 68 cases over **39 distinct dish classes** — and every declared class now has a case |
 | 1b | one repeatable command, one table | **MET** — `python3 tools/ai_accuracy.py`, prompt extracted from the Dart source so it cannot drift from the app |
 | 2 | side by side, old prompt vs new | **MECHANISM NOW VERIFIED, STILL NEVER RUN FOR REAL** — `--stub` executes the whole A/B path (both prompts extracted and fingerprinted, both sides scored, the A/B table, the JSON) with **zero** provider calls, and `test/compare_path_test.dart` drives it. What is still missing is a run with a real model on both sides. |
 | 3 | baseline committed | **NOT MET** — `baseline_batch4_2026-09-28.json` exists but its number is **WITHDRAWN**: the run could not complete, and re-running is exactly what the CEO ordered me to stop doing |
@@ -30,7 +30,7 @@ assume the product got more accurate. It did not. The evidence got better.
 ```
 python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, costs nothing
 ```
-- 67 cases · 46 distinct dish names · **39 distinct dish classes** · 56 coverage classes
+- 68 cases · 47 distinct dish names · **39 distinct dish classes** · 56 coverage classes
 - bar: 20 meals = 20 distinct dishes. **39, met with nineteen classes spare.**
 - how it got there: 13 at 02:45 → 18 after batch 5 → 22 after batches 6-7 → 28 after batch 11 → 30 after batch 12 → 31 after batch 14 → 32 after batch 16 → 33 after batch 17 → 34 after batch 24 (karela). Batch 18 added no class and moved the
   concentration instead, 27% -> 26%. Ten free
@@ -88,7 +88,7 @@ python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, c
   loose minced meat), **chole/rajma** (chickpea against kidney bean), **biryani/pulao**
   (the meat is the boundary and it is visible), **bhindi/lauki** (okra against bottle
   gourd). The pairs are deliberately **disjoint**, so the arithmetic is exact:
-  **39 classes as measured, and 32 if a reviewer folds all seven** — and 28 is still
+  **39 classes as measured, and 33 if a reviewer folds all seven** — and 28 is still
   inside the card's own 18-22 band. So the bar is not resting on how anyone treats kadhi
   against dal, and the honest sentence is both numbers, never 27 alone.
 - **A class count is also a claim about photographs, and that claim was unchecked
@@ -117,7 +117,7 @@ python3 tools/ai_accuracy.py --repeat 1           # preflight runs first; MONEY 
 python3 tools/ai_accuracy.py --compare <last-good-commit> --repeat 1
 
 # 3. commit the baseline JSON and quote FOUR numbers, never one:
-#    67 cases / 46 names / 39 classes / 56 coverage, AND the concentration, and
+#    68 cases / 47 names / 39 classes / 56 coverage, AND the concentration, and
 #    the median with all of them
 python3 tools/ai_accuracy.py --corpus              # after the run, to re-declare
 ```
@@ -134,8 +134,10 @@ Stop conditions, all of them mine, none of them negotiable at 3am:
 
 - The corpus is 39 classes and leans less than it did: dal (5), chole (4), dosa (3),
   sambar (3), then a flat run - batch 24 added a dosa case and broke the flat tail
-  at 2 (paneer, bhindi, baingan, mushroom, chicken curry) — 15 of 67 cases, so the
-  top four hold **22%**.
+  at 2 (paneer, bhindi, baingan, mushroom, chicken curry) — 16 of 68 cases, so the
+  top four hold **24%** - and see the batch 29 note below, because that
+  figure ROSE while the dal class got WIDER, which is the opposite of what the
+  percentage is for.
   Batch 8 took it 42% -> 34% and hit the ≤35% target, sizing the batch by
   13/(31+N); batches 9 and 10 widened instead of flattening and took it to 31%.
   The bar is met; the sample is not yet even, and a median over this corpus is

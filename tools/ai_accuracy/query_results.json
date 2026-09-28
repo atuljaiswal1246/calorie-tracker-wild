@@ -232,6 +232,55 @@
           }
         ]
       }
+    ],
+    "batch29": [
+      {
+        "recorded": "2026-09-28T16:11:36",
+        "queries": [
+          {
+            "query": "filetype:bitmap uthappam breakfast",
+            "pages": 1,
+            "kept": 1,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"moong dal\"",
+            "pages": 8,
+            "kept": 8,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"masoor dal\"",
+            "pages": 8,
+            "kept": 7,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"dal tadka\"",
+            "pages": 8,
+            "kept": 8,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"masoor dal fry\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"moong dal khichdi\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"dal makhani bowl\"",
+            "pages": 0,
+            "kept": 0,
+            "error": null
+          }
+        ]
+      }
     ]
   }
 }
