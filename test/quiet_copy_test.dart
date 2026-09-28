@@ -98,8 +98,32 @@ const _allowlist = <String, String>{
 final _singleQuoted = RegExp(r"'((?:[^'\\\n]|\\.){5,110})'");
 final _doubleQuoted = RegExp(r'"((?:[^"\\\n]|\\.){5,110})"');
 
-bool _isAllowed(String s) =>
-    _allowlist.keys.any((k) => s.contains(k));
+bool isAllowed(String s) => _allowlist.keys.any((k) => s.contains(k));
+
+/// The DECISION, as a pure function over one string. Exposed and unit-tested
+/// because the guard that reads a directory cannot itself be tested: if the only
+/// way to see this logic work is to write shame copy into `lib/` and commit it, the
+/// logic is effectively untested, and a guard nobody can demonstrate is a guard
+/// nobody can trust.
+///
+/// Returns a human-readable reason per violation, empty when the line is fine.
+List<String> violationsIn(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty || !trimmed.contains(' ')) return const [];
+  // Obvious developer strings, not copy.
+  if (trimmed.contains(r'$e') ||
+      trimmed.contains('Exception') ||
+      trimmed.contains('statusCode')) {
+    return const [];
+  }
+  if (isAllowed(trimmed)) return const [];
+  for (final entry in _banned.entries) {
+    if (RegExp(entry.key, caseSensitive: false).hasMatch(trimmed)) {
+      return ['[${entry.value}] "$trimmed"'];
+    }
+  }
+  return const [];
+}
 
 void main() {
   test('no shame, guilt or pressure copy is shipped to the user', () {
@@ -117,22 +141,8 @@ void main() {
         for (final m in [..._singleQuoted.allMatches(line),
           ..._doubleQuoted.allMatches(line)]) {
           final text = (m.group(1) ?? '').trim();
-          if (text.isEmpty || !text.contains(' ')) continue;
-          // Obvious developer strings, not copy.
-          if (text.contains(r'$e') ||
-              text.contains('Exception') ||
-              text.contains('statusCode')) {
-            continue;
-          }
-          if (_isAllowed(text)) continue;
-          for (final entry in _banned.entries) {
-            if (RegExp(entry.key, caseSensitive: false).hasMatch(text)) {
-              violations.add(
-                '${entity.path}:${i + 1}  [${entry.value}]\n'
-                '    "$text"',
-              );
-              break;
-            }
+          for (final why in violationsIn(text)) {
+            violations.add('${entity.path}:${i + 1}  $why');
           }
         }
       }
@@ -147,6 +157,91 @@ void main() {
           'case for the technical string only if it is genuinely a developer\n'
           'message. Do not allowlist user-facing copy.\n\n'
           '${violations.join('\n')}\n',
+    );
+  });
+
+
+  group('the decision itself, tested - because a guard nobody can demonstrate is '
+      'a guard nobody can trust', () {
+    test('shame copy is caught', () {
+      for (final line in const [
+        'You failed to log yesterday.',
+        'You should have eaten less.',
+        'Stop bingeing, you are lazy.',
+        'This is a total failure.',
+        'Prove it. No excuses.',
+        'You owe it to yourself.',
+      ]) {
+        expect(violationsIn(line), isNotEmpty,
+            reason: 'This is exactly the copy the app refuses to ship, and the '
+                'guard did not flag it: "$line"');
+      }
+    });
+
+    test('the copy we DO ship is not flagged', () {
+      for (final line in const [
+        'Here is what I read from your photo',
+        'Your streak is on track',
+        'No food detected. Try another photo.',
+        'Missed yesterday? No worries',
+      ]) {
+        expect(violationsIn(line), isEmpty,
+            reason: 'The guard is crying wolf on copy the owner approved: "$line"');
+      }
+    });
+
+    test('a developer string is not user-facing copy', () {
+      expect(violationsIn(r'Failed to log entry: $e'), isEmpty);
+      expect(violationsIn('FirebaseException: permission denied'), isEmpty);
+    });
+
+    test('a single word is not copy', () {
+      // Otherwise every log token and every enum value would be judged as prose.
+      expect(violationsIn('failure'), isEmpty);
+      expect(violationsIn('badges'), isEmpty);
+    });
+
+    test('THE BYPASS THIS GUARD STILL HAS, WRITTEN DOWN', () {
+      // An allowlist entry is an exemption, and the cheapest way to smuggle shame
+      // copy through this guard is to add a line to _allowlist with a reassuring
+      // comment. Nothing about that action is louder than editing any other line.
+      // So the count below is pinned and the entries are required to be REAL - see
+      // "no allowlist entry is a pre-loaded exemption for a string that is gone".
+      expect(_allowlist.length, greaterThan(10),
+          reason: 'The allowlist is nearly empty, so most entries were needed. If '
+              'it really is this short, check the entries are still justified '
+              'rather than trimming them to look tidy.');
+    });
+  });
+
+  test('no allowlist entry is a pre-loaded exemption for a string that is gone',
+      () {
+    // The real risk in an allowlist is not the entries that are there - it is the
+    // ones left behind. A stale entry is a loaded gun: the string is gone today, so
+    // the entry looks harmless, and the first time somebody writes it again the
+    // guard waves it through without anyone reading a comment.
+    final source = <String>{};
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      source.add(entity.readAsStringSync());
+    }
+    // Normalise the SOURCE, not the key. My first version stripped escapes from
+    // the allowlist key, which is the wrong direction: the key is written with a
+    // plain apostrophe and the SOURCE has Dart's escaped one, so the guard
+    // reported a live Asha string as stale. A false positive in a guard about
+    // stale exemptions is worse than useless - it teaches you to delete real
+    // entries to make it quiet, which is precisely the loss of an exemption the
+    // guard exists to catch.
+    final haystack = source.join('\n').replaceAll(r"\'", "'");
+    final stale = _allowlist.keys.where((k) => !haystack.contains(k)).toList();
+    expect(
+      stale,
+      isEmpty,
+      reason: 'Allowlist entries whose string no longer appears anywhere in lib/:\n'
+          '${stale.map((e) => '  - "$e"').join('\n')}\n'
+          'Delete them. An exemption for a string that is gone is a pre-loaded '
+          'exemption for the day somebody writes it again, and it will not be '
+          'noticed because it looks like housekeeping.',
     );
   });
 
