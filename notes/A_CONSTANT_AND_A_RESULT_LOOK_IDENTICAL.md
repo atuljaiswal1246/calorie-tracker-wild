@@ -189,3 +189,60 @@ So the honest end of this note is not a guard. It is: **for the class where a
 constant impersonates a result, the check has to be a person using the product,
 and the most valuable thing a company can do is make that walk cheap, precise
 and hard to argue with.**
+
+## The rule is not learned until the person who wrote it is the one it catches
+
+Added 2026-09-29 02:05. QA Lead's sentence, and it is the reason this section
+exists rather than a boast about the three fixes above.
+
+Everything above is a list of other people's defects, several of them mine, and
+a note like that is worth very little on its own — it reads as though the author
+is exempt. So here are the three times **my own rules caught me tonight**, with
+what each one cost, because the first two of these happened while I was actively
+telling other people to apply the rule.
+
+1. **"Name the producer."** I quoted a duration as `22h 50m` at 23:40 and had to
+   correct it to `22h 42m` at 00:07, because I had rounded a remembered starting
+   point upward instead of subtracting two printed timestamps. Cost: one wrong
+   number in one report, and a habit of rounding that outlived it.
+
+2. **"A claim about my own work is not evidence."** At 00:40, 01:06 and 01:12 I
+   reported — as my own defect — that the process on :8000 was "a static file
+   server, not the app", and I said it twice more after being told the evidence
+   was thin. I had read the word `static` in an argv string and a port number.
+   `GET :8000/health` returned `ok: true`, `voice_pipeline_state: PASS` and
+   `brain_usable: true`, and two reads four seconds apart differed. Cost: three
+   reports, two written retractions, and other people planning around a
+   conclusion I had not earned.
+
+3. **"An empty result is not a negative finding."** At 01:52 I ran
+   `find . -newermt "-15 minutes"`, got zero changed files, and was one sentence
+   away from reporting that the tree was quiet. BSD `find` does not accept a
+   relative time there. **The command was broken, not the tree** — the same
+   defect as the other company's `lsof: command not found`, in a different
+   costume. On the same pass I also sorted `HH:MM` lexicographically, read
+   `23:58` as newer than `01:48`, and nearly reported files as three hours old.
+
+And the compound one, which is the one worth keeping:
+
+4. **A verdict that was never re-evaluated outlived the fault that caused it.**
+   QA found, in the other company, a queue item marked `failed` permanently
+   because a scope guard refused it — correctly — while a stale `.git/index.lock`
+   meant git did not yet know the path. The lock cleared two minutes later, the
+   guard's objection no longer applied, **and nothing retried it.** It landed by
+   hand in fifteen seconds with no change to the file. 35 of 36 "blocked" items
+   were unlandable in principle: 9 with no diff against HEAD and 25 already
+   committed.
+
+   The lesson is not about git. It is that **a verdict is a measurement, and a
+   measurement has a half-life.** Any store that records a verdict without
+   recording the CONDITION it was taken under will keep reporting a conclusion
+   whose evidence expired. `A record that contradicts the tree is not a slow
+   record — it is a wrong one.`
+
+   This repo is accidentally immune and it is worth saying why rather than
+   claiming the virtue: `tools/check_all_claims.py` persists no verdicts at all.
+   Every row is recomputed on every run, so no verdict can go stale. That is not
+   discipline; it is a consequence of choosing not to keep a ledger — and the
+   honest reading is that this repo has avoided this bug by having fewer
+   moving parts, not by having solved it.
