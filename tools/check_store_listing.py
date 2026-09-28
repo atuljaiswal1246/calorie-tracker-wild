@@ -121,6 +121,17 @@ def reachable_from(entry: Path) -> set[Path]:
 
 
 def main() -> int:
+    # --help must STOP this tool. Found 2026-09-28: it had no argparse at all, so
+    # `check_store_listing.py --help` ran the entire reachability walk and printed
+    # the report - asking a question and receiving a verdict. The skill that named
+    # this class says some tools ignore every flag and run, and this one did. It
+    # is read-only so nothing was damaged, which is exactly why it would have
+    # survived: a tool that does the wrong thing read-only looks innocent.
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print(__doc__)
+        print("Flags: --help only. This check is read-only and makes no network "
+              "calls; it walks the real import path from lib/main.dart.")
+        return 0
     if not LISTING.exists() or not ENTRY.exists():
         print("FATAL: PLAY_STORE_LISTING.md or lib/main.dart is missing. "
               "Nothing was checked, so nothing is claimed.")

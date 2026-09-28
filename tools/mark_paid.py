@@ -56,6 +56,29 @@ def main() -> int:
         return 2
     email = sys.argv[1].strip()
 
+    # A FLAG IS NOT AN EMAIL ADDRESS. Found 2026-09-28: `mark_paid.py --help`
+    # took "--help" as the address to look up and made a LIVE Firebase call,
+    # printing "looking up --help in calorie-tracker-80a0b ... NOT FOUND". The
+    # tool had no argparse and no way to say "I was asking".
+    #
+    # This matters more than the joke of it. This tool can WRITE a `paid: true`
+    # onto a user's account, so an argument it misreads is an argument it acts
+    # on. Anything starting with `-` is refused here, and the refusal says how to
+    # get the usage, so a mistake costs nothing.
+    if email in ('-h', '--help'):
+        # Asking for help is not an error: exit 0. The refusal below is for an
+        # argument that LOOKS like some other flag, which is a different mistake
+        # and a different exit code.
+        print(__doc__)
+        return 0
+    if email.startswith('-'):
+        print(f'"{email}" looks like a flag, not an email address.')
+        print('This tool marks a PAID USER by email and can write paid=true onto')
+        print('their account, so it will not guess what an argument meant.')
+        print('')
+        print(__doc__)
+        return 2
+
     token = access_token()
     print(f'looking up {email} in {PROJECT} ...')
     found = api(f'https://identitytoolkit.googleapis.com/v1/projects/'

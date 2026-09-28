@@ -68,6 +68,13 @@ def read(key: str) -> dict:
 
 
 def main() -> int:
+    # --help must STOP this tool. It takes KV KEYS positionally, so without this
+    # `kv_get.py --help` reads "--help" as a key name and queries Cloudflare for
+    # it. Found 2026-09-28 by test/tools_help_is_a_door_test.dart, which runs
+    # --help on every tool and reads the exit code.
+    if any(a in ('-h', '--help') for a in sys.argv[1:]):
+        print(__doc__)
+        return 0
     if len(sys.argv) < 2:
         print(__doc__)
         print("usage: python3 tools/kv_get.py <key> [<key> ...]", file=sys.stderr)
