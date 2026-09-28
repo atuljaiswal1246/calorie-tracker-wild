@@ -126,7 +126,7 @@ def main() -> int:
         return 2
     orders = json.loads(STATE.read_text(encoding="utf-8"))
 
-    rows, unreadable, bad = [], 0, []
+    rows, unreadable, bad, waiting = [], 0, [], []
     for role, rec in orders.items():
         if args.role and role != args.role:
             continue
@@ -142,7 +142,12 @@ def main() -> int:
             unreadable += 1
             continue
         if txt is None:
-            print(f"  {role:<20} ordered, no reply yet - waiting, not failing")
+            # A role that has not spoken yet has NOT been cleared. It used to
+            # print "waiting, not failing" and then fall through to a summary
+            # line reading PASS - so a silent role was quietly counted as a good
+            # one. Exactly the empty-result-is-a-pass trap, about a person.
+            print(f"  {role:<20} ordered, no spoken reply yet - WAITING")
+            waiting.append(role)
             continue
         at = time.strftime("%H:%M:%S",
                            time.localtime(ms / 1000)) if ms else "?"
@@ -185,8 +190,12 @@ def main() -> int:
         print("A doorbell that reads the MESSAGE counts a string shaped like a")
         print("hash as a landing. A shape is not a landing.")
         return 1
-    if unreadable:
-        print(f"PARTIAL: {unreadable} role(s) unreadable. Not verified, not failed.")
+    if unreadable or waiting:
+        who = ", ".join(waiting + ["<unreadable>"] * unreadable)
+        print(f"NOT VERIFIED: {len(waiting) + unreadable} role(s) are not "
+              f"cleared ({who}).")
+        print("Not failed, not passed. A role that has not answered is not one")
+        print("that has landed, and it is not one that has gone quiet either.")
         return 2
     print(f"PASS: every ordered role has a real commit in {OTHER_REPO} after the order.")
     return 0
