@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 43 cases over 33 distinct dish families; 28 distinct dish CLASSES; 45 coverage classes; top-4 classes hold 30%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 28, with eight classes spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 46 cases over 35 distinct dish families; 30 distinct dish CLASSES; 45 coverage classes; top-4 classes hold 28%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 30, with ten classes spare.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -170,7 +170,33 @@
     "7 recorded the same shape: six queries, one usable photograph. Commons is",
     "thin on these dishes, and the honest next move is a second round with",
     "regional spellings rather than loosening the cuisine constraint that batch 9",
-    "proved is what makes a query find the wrong cuisine."
+    "proved is what makes a query find the wrong cuisine.",
+    "",
+    "BATCH 12 (2026-09-28): the five classes batch 11 left empty, queried by",
+    "REGIONAL SPELLING. Batch 11 got 1 usable photograph from 3 downloaded, so this",
+    "round changes the NAMES rather than adding more cuisine words: Commons is thin",
+    "on these dishes and thin in a particular way - the uploads are captioned in a",
+    "regional or transliterated form, not the dictionary form. Khakra -> khakro;",
+    "mushroom -> dhingra; raitha -> raita and potato raita; uthappam -> uttapam;",
+    "french beans -> gavar phali and beans poriyal. 10 queries, 18 candidates, 5",
+    "downloaded after the per-query and per-author caps and the dHash check.",
+    "  accepted 3  uthappam x2 (its first two cases) and aloo raita (its first)",
+    "  rejected 2  a botanical photograph of a guar plant in flower - not a dish,",
+    "               and the lesson kept is that a botanical NAME finds a botanical",
+    "               photograph, so a plant-named class needs a DISH word in the query",
+    "               and a vegetable biryani that would be a THIRD biryani, with the",
+    "               raita beside it a side dish. Putting raita first would have won",
+    "               this batch the raitha class, but the class would then have been",
+    "               decided by my typing order - the fault batch 10 rejected a",
+    "               four-component plate for. A wanted class is not a reason to",
+    "               reorder the truth",
+    "STILL EMPTY: khakra, mushroom and french beans. The regional-spelling strategy",
+    "worked for uthappam and raitha and did not work for the other three. The honest",
+    "reading is that Commons has very few photographs of a khakra, a mushroom masala",
+    "or a french-bean sabzi that are unambiguously those dishes. If there is a next",
+    "attempt it should change the DISH FORM - a whole thali rather than a close-up -",
+    "and if that is thin too, the right conclusion is that these three stay empty and",
+    "the bar is met without them."
   ],
   "cases": [
     {
@@ -1370,6 +1396,63 @@
             "Capsicum Masala"
           ],
           "kcal": 180
+        }
+      ]
+    },
+    {
+      "id": "uthappam_plate_chutney",
+      "image": "tools/ai_accuracy/photos/uthappam_jpg_578f643e.jpg",
+      "note": "Three thick white savoury rice pancakes on a bright pink square plate, each roughly a hand across, with visible chopped onion, green chilli slices, diced tomato and coriander, browned and blistered in patches from the pan. A small glass bowl of pale speckled chutney sits at the top of the plate. The thick porous white batter with onion and chilli is uthappam and nothing else, and this is its first case in the corpus.",
+      "truth": [
+        {
+          "name": "Uthappam",
+          "aliases": [
+            "Uttapam",
+            "Idiappam",
+            "Neerappam"
+          ],
+          "kcal": 250
+        },
+        {
+          "name": "Chutney",
+          "aliases": [
+            "Coconut Chutney",
+            "Chutney"
+          ],
+          "kcal": 40
+        }
+      ]
+    },
+    {
+      "id": "onion_uthappam_banana_leaf",
+      "image": "tools/ai_accuracy/photos/onion_uttappam_01_jpg_f536e1c5.jpg",
+      "note": "One large onion uthappam served on a green banana leaf on a stainless steel tray, the pancake pale and glossy with translucent onion, green chilli rings, coriander and turmeric-tinted fried patches across its surface. A red-orange pickle or chutney is partly visible at the lower left edge. A second, different photograph of the same dish is legitimate sampling rather than duplication: it tests whether the model is consistent on one dish across two photographs.",
+      "truth": [
+        {
+          "name": "Uthappam",
+          "aliases": [
+            "Uttapam",
+            "Onion Uthappam",
+            "Idiappam"
+          ],
+          "kcal": 250
+        }
+      ]
+    },
+    {
+      "id": "aloo_raita_bowl",
+      "image": "tools/ai_accuracy/photos/aloo_raita_recipe_by_sonia_goyal_jpg_eae35953.jpg",
+      "note": "A shallow orange bowl of aloo raita: a pale pink-white yogurt base thick with visible cubes of boiled potato, chopped green chilli, roughly torn coriander leaves and a dusting of red chilli powder across the surface. A sliver of a white plate is visible at the top left corner. The potato cubes in a yogurt base make this potato raita rather than plain raita, and the class is the same either way. Raitha's first case.",
+      "truth": [
+        {
+          "name": "Raitha",
+          "aliases": [
+            "Raita",
+            "Aloo Raita",
+            "Boondi Raitha",
+            "Dahi Raita"
+          ],
+          "kcal": 120
         }
       ]
     }

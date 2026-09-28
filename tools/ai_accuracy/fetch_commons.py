@@ -296,6 +296,38 @@ BATCH11_QUERIES = [
 ]
 
 
+# BATCH 12 -- the five classes batch 11 left empty, queried by REGIONAL SPELLING.
+#
+# Batch 11 got 1 usable photograph out of 3 downloaded across 6 "indian"-suffixed
+# queries. The suffix was the right lesson from batch 9 (an unsuffixed term finds the
+# wrong cuisine) but it is evidently not enough to find these five dishes, because
+# Commons is thin on them and thin in a particular way: the uploads are usually
+# captioned in a REGIONAL or TRANSLITERATED form, not the dictionary form.
+#
+# So every query here changes the NAME rather than adding another cuisine word:
+#   khakra      -> khakro, khakra rotli          (Gujarati spellings)
+#   mushroom    -> dhingra masala               (Hindi for mushroom)
+#   raitha      -> raita, potato raita           (the short form, and the common dish)
+#   uthappam    -> uttapam, neyyappam-adjacent   (Kerala/Malabar transliterations)
+#   french beans-> gavar phali, beans poriyal     (Gujarati and South Indian names)
+#
+# This is the honest response to a thin result: widen the NAMES, not the rules. The
+# cuisine constraint stays, because batch 9 proved what relaxing it costs - a Thai
+# green curry accepted as a mushroom dish would be worse than an empty class.
+BATCH12_QUERIES = [
+    'filetype:bitmap khakra gujarati',
+    'filetype:bitmap "khakro" gujarati snack',
+    'filetype:bitmap "dhingra masala"',
+    'filetype:bitmap raita indian',
+    'filetype:bitmap "potato raita"',
+    'filetype:bitmap uthappam breakfast',
+    'filetype:bitmap uttapam kerala',
+    'filetype:bitmap "beans curry" indian home',
+    'filetype:bitmap gavar phali',
+    'filetype:bitmap "beans poriyal" south indian',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -537,12 +569,13 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
     sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES, "batch10": BATCH10_QUERIES,
-    "batch11": BATCH11_QUERIES}
+    "batch11": BATCH11_QUERIES,
+    "batch12": BATCH12_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
