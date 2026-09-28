@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 68 cases over 47 distinct dish families; 39 distinct dish CLASSES; 56 coverage classes; top-4 classes hold 24%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 39, with nineteen classes spare. EVERY DECLARED CLASS HAS A CASE. NOTE 2026-09-28: the top-4 percentage ROSE from 22% to 24% in batch 29 while the dal class WIDENED from 3 dish families to 4. Both are true and both are reported: the batch added a sixth case to the head while making its five cases six... four distinct dals. The independence of the head improved and the concentration figure worsened, and only one of those is the figure the bar note leads with.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 71 cases over 50 distinct dish families; 42 distinct dish CLASSES; 59 coverage classes; top-4 classes hold 23%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 42, with twenty-two classes spare. EVERY DECLARED CLASS HAS A CASE. NOTE 2026-09-28: batch 30 FELL the top-4 figure to 23% from 24% while dal (6) and chole (4) did not move at all, because every accept landed in a class outside the top four. The method is not adding cases, it is WHICH CLASS each case lands in.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -829,7 +829,67 @@
     "the dish is already a family in the corpus with no reason to fetch it again. The",
     "batch was aimed at WIDENING the dal families, and I put a query in anyway. A query",
     "whose dish is already represented cannot help the number it was aimed at, and the",
-    "record now says it cost one."
+    "record now says it cost one.",
+    "",
+    "BATCH 30 (2026-09-28): THE FIRST BATCH WHERE EVERY QUERY RETURNED PAGES - and three",
+    "new classes, the first batch in three to move the concentration DOWN.",
+    "  7 queries (control first), 5 downloaded, accepted 3, rejected 2",
+    "",
+    "Batch 29 measured that a query leading with a CROP NAME reaches a field, not a dish:",
+    "'moong dal' returned a field of moong beans in bloom. Batch 30's six targets lead",
+    "with none of them, and they are all sweets and savoury fried foods - the part of",
+    "Indian cooking this corpus had covered least. Before this batch the class list held",
+    "chana and to dal, bottle gourd curry, methi malai, karela, amla pickle and gulab",
+    "jamun, and NOTHING that is a steamed fermented cake or a nut fudge.",
+    "",
+    "  pages=1  uthappam breakfast        <- the control",
+    "  pages=8  \"dhokla\"                  8",
+    "  pages=8  \"bhel puri\"               8",
+    "  pages=8  \"kaju katli\"              8",
+    "  pages=8  \"soan papdi\"              8",
+    "  pages=4  \"besan chilla\"            4",
+    "  pages=8  \"vada pav\"                8",
+    "",
+    "Six of six targets returned pages against a DECLARED 2-4 candidates, and five",
+    "downloads came back. The declared recall was PESSIMISTIC by one, the opposite of the",
+    "last four batches, and worth saying plainly: THE BINDING CONSTRAINT MOVED. It is no",
+    "longer how many queries find anything - the yield section says so from the record -",
+    "it is now what survives review.",
+    "",
+    "  accepted 3  DHOKLA - yellow square pieces under a mound of fine sev, with chopped",
+    "               onion, a whole green chilli and black mustard seed. A new class, and",
+    "               the first steamed fermented cake this corpus has held.",
+    "  accepted 3  BHEL PURI - puffed rice and sev with onion, coriander, brown tamarind",
+    "               and a reddish sweet chutney, eaten with a spoon at a beach stall.",
+    "               Accepted deliberately for its CONDITION as well as its clarity: a",
+    "               crowded hand-eaten street-food plate with a stall interior behind it.",
+    "               The corpus is better for holding the photograph a user actually",
+    "               submits and not only the one a food photographer makes.",
+    "  accepted 3  KAJU KATLI - four thin diamond-cut slices of dense ivory fudge. Pale",
+    "               colour and thin diamond cut are both diagnostic. The first nut fudge in",
+    "               the corpus, and kept SEPARATE from soan papdi and plain barfi rather",
+    "               than folded into one class: flaky spun sugar, dense fudge and cut",
+    "               diamonds are three preparations with three calorie counts.",
+    "",
+    "  rejected 2  'chocolate and vanila sohan papdi' - dense milk-chocolate fudge with",
+    "               raisins and almond, and two pale dense nut pieces. NONE shows the",
+    "               flaky spun-sugar layers that DEFINE soan papdi. What is in the frame",
+    "               is BARFI. Rejected as unresolvable - the FOURTH such label in this",
+    "               corpus and the SECOND time the archive's own title is the unreliable",
+    "               party rather than my query.",
+    "             'besan chilla pizza' - a baked base under MELTED MOZZARELLA with red",
+    "               chilli flakes and dried oregano. A fusion recipe-blog experiment, and",
+    "               the dominant elements here are cheese, chilli flake and oregano, not",
+    "               besan. Labelling it besan chilla would be a false claim about the",
+    "               calories. A two-word query can reach a VARIANT, not only an ingredient.",
+    "",
+    "  BEFORE  68 cases, 39 classes, top 4 = 16/68 = 24%",
+    "  AFTER   71 cases, 42 classes, top 4 = 16/71 = 23%   <- I predicted 22% and the\nMEASURED figure is 23%: 16/71 is 22.5% and it rounds up. Recorded rather than quietly\ncorrected, because the point of declaring an expectation is that being wrong stays visible.",
+    "",
+    "Dal still holds 6 and chole 4 and NEITHER MOVED, and the concentration fell anyway",
+    "because every accept landed in a class outside the top four. That is the whole",
+    "method in one sentence: it was never about adding cases, it was about WHICH CLASS",
+    "each case lands in."
   ],
   "cases": [
     {
@@ -2508,6 +2568,55 @@
             "Dal Tarka"
           ],
           "kcal": 140
+        }
+      ]
+    },
+    {
+      "id": "dhokla_sev_onion_plate",
+      "image": "tools/ai_accuracy/photos/authentic_gujrati_dhokla_daman_daman_and_diu_img_201_5e3528e1.jpg",
+      "note": "A steel plate of yellow square dhokla pieces buried under a mound of fine sev, with chopped raw onion, a whole green chilli and black mustard seed. Khatta dhokla plated the way it is actually served, and the dhokla pieces are countable under the sev. A new class, and the first steamed fermented cake this corpus has held.",
+      "truth": [
+        {
+          "name": "Dhokla",
+          "aliases": [
+            "Khatta Dhokla",
+            "Dhokla With Sev",
+            "Masala Dhokla",
+            "Steamed Dhokla"
+          ],
+          "kcal": 160
+        }
+      ]
+    },
+    {
+      "id": "bhel_puri_juhu_beach",
+      "image": "tools/ai_accuracy/photos/bhel_puri_at_juhu_beach_jpg_38278cba.jpg",
+      "note": "A plate of puffed rice and sev with chopped onion, coriander, a brown tamarind chutney and a reddish sweet chutney, being eaten with a spoon at a beach stall in Mumbai. Accepted DELIBERATELY for its condition as well as its clarity: it is a crowded, hand-eaten street-food plate rather than a composed dish shot, with a stall interior behind it. The corpus is better for holding the kind of photograph a user actually submits rather than only the kind a food photographer makes, and this is the first such case.",
+      "truth": [
+        {
+          "name": "Bhel Puri",
+          "aliases": [
+            "Bhel",
+            "Puri Puri",
+            "Street Bhel"
+          ],
+          "kcal": 180
+        }
+      ]
+    },
+    {
+      "id": "kaju_katli_diamonds",
+      "image": "tools/ai_accuracy/photos/homemade_kaju_katli_jpg_8b87d70e.jpg",
+      "note": "Four thin diamond-cut slices of dense ivory fudge on a steel plate. The pale colour and the thin diamond cut are both diagnostic, and the crumbly edge shows the ground-cashew-and-sugar texture. A new class, and the first nut fudge - the corpus had no barfi family at all before this batch. Kept SEPARATE from soan papdi and from plain barfi rather than folded into one class: flaky spun sugar, dense fudge and cut diamonds are three preparations with three different calorie counts, and that adjacency is declared in the dish-class guard rather than assumed here.",
+      "truth": [
+        {
+          "name": "Kaju Katli",
+          "aliases": [
+            "Cashew Katli",
+            "Cashew Fudge",
+            "Kaju Barfi"
+          ],
+          "kcal": 380
         }
       ]
     }

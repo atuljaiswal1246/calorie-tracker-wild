@@ -49,11 +49,17 @@ Run with: python3 tools/ai_accuracy/test_the_record_distinguishes_a_zero_from_a_
 from __future__ import annotations
 
 import json
+import pathlib
+import sys
 import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 RECORD = REPO / "tools" / "ai_accuracy" / "query_results.json"
+QUERY_SETS = REPO / "tools" / "ai_accuracy" / "query_sets.py"
+
+sys.path.insert(0, str(REPO / "tools" / "ai_accuracy"))
+import qstrings  # noqa: E402  - the one extraction of query strings, comment-aware
 
 # Batches whose per-query results were never written down, because the fetcher did not
 # write them down. The reason is the same for all of them and it is not a defence: the
@@ -160,9 +166,7 @@ class TheRecordDistinguishesAZeroFromAQueryNeverAskedTests(unittest.TestCase):
         """A record of a query nothing runs is a measurement of nothing. And the control
         is read from the control guard's PROVEN list rather than restated, because a
         second copy of that list is the two-copies fault this repo already paid for."""
-        import re
-        src = (REPO / "tools" / "ai_accuracy" / "query_sets.py").read_text(encoding="utf-8")
-        used = set(re.findall(r"'([^']+)'", src))
+        used = set(qstrings.string_literals(QUERY_SETS))
         orphan = sorted({q.get("query") for entries in _runs().values()
                          for r in entries for q in r.get("queries", [])
                          if q.get("query") not in used})
@@ -191,6 +195,83 @@ class TheRecordDistinguishesAZeroFromAQueryNeverAskedTests(unittest.TestCase):
             "the control guard's PROVEN list is empty, so the zero-detection above has "
             "nothing to compare a run against.")
 
+    def test_the_extraction_is_immune_to_apostrophes_in_prose(self):
+        """THE PROOF, and it is here because of the skill
+        `a-filter-that-excludes-its-own-target-reports-clean`: a check proved only against
+        a healthy file is a comment with a green light.
+
+        The fault that made this module go red on 2026-09-28 was the extraction itself.
+        `query_sets.py` extracts query strings with `re.findall(r"'([^']+)'", src)`, and
+        `[^']+` matches across newlines, so ONE unpaired apostrophe in a comment swallows
+        everything after it. The file has 609 single-quote characters - an ODD number -
+        and fifteen lines with an odd count, every one of them ordinary prose: "batch
+        13's", "the client's", "batch 25's finding". Fifteen English possessives, and the
+        whole query registry became invisible to a regex.
+
+        The guards did not fail loudly. They went on reporting success while reading a
+        different file than the one on disk - the same class of fault this repo keeps
+        measuring. The control guard is still green and is green BY LUCK: whether it sees
+        a query depends on how many apostrophes sit between it and the query.
+
+        So this builds the fault deliberately - a query set whose comment holds a single
+        apostrophe - and requires the extraction to still find the query. A regex that
+        swallows the comment cannot pass this, and the check is only worth having if it
+        can go red.
+
+        DELIBERATELY NOT ASSERTED: that query_sets.py has an even number of apostrophes.
+        It has 609, an odd number, and that was the SYMPTOM. Once the extraction reads the
+        tree rather than the text, the parity of the prose is irrelevant - a guard that
+        demanded tidy comments would be a guard about typography, and the moment someone
+        wrote "batch 13's" in a comment again it would go red for a reason that has nothing
+        to do with the data. The proof below is on the extraction, which is the thing that
+        was actually broken.
+        """
+        import re
+        import tempfile
+        # ONE apostrophe, and BETWEEN the two queries. Placed before the list it pairs
+        # with the next opening quote and both queries survive by luck; placed between them
+        # the span from that apostrophe to the next quote runs across the first literal and
+        # a real query disappears. That is the shape of the fault: the extraction loses
+        # data and reports cleanly.
+        broken = [
+            "QUERIES = [",
+            "    'filetype:bitmap control',",
+            "    # the client's wording",
+            "    'filetype:bitmap \"a dish\"',",
+            "]",
+        ]
+        tmp = pathlib.Path(tempfile.mkdtemp()) / "qs.py"
+        tmp.write_text("\n".join(broken) + "\n", encoding="utf-8")
+        src = tmp.read_text(encoding="utf-8")
+
+        by_regex = set(re.findall(r"'([^']+)'", src))
+        by_tokenizer = set(qstrings.string_literals(tmp))
+
+        # The observable symptom, asserted rather than the exact pairing: PROSE appears in
+        # a list of query strings. Every real query in this repo starts `filetype:`, so a
+        # fragment that does not is the extraction handing back the comment it was told to
+        # ignore. This is robust to how the quotes happen to pair, which the "is this query
+        # missing" version was not.
+        leaked = sorted(x for x in by_regex if not x.startswith("filetype:bitmap"))
+        self.assertTrue(
+            leaked,
+            "the OLD quote-regex no longer leaks prose into the query list, so the fault "
+            "this test exists to expose has changed shape. Re-derive the symptom before "
+            "trusting this test - it is a proof of the extraction, not of the regex.")
+        self.assertEqual(
+            sorted(x for x in by_tokenizer if not x.startswith("filetype:bitmap")), [],
+            f"the tokenizer leaked prose too: {sorted(by_tokenizer)}. It is supposed to be "
+            f"immune to the comment, and a leak here means the fix did not take.")
+        self.assertEqual(
+            sorted(by_tokenizer),
+            sorted({"filetype:bitmap control", 'filetype:bitmap "a dish"'}),
+            f"the tokenizer did not return exactly the file's two real literals: "
+            f"{sorted(by_tokenizer)}. A short list is the dangerous shape, because every "
+            f"caller then reports a confident answer about a file it only partly read.")
+        self.assertIn(
+            'filetype:bitmap "a dish"', by_tokenizer,
+            "the tokenizer extraction missed a real query. The whole point of it is to "
+            "read the tree rather than the prose, and it has failed at that.")
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

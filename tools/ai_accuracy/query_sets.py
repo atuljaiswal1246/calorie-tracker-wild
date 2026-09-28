@@ -782,6 +782,40 @@ BATCH29_QUERIES = [
 # that dal photography is not in this archive either, not that the queries were wrong.
 BATCH29_QUERIES_DECLARED_EXPECTED_CASES = (1, 2)
 
+# BATCH 30 -- six NEW classes, none in the top four, and no query that leads with a CROP.
+#
+# Two things the last four batches measured, both used here as constraints rather than
+# repeated as findings:
+#
+#   * concentration is 24% because dal holds 6 and chole 4. Every target is a class the
+#     corpus does not have, so a case here lowers the concentration rather than raising it;
+#   * batch 29 measured that a query LEADING WITH A CROP NAME reaches a field, not a dish -
+#     "moong dal" returned a field of moong beans in bloom. So not one query below starts
+#     with a legume, pulse or grain name. That is the only difference from a batch that
+#     would otherwise have been the same one.
+#
+# Six new classes, all sweets and savoury street foods, which is the part of Indian cooking
+# this corpus has covered least: the class list holds chana and to dal, bottle gourd curry,
+# methi malai, karela, amla pickle and gulab jamun, and nothing that is a fried dough or a
+# sweet made of nuts.
+#
+# DECLARED IN ADVANCE: the 40% precision figure and the record's own lesson both point the
+# same way - what a batch returns is bounded by how many queries find anything at all. So
+# expect 6 queries to yield 2-4 candidates and 1-2 cases, and if most return zero again the
+# right conclusion is about the archive, not about the queries.
+BATCH30_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    'filetype:bitmap "dhokla"',                 # a new class
+    'filetype:bitmap "bhel puri"',              # a new class
+    'filetype:bitmap "kaju katli"',             # a new class
+    'filetype:bitmap "soan papdi"',             # a new class
+    'filetype:bitmap "besan chilla"',          # a new class
+    'filetype:bitmap "vada pav"',               # a new class
+]
+
+# DECLARED BEFORE THE FETCH: expect 2-4 candidates, 1-2 cases.
+DECLARED_EXPECTED_CANDIDATES_B30 = (2, 4)
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

@@ -440,6 +440,15 @@ DISH_CLASS = {
     # same photograph labelled "Tadka Dal" would have become a 41st, which is the fork this
     # repo has been bitten by four times.
     "dal tadka": "dal", "tadka dal": "dal", "dal bhuna": "dal", "jeera dal": "dal",
+    # dhokla, bhel puri and kaju katli, added 2026-09-28 with batch 30 - the corpus's first
+    # steamed fermented cake, its first street food and its first nut fudge. Declared so the
+    # classes are decisions rather than DISH_CLASS.get(n, n) fallbacks. kaju katli is kept
+    # SEPARATE from soan papdi and plain barfi on purpose: flaky spun sugar, dense fudge and
+    # cut diamonds are three preparations with three different calorie counts, and batch 30
+    # rejected a soan-papdi file on exactly that ground.
+    "dhokla": "dhokla", "khatta dhokla": "dhokla", "masala dhokla": "dhokla",
+    "bhel puri": "bhel puri", "bhel": "bhel puri", "puri puri": "bhel puri",
+    "kaju katli": "kaju katli", "cashew katli": "kaju katli",
     # amla pickle and gulab jamun, added 2026-09-28 with batch 25, and declared for the
     # same reason as karela: a class that arrives from the DISH_CLASS.get(n, n) fallback
     # is a filename rather than a decision. 'bottle gourd curry' is deliberately NOT

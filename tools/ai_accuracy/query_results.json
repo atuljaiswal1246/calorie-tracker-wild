@@ -281,6 +281,55 @@
           }
         ]
       }
+    ],
+    "batch30": [
+      {
+        "recorded": "2026-09-28T16:29:02",
+        "queries": [
+          {
+            "query": "filetype:bitmap uthappam breakfast",
+            "pages": 1,
+            "kept": 1,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"dhokla\"",
+            "pages": 8,
+            "kept": 8,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"bhel puri\"",
+            "pages": 8,
+            "kept": 8,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"kaju katli\"",
+            "pages": 8,
+            "kept": 7,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"soan papdi\"",
+            "pages": 8,
+            "kept": 8,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"besan chilla\"",
+            "pages": 4,
+            "kept": 4,
+            "error": null
+          },
+          {
+            "query": "filetype:bitmap \"vada pav\"",
+            "pages": 8,
+            "kept": 6,
+            "error": null
+          }
+        ]
+      }
     ]
   }
 }
