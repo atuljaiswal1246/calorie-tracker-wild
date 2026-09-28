@@ -56,7 +56,7 @@ LEDGER = REPO / "notes" / "FREE_TIER_ACCOUNTING.md"
 # The reconciliation the ledger publishes, pinned here so a drifting note is as loud as
 # a shrinking artefact. These are the numbers measured on 2026-09-28 and written into
 # the note's reconciliation table.
-ON_RECORD_MINIMUM = 80   # batches 20-21 added four more on-record rejections
+ON_RECORD_MINIMUM = 82   # batches 20-21 added four more on-record rejections
 LEDGER_CLAIMED = 100
 UNTRACEABLE = 18
 

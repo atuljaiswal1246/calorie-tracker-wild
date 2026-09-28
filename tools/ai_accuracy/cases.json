@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 56 cases over 39 distinct dish families; 33 distinct dish CLASSES; 49 coverage classes; top-4 classes hold 25%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 33, with thirteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 58 cases over 39 distinct dish families; 33 distinct dish CLASSES; 49 coverage classes; top-4 classes hold 24%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 33, with thirteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -484,7 +484,53 @@
     "               carried the word Bangladeshi in its own title. I will not call it",
     "               khichdi on a rice colour",
     "Concentration did not move: 56 cases, top 4 still 14, 25%. The arithmetic was",
-    "the plan and the photo review is the result, and both are reported."
+    "the plan and the photo review is the result, and both are reported.",
+    "",
+    "BATCH 23 (2026-09-28): THE TWO-WORD FORM WORKS ON THE VERY QUERIES THAT FAILED",
+    "AS ONE WORD - and the class-count hole the labelling nearly walked into.",
+    "  7 queries (control first), 4 downloaded, accepted 2, rejected 2",
+    "    56 + 2 = 58 cases, top 4 still 14  ->  14/58 = 24%",
+    "",
+    "The bracket from batch 22 is now closed on both sides, and the middle is two",
+    "words - the form of every query that has ever worked in this corpus:",
+    "  'mushroom curry' bowl gravy ..... 0   too many words",
+    "  'mushroom curry' ............... 3   the dish",
+    "  rajma / calabash / maki ........ raw produce, every time",
+    "  'rajma curry' ................. countable kidney beans in a curry",
+    "",
+    "  accepted 2  EGG BHURJI - scrambled egg with red tomato chunks under coriander,",
+    "               a whole star anise and cumin. The class is 'egg' either way, since",
+    "               class_of returns 'egg' for both 'Egg Bhurji' and 'Egg Curry', so",
+    "               the naming ambiguity does not touch the comparison. Egg's 2nd case.",
+    "  accepted 2  GOURD RAJMA CURRY WITH COCOCONUT - steel bowl, pale coconut gravy,",
+    "               countable dark red kidney beans and dark bottle-gourd slices, curry",
+    "               leaf and a dried red chilli. MEDIUM and honestly so: the beans are",
+    "               countable so the class is certain, but the gourd does about half",
+    "               the visual work. Rajma's second case.",
+    "",
+    "  rejected 2  'indian vegetable pulao' - WHITE rice, where pulao is characteristi-",
+    "               cally YELLOW ghee-rich grain; no vegetable visible enough to confirm",
+    "               the title; the red bowl is unidentified. Same standard as refusing",
+    "               to call batch 22's khichuri khichdi on a rice colour, and consistency",
+    "               is the point: a corpus that applies its standard on a good day and",
+    "               not on another is a mood. Accepted on the title alone, pulao would",
+    "               have stopped being a singleton, and that is the trade the class",
+    "               count is not allowed to make.",
+    "             an all-you-can-eat buffet - a SPREAD, not a dish, decidable from the",
+    "               title, recorded as not-looked.",
+    "",
+    "AND THE FINDING THIS BATCH PRODUCED BY ACCIDENT, worth more than the two cases.",
+    "class_of is DISH_CLASS.get(n, n): the name is its OWN FALLBACK, and DISH_CLASS",
+    "carries 'rajma': 'rajma' but NOT 'rajma curry'. Measured, not assumed:",
+    "  class_of(['Gourd Rajma Curry']) -> 'gourd rajma curry'   a NEW class",
+    "  class_of(['Rajma Curry'])       -> 'rajma curry'         a NEW class",
+    "  class_of(['Rajma'])             -> 'rajma'               the real one",
+    "THE CLASS COUNT'S HOLE IS NOT A MISSING BAR, IT IS A MISSING MAP. A truth name",
+    "that is not a key in DISH_CLASS does not fall back to the dish it names - it",
+    "becomes a brand-new class, and the corpus would count one dish twice and call the",
+    "result independence. Avoided here by labelling 'Rajma', as the existing",
+    "rajma_brinjal_masala case already does, and the check that stops it recurring is",
+    "in test_the_dish_classes_are_distinct.py."
   ],
   "cases": [
     {
@@ -1937,6 +1983,40 @@
             "Cornmeal Roti"
           ],
           "kcal": 150
+        }
+      ]
+    },
+    {
+      "id": "egg_bhurji_star_anise",
+      "image": "tools/ai_accuracy/photos/egg_burji_lemonar_jpg_0944fd0b.jpg",
+      "note": "Scrambled egg in yellow and white curds with distinct chunks of red tomato, served on a dark plate and topped with fresh coriander, one whole star anise and cumin seed. Unmistakable, and the class is 'egg' whichever way the dish is named - class_of returns 'egg' for both 'Egg Bhurji' and 'Egg Curry', so the ambiguity does not touch the comparison the class count exists to support. The visible evidence is a dry-ish scramble rather than a gravy, which is why this is labelled bhurji, and the alias list carries 'Egg Curry' so a model answering the other name is not punished for it. The 'lemonar' in the filename is a place or herb name and has no bearing on what is in the frame. Egg's second case.",
+      "truth": [
+        {
+          "name": "Egg Bhurji",
+          "aliases": [
+            "Egg Curry",
+            "Anda Bhurji",
+            "Scrambled Egg",
+            "Egg Keema"
+          ],
+          "kcal": 220
+        }
+      ]
+    },
+    {
+      "id": "rajma_gourd_coconut_curry",
+      "image": "tools/ai_accuracy/photos/gourd_rajma_curry_with_coconut_jpg_aec19af8.jpg",
+      "note": "A steel bowl of pale coconut gravy holding countable dark red kidney beans and slices of dark-skinned bottle gourd, with curry leaf and a whole dried red chilli. The beans are countable, so the class is certain; the MEDIUM is honest because the dish is a two-vegetable curry and the gourd is doing about half the visual work. LABELLED 'Rajma' AND NOT 'Rajma Curry' ON PURPOSE: class_of is DISH_CLASS.get(n, n), the name is its own fallback, and DISH_CLASS has 'rajma' but not 'rajma curry' - so the title of the photograph would have measured as a brand-new class and counted one dish twice. This is the same labelling the existing rajma_brinjal_masala case already uses. Rajma's second case.",
+      "truth": [
+        {
+          "name": "Rajma",
+          "aliases": [
+            "Rajma Curry",
+            "Gourd Rajma Curry",
+            "Kulthigha",
+            "Kidney Bean Curry"
+          ],
+          "kcal": 200
         }
       ]
     }

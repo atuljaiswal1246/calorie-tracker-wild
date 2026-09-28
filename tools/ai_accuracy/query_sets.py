@@ -505,6 +505,37 @@ BATCH22_QUERIES = [
 ]
 
 
+# BATCH 23 -- batch 22's failures, retried in the two-word form it taught us.
+#
+# Batch 22 rejected three photographs for one reason: the query was a bare ingredient.
+# `rajma` returned dried kidney beans, `calabash` a gourd, `makai` sweet corn. Batch 13
+# had already shown the other end - a quoted phrase plus two form words finds NOTHING -
+# so the two measurements bracket the working form, and it is two words:
+#
+#     "mushroom curry" bowl gravy ....... 0     too many words
+#     "mushroom curry" ................. 3     the dish
+#     rajma / calabash / makai .......... raw produce, every time
+#
+# Every query here is <dish> <preparation>, which is the form of every query that has
+# ever worked in this corpus: "mushroom curry", "beans curry", "egg curry", "gajar
+# halwa", "sarson da saag".
+#
+# khichdi is deliberately absent. The `khichdi` query returned a BANGLADESHI khichuri -
+# yellow separated-grain rice with omelette - and that batch's other hit carried the word
+# Bangladeshi in its own title. The word is shared between the two cuisines, so adding a
+# qualifier would be guessing at which one a photograph came from, which is the same trap
+# as putting raita first to win a class.
+BATCH23_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control, required by the guard
+    'filetype:bitmap "rajma curry"',
+    'filetype:bitmap "lauki sabzi"',
+    'filetype:bitmap "makai curry"',
+    'filetype:bitmap "capsicum curry"',
+    'filetype:bitmap "egg bhurji"',
+    'filetype:bitmap "vegetable pulao"',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',
