@@ -88,9 +88,48 @@ def fetch(url: str, timeout: int = 25) -> dict:
         return {"status": None, "bytes": 0, "error": str(exc)[:120]}
 
 
+
+RECORD = ROOT / "notes/EXTERNAL_CLAIMS_LAST_CHECK.md"
+
+
+def write_record(results: list[dict]) -> None:
+    """A dated record of what was fetched, and what answered."""
+    import datetime
+    now = datetime.datetime.now().astimezone()
+    lines = [
+        "# External claims - last checked",
+        "",
+        f"**Checked {now:%Y-%m-%d %H:%M %Z}** by "
+        "`python3 tools/check_external_claims.py --record`.",
+        "",
+        "This file exists so a verification carries its own age. The check itself "
+        "is a network call and so cannot live in `flutter test`; the RECORD is in "
+        "the repo, and `test/external_claims_test.dart` fails if it goes stale, if "
+        "it is older than 14 days, or if the app's URL set no longer matches it.",
+        "",
+        # The FULL url, not the page name. The test checks that the record covers
+        # the exact URLs the app opens, and a record of bare page names cannot
+        # prove which host was fetched.
+        "| url | HTTP | bytes | opened by the app |",
+        "|---|---|---|---|",
+    ]
+    for r in results:
+        opened = ", ".join(r["opened_by"]) or "-"
+        lines.append(f"| {r['url']} | {r['status']} | {r['bytes']} | {opened} |")
+    lines.append("")
+    lines.append("A 200 is not proof on its own: each body had to be over 400 bytes, "
+                 "because a hosting 404 often returns 200 with a small page.")
+    RECORD.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"\nrecorded {RECORD.relative_to(ROOT)}")
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true", help="machine-readable output")
+    ap.add_argument("--record", action="store_true",
+                    help="write notes/EXTERNAL_CLAIMS_LAST_CHECK.md on success, "
+                         "so a verification carries its own DATE. A check with no "
+                         "date is a claim with no age, and an unaged claim is how "
+                         "'verified live' becomes a thing a person believes.")
     args = ap.parse_args()
 
     text = AGENTS.read_text(encoding="utf-8")
@@ -146,6 +185,8 @@ def main() -> int:
     undocumented = [r for r in results if not r["documented"]]
     print(f"\n{len(results) - len(broken)}/{len(results)} reachable, "
           f"{len(results) - len(undocumented)}/{len(results)} documented")
+    if not broken and not undocumented and args.record:
+        write_record(results)
     if broken or undocumented:
         for r in broken:
             print(f"BROKEN  {r['url']} - a user tapping this link sees an error")
