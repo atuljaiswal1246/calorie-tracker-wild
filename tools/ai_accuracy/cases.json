@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 31 cases over 26 distinct dish families; 22 distinct dish CLASSES; 38 coverage classes; top-4 classes hold 42%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 38 cases over 28 distinct dish families; 23 distinct dish CLASSES; 38 coverage classes; top-4 classes hold 34%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -80,7 +80,28 @@
     "inflating a batch by accepting photographs I cannot label. The skew guard",
     "pins the CURRENT concentration so it cannot worsen, and names <= 35% as the",
     "target for a future batch instead of pretending it has been reached.",
-    "SKEW: 13 of 31 cases are four classes (dal x5, chole x4, paneer x2, sambar x2) = 42%. The bar is met, the SAMPLE is not yet even, and both facts belong in every number quoted from this corpus."
+    "SKEW: 13 of 31 cases are four classes (dal x5, chole x4, paneer x2, sambar x2) = 42%. The bar is met, the SAMPLE is not yet even, and both facts belong in every number quoted from this corpus.",
+    "",
+    "BATCH 8 (2026-09-28): FLATTEN, sized by arithmetic. The top 4 classes held",
+    "42% of 31 cases (dal x5, chole x4, paneer x2, sambar x2) and the readme",
+    "names <= 35% as the target, so the arithmetic is 13/(31+N): N=7 gives 35.1%,",
+    "N=8 gives 34.2%. BATCH8_QUERIES is therefore one query per class holding",
+    "exactly ONE case, and NONE of the four concentrated ones - a fifth dal makes",
+    "the median look better and the product no better. 18 queries, 94 candidates,",
+    "per-query and per-author caps plus the dHash near-dup check before fetching.",
+    "  accepted 4  aloo gobi, baingan bharta, bhindi masala, dosa - every one a",
+    "               class that had exactly one case, so all four flatten the skew",
+    "  rejected 1  a plate of yellow rice and brown gravy filed as 'boryani'.",
+    "               Not biryani: short uniformly yellow grain, no visible meat,",
+    "               and the only other honest label is dal, which is a regression.",
+    "               A photo that can only be labelled by guessing is not added",
+    "  not_used 13  fetched, never looked at; declared not-used, not left",
+    "               unreviewed, because an undecided photo is indistinguishable",
+    "               from an accepted one",
+    "The dosa is the dose note: it is ROLLED, so the masala filling is not",
+    "visible and the label is Dosa rather than Masala Dosa. Same dish class",
+    "either way, so the count is unaffected - but the label says only what the",
+    "photograph shows."
   ],
   "cases": [
     {
@@ -1049,6 +1070,120 @@
             "Salad"
           ],
           "kcal": 15
+        }
+      ]
+    },
+    {
+      "id": "aloo_gobi_home_plate",
+      "image": "tools/ai_accuracy/photos/aalu_gobi_curry_jpg_600034c4.jpg",
+      "note": "A shallow steel bowl on a plain white surface, shot from above: one dish of potato and cauliflower florets in an orange-brown masala, nothing else on the plate. Every item is nameable and the dish is unambiguous - aloo gobi is the only reading. A second case for the aloo gobi class, which had one.",
+      "truth": [
+        {
+          "name": "Aloo Gobi",
+          "aliases": [
+            "Aloo Ghobhi",
+            "A Gobi",
+            "Gobhi Aloo",
+            "Cauliflower and Potato Curry"
+          ],
+          "kcal": 180
+        }
+      ]
+    },
+    {
+      "id": "baingan_bharta_restaurant_bowl",
+      "image": "tools/ai_accuracy/photos/2025_04_07_baingan_bharta_jpg_43acb3fa.jpg",
+      "note": "A hammered steel bowl on a restaurant table, a spoon resting in a coarse mashed preparation with visible charred dark skin and chopped coriander on top. The roasted skin fragments are what make it baingan bharta rather than a tomato mash. Medium rather than high: it is a restaurant plate, not a home kitchen, and the mash is finer than a home-roasted bharta.",
+      "truth": [
+        {
+          "name": "Baingan Bharta",
+          "aliases": [
+            "Baingan Ka Bharta",
+            "Baigan Bharta",
+            "Aubergine Bharta"
+          ],
+          "kcal": 130
+        }
+      ]
+    },
+    {
+      "id": "bhindi_masala_white_bowl",
+      "image": "tools/ai_accuracy/photos/bhindi_fry_jpg_0f25e52d.jpg",
+      "note": "A white bowl full of okra cut length-wise, coated in a spiced onion-tomato masala, on a dark counter. Every pod is visibly okra and nothing else is in the bowl, so the judgement is single and clean. A second case for the bhindi class, which had one.",
+      "truth": [
+        {
+          "name": "Bhindi Masala",
+          "aliases": [
+            "Bhindi Sabzi",
+            "Okra Masala",
+            "Bhindi Fry",
+            "Masala Bhindi"
+          ],
+          "kcal": 150
+        }
+      ]
+    },
+    {
+      "id": "kofta_white_plate",
+      "image": "tools/ai_accuracy/photos/kofta_curry_cropped_jpg_4c65c863.jpg",
+      "note": "A white plate holding twelve round kofta in a red-orange oil gravy with a coriander garnish, filling the frame. One dish, one judgement, no second component. A second case for the kofta class, which had one.",
+      "truth": [
+        {
+          "name": "Kofta Curry",
+          "aliases": [
+            "Kofta",
+            "Malai Kofta",
+            "Meatball Curry"
+          ],
+          "kcal": 320
+        }
+      ]
+    },
+    {
+      "id": "chicken_curry_white_dish",
+      "image": "tools/ai_accuracy/photos/chicken_curry_01_jpg_48043fe8.jpg",
+      "note": "A white oval dish of bone-in chicken pieces - two drumsticks and a thigh, the bone and skin clearly visible - in a dark brown onion-tomato masala with cracked spice and seeds. The protein is identifiable, so this is a clean single judgement. It is also a dish CLASS the corpus had no case for at all: chicken curry had appeared only as an item inside a thali, and a thali is scored as the thali.",
+      "truth": [
+        {
+          "name": "Chicken Curry",
+          "aliases": [
+            "Murgh Curry",
+            "Chicken Masala",
+            "Murgh Masala"
+          ],
+          "kcal": 300
+        }
+      ]
+    },
+    {
+      "id": "mutton_biryani_singapore_plate",
+      "image": "tools/ai_accuracy/photos/mutton_biryani_singapore_jpg_e1bf1bb4.jpg",
+      "note": "A white plate of long-grain basmati with a distinct browned fried-onion layer on top, whole spice and a green chilli visible, and bone-in mutton pieces to the left. This is the evidence the rejected 'boryani' lacked: long distinct grain, a fried-onion cap, and visible bone-in meat. A second case for the biryani class, which had one.",
+      "truth": [
+        {
+          "name": "Mutton Biryani",
+          "aliases": [
+            "Biryani",
+            "Dum Biryani",
+            "Kacchi Biryani"
+          ],
+          "kcal": 450
+        }
+      ]
+    },
+    {
+      "id": "dosa_roll_thali",
+      "image": "tools/ai_accuracy/photos/a_plate_of_south_indian_masala_dosa_jpg_109d5c3a.jpg",
+      "note": "A steel thali holding a rolled dosa, a compartment of white chutney and a compartment of orange gravy with visible vegetable pieces. The dosa is the dish. The filling is NOT visible because the dosa is rolled, so the label is Dosa and not Masala Dosa - saying 'masala' would be a claim about something inside. Both labels land on the same dish class. A second case for the dosa class, which had one.",
+      "truth": [
+        {
+          "name": "Dosa",
+          "aliases": [
+            "Dosa Roll",
+            "Plain Dosa",
+            "Masala Dosa"
+          ],
+          "kcal": 250
         }
       ]
     }

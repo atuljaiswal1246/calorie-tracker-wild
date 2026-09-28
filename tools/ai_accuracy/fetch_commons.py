@@ -192,6 +192,45 @@ BATCH7_QUERIES = [
 ]
 
 
+# BATCH 8 -- FLATTEN, and the arithmetic is the whole reason this batch exists.
+#
+# The class bar is met at 22 (bar = 20). The SAMPLE is the problem: the top 4
+# classes hold 42% of 31 cases (dal x5, chole x4, paneer x2, sambar x2), and the
+# readme names <= 35% as the target. So this batch is sized by that arithmetic,
+# not by taste: adding N cases to classes that hold ONE each moves the top-4
+# share to 13/(31+N), and 13/37 = 35.1%, 13/38 = 34.2%. So ~7-8 accepted photos
+# in the thin classes HIT the target, and not one of them may be dal, chole,
+# paneer or sambar.
+#
+# Concretely: one query per class that currently has exactly ONE case, and none
+# of the four concentrated ones appears here. That is the "one query per missing
+# class" rule applied to the real gap - the gap is not the class COUNT, it is the
+# classes that are one photo deep.
+#
+# The owner's version of the same instruction: do not knowingly ask for dal,
+# chole or sambar again, because those queries are what built the 42%.
+BATCH8_QUERIES = [
+    'filetype:bitmap "aloo gobi" curry',
+    'filetype:bitmap "baingan bharta"',
+    'filetype:bitmap "bhindi masala"',
+    'filetype:bitmap "dum biryani" plate',
+    'filetype:bitmap "masala dosa" plate',
+    'filetype:bitmap "egg bhurji" bowl',
+    'filetype:bitmap "gajar halwa" bowl',
+    'filetype:bitmap "idli" plate south',
+    'filetype:bitmap "kadhi" bowl',
+    'filetype:bitmap "kheer" bowl',
+    'filetype:bitmap "khichdi" plate',
+    'filetype:bitmap "kofta curry"',
+    'filetype:bitmap "lauki" sabzi',
+    'filetype:bitmap "pulao" plate',
+    'filetype:bitmap "rajma" bowl',
+    'filetype:bitmap "sarson da saag"',
+    'filetype:bitmap "medu vada"',
+    'filetype:bitmap "uttappam"',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -412,11 +451,11 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES}
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
