@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/food_entry.dart';
 import '../services/scan_failure.dart';
+import '../widgets/scan_failure_notice.dart';
 import '../services/food_search_service.dart';
 import '../services/notification_service.dart';
 import '../services/openai_service.dart';
@@ -1003,63 +1004,28 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       ),
                     ],
 
-                    // Error
-                    if (_error != null) ...[
-                      SizedBox(height: 16),
-                      Container(
-                        padding: EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.errorBg,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(_error!,
-                                style: TextStyle(
-                                    color: AppColors.missedRed, fontSize: AppType.body)),
-                            SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ManualEntryScreen(storage: widget.storage),
-                                        ),
-                                      ).then((v) {
-                                        if (v == true) Navigator.pop(context, true);
-                                      });
-                                    },
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: AppColors.missedRed,
-                                      side: BorderSide(color: AppColors.missedRed),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(AppRadius.pill)),
-                                    ),
-                                    child: Text('Enter manually'),
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: _analyze,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.missedRed,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(AppRadius.pill)),
-                                    ),
-                                    child: Text('Retry'),
-                                  ),
-                                ),
-                              ],
+                    // Error. Rendered by a component so that WHAT THE USER READS
+                    // can be pumped in a test. The mapping is
+                    // lib/services/scan_failure.dart; the reason this is not an
+                    // inline Text(_error!) is in the widget's own header - a chain
+                    // that ends in a line nobody can render under test has only
+                    // been tested at its convenient end.
+                    if (_error != null)
+                      ScanFailureNotice(
+                        rawError: _error!,
+                        onRetry: _analyze,
+                        onEnterManually: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  ManualEntryScreen(storage: widget.storage),
                             ),
-                          ],
-                        ),
+                          ).then((v) {
+                            if (v == true) Navigator.pop(context, true);
+                          });
+                        },
                       ),
-                    ],
 
                     // Analyzing
                     if (_analyzing) ...[
