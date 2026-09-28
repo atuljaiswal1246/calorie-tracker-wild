@@ -103,6 +103,10 @@ CHECKERS = (
     # risk, and it is a claim with no machine behind it — two features the app
     # cannot open. Local, no network, no model.
     _script("tools/check_store_listing.py"),
+    # Every company that can receive a food photo must be named in the published
+    # privacy page. Static, local, no network: the tier list is read from the
+    # Worker's own serving rotation.
+    _script("tools/check_privacy_processors.py"),
     _script("tools/check_external_claims.py", network=True),
     _script("tools/check_self_claims.py", "--skip-suite"),
     _git("rev-parse", "--short", "HEAD"),
