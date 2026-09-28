@@ -177,5 +177,46 @@ class FreeTierLedgerTests(unittest.TestCase):
                           f"$0.00 column will be read as 'the work was free'")
 
 
+    def test_every_dash_in_the_table_is_a_DECLARED_gap(self):
+        """A dash in a column of numbers is a decision, and this makes it a written one.
+
+        The other checks SKIP an em dash rather than reading it as 0, because a missing
+        count and a zero count are different claims. That is right, and it had a hole in
+        it: skipping means a dash can be ADDED without anybody deciding anything, so a
+        column can rot from four blanks to seven with the guard green throughout. So the
+        dashes are collected and matched against the paragraph that names them.
+
+        Both directions are checked, and that is the part worth having:
+          - adding a dash fails until it is declared, so a new gap cannot appear quietly;
+          - removing a declaration fails too, so a gap that gets fixed cannot be quietly
+            forgotten while the paragraph still claims it.
+
+        And the rule underneath is that a dash is never back-filled from memory, which is
+        the failure this whole file exists to prevent.
+        """
+        unmeasured = {(r["batch"], col) for r in _ledger_rows()
+                      for col in ("queries", "candidates") if r[col] is None}
+        self.assertTrue(
+            unmeasured,
+            "no unmeasured cells were found, so this check is passing on an empty answer. "
+            "If every cell is genuinely measured now, delete this test WITH the "
+            "declaration paragraph - do not leave it green on nothing.")
+
+        flat = " ".join(LEDGER.read_text(encoding="utf-8").split())
+        for col in ("queries", "candidates"):
+            with self.subTest(column=col):
+                found = {b for b, c in unmeasured if c == col}
+                declared: set[int] = set()
+                for m in re.finditer(r"`" + col + r"`\s*\|\s*([^|]+?)\s*\|", flat):
+                    declared |= {int(n) for n in re.findall(r"\d+", m.group(1))}
+                self.assertEqual(
+                    found, declared,
+                    f"the table has batches {sorted(found)} unmeasured in `{col}`, but "
+                    f"the declaration paragraph names {sorted(declared)}. Every dash must "
+                    f"be declared AND every declaration must still be needed - both "
+                    f"directions, because a silently added dash and a quietly forgotten "
+                    f"fix are the same defect.")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -80,7 +80,31 @@ Google publishes none, and the AI Studio page is login-gated to the owner's acco
 - If the owner buys a Pexels key, the video path starts spending requests against a 200/hour cap, and
   that cap becomes a real ceiling that belongs beside the corpus's other documented limits.
 
-**The reconciliation, added 2026-09-28 after the rejected column was caught disagreeing with the
+## The unmeasured cells, and why a dash is a declared gap rather than a blank
+
+**Seven cells in the table above are `—`, and they are not missing data, they are data I do not
+have and cannot get.** Saying so is the point; leaving them as blank dashes in a numeric column is
+not, because a dash in a column of numbers reads as a rendering artefact rather than a decision.
+
+| cell | batches | why it cannot be measured |
+|---|---|---|
+| `queries` | 1, 2, 3, 4 | These predate the fetch log. The batches were run and reviewed by hand, and nobody wrote down how many queries went out. |
+| `candidates` | 15, 16, 17 | The run printed how many photographs it **added** and I kept that, but not the total it **found**. The API results are gone; re-running would find a different snapshot, not the one from that afternoon, so a number produced now would be a different measurement wearing the same batch's name. |
+
+**So the rule is: a dash here is a permanent, named gap — never a number reconstructed after the
+fact and never a silent blank.** `test_free_tier_ledger.py` parses the table, collects every
+unmeasured cell, and fails unless the set matches the declaration above exactly. That means:
+
+- **adding a dash fails the guard** until it is named here, so a new gap cannot be introduced quietly;
+- **deleting a name from this paragraph fails the guard** too, so a declared gap cannot be quietly
+  forgotten once it is fixed;
+- and the number is never back-filled from memory, which is the failure this whole file exists to
+  prevent.
+
+Seven gaps in seventeen batches is an honest accounting of a hand-run corpus. A table with no gaps
+would be a table where somebody filled cells in later without saying so.
+
+## The reconciliation, added 2026-09-28 after the rejected column was caught disagreeing with the
 artefact — the only one of the three columns that nothing checked.**
 
 The `accepted` column ties to `len(cases)` and the guard proves it. The `candidates` column is
