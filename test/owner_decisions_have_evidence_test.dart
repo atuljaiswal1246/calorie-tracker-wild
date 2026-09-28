@@ -91,6 +91,14 @@ const _decisions = <List<String>>[
     'process',
   ],
   [
+    'A CLOUD FAILURE NEVER COSTS A USER A LOGGED MEAL',
+    'the core promise, 2026-09-14 foundation audit',
+    'lib/services/storage_service.dart',
+    'test/logging_survives_cloud_failure_test.dart',
+    'runBestEffortCloud(',
+    'function',
+  ],
+  [
     'LOCKED SCREENS: eight screens the owner said not to change',
     'owner, 2026-09-15 (AGENTS.md)',
     'test/goldens/paywall.png',
@@ -148,8 +156,8 @@ void main() {
     expect(_decisions.every((r) => r.length == 6), isTrue,
         reason: 'Every row needs six columns: decision, who, implementation, '
             'evidence test, symbol, and the kind of evidence.');
-    expect(_decisions, hasLength(10),
-        reason: 'The number of paired decisions changed from 10. A row was added '
+    expect(_decisions, hasLength(11),
+        reason: 'The number of paired decisions changed from 11. A row was added '
             'or removed. If it was removed, say in a commit which decision lost '
             'its evidence and why. If one was added, make sure its test really '
             'exercises the symbol named.');

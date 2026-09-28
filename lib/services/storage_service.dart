@@ -3,7 +3,7 @@ import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:clock/clock.dart';
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kReleaseMode, visibleForTesting;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/body_measurement_entry.dart';
@@ -67,6 +67,32 @@ enum StorageActivity {
   waterLogged,
   weightLogged,
   exerciseLogged,
+}
+
+/// The one promise this file makes: **a cloud failure never costs the user a
+/// locally logged meal.** Local is the source of truth; the cloud mirror is best
+/// effort, and a flaky connection must not turn "I logged my dinner" into an
+/// error the user has to see and retry.
+///
+/// Extracted as a top-level function on 2026-09-28 because the guarantee was
+/// real but only ASSERTED - it lived in a private method, so the only evidence it
+/// held was me reading the code. The foundation audit had already recorded this
+/// exact bug once ("awaits Firestore with no try/catch in addEntry, deleteEntry,
+/// updateEntry"); the fix went in, and then nothing tested the fix. Same shape as
+/// the abstain flag and the typed report times: a promise with no machine behind
+/// it, waiting for the day the code changes.
+@visibleForTesting
+Future<void> runBestEffortCloud(
+  Future<void> Function() op, {
+  void Function(Object error)? onError,
+}) async {
+  try {
+    await op();
+  } catch (error) {
+    onError?.call(error);
+    // Offline / permission-denied / no rules / signed out mid-write. The local
+    // copy stands, and the next successful write carries the mirror with it.
+  }
 }
 
 class StorageService {
@@ -135,13 +161,8 @@ class StorageService {
   /// Runs a Firestore (cloud) write best-effort. The local store is the source
   /// of truth, so a network/permission failure must never throw into a logging
   /// or navigation path (fixes E2E-001: unhandled cloud_firestore permission-denied).
-  Future<void> _cloud(Future<void> Function() op) async {
-    try {
-      await op();
-    } catch (_) {
-      // Offline / permission-denied / no rules — ignore; local copy stands.
-    }
-  }
+  Future<void> _cloud(Future<void> Function() op) async =>
+      runBestEffortCloud(op);
 
   // ---- Profile ----
 
@@ -415,7 +436,8 @@ class StorageService {
     }
   }
 
-  Future<void> updateEntry(FoodEntry entry) async {    final all = entries.map((e) => e.id == entry.id ? entry : e).toList();
+  Future<void> updateEntry(FoodEntry entry) async {
+    final all = entries.map((e) => e.id == entry.id ? entry : e).toList();
     await _saveEntries(all);
 
     final ref = _profileRef();
