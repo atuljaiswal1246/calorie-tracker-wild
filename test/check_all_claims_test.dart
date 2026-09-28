@@ -24,6 +24,7 @@
 // nothing else, so `tools/ai_accuracy.py` is genuinely absent and no model call
 // is even possible. `flutter analyze` is never triggered.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -57,13 +58,72 @@ void main() {
   final py = _findPython();
 
   group('the runner cannot pass by doing nothing', () {
-    test('it has a failing exit code at all', () {
-      expect(src.contains('return 1'), isTrue,
-          reason: 'check_all_claims.py never returns 1, so it cannot catch a '
-              'failing checker. A check that cannot fail is a formality.');
-      expect(src.contains('if ok(rows):'), isTrue,
-          reason: 'The overall verdict must be the verdict of the run, not a '
-              'constant. If this is gone, the exit code is decorative.');
+    test('the exit code is a function of the ROWS, not a constant', () {
+      // THIS WAS A VOCABULARY GUARD AND IT BROKE HONESTLY. It read
+      //   expect(src.contains('return 1'), isTrue)
+      //   expect(src.contains('if ok(rows):'), isTrue)
+      // The first would pass if the entire verdict system were deleted and a
+      // bare `return 1` were left lying in a docstring. The second broke today
+      // on a refactor that made the runner STRONGER - main() now delegates to
+      // exit_code(rows) so a skipped claim can be told apart from a full pass -
+      // and it broke on the words, with the behaviour intact. That is the same
+      // failure QA measured on the other company tonight against a file named
+      // after the property it fails to hold, and the same one this repo's own
+      // brief warns about: does this check read behaviour, or vocabulary?
+      //
+      // The property it was reaching for is real and is checked here by
+      // perturbing the INPUT and watching the OUTPUT move: same function, same
+      // call, different rows, different exit code. A constant cannot do that.
+      // The rows go in as ARGV, never interpolated into the source. The first
+      // version pasted them straight in and died on `null`: JSON's null is not
+      // Python's None, and a quoting layer between me and the value under test
+      // is one more place to be wrong. argv has exactly one encoding.
+      int probe(String rowsJson) {
+        final code = '''
+import json, sys
+sys.path.insert(0, "tools")
+import check_all_claims as m
+print(m.exit_code(json.loads(sys.argv[1])))
+''';
+        final r = Process.runSync(py!, ['-c', code, rowsJson]);
+        expect(r.exitCode, 0,
+            reason: 'the runner did not import:\n${r.stdout}${r.stderr}');
+        return int.parse('${r.stdout}'.trim().split('\n').last.trim());
+      }
+
+      String row(String verdict) => jsonEncode({
+            'name': 'x',
+            'argv': <String>[],
+            'verdict': verdict,
+            'exit_code': 0,
+            'first_line': '',
+            'error': null,
+            'skipped': false,
+          });
+
+      final allPass = probe('[${row('PASS')}, ${row('PASS')}]');
+      final oneFails = probe('[${row('PASS')}, ${row('FAIL')}]');
+      final oneMissing = probe('[${row('PASS')}, ${row('ERROR')}]');
+      final oneSkipped = probe('[${row('PASS')}, ${row('SKIP')}]');
+
+      expect(allPass, 0, reason: 'nothing failed and nothing was skipped');
+      expect(oneFails, 1, reason: 'a failing checker must fail the run');
+      expect(oneMissing, 1, reason: 'an unrunnable checker must fail the run');
+      // oneFails and oneMissing are BOTH 1 and that is correct - a failed
+      // checker and an unrunnable one are equally not-a-pass. An earlier
+      // version of this assertion demanded three distinct codes and was wrong:
+      // it was demanding a shape rather than the property. What has to move is
+      // allPass against the rest, and that is the perturbation. The third state
+      // is the one this refactor added, and it is the one a reader most needs
+      // to see change: a skipped claim must not read as a full pass.
+      expect(oneSkipped, 2,
+          reason: 'a named claim that did not run is not a full pass, and the '
+              'code must say so');
+      expect(allPass, isNot(oneFails));
+      expect(allPass, isNot(oneSkipped));
+      expect(oneSkipped, isNot(oneFails),
+          reason: 'a run where a claim was not verified must be '
+              'distinguishable from one where something broke');
     });
 
     test('a checker that is missing is REPORTED, not skipped and not crashed on',

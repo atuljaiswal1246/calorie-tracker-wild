@@ -44,8 +44,22 @@ USAGE
 
 EXIT CODES
 ----------
-    0  every checker ran, exited 0, and printed something
+    0  every checker ran, exited 0, and printed something - nothing was skipped
     1  at least one checker failed, printed nothing, or could not be run at all
+    2  nothing failed, but at least one claim was NOT VERIFIED because it was
+       skipped (--skip-network). Added 2026-09-28. Before this, a skipped claim
+       left `ok()` true, so the runner exited 0 AND printed
+       "RESULT: all checkers passed" on the same line as "A skip is not a pass"
+       - two sentences, one of which was false, and a caller reading only the
+       exit code could not tell them apart. A run that did not check everything
+       now has an exit code of its own.
+
+WHY NOT JUST CALL A SKIP A FAILURE
+---------------------------------
+A skip is a deliberate, named choice made by the person who typed the flag, and
+it is not a fault in a checker; folding it into 1 would make 1 mean two different
+things and would train a reader to ignore it. 2 says exactly what happened: the
+runnable checkers all passed, and these claims are unverified today.
 """
 
 from __future__ import annotations
@@ -218,10 +232,43 @@ def git_commit(rows):
     return None
 
 
+def skipped_rows(rows):
+    """The rows that did not run because the flag named them. Named, so a
+    caller can print which claims are unverified rather than how many."""
+    return [r for r in rows if r["verdict"] == VERDICT_SKIP]
+
+
 def ok(rows):
-    """The one verdict. A SKIP is allowed only because --skip-network asked for
-    it, and a FAIL or an ERROR is never allowed."""
+    """Nothing FAILED and nothing could not be run.
+
+    A SKIP is tolerated here, but NOT forgotten: `ok()` answers "did anything
+    break?", and `exit_code()` answers "was everything verified?". Those are two
+    different questions and collapsing them is how a run that checked nothing
+    ends up reporting that all checkers passed."""
     return all(r["verdict"] in (VERDICT_PASS, VERDICT_SKIP) for r in rows)
+
+
+def exit_code(rows):
+    """The run's verdict as a number a caller can act on.
+
+    A pure function over rows, on purpose: it is the whole contract and it must
+    be checkable with synthetic rows, without arranging a real repo where one
+    checker skips and every other checker passes. That arrangement is exactly
+    what was never built, and it is why this contradiction survived - the real
+    runs were all either all-passing or loudly broken, never this middle case."""
+    if not rows:
+        # An empty run is not a clean run. `all()` over nothing is True, so the
+        # naive version reports a vacuous success - exit 0 and "all checkers
+        # passed" - for having started no checker at all. That is the oldest
+        # silence-as-success in this file and it was sitting in the function I
+        # just added. A run with nothing in its table has verified nothing, and
+        # a caller cannot tell that from a full pass by exit code alone.
+        return 1
+    if not ok(rows):
+        return 1
+    if skipped_rows(rows):
+        return 2
+    return 0
 
 
 def print_report(rows, commit, as_json):
@@ -232,20 +279,39 @@ def print_report(rows, commit, as_json):
             "commit": commit,
             "timeout_s": TIMEOUT_S,
             "ok": ok(rows),
+            # `ok` alone is NOT enough for a machine reader, and this is the
+            # surface a script reads. `"ok": true` beside a skipped claim is the
+            # same false sentence the table used to print, one layer down where
+            # nobody reads it. So the skip travels WITH the verdict, by name, and
+            # the code this process will exit with is included, so a caller does
+            # not have to reimplement exit_code() to learn what happened.
+            "not_verified": [r["name"] for r in skipped_rows(rows)],
+            "exit_code": exit_code(rows),
             "checks": rows,
         }, indent=2))
         return
     print()
     print(f"commit: {commit or 'UNKNOWN - ' + GIT_CHECK + ' did not run'}")
-    skipped = [r for r in rows if r["verdict"] == VERDICT_SKIP]
-    for r in skipped:
+    not_verified = skipped_rows(rows)
+    for r in not_verified:
         print(f"skipped: {r['name']} - NOT VERIFIED this run. A skip is not a "
               f"pass; re-run without --skip-network on a machine with network to "
               f"check it.")
     print("PASS means: ran, exit 0, and printed something. FAIL means it ran and "
-          "did not do that. ERROR means it never ran.")
-    print("RESULT: " + ("all checkers passed" if ok(rows)
-                        else "AT LEAST ONE CHECKER IS NOT PASSING - see above"))
+          "did not do that. ERROR means it never ran. SKIP means it was named by "
+          "the flag and did not run - which is NOT a pass.")
+    if not ok(rows):
+        result = "AT LEAST ONE CHECKER IS NOT PASSING - see above"
+    elif skipped_rows(rows):
+        # Never "all checkers passed" in this branch. That sentence is false
+        # while a named claim is unverified, and it is the sentence a reader
+        # skims.
+        result = (f"all RUNNABLE checkers passed - {len(skipped_rows(rows))} claim(s) "
+                  "NOT VERIFIED this run (skipped). This is not a full pass; "
+                  "exit 2.")
+    else:
+        result = "all checkers passed"
+    print("RESULT: " + result)
 
 
 def main():
@@ -261,12 +327,11 @@ def main():
 
     rows = run_all(args.skip_network, args.json)
     print_report(rows, git_commit(rows), args.json)
-    if ok(rows):
-        return 0
-    # The one non-zero exit this tool has. A runner that cannot fail is a
-    # formality, and a FAIL, an ERROR or a checker that printed nothing must
-    # never be reported to the caller as a pass.
-    return 1
+    # 1 = something broke or could not run. 2 = nothing broke, but a claim was
+    # skipped and is therefore unverified. 0 = everything ran and passed. A
+    # caller that only reads the exit code must still be able to tell a full
+    # pass from a partial one.
+    return exit_code(rows)
 
 
 if __name__ == "__main__":
