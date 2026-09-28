@@ -73,6 +73,45 @@ Google publishes none, and the AI Studio page is login-gated to the owner's acco
 - If the owner buys a Pexels key, the video path starts spending requests against a 200/hour cap, and
   that cap becomes a real ceiling that belongs beside the corpus's other documented limits.
 
+**The reconciliation, added 2026-09-28 after the rejected column was caught disagreeing with the
+artefact — the only one of the three columns that nothing checked.**
+
+The `accepted` column ties to `len(cases)` and the guard proves it. The `candidates` column is
+what the fetcher printed. The **`rejected` column was neither**, and when it was finally
+reconciled against `photos.json` it was wrong by 18 — not because it was mistyped, but because
+**the evidence had been deleted**:
+
+| | count |
+|---|---|
+| rejected column, summed over all ten batches | **78** |
+| rejections on record inside `photos[]` (batches 8–10 flag them there) | 36 |
+| rejections recovered from git history into the top-level `rejected` array | 24 |
+| **total rejections the tree can account for** | **60** |
+| **claimed but with no surviving record** | **18** |
+
+**The cause, named at the call site rather than inferred.** `fetch_commons.py` read
+`.get("photos", [])` and then **wrote a freshly constructed dict of `_note` + `photos`**, so every
+fetch run destroyed the top-level `rejected` array that `apply_batch1..3` had been filling in. Git
+history shows the key present at `c9aae5d` (batch 3, 13 records) and gone by `faaf963` (batch 4,
+0) — because batch 4's *fetch* ran before its *apply*. So this was never a batch-4 slip; **it
+would have repeated on every batch since, and did.** The 24 records and their `rejected_because`
+reasons were recovered from `c9aae5d` and `461b22d` and restored, each carrying a `_recovered`
+note saying where it came from.
+
+**The 18 are named as untraceable rather than papered over.** They fall in batches 4–10, whose
+rejections were partly *policy* rejections — photographs rejected without ever being opened
+(batches 8 and 10 each rejected two "on policy, not opened"). A photograph nobody looked at was
+never a manifest record, so there was never anything for the manifest to lose. That accounts for
+part of the 18 and **not all of it**, and the remainder I could not trace to any record, so I am
+not inventing a reason for it.
+
+**The lesson, in the shape it actually took:** a second writer that rebuilds a file from the keys
+it happens to know is how an audit trail disappears. Nothing errors, nothing warns, and the
+history is the only place the record still lives. The fetch path now round-trips every top-level
+key it did not create, and
+`tools/ai_accuracy/test_the_rejection_record_survives.py` fails if the on-record rejection count
+ever falls below 60, or if the fetcher's write path drops a key again.
+
 **The guard for this file is its own, because a ledger nobody checks is a document.**
 `tools/ai_accuracy/test_free_tier_ledger.py` reads the table above and checks it against the
 artefacts, and `test/free_tier_ledger_test.dart` runs that module inside the Flutter suite so it

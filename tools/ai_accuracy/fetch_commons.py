@@ -449,6 +449,27 @@ def hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
 
 
+def save_manifest(manifest: dict) -> None:
+    """Write photos.json back WHOLE - every top-level key it did not create included.
+
+    This used to be an inline `json.dump({"_note": ..., "photos": existing})` at the
+    end of main(), and that is precisely how the rejection record was destroyed: a
+    literal dict rebuilt from the two keys the fetcher happened to know about, so
+    every fetch run deleted the top-level `rejected` array that apply_batch1..3 had
+    filled in. 24 records and their reasons were gone from the tree and survived only
+    in git history. Nothing errored and nothing warned.
+
+    So the rule this function exists to enforce: a writer mutates the keys it owns and
+    writes the object it was given. It never reconstructs the file from a subset of it.
+    Extracted as a function (rather than left inline) so that
+    test_the_rejection_record_survives.py can call the REAL write path with a sentinel
+    key and prove it survives - a test against a copy of this logic would prove
+    nothing, which is the same defect one level down.
+    """
+    with open(MANIFEST, "w", encoding="utf-8") as fh:
+        json.dump(manifest, fh, indent=2)
+
+
 
 def download(cand: dict) -> dict | None:
     os.makedirs(PHOTO_DIR, exist_ok=True)
@@ -505,10 +526,27 @@ def main() -> int:
             print(f"  {c['title'][:56]:<56} {c['licence']:<16} {c['author'][:28]}")
         return 0
 
-    existing = []
+    # Load the WHOLE manifest, not just its photos. Found 2026-09-28 by reconciling
+    # the ledger's rejected column (78) against what photos.json could account for
+    # (36): this function used to read `.get("photos", [])` and then WRITE A FRESHLY
+    # CONSTRUCTED DICT of `_note` + `photos`, so it silently destroyed the top-level
+    # `rejected` array that apply_batch1..3 had been filling in with the reason each
+    # photograph was thrown away. Git history shows the key present at c9aae5d (batch
+    # 3, 13 records) and gone by faaf963 (batch 4, 0) - because batch 4's FETCH ran
+    # before its APPLY. So 24 rejection records and their reasons were deleted, the
+    # 42 in between the ledger's 78 and the manifest's 36 were not a typo, they were
+    # destroyed evidence, and every future batch would have done it again.
+    #
+    # The lesson, in the shape it actually took: a second writer that rebuilds a file
+    # from the keys it happens to know is how an audit trail disappears. Nothing
+    # errors, nothing warns, and the history is the only place the record still lives.
+    # The fetch path must therefore round-trip every top-level key it did not create.
     if os.path.exists(MANIFEST):
         with open(MANIFEST, encoding="utf-8") as fh:
-            existing = json.load(fh).get("photos", [])
+            manifest = json.load(fh)
+    else:
+        manifest = {}
+    existing = manifest.get("photos", [])
 
     # Known photos, for the near-duplicate floor. Older records predate the hash.
     known = [(p.get("file"), p.get("dhash")) for p in existing if p.get("dhash")]
@@ -571,14 +609,16 @@ def main() -> int:
         print(f"      {got['licence']} | {got['author'][:44]}")
         print(f"      sha256 {got['sha256'][:32]}...  {got['bytes'] // 1024} KB")
 
-    with open(MANIFEST, "w", encoding="utf-8") as fh:
-        json.dump({
-            "_note": "Every photo here is openly licensed and attributed. "
-                     "'reviewed': false means the image has been fetched but NOT "
-                     "yet looked at - an unseen photo is not accepted into the "
-                     "accuracy set.",
-            "photos": existing,
-        }, fh, indent=2)
+    # Write the manifest back WHOLE. See load_manifest's comment and save_manifest():
+    # dropping unknown top-level keys here is what destroyed the rejection record on
+    # every batch from 4 onward.
+    manifest["_note"] = (
+        "Every photo here is openly licensed and attributed. "
+        "'reviewed': false means the image has been fetched but NOT "
+        "yet looked at - an unseen photo is not accepted into the "
+        "accuracy set.")
+    manifest["photos"] = existing
+    save_manifest(manifest)
     print(f"\nadded {added} this batch; manifest now holds {len(existing)}")
     return 0
 
