@@ -392,6 +392,42 @@ BATCH17_QUERIES = [
 ]
 
 
+# BATCH 18 -- SIZED TO MOVE THE CONCENTRATION, which is the number the note says to watch.
+#
+# Every class this corpus declares now has a case, so there is nothing left to fill and the
+# class count cannot grow honestly. That makes the concentration the only number left worth
+# moving, and the note has said so since batch 8: "the number to watch next is the
+# concentration, not the class count."
+#
+# SIZED BY ARITHMETIC, not by taste. 22 of the 33 classes hold exactly one case. The top
+# four hold 13 of 49, which is 27%. Adding ONE case to each of EIGHT singleton classes:
+#
+#     49 + 8 = 57 cases, top 4 still 13  ->  13/57 = 23%
+#
+# and dal and chole are never touched, because growing the two largest classes is the exact
+# regression batches 8 and 10 were built to remove. The trade is stated rather than hidden:
+# eight families become repeated, so the independence figure moves the other way - 20 of 49
+# becomes 28 of 57. Concentration falls, independence falls, and the sample gets bigger. A
+# median over 57 cases in 33 classes is a better instrument than one over 49, and that is
+# the trade being made.
+#
+# The eight are chosen for findability, not for coverage: idli, vada, jalebi, samosa, egg,
+# halwa, kheer and pulao are high-frequency Indian dishes with real Commons coverage, unlike
+# legume salad, which has stayed empty across every batch. Plain wording, control first, per
+# the two patterns that have actually worked.
+BATCH18_QUERIES = [
+    'filetype:bitmap uthappam breakfast',          # the control, proven 12 and 14-17
+    'filetype:bitmap idli',
+    'filetype:bitmap "medu vada"',
+    'filetype:bitmap jalebi',
+    'filetype:bitmap samosa',
+    'filetype:bitmap "egg curry"',
+    'filetype:bitmap "gajar halwa"',
+    'filetype:bitmap kheer',
+    'filetype:bitmap pulao',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

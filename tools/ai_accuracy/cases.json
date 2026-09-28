@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 49 cases over 38 distinct dish families; 33 distinct dish CLASSES; 48 coverage classes; top-4 classes hold 27%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 33, with thirteen classes spare. EVERY DECLARED CLASS NOW HAS A CASE.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 53 cases over 38 distinct dish families; 33 distinct dish CLASSES; 48 coverage classes; top-4 classes hold 26%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 33, with thirteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -336,7 +336,56 @@
     "and methi muthiya. So for a dish whose NAME IS A PROPER NOUN the right question is",
     "not 'what text matches' but 'what is filed under the cuisine' - a different",
     "instrument, not a better query. Sixteen batches had used one instrument and been",
-    "reading its failures as facts about the food."
+    "reading its failures as facts about the food.",
+    "",
+    "BATCH 18 (2026-09-28): SIZED TO MOVE THE CONCENTRATION, the number left worth",
+    "moving. Every declared class now has a case, so the class count cannot grow",
+    "honestly, and the note's own guidance applies: watch the concentration, not the",
+    "class count. 22 of 33 classes held exactly one case; the top four held 13 of 49,",
+    "which is 27%. Adding one case to each of EIGHT singleton classes would give 57",
+    "cases with the top four still at 13 - 23% - and dal and chole are never touched,",
+    "because growing the two largest classes is the regression batches 8 and 10 were",
+    "built to remove.",
+    "THE TRADE, STATED RATHER THAN HIDDEN: eight families become repeated, so",
+    "independence moves the other way - 20 of 49 becomes 24 of 53 here. Concentration",
+    "falls, independence falls, the sample gets bigger. A median over more cases in",
+    "more classes is a better instrument, and that is a trade rather than a free",
+    "improvement, which is why both numbers are reported together every time.",
+    "  9 queries with the control first, 5 downloaded, accepted 4, rejected 1",
+    "  accepted 4  idli in sambar (a steel bowl of about nine whole steamed idlis in",
+    "               thick orange sambar with mustard seed; truth [Idli, Sambar] because",
+    "               the plate is named for the idlis and the sambar is there)",
+    "               medu vada (three craggy golden rings - a form nothing else in the",
+    "               corpus has), jalebi (orange syrup-glossed coils), samosa (four",
+    "               golden triangles with green coriander chutney)",
+    "  rejected 1  'eierspeise im gasthaus' - the `egg curry` query returned an",
+    "               AUSTRIAN dish. Eierspeise is scrambled egg and Gasthaus is a pub.",
+    "               Batch 9's lesson in a form I had not anticipated: the cuisine",
+    "               constraint has to survive TRANSLATION, not merely being English",
+    "YIELDED 4 OF THE 8 PLANNED. gajar halwa, kheer and pulao returned nothing that",
+    "survived the caps, so those classes are still singletons. Recorded, not hidden:",
+    "the concentration moves 27% -> 25%, not the 23% the arithmetic planned.",
+    "",
+    "AND ONE MEASUREMENT THAT WOULD OTHERWISE BE A MYSTERY. Batch 18 added a case called",
+    "'idli_in_sambar_bowl' - nine whole idlis in thick sambar - and sambar went from 2 cases",
+    "to 3 while idli did not move at all. The reason is that `idli` is in STAPLE_SIDES, so",
+    "class_of() skipped it as a staple side and returned the next non-staple, which is",
+    "sambar. MEASURED, not inferred:",
+    "    'idli' in STAPLE_SIDES  ->  True",
+    "    class_of([Idli, Sambar])  ->  'sambar'",
+    "",
+    "So the photograph is idli in sambar, and the class the corpus assigns is sambar. That is",
+    "the mapping working as designed rather than a bug, and it is recorded here because the",
+    "alternative is a reader finding sambar's count had moved and no explanation. Whether idli",
+    "ought to be a staple is arguable - it is a steamed rice cake, not an accompaniment - but",
+    "changing STAPLE_SIDES now would move the class count, and that is a decision with",
+    "consequences rather than a fix, so it is named here and not made quietly.",
+    "",
+    "The batch therefore widened THREE of its four accepted cases into singleton classes as",
+    "planned - vada, jalebi and samosa each 1 -> 2 - and the fourth went to sambar, which was",
+    "already a repeated family. Concentration moved 27% -> 26% rather than the 23% the",
+    "eight-case arithmetic planned, because three of gajar halwa, kheer and pulao returned",
+    "nothing that survived the caps."
   ],
   "cases": [
     {
@@ -1652,6 +1701,87 @@
             "Gujarati Crispbread"
           ],
           "kcal": 160
+        }
+      ]
+    },
+    {
+      "id": "idli_in_sambar_bowl",
+      "image": "tools/ai_accuracy/photos/button_idli_jpg_ead252ee.jpg",
+      "note": "A steel bowl holding about nine whole steamed idlis - pale golden, porous, each with the grain and the slightly flattened disc shape - sitting in a thick orange sambar with visible mustard seed and a metal spoon resting in the bowl. Truth is [Idli, Sambar]: the plate is named for the idlis and the sambar is the accompaniment, and saying so is better than pretending the sambar is not there. Idli's second case.",
+      "truth": [
+        {
+          "name": "Idli",
+          "aliases": [
+            "Idlies",
+            "Steamed Idli"
+          ],
+          "kcal": 120
+        },
+        {
+          "name": "Sambar",
+          "aliases": [
+            "Sambar",
+            "Idli Sambar"
+          ],
+          "kcal": 90
+        }
+      ]
+    },
+    {
+      "id": "medu_vada_three_on_steel",
+      "image": "tools/ai_accuracy/photos/aesthetic_medu_vadai_jpg_5983e0db.jpg",
+      "note": "Three golden-brown craggy ring-shaped fritters on a steel plate, each with the crinkled batter surface and the central hole of a medu vada. The form is distinctive and nothing else in the corpus resembles it. High confidence. Vada's second case.",
+      "truth": [
+        {
+          "name": "Vada",
+          "aliases": [
+            "Medu Vada",
+            "Medu Vadai",
+            "Vadai",
+            "Lentil Fritter"
+          ],
+          "kcal": 200
+        }
+      ]
+    },
+    {
+      "id": "jalebi_coiled_on_plate",
+      "image": "tools/ai_accuracy/photos/hot_jalebi_ma10_jpg_a697ddb6.jpg",
+      "note": "A white plate piled with orange, glossy, syrup-soaked batter coiled into flat spirals, photographed close under warm light with the syrup sheen visible on every coil. Jalebi and nothing else. Jalebi's second case, and a different photograph from the rabri plate in batch 10 - which is the point of a second case: it tests whether the model is consistent on one dish across two photographs.",
+      "truth": [
+        {
+          "name": "Jalebi",
+          "aliases": [
+            "Jalebi Rabri",
+            "Kesar Jalebi",
+            "Imarti"
+          ],
+          "kcal": 300
+        }
+      ]
+    },
+    {
+      "id": "samosa_four_with_chutney",
+      "image": "tools/ai_accuracy/photos/indian_samosa_by_clumsy_home_chef_jpg_f0cc5b05.jpg",
+      "note": "Four golden-brown triangular fried pastries on a black plate against a dark background, with a small black bowl of green chutney garnished with a coriander leaf. The triangular form and the blistered pastry are unambiguous. Samosa's second case, and a cleaner photograph than the dim restaurant plate in batch 10, which is why both are kept.",
+      "truth": [
+        {
+          "name": "Samosa",
+          "aliases": [
+            "Samosas",
+            "Singara",
+            "Kachori"
+          ],
+          "kcal": 250
+        },
+        {
+          "name": "Chutney",
+          "aliases": [
+            "Mint Chutney",
+            "Coriander Chutney",
+            "Green Chutney"
+          ],
+          "kcal": 40
         }
       ]
     }
