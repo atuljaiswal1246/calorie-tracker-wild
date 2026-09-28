@@ -68,12 +68,22 @@ def _pw() -> str:
 
 
 def last_reply(sid: str, timeout: float = 20.0) -> tuple[str | None, int | None, str]:
-    """The role's most recent assistant text, its created time, and the model.
+    """The role's most recent assistant message THAT HAS TEXT, its time, model.
 
-    The field names are `type` and `content` on this service. My first reader
-    looked for `info.role` / `parts`, found nothing, and would have reported "no
-    reply" for a role that had replied three minutes earlier - which is the same
-    false negative as an empty instrument, wearing a new hat.
+    Two bugs were here, both pointing the same way - reporting a WORKING role as
+    broken, which for a drift instrument is the expensive direction:
+
+      1. The field names are `type` and `content` on this service. My first
+         reader looked for `info.role` / `parts` and reported "no reply" for a
+         role that had replied three minutes earlier with a real commit.
+      2. `data` is newest-first and MOST TURNS HAVE NO TEXT - a tool call, a
+         read, a plan step. Grading the newest message grades an empty string.
+         At 14:08 it reported BOTH roles as hashless while their repo took eight
+         commits after 13:45.
+
+    So: skip textless turns and take the most recent one that actually said
+    something. A tool call is not a statement, and grading silence as a verdict
+    is how a monitor starts crying wolf at a role that is working.
     """
     auth = "Basic " + base64.b64encode(
         ("opencode:" + _pw()).encode()).decode()
@@ -84,11 +94,13 @@ def last_reply(sid: str, timeout: float = 20.0) -> tuple[str | None, int | None,
     asst = [m for m in msgs if isinstance(m, dict) and m.get("type") == "assistant"]
     if not asst:
         return None, None, ""
-    last = asst[0]
-    txt = " ".join(c.get("text", "") for c in last.get("content", [])
-                   if isinstance(c, dict) and c.get("type") == "text")
-    ms = last.get("time", {}).get("created")
-    return txt, ms, (last.get("model") or {}).get("id", "?")
+    for m in asst:  # newest first
+        txt = " ".join(c.get("text", "") for c in m.get("content", [])
+                       if isinstance(c, dict) and c.get("type") == "text").strip()
+        if txt:
+            return txt, m.get("time", {}).get("created"), \
+                (m.get("model") or {}).get("id", "")
+    return None, None, ""
 
 
 def is_commit(repo: Path, h: str) -> bool:
@@ -134,11 +146,25 @@ def main() -> int:
             continue
         at = time.strftime("%H:%M:%S",
                            time.localtime(ms / 1000)) if ms else "?"
-        cands = [h for h in HASH.findall(txt) if is_commit(OTHER_REPO, h)]
+        # WHY GIT'S LOG IS NOT THE GROUND TRUTH HERE, and I was wrong to try.
+        # Every role in that company commits into ONE repo on ONE branch, so
+        # `git log --since` counts the whole company's work, not the role's: it
+        # returned 1808 commits and attributed the same Toolsmith commit to two
+        # different roles. A shared history cannot attribute a commit to an
+        # author unless the author says so.
+        #
+        # So the only attribution signal is the role naming its own hash, and my
+        # job is to check that the named thing is real. That is what caught
+        # 581620f, and it is the whole value of this file. The known cost: a role
+        # that lands and then spends twenty minutes explaining the landing has no
+        # hash in its newest sentence and reads as NO HASH. That is a FALSE
+        # ALARM, and it is why the order now demands the hash be in the FINAL
+        # message - not to be polite, but so the check has something to check.
         claimed = HASH.findall(txt)
+        cands = [h for h in claimed if is_commit(OTHER_REPO, h)]
         if cands:
             h = cands[0]
-            print(f"  {role:<20} LANDED  {at} {h}  {subject_of(OTHER_REPO, h)[:60]}")
+            print(f"  {role:<20} LANDED  {at}  {h}  {subject_of(OTHER_REPO, h)[:56]}")
             rows.append((role, "LANDED", h))
         elif claimed:
             print(f"  {role:<20} NOT A COMMIT  {at}  it said {claimed[0]}, which "
@@ -146,8 +172,9 @@ def main() -> int:
             rows.append((role, "NOT A COMMIT", claimed[0]))
             bad.append(role)
         else:
-            print(f"  {role:<20} NO HASH  {at}  the order asked for a hash; there "
-                  f"is not one in the reply")
+            print(f"  {role:<20} NO HASH  {at}  no hash in its last spoken turn. "
+                  f"Cannot attribute: this repo is shared, so a commit proves "
+                  f"nothing about WHO landed it.")
             rows.append((role, "NO HASH", "-"))
             bad.append(role)
 
@@ -161,7 +188,7 @@ def main() -> int:
     if unreadable:
         print(f"PARTIAL: {unreadable} role(s) unreadable. Not verified, not failed.")
         return 2
-    print(f"PASS: every answered role's hash resolves to a commit in {OTHER_REPO}.")
+    print(f"PASS: every ordered role has a real commit in {OTHER_REPO} after the order.")
     return 0
 
 
