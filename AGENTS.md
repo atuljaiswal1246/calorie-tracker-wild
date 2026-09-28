@@ -1,7 +1,7 @@
 # AGENTS.md — Project Memory & Handoff
 
 > **START HERE.** `AGENTS.md` is read in full by every session and every agent
-> that works on this repo. Nine standing orders are locked in **§0** at the top
+> that works on this repo. Ten standing orders are locked in **§0** at the top
 > of this file, because *an order said in chat is not an order — a rule written
 > in the file is the rule*. Seven of tonight's mistakes came from a rule that
 > lived only in a conversation. `test/standing_orders_test.dart` **fails** if any
@@ -9,10 +9,10 @@
 
 ## §0 — STANDING ORDERS, locked 2026-09-27
 
-Nine rules, each with the reason it exists. They are not advice; a session that
+Ten rules, each with the reason it exists. They are not advice; a session that
 breaks one has shipped a defect. **An order said in chat is not an order — a rule
 written in this file is the rule.** Guarded by
-`test/standing_orders_test.dart`, which fails if any of these nine goes missing.
+`test/standing_orders_test.dart`, which fails if any of these ten goes missing.
 
 ### 1. THE AIM
 **The best health app in the world, Android and iOS.** My working definition —
@@ -142,6 +142,23 @@ result.
   the feature, and my reports called it "shipped" for a day.
 - Seven reports in a row carried a **typed** time, two hours ahead of the machine,
   because a typed time is a guess and nothing can check a guess.
+
+
+### 10. SCOPED TESTS ONLY — the full suite runs once, with the owner
+**No role runs the full suite.** A change is verified with the tests that can
+possibly fail because of it: `flutter test test/<the_file_i_touched>.dart`, plus
+`flutter analyze` on the files in the change. The full `flutter test` — no
+arguments, every file — is the owner's, once, when he asks for it.
+*And why this is a rule rather than a preference, learned the expensive way on
+2026-09-28:* the owner found the laptop hot at 92% + 99% + 78% CPU and asked who
+was doing it. My answer was that I had run the **full suite dozens of times in one
+night** — every 20 to 70 seconds, each one writing test temporaries and golden
+files, which is also what drove macOS's `fseventsd` to 86% and 64 minutes of CPU.
+I was the load. Not a runaway process, not another company: **me, choosing
+convenience over a rule that did not yet exist.**
+So: the guard test is cheap, and the suite is the only expensive thing in this
+repo. Scoped first, always. If I believe a change needs the whole suite, I say so
+and ask, and the answer is the owner's.
 
 
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
