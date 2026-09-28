@@ -54,7 +54,9 @@ EXIT CODES
 from __future__ import annotations
 
 import argparse
+import glob
 import json
+import re
 import subprocess
 import sys
 import time
@@ -95,6 +97,76 @@ def _count_since(epoch: int) -> int:
         return int(out)
     except ValueError:
         return 0
+
+
+def _pubspec_version() -> str | None:
+    try:
+        for line in (ROOT / "pubspec.yaml").read_text(encoding="utf-8").splitlines():
+            if line.startswith("version:"):
+                return line.split(":", 1)[1].strip().strip("\"'")
+    except OSError:
+        return None
+    return None
+
+
+def _apk_identity(path: Path) -> tuple[str, str] | None:
+    """versionName and versionCode read out of the APK's OWN binary manifest.
+
+    This is the only check in this repo that says something about an artefact by
+    reading the artefact. Everything else - mtimes, git, the file's name - is
+    adjacent to it. aapt2 is the Android SDK's own tool, so the number comes from
+    the same place the installer will read it.
+    """
+    aapt = sorted(glob.glob("/opt/homebrew/share/android-commandlinetools/"
+                            "build-tools/*/aapt2"))
+    if not aapt or not path.exists():
+        return None
+    try:
+        out = subprocess.run([aapt[-1], "dump", "badging", str(path)],
+                             capture_output=True, text=True, timeout=120).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    name = re.search(r"versionName='([^']*)'", out)
+    code = re.search(r"versionCode='([^']*)'", out)
+    if not name:
+        return None
+    return name.group(1), (code.group(1) if code else "?")
+
+
+def _version_mismatch() -> dict | None:
+    """Does the artefact's OWN manifest agree with the tree it claims to be?
+
+    WHY, in the form that forced it - measured in another company on 2026-09-29:
+    the installed app was missing a whole module, so the endpoint a customer
+    would use returned 501, and every number quoted all night had been read off
+    the developer's build. A TIMESTAMP CANNOT SEE THAT. mtime compares two
+    moments; it cannot tell you that what was built says something different from
+    what the tree says it says.
+
+    THAT LIMIT IS STATED, not hidden: this proves IDENTITY, not behaviour. A
+    Flutter release compiles Dart into libapp.so, so there is no way to list the
+    screens inside an APK cheaply, and a check that implied otherwise would be
+    the exact overclaim this file was written to stop.
+    """
+    tree = _pubspec_version()
+    if not tree:
+        return None
+    apk = ROOT / ARTEFACTS[0]
+    got = _apk_identity(apk)
+    if not got:
+        return None
+    built_name, built_code = got
+    want_name = tree.split("+")[0]
+    if built_name == want_name:
+        return None
+    return {
+        "artefact": f"{ARTEFACTS[0]} (read from its OWN manifest)",
+        "built_versionName": built_name,
+        "built_versionCode": built_code,
+        "tree_version": tree,
+        "stale": True,
+        "identity_mismatch": True,
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -158,14 +230,30 @@ def main(argv: list[str] | None = None) -> int:
             "stale": is_stale,
         })
 
+    mismatch = _version_mismatch()
+    if mismatch:
+        results.append(mismatch)
+
     if args.json:
         print(json.dumps({"tool": "check_release_is_the_tree", "ok": not stale,
                           "note": "behind_product_commits is a value; "
                                   "commits_since_built_total is a direction and grows",
                           "artefacts": results}, indent=2))
-        return 1 if stale else 0
+        return 1 if stale or mismatch else 0
 
     for r in results:
+        if r.get("identity_mismatch"):
+            print(f"  {r['artefact']}")
+            print(f"    SAYS versionName={r['built_versionName']} "
+                  f"(versionCode={r['built_versionCode']})")
+            print(f"    the tree says {r['tree_version']}.")
+            print("    The name and the contents disagree, and BOTH numbers were read")
+            print("    out of the artefact and the tree respectively - not from the")
+            print("    file's name, which is what I read at 01:00 and could not prove.")
+            print("    This proves IDENTITY, not behaviour: Dart is compiled into")
+            print("    libapp.so, so nothing cheap can list the screens inside it.")
+            print()
+            continue
         print(f"  {r['artefact']}")
         print(f"    built       : {time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(r['built_epoch']))}")
         print(f"    newest {PRODUCT}/ commit: {r['newest_product_commit']}")

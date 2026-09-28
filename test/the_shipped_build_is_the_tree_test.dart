@@ -85,6 +85,34 @@ void main() {
             'not a pass:\n${r.stdout}${r.stderr}');
   });
 
+  test("the ARTEFACT'S OWN manifest is read, not its filename", () {
+    // At 01:00 I reported that the shipped copy was labelled 0.9.9 while the tree
+    // said 0.9.10+15 - and the only evidence was the FILE'S NAME, which is a
+    // thing a person typed. The other company measured the same class of defect
+    // the hard way: an installed app missing a whole module, with every number
+    // quoted all night read off the developer's build instead.
+    //
+    // So this asserts the number comes out of the APK's binary manifest, via the
+    // Android SDK's own aapt2 - the same place the installer reads it from.
+    final out = '${Process.runSync('python3', [_tool]).stdout}';
+    expect(out, contains('read from its OWN manifest'),
+        reason: 'the check has to say WHERE each number was read, or a reader '
+            'will assume both came from the tree:\n$out');
+    expect(out, contains('versionName=0.9.9'),
+        reason: 'the APK on disk says 0.9.9 in its own manifest. If this ever '
+            'stops appearing without a rebuild, the read has broken:\n$out');
+    expect(out, contains('0.9.10+15'),
+        reason: 'and the tree says 0.9.10+15. The disagreement is the finding.');
+  });
+
+  test('it says what it CANNOT do, because the night was about overclaims', () {
+    final out = '${Process.runSync('python3', [_tool]).stdout}';
+    expect(out, contains('proves IDENTITY, not behaviour'),
+        reason: 'Dart is compiled into libapp.so - there is no cheap way to list '
+            'the screens inside a release APK. A check that implied it could '
+            'would be the exact overclaim this file exists to stop:\n$out');
+  });
+
   test('it is a ROW in the claim runner, or it is just a file somebody wrote', () {
     final src = File('tools/check_all_claims.py').readAsStringSync();
     expect(src, contains('_script("tools/check_release_is_the_tree.py")'),
