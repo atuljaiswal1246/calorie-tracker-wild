@@ -163,6 +163,39 @@ void main() {
     );
   });
 
+  test('the gate can be ASKED without spending - that is the first morning command', () {
+    // The owner's first question is "can we run?", and until now the only way to
+    // answer it was to start a run - which is precisely the mistake that cost 66
+    // scans and a 25-minute app outage last night. --preflight-only runs the gate
+    // and STOPS: it reads /health and the Worker's err_* keys, calls no provider,
+    // and exits 0 when clear, 3 when blocked. So "can we?" is a measurement, not a
+    // hope and not an experiment.
+    final src = File('tools/ai_accuracy.py').readAsStringSync();
+    expect(src.contains('--preflight-only'), isTrue,
+        reason: 'The gate lost its no-spend readiness mode.');
+    expect(
+      src.contains('return 0 if gate["ok"] else 3'),
+      isTrue,
+      reason: '--preflight-only must exit 0 when clear and 3 when blocked, so a '
+          'caller can read readiness from the exit code alone.',
+    );
+    // And it must stop BEFORE the spend ceiling line, which is where a real run
+    // begins. If it ever printed the ceiling and carried on, the flag would be a
+    // comment rather than a stop.
+    final flag = src.indexOf('--preflight-only');
+    final stop = src.indexOf('if args.preflight_only:');
+    // The PRINT, not the section header comment 400 lines earlier: my first
+    // version searched for the words and found the banner, so the ordering
+    // assertion failed against CORRECT code. A check that measures the wrong
+    // occurrence is a check that cries wolf.
+    final ceiling = src.indexOf('print(f"SPEND CEILING:');
+    expect(stop, greaterThan(flag),
+        reason: 'The readiness branch must come after the flag is declared.');
+    expect(stop, lessThan(ceiling),
+        reason: 'The readiness check must happen BEFORE a run would spend. It is '
+            'currently after it, so --preflight-only would not stop a run.');
+  });
+
   test('the gate runs BEFORE any case is scanned', () {
     final src = File('tools/ai_accuracy.py').readAsStringSync();
     final gate = src.indexOf('gate = run_preflight(device)');
