@@ -390,6 +390,21 @@ DISH_CLASS = {
     "gajar ka halwa": "halwa", "gajar halwa": "halwa", "halwa": "halwa",
     "boondi raitha": "raitha", "raitha": "raitha", "raita": "raitha",
     "uthappam": "uthappam", "vada": "vada", "chickpea salad": "legume salad",
+    # batch 9. Classes the corpus had NO case for at all, and the KEYS are added
+    # with the photographs for the same reason batch 5/6/7 added them: a bar must
+    # not be buyable with near-synonyms, so every synonym lands on one key. A
+    # "mushroom" case and a "mushroom masala" case are one class, not two.
+    "mushroom curry": "mushroom", "mushroom masala": "mushroom", "mushroom": "mushroom",
+    "dhingra": "mushroom",
+    "capsicum": "capsicum", "shimla mirch": "capsicum", "capsicum masala": "capsicum",
+    "bell pepper": "capsicum", "shimla mirch masala": "capsicum",
+    "keema": "keema", "kheema": "keema", "keema curry": "keema", "mince": "keema",
+    "french beans": "french beans", "green beans": "french beans",
+    "beans curry": "french beans", "french bean": "french beans",
+    "sweet corn": "sweet corn", "corn curry": "sweet corn", "makai": "sweet corn",
+    "jalebi": "jalebi", "jalebi rabri": "jalebi",
+    "samosa": "samosa", "samosas": "samosa", "pakora": "samosa", "pakoras": "samosa",
+    "bhaji": "samosa", "aloo bhaji": "samosa",
 }
 
 
