@@ -32,9 +32,11 @@ Exit codes are the whole point: silence and success must not look alike.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 EXIT_SAFE = 0
@@ -120,6 +122,86 @@ def take_patch(repo: Path, paths: list[str]) -> tuple[int, str]:
         return 1, (diff.stderr or "git diff failed").strip()
     dest.write_text(diff.stdout, encoding="utf-8")
     return 0, str(dest)
+
+
+def discard_dir(repo: Path) -> Path:
+    return repo / ".agent-logs" / "discard"
+
+
+def decide(repo: Path, patch: Path, verdict: str, producer: str) -> tuple[int, str]:
+    """Record the DECISION that order 11 asks for and the tool did not keep.
+
+    `allow` saves the work. Order 11 then says "look at it, then decide - in
+    that order, every time", and NOTHING recorded the second half: the patch sat
+    in a GITIGNORED directory with no state saying whether it had been put back.
+    That is QA's finding about a completed card, reproduced here in my own repo:
+    a thing that was finished, and nothing that says it was finished.
+
+    The sidecar is JSON beside the patch so it cannot be confused with it, and it
+    carries a timestamp taken from the machine rather than typed by a person,
+    because a typed time is a guess and nothing can check a guess."""
+    try:
+        p = Path(patch)
+        if not p.is_absolute():
+            p = repo / p
+        if not p.exists():
+            return 1, f"no such patch: {p}"
+        if p.suffix != ".patch":
+            return 1, f"not a patch file: {p}"
+        payload = {
+            "verdict": verdict,
+            "producer": producer,
+            "decided_at": time.strftime("%Y-%m-%d %H:%M:%S %Z"),
+            "decided_at_epoch": int(time.time()),
+            "patch_bytes": p.stat().st_size,
+        }
+        p.with_suffix(".decided.json").write_text(
+            json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return 0, str(p.with_suffix(".decided.json"))
+    except OSError as exc:
+        return 1, f"could not write the decision: {exc}"
+
+
+def list_parked(repo: Path) -> tuple[int, str]:
+    """Every saved patch, with its age and whether anybody DECIDED about it.
+
+    Non-zero when any patch is undecided, because an undecided patch is
+    unfinished business in a directory no commit can see: .agent-logs/ is
+    gitignored, so this list is the ONLY record that the work exists at all.
+    """
+    d = discard_dir(repo)
+    if not d.is_dir():
+        print(f"no parked patches ({d} does not exist).")
+        return 0, "none"
+    patches = sorted(d.glob("*.patch"))
+    if not patches:
+        print(f"no parked patches in {d}.")
+        return 0, "none"
+    now = time.time()
+    undecided = 0
+    print(f"parked patches in {d}:")
+    for p in patches:
+        side = p.with_suffix(".decided.json")
+        age = int((now - p.stat().st_mtime) // 60)
+        if side.exists():
+            try:
+                v = json.loads(side.read_text(encoding="utf-8")).get("verdict", "?")
+            except (OSError, ValueError):
+                v = "UNREADABLE"
+            print(f"  {age:>6}m  {v:<12} {p.name}")
+        else:
+            undecided += 1
+            print(f"  {age:>6}m  {'UNDECIDED':<12} {p.name}")
+    if undecided:
+        print("")
+        print(f"{undecided} patch(es) have no recorded decision. Order 11 is save,")
+        print("look, THEN DECIDE, and the decision is the half that was not kept:")
+        print("  python3 tools/guard_uncommitted.py decide <patch> \\")
+        print("      --verdict restored|dead|superseded --producer \"who, when, why\"")
+        return EXIT_UNSAFE, f"{undecided} undecided"
+    print("")
+    print("every parked patch carries a recorded decision.")
+    return EXIT_SAFE, "all decided"
 
 
 def _resolve(repo: Path, paths: list[str]) -> list[str]:
@@ -242,8 +324,15 @@ def main(argv: list[str] | None = None, root_override: Path | None = None) -> in
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--self-test", action="store_true",
                     help="exercise the refusal path in a throwaway repo")
-    ap.add_argument("mode", nargs="?", choices=["guard", "allow", "check"])
+    ap.add_argument("mode", nargs="?",
+                    choices=["guard", "allow", "check", "list", "decide"])
     ap.add_argument("paths", nargs="*")
+    ap.add_argument("--verdict", default="restored",
+                    choices=["restored", "dead", "superseded"],
+                    help="with `decide`: what became of the parked work")
+    ap.add_argument("--producer", default="",
+                    help="with `decide`: who, when, and why - it is written "
+                         "into the record beside the patch")
     args = ap.parse_args(argv)
 
     if args.self_test:
@@ -251,6 +340,32 @@ def main(argv: list[str] | None = None, root_override: Path | None = None) -> in
     if args.mode is None:
         print("REFUSED: no mode given. I cannot tell what is uncommitted.")
         return EXIT_UNSAFE
+
+    # `list` and `decide` are about the parked patches, not about the working
+    # tree, so they run BEFORE the "no path given" refusal below.
+    root_early = root_override if root_override is not None else repo_root(Path.cwd())
+    if root_early is None:
+        print("REFUSED: not inside a git work tree; I cannot see what is uncommitted.")
+        return EXIT_NOT_A_REPO
+
+    if args.mode == "list":
+        rc, _ = list_parked(root_early)
+        return rc
+    if args.mode == "decide":
+        if not args.paths:
+            print("REFUSED: decide needs the path of the parked patch.")
+            return EXIT_UNSAFE
+        rc, dest = decide(root_early, Path(args.paths[0]), args.verdict,
+                          args.producer or "producer not stated")
+        if rc != 0:
+            print(f"REFUSED: {dest}")
+            return EXIT_UNSAFE
+        print(f"decision recorded: {dest}")
+        print(f"  verdict: {args.verdict}")
+        print(f"  producer: {args.producer or 'producer not stated'}")
+        print("The patch stays on disk. A decision is a record, not a deletion.")
+        return EXIT_SAFE
+
     if not args.paths:
         print("REFUSED: no path given. I cannot tell what is uncommitted.")
         return EXIT_UNSAFE

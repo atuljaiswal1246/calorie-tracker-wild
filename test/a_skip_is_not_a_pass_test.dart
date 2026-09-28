@@ -111,6 +111,29 @@ print(m.exit_code(rows))
 ProcessResult _run(List<String> args, {String? cwd}) =>
     Process.runSync('python3', [_runner, ...args], workingDirectory: cwd ?? '.');
 
+/// order 11's machine, run against a throwaway repo. Never against the working
+/// tree: a test that parked real work would be the accident it exists to stop.
+///
+/// ABSOLUTE, and the reason is one I already paid for tonight in a different
+/// costume: the subprocess cwd is the throwaway repo, which has no tools/
+/// directory, so a relative path to the tool resolves to nothing and python3
+/// exits 2. The tool then finds no repo and says NOT_A_REPO - a correct refusal
+/// about the wrong thing, which is exactly what a misleading failure looks like.
+final String guardTool = File('tools/guard_uncommitted.py').absolute.path;
+
+ProcessResult guard(Directory repo, List<String> args) => Process.runSync(
+    'python3', [guardTool, ...args],
+    workingDirectory: repo.path);
+
+void run(String exe, List<String> args) {
+  final r = Process.runSync(exe, args, workingDirectory: repoDir);
+  expect(r.exitCode, 0, reason: '$exe ${args.join(' ')}: ${r.stderr}');
+}
+
+/// Set by [setUp] for the throwaway repo helper above. Kept explicit rather than
+/// passed everywhere so a call cannot accidentally target the real tree.
+late String repoDir;
+
 void main() {
   group('a skip is not a pass, and the exit code says so', () {
     test('exit 2 when a claim is skipped and nothing else went wrong', () {
@@ -251,6 +274,93 @@ void main() {
       expect(src, contains('_script("tools/check_privacy_processors.py")'),
           reason: 'the privacy claim must be checkable without a network, or a '
               'dropped connection becomes a way to pass it.');
+    });
+  });
+
+  group('a saved patch leaves no state saying it was dealt with', () {
+    // QA Lead found this in the other company on 2026-09-29 00:12 and it is in
+    // MY repo too, in my own tool. A completed card left no state saying
+    // finished, so a role holding no work and a role whose work is invisible
+    // looked identical - and 592 minutes of heartbeat re-sent a card that had
+    // been done for hours.
+    //
+    // The same shape was here, and it is order 11's own machine. `allow` SAVES
+    // the uncommitted work; order 11 then says "look at it, then decide - in
+    // that order, every time" - and NOTHING recorded the second half. The patch
+    // landed in `.agent-logs/discard/`, which is GITIGNORED (.gitignore:73), so
+    // no commit could ever prove it existed, and no state anywhere said whether
+    // it had been put back. Saving is the half that is easy to notice.
+    //
+    // Measured before the fix: 0 patches parked, so nothing was lost. That is
+    // the good news and it is a measurement, not an assumption - which is the
+    // only reason it is safe to change the tool rather than rescue a patch.
+    late Directory repo;
+    late String patch;
+
+    setUp(() {
+      repo = Directory.systemTemp.createTempSync('guard_decided_');
+      repoDir = repo.path;
+      run('git', ['init', '-q', '.']);
+      run('git', ['config', 'user.email', 't@t']);
+      run('git', ['config', 'user.name', 't']);
+      File('${repo.path}/f.txt').writeAsStringSync('original\n');
+      run('git', ['add', 'f.txt']);
+      run('git', ['commit', '-qm', 'init']);
+      // The uncommitted work order 11 exists to protect.
+      File('${repo.path}/f.txt').writeAsStringSync('work nobody owns yet\n');
+      expect(guard(repo, ['allow', 'f.txt']).exitCode, 0);
+      patch = Directory('${repo.path}/.agent-logs/discard')
+          .listSync()
+          .whereType<File>()
+          .firstWhere((f) => f.path.endsWith('.patch'))
+          .path;
+    });
+    tearDown(() => repo.deleteSync(recursive: true));
+
+    test('a parked patch with no decision is REPORTED and exits non-zero', () {
+      // The whole point. Silence here is how 592 minutes of noise happens.
+      final r = guard(repo, ['list']);
+      expect(r.exitCode, isNot(0),
+          reason: 'an undecided patch is unfinished business, and this list is '
+              'the only record it exists:\n${r.stdout}');
+      expect('${r.stdout}', contains('UNDECIDED'),
+          reason: 'the patch must be named as undecided, not merely counted:\n'
+              '${r.stdout}');
+    });
+
+    test('after a decision the same list is clean and exits zero', () {
+      final d = guard(repo, ['decide', patch,
+        '--verdict', 'restored', '--producer', 'test, throwaway repo']);
+      expect(d.exitCode, 0, reason: '${d.stdout}${d.stderr}');
+
+      final r = guard(repo, ['list']);
+      expect(r.exitCode, 0,
+          reason: 'every patch now carries a decision:\n${r.stdout}');
+      expect('${r.stdout}', contains('restored'));
+      expect('${r.stdout}', isNot(contains('UNDECIDED')));
+    });
+
+    test('the decision records a producer and a MACHINE time, not a typed one',
+        () {
+      guard(repo, ['decide', patch,
+        '--verdict', 'dead', '--producer', 'who, when, why']);
+      final side = jsonDecode(
+          File(patch.replaceAll('.patch', '.decided.json')).readAsStringSync());
+      expect(side['verdict'], 'dead');
+      expect(side['producer'], 'who, when, why');
+      // A typed time is a guess and nothing can check a guess.
+      expect(side['decided_at_epoch'], isA<int>());
+      expect(side['decided_at_epoch'], closeTo(DateTime.now().millisecondsSinceEpoch ~/ 1000, 120));
+    });
+
+    test('deciding a patch does NOT delete it - a decision is a record', () {
+      guard(repo, ['decide', patch, '--verdict', 'superseded',
+        '--producer', 'p']);
+      expect(File(patch).existsSync(), isTrue,
+          reason: 'the parked work must survive the decision. Recording a '
+              'verdict is not permission to throw the work away.');
+      expect(File(patch).readAsStringSync(), contains('work nobody owns yet'),
+          reason: 'and the patch must still hold the content it was saved for');
     });
   });
 
