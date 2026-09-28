@@ -1,0 +1,17 @@
+{
+  "_what_this_is": "A machine-readable pointer to the repository the Research Lead's corpus work lands in. Written 2026-09-28 after three reported commit hashes (581620f, 5cd5229, 64befd6) were checked and came back 'not a valid object name' - correctly, because the checker searched 121 repositories under the company and this one is not among them.",
+
+  "repo_path": "/Users/neharohilla/Desktop/calorie_tracker",
+  "remote": "https://github.com/atuljaiswal1246/calmatters-app.git",
+  "branch": "main",
+
+  "_why_this_file_exists": "The company tree is /Users/neharohilla/Desktop/Jarvis. This repository is a SIBLING of it, not a nested repository and not a registered worktree of it, so a walk of the company tree cannot reach these commits by path. Measured 2026-09-28: `git -C /Users/neharohilla/Desktop/Jarvis worktree list` returns 30 entries, none of them this repository, and `find . -maxdepth 4 -name .git` inside the company tree returns 16, none of them this repository. The commits were on the REMOTE and reachable all along - 64befd6 is an ancestor of origin/main, and the company's own commit 4b00785 is a child of it on the same branch - so the objects existed and the route to them did not.",
+
+  "_how_to_verify_a_hash_reported_by_the_research_lead": [
+    "git clone https://github.com/atuljaiswal1246/calmatters-app.git /private/var/tmp/calorie_tracker_check",
+    "git -C /private/var/tmp/calorie_tracker_check cat-file -t <hash>    # must print: commit",
+    "git -C /private/var/tmp/calorie_tracker_check log -1 --oneline <hash>"
+  ],
+
+  "_the_fault_that_is_still_mine": "Naming the repository in prose is not a route to the object. A hash is only verifiable to a party that holds the repository, and a report that says 'landed <hash>' without saying WHERE leaves the reader unable to check it - which is the same shape as the 2026-09-27 green /health quoted from the wrong instance, and the same shape as a bare hash with no repository named, which is ambiguous across two live repositories on this machine. From now on the repository travels WITH the hash in every report, and the verification command is in the report too, so the reader can run it rather than take it."
+}
