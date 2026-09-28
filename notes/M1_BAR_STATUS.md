@@ -20,7 +20,7 @@ assume the product got more accurate. It did not. The evidence got better.
 
 | # | obligation | state |
 |---|---|---|
-| 1a | 20 measured real Indian meals | **MET** — 38 cases over **23 distinct dish classes** |
+| 1a | 20 measured real Indian meals | **MET** — 40 cases over **25 distinct dish classes** |
 | 1b | one repeatable command, one table | **MET** — `python3 tools/ai_accuracy.py`, prompt extracted from the Dart source so it cannot drift from the app |
 | 2 | side by side, old prompt vs new | **MECHANISM NOW VERIFIED, STILL NEVER RUN FOR REAL** — `--stub` executes the whole A/B path (both prompts extracted and fingerprinted, both sides scored, the A/B table, the JSON) with **zero** provider calls, and `test/compare_path_test.dart` drives it. What is still missing is a run with a real model on both sides. |
 | 3 | baseline committed | **NOT MET** — `baseline_batch4_2026-09-28.json` exists but its number is **WITHDRAWN**: the run could not complete, and re-running is exactly what the CEO ordered me to stop doing |
@@ -30,8 +30,8 @@ assume the product got more accurate. It did not. The evidence got better.
 ```
 python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, costs nothing
 ```
-- 38 cases · 28 distinct dish names · **23 distinct dish classes** · 38 coverage classes
-- bar: 20 meals = 20 distinct dishes. **23, met with three classes spare.**
+- 40 cases · 30 distinct dish names · **25 distinct dish classes** · 42 coverage classes
+- bar: 20 meals = 20 distinct dishes. **25, met with five classes spare.**
 - how it got there: 13 at 02:45 → 18 after batch 5 → 22 after batch 6 and 7. Ten free
   Wikimedia photographs, all attributed, all with licence and SHA-256, **zero
   model budget**.
@@ -62,7 +62,7 @@ python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, c
   ever have told me, because no abstention had ever been measured.
 - **Meeting a corpus bar is not meeting a product bar.** Nobody should tell the
   owner the scanner improved because I added photographs.
-- **Meeting a class-count bar is not being a sample.** 34% of the corpus is four
+- **Meeting a class-count bar is not being a sample.** 32% of the corpus is four
   classes; the number to watch next is the concentration, not the class count.
 
 ## The one run that closes M1 — for the morning
@@ -78,7 +78,7 @@ python3 tools/ai_accuracy.py --repeat 1           # preflight runs first; MONEY 
 python3 tools/ai_accuracy.py --compare <last-good-commit> --repeat 1
 
 # 3. commit the baseline JSON and quote FOUR numbers, never one:
-#    38 cases / 28 names / 23 classes / 38 coverage, AND the concentration, and
+#    40 cases / 30 names / 25 classes / 42 coverage, AND the concentration, and
 #    the median with all of them
 python3 tools/ai_accuracy.py --corpus              # after the run, to re-declare
 ```
@@ -93,11 +93,10 @@ Stop conditions, all of them mine, none of them negotiable at 3am:
 
 ## What is not mine to decide
 
-- The corpus is 23 classes and no longer leans: dal (5), chole (4), then a flat
-  run at 2 (paneer, bhindi, baingan) — 13 of 38 cases, so the top four hold
-  **34%**. Batch 8 took it 42% -> 34% and hit the ≤35% target by adding ONLY to
-  classes holding exactly one case. The arithmetic that sized it: 13/(31+N), so
-  N=7 gives 34.2%.
+- The corpus is 25 classes and barely leans: dal (5), chole (4), then a flat run
+  at 2 (paneer, bhindi, baingan) — 13 of 40 cases, so the top four hold **32%**.
+  Batch 8 took it 42% -> 34% and hit the ≤35% target, sizing the batch by
+  13/(31+N); batch 9 widened instead of flattening and took it to 32%.
   The bar is met; the sample is not yet even, and a median over this corpus is
   partly a median over dal and chole. Batch 7 tried to fix exactly this and
   Commons returned one usable photograph out of six queries, so the skew barely

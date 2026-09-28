@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 38 cases over 28 distinct dish families; 23 distinct dish CLASSES; 38 coverage classes; top-4 classes hold 34%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 40 cases over 30 distinct dish families; 25 distinct dish CLASSES; 42 coverage classes; top-4 classes hold 32%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -101,7 +101,27 @@
     "The dosa is the dose note: it is ROLLED, so the masala filling is not",
     "visible and the label is Dosa rather than Masala Dosa. Same dish class",
     "either way, so the count is unaffected - but the label says only what the",
-    "photograph shows."
+    "photograph shows.",
+    "",
+    "BATCH 9 (2026-09-28): WIDEN, and the keys land WITH the photographs. Batch 8",
+    "flattened to 34%; the class count was 23 against a bar of 20, so count was",
+    "not the gap. The gap was that common home dishes had NO case at all: no",
+    "mushroom, capsicum, keema, french beans, sweet corn, jalebi or samosa, and",
+    "STAPLE_SIDES meant none could be smuggled in as a side. 7 queries, 24",
+    "candidates, per-query and per-author caps plus the dHash near-dup check.",
+    "  accepted 2  keema (a new class), and a corn-capsicum masala scored as sweet",
+    "               corn because corn is the dominant component",
+    "  rejected 3  a Thai green curry with oyster mushrooms, not Indian; a plate",
+    "               with french beans, rice, a bone-in lamb curry AND fried fish,",
+    "               where class_of would take whichever I listed first; and a",
+    "               sadya spread whose dominant component is a staple, so the",
+    "               class would come from the fallback rather than a judgement",
+    "  not_used 17  fetched, never looked at; declared not-used, not left",
+    "               unreviewed",
+    "DISH_CLASS gains 8 new class keys IN THE SAME COMMIT as the photographs, with",
+    "their synonyms, because a key added after the fact is how a bar gets bought",
+    "with near-synonyms. Six of the eight have no case yet - the keys are there",
+    "so that when a photograph arrives it lands on ONE class, not a new one."
   ],
   "cases": [
     {
@@ -1184,6 +1204,55 @@
             "Masala Dosa"
           ],
           "kcal": 250
+        }
+      ]
+    },
+    {
+      "id": "keema_matar_steel_bowl",
+      "image": "tools/ai_accuracy/photos/keema_matar_a_dish_from_india_jpg_6639930a.jpg",
+      "note": "A steel bowl of minced meat in a masala, with green peas, chopped coriander, ginger julienne and a tomato wedge on top. The mince is unmistakably keema, and the bowl holds one dish and nothing else. Keema is a NEW dish class: the corpus had no mince case at all, and it is a very common home dish.",
+      "truth": [
+        {
+          "name": "Keema",
+          "aliases": [
+            "Kheema",
+            "Keema Curry",
+            "Minced Meat Curry"
+          ],
+          "kcal": 300
+        },
+        {
+          "name": "Peas",
+          "aliases": [
+            "Matar",
+            "Green Peas"
+          ],
+          "kcal": 80
+        }
+      ]
+    },
+    {
+      "id": "corn_capsicum_masala_kadai",
+      "image": "tools/ai_accuracy/photos/corn_capsicum_masala_jpg_9362322e.jpg",
+      "note": "A metal kadai of sweet corn kernels with red and green capsicum in a thick brown masala, shot close and slightly out of focus. Both vegetables are genuinely present, so the truth names both and the class lands on corn, which is the dominant component. Medium rather than high: the frame is soft, and a scan could reasonably call this capsicum-forward instead.",
+      "truth": [
+        {
+          "name": "Sweet Corn",
+          "aliases": [
+            "Corn",
+            "Corn Curry",
+            "Makai"
+          ],
+          "kcal": 160
+        },
+        {
+          "name": "Capsicum",
+          "aliases": [
+            "Shimla Mirch",
+            "Bell Pepper",
+            "Capsicum Masala"
+          ],
+          "kcal": 50
         }
       ]
     }
