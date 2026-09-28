@@ -15,6 +15,7 @@ import '../services/storage_service.dart';
 import '../services/sound_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/abstain_card.dart';
 import '../widgets/empty_illustration.dart';
 import 'manual_entry_screen.dart';
 
@@ -1012,71 +1013,13 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     // something is a normal outcome, and a red box would teach
                     // the user that the app is broken.
                     if (_unrecognised) ...[
-                      SizedBox(height: 16),
-                      Container(
-                        padding: EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFE5E5EA)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "I don't recognise this dish",
-                              style: TextStyle(
-                                fontSize: AppType.title,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.ink,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Better an honest "I don\'t know" than a number '
-                              'that is quietly wrong. Type the name and we\'ll '
-                              'find the calories.',
-                              style: TextStyle(
-                                fontSize: AppType.body,
-                                color: AppColors.muted,
-                                height: 1.35,
-                              ),
-                            ),
-                            SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: FilledButton(
-                                    onPressed: _addItem,
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: AppColors.ink,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppRadius.pill),
-                                      ),
-                                    ),
-                                    child: Text('Name the dish'),
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: () =>
-                                        setState(() => _unrecognised = false),
-                                    style: OutlinedButton.styleFrom(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppRadius.pill),
-                                      ),
-                                    ),
-                                    child: Text('Scan again'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      // The card lives in its own file so it can be RENDERED in a
+                      // test and looked at. Inline, it was unreachable: driving it
+                      // meant the whole analyse path, which is why a card that had
+                      // never once appeared on screen had never been checked.
+                      AbstainCard(
+                        onNameDish: _addItem,
+                        onScanAgain: () => setState(() => _unrecognised = false),
                       ),
                     ],
 

@@ -62,26 +62,46 @@ void main() {
       expect(r.items.first.name, 'Palak Paneer');
     });
 
-    test('the screen can show the abstain state and offers to name the dish', () {
-      // The product half of the decision: it is not enough for the service to
-      // abstain if the user then sees an error box and no way forward.
-      final src =
+    test('the abstain card exists as a widget the screen renders', () {
+      // MOVED 2026-09-28. This used to grep capture_screen.dart for the copy and
+      // for `_unrecognised`, and it was GREEN for a whole day while the feature
+      // was dead - the flag was set and cleared two lines apart. A source file
+      // containing the words of a feature is not evidence that the feature
+      // works.
+      //
+      // So the card now lives in its own file, where it can be RENDERED, and
+      // test/abstain_card_render_test.dart does the real work: it pumps the card,
+      // taps both buttons and watches the callbacks fire, checks the quiet rule
+      // that it is not styled as an error, and keeps a golden to be looked at.
+      //
+      // What is left here is only what the render test cannot see: that the
+      // screen actually renders that widget, and that the copy still exists.
+      final screen =
           File('lib/screens/capture_screen.dart').readAsStringSync();
       expect(
-        src.contains('_unrecognised'),
+        screen.contains('AbstainCard('),
         isTrue,
-        reason: 'capture_screen must have an abstain state.',
+        reason: 'capture_screen must render AbstainCard. The card was extracted '
+            'so it could be rendered and looked at; if the screen stopped using '
+            'it, the extraction has turned a working feature into dead code.',
       );
       expect(
-        src.contains("I don't recognise this dish"),
+        screen.contains('scanOutcome('),
         isTrue,
-        reason: 'The user must be told plainly that the dish was not '
-            'recognised, rather than shown a generic failure.',
+        reason: 'The screen must decide the outcome through scanOutcome(); an '
+            'inline decision is how the self-cancelling flag came back.',
+      );
+      final card = File('lib/widgets/abstain_card.dart').readAsStringSync();
+      expect(
+        card.contains("I don't recognise this dish"),
+        isTrue,
+        reason: 'The user must be told plainly that the dish was not recognised, '
+            'rather than shown a generic failure.',
       );
       expect(
-        RegExp(r"name the dish", caseSensitive: false).hasMatch(src),
+        RegExp(r"name the dish", caseSensitive: false).hasMatch(card),
         isTrue,
-        reason: 'The abstain state must offer a way to name the dish by hand.',
+        reason: 'The abstain card must offer a way to name the dish by hand.',
       );
     });
 
