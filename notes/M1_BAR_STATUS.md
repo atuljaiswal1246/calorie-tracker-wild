@@ -64,6 +64,18 @@ python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, c
   owner the scanner improved because I added photographs.
 - **Meeting a class-count bar is not being a sample.** 31% of the corpus is four
   classes; the number to watch next is the concentration, not the class count.
+- **A class count is also a claim about photographs, and that claim was unchecked
+  until 2026-09-28.** A duplicate photograph is two cases of one class wearing two
+  names, so a re-encoded copy of a dish the corpus already holds inflates the class
+  count without changing a single byte-hash. Measured by
+  `tools/ai_accuracy/test_the_corpus_photographs_are_distinct.py` on the corpus as
+  committed: **42 cases, 42 open, 0 byte-identical pairs, 0 pairs within
+  `NEAR_DUP_DISTANCE`, and the closest pair in the whole corpus is hamming 13 against
+  a floor of 8** across 861 comparisons. So the three repeated families — baingan,
+  aloo gobi, kofta — are different photographs of the same dish, not the same
+  photograph twice, and the 27 above is not counting one plate twice. Guarded in the
+  suite by `test/corpus_photographs_distinct_test.dart`, with a 5-of-5 bite proof
+  including a re-encoded-copy breach.
 
 ## The one run that closes M1 — for the morning
 
