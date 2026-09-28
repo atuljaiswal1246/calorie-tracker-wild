@@ -1,7 +1,7 @@
 # AGENTS.md — Project Memory & Handoff
 
 > **START HERE.** `AGENTS.md` is read in full by every session and every agent
-> that works on this repo. Eight standing orders are locked in **§0** at the top
+> that works on this repo. Nine standing orders are locked in **§0** at the top
 > of this file, because *an order said in chat is not an order — a rule written
 > in the file is the rule*. Seven of tonight's mistakes came from a rule that
 > lived only in a conversation. `test/standing_orders_test.dart` **fails** if any
@@ -9,10 +9,10 @@
 
 ## §0 — STANDING ORDERS, locked 2026-09-27
 
-Eight rules, each with the reason it exists. They are not advice; a session that
+Nine rules, each with the reason it exists. They are not advice; a session that
 breaks one has shipped a defect. **An order said in chat is not an order — a rule
 written in this file is the rule.** Guarded by
-`test/standing_orders_test.dart`, which fails if any of these eight goes missing.
+`test/standing_orders_test.dart`, which fails if any of these nine goes missing.
 
 ### 1. THE AIM
 **The best health app in the world, Android and iOS.** My working definition —
@@ -111,6 +111,38 @@ the **app** was 502 for ~25 minutes. I caused both the cost and the outage.
 Enforced in code, and the machine that checks it runs in `flutter test` —
 `test/money_gate_test.dart`, which *executes* `tools/ai_accuracy.py --self-test`
 rather than trusting the source.
+
+### 9. A CLAIM ABOUT MY OWN WORK IS NOT EVIDENCE — follow the real path
+**Three questions, asked of every check and every number, before I believe it:**
+1. **What is the REAL path?** A probe that does not follow the way the product
+   really goes is not a measurement of the product.
+2. **Does this check read behaviour, or vocabulary?** A guard that greps for the
+   *words* of a feature passes while the feature is dead.
+3. **If this were wrong, what would it look like — and would I notice?** If the
+   failure is silence rather than an error, nothing will tell me.
+*And the rule underneath all three:* **every number and every claim about my own
+work is produced by something that can disagree with me** — a stub, a pure
+function, a clock read by code I am not allowed to override, a rendered PNG. My
+own reading is not a check, and a self-report that DESCRIBES the work is not a
+result.
+*Why, and every instance is from 2026-09-27/28:*
+- I read 402s on a forced tier and said **"the scanner is down for every user"** —
+  the app never sends that header. His own route was answering.
+- I read a golden file that was a field of black boxes and would have called the
+  card verified; the words were rectangles.
+- A grep found zero gate-mentions in two locked screens, one step from **"two of
+  the owner's locks aren't implemented"** — the gate is at the entry points, and
+  every lock was in place. Following the real path instead is what then found the
+  one call site that had forgotten, and it handed a trial-ended user the AI scan.
+- The harness scored an **abstention as 0 kcal with every item missed**, i.e. it
+  argued against a decision the owner had personally made. A number that punishes
+  correct behaviour is worse than no number.
+- The abstain feature was **dead since it shipped** — the flag was set and cleared
+  two lines apart — while a guard checked that the source contained the words of
+  the feature, and my reports called it "shipped" for a day.
+- Seven reports in a row carried a **typed** time, two hours ahead of the machine,
+  because a typed time is a guess and nothing can check a guess.
+
 
 ## ⚠️ ONE THING (locked 2026-09-16) — do not start a second
 **In progress: WIDGETS — device-tested 2026-09-16, two bugs fixed, water pulled.**

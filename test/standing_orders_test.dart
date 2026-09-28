@@ -1,11 +1,11 @@
-// GUARD for §0 of AGENTS.md — the eight standing orders.
+// GUARD for §0 of AGENTS.md — the nine standing orders.
 //
 // The owner's lesson, 2026-09-27: "chat me bola hua order order nahi hota — file
 // me pada hua rule hi rule hota hai." Six stale lines in AGENTS.md went on
 // steering sessions for weeks, and every mistake tonight traced back to a rule
 // that lived only in a conversation.
 //
-// So the eight are pinned here by a test. Delete or reword one of these and this
+// So the nine are pinned here by a test. Delete or reword one of these and this
 // fails. That is the point: the rules should be harder to lose than to keep.
 //
 // Each entry pairs a stable MARKER (the heading) with a REQUIRED IDEA (a phrase
@@ -58,6 +58,11 @@ const _orders = <List<String>>[
     'PAISA NUMBER HAI, SCAN NUMBER NAHI',
     '8. read the budget before the scan; cap in money',
   ],
+  [
+    'A CLAIM ABOUT MY OWN WORK IS NOT EVIDENCE',
+    'follow the real path',
+    '9. a claim about my own work needs something that can disagree',
+  ],
 ];
 
 void main() {
@@ -76,7 +81,7 @@ void main() {
     );
   });
 
-  test('all eight standing orders survive in AGENTS.md §0', () {
+  test('all nine standing orders survive in AGENTS.md §0', () {
     final src = agents.readAsStringSync();
     final start = src.indexOf('STANDING ORDERS');
     // Scope the check to §0 so a stray mention elsewhere cannot satisfy it.
