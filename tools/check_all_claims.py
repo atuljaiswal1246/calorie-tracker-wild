@@ -234,10 +234,45 @@ def run_all(skip_network, as_json):
     return rows
 
 
+def _failing_for(name: str) -> str:
+    """HOW LONG has this checker been failing? The number that travels with the red.
+
+    Learned from outside on 2026-09-29 (QA Lead): the surface that answers /api/*
+    in that company has died 1,293 times, every one exit code 3, and THE LINES
+    THAT RECORD IT CARRY NO TIMESTAMP. Their words: the record of this
+    component's deaths says how many times and never when, so nobody can
+    correlate it with a request, a customer, or a version.
+
+    That is a number with no window, and it is the same defect as a claim quoted
+    for ten hours with no span - which is what I was doing to my own two red
+    checkers until I measured the window instead. A red nobody can date is a
+    comment with a runtime.
+
+    So every non-PASS row now carries HOW MANY OF THE LAST M RECORDED RUNS it was
+    already in this state. The history (7e47ed4) already stores per-check
+    verdicts, so this costs one lookup and no new state. It is honest about its
+    own limits: it says "of the last M recorded runs", never "for N days",
+    because the recording started when I started recording and pretending
+    otherwise is the fault all over again.
+    """
+    runs = _read_history()
+    if not runs:
+        return ""
+    seen = [(r.get("verdicts") or {}).get(name) for r in runs]
+    seen = [v for v in seen if v is not None]
+    if not seen:
+        return ""
+    same = sum(1 for v in seen if v != VERDICT_PASS)
+    return f"  [already so in {same} of the last {len(seen)} recorded runs]"
+
+
 def _print_row(row, all_names):
     width = max(len(n) for n in all_names)
+    tail = ""
+    if row["verdict"] != VERDICT_PASS:
+        tail = _failing_for(row["name"].split()[0])
     print(f"{row['name'].ljust(width)}  {row['verdict'].ljust(5)}  "
-          f"{str(row['exit_code']).ljust(4)}  {row['first_line']}".rstrip(),
+          f"{str(row['exit_code']).ljust(4)}  {row['first_line']}{tail}".rstrip(),
           flush=True)
 
 

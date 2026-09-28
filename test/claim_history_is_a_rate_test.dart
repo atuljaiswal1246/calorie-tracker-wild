@@ -248,5 +248,50 @@ void main() {
           reason: 'one run is a sample, not a rate, and printing it as one is '
               'worse than printing nothing:\n${_clip(out, 300)}');
     });
+    test('a RED row says how long it has been red, in runs it can name', () {
+      // The other company has a surface that has died 1,293 times, all exit
+      // code 3, and THE LINES THAT RECORD IT CARRY NO TIMESTAMP - so the record
+      // says how many times and never when. I quoted "two checkers red" for ten
+      // hours with no span at all, which is the same defect in my own repo.
+      //
+      // So every non-PASS row carries how many of the last M RECORDED runs it
+      // was already failing. It says "recorded runs" and never "days": the
+      // recording began when I began recording, and claiming a longer duration
+      // than the instrument is the fault again.
+      final before = _history.existsSync() ? _history.readAsStringSync() : '';
+      _history.parent.createSync(recursive: true);
+      _history.writeAsStringSync([
+        for (var i = 0; i < 6; i++)
+          jsonEncode({
+            'at': '2026-09-29T0$i:00:00+0530',
+            'epoch': 1756000000 + i,
+            'commit': 'abc12345',
+            'exit_code': 1,
+            'verdicts': {
+              'tools/check_store_listing.py': 'FAIL',
+              'tools/guard_uncommitted.py': 'PASS',
+            },
+          }),
+      ].join('\n'));
+      addTearDown(() {
+        if (before.isEmpty) {
+          if (_history.existsSync()) _history.deleteSync();
+        } else {
+          _history.writeAsStringSync(before);
+        }
+      });
+
+      final out = '${Process.runSync('python3', [_runner, '--skip-network']).stdout}';
+      final failing = out.split('\n')
+          .firstWhere((l) => l.contains('check_store_listing.py'), orElse: () => '');
+      expect(failing, contains('already so in 6 of the last 6 recorded runs'),
+          reason: 'a red nobody can date is a comment with a runtime:\n\$out');
+      final passing = out.split('\n')
+          .firstWhere((l) => l.contains('guard_uncommitted.py'), orElse: () => '');
+      expect(passing, isNot(contains('already so in')),
+          reason: 'a PASSING row must not carry a red-duration, or the reader '
+              'cannot tell which rows are in trouble.');
+    });
+
   });
 }
