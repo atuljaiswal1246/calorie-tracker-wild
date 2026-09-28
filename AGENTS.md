@@ -32,6 +32,7 @@ Settings provider toggle) sent tonight's work to one provider **by accident
 instead of by decision.** Documentation that lies about the architecture is not
 neutral — it steers the next session.
 
+*Machines:* `test/no_provider_keys_test.dart` + `test/one_key_path_test.dart`.
 ### 3. CLOUDFLARE BOUNDARY — ONE worker, shared with Asha
 
 **There is ONE door. Asha and Cal Matters run on the same Cloudflare Worker and
@@ -56,6 +57,10 @@ unmeasured claim of harmlessness is not a measurement.
 shared Worker, and "I only added read-only diagnostics" is exactly the reasoning
 that makes a shared resource unsafe.
 
+*Machine (repo-side half):* `test/one_key_path_test.dart`. The behavioural
+half — never touching the shared Worker's breakers or counters without my CEO's
+word — is not a property of any file here, and the honest place for it is this
+order, read at the top of a session.
 ### 4. AN EMPTY RESULT IS NOT A FINDING
 A command with no output has told me nothing. Before reporting an absence, show
 the command ran: **check the exit code, never read stdout.** Silence from a
@@ -89,6 +94,10 @@ proves it is still here.
 *Why:* the owner learned this tonight: rules that live only in a chat are rules
 that the next session will not obey, because it never read them.
 
+*Machines:* `test/standing_orders_test.dart` (fails if any of the eleven
+headings or their required phrases goes missing) and
+`test/orders_have_machines_test.dart` (fails when an order names no machine and
+is not in an accepted-gap list carrying a real reason).
 ### 8. PEHLE /HEALTH, PHIR SCAN — the money is the instrument
 **Three words, and the meaning is not negotiable: read the Worker's `/health`
 FIRST, then scan.** No measurement run may start before it has read what the
@@ -144,6 +153,12 @@ result.
   because a typed time is a guess and nothing can check a guess.
 
 
+*Machines:* `test/abstain_path_test.dart`, `test/abstain_scoring_test.dart`,
+`test/abstain_state_machine_test.dart`, `test/abstain_card_render_test.dart`,
+`test/logging_survives_cloud_failure_test.dart`, `test/report_clock_test.dart`,
+`test/quiet_copy_test.dart`, `test/store_listing_matches_app_test.dart`,
+`test/privacy_names_every_processor_test.dart`, `test/widget_provider_path_test.dart`,
+`test/notification_channel_immutability_test.dart`, `test/money_gate_honesty_test.dart`.
 ### 10. SCOPED TESTS ONLY — the full suite runs once, with the owner
 **No role runs the full suite.** A change is verified with the tests that can
 possibly fail because of it: `flutter test test/<the_file_i_touched>.dart`, plus
@@ -159,6 +174,10 @@ convenience over a rule that did not yet exist.**
 So: the guard test is cheap, and the suite is the only expensive thing in this
 repo. Scoped first, always. If I believe a change needs the whole suite, I say so
 and ask, and the answer is the owner's.
+*No machine, and that is honest:* whether I run the full suite is a thing I do at
+a shell, not a property of any file in this repo. The cheap-first half is enforced
+by everything else in this section, and the cost of breaking this one is on the
+record above.
 
 ### 11. NEVER DISCARD UNCOMMITTED WORK — stash or copy, look, then decide
 **Never run `git checkout` / `git restore` / `git stash` / `git reset` / `git clean`
