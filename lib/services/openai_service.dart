@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
+import 'scan_failure.dart';
 
 import '../models/food_entry.dart';
 
@@ -87,6 +88,12 @@ class OpenAIService {
         }
         return result;
       } catch (e) {
+        // Retry only what a second attempt can plausibly fix. A 402 is our own
+        // billing state: an identical retry spends nothing, succeeds never, and
+        // costs the user four seconds of spinner. Before this every exception was
+        // retried, so a guaranteed failure was made guaranteed three times over
+        // and the Worker was hit three times for nothing.
+        if (!shouldRetryScan(classifyScanFailure(e.toString()))) rethrow;
         if (attempt < _maxRetries - 1) {
           await Future.delayed(Duration(seconds: 2));
           continue;
@@ -202,6 +209,12 @@ Rules:
         }
         return result;
       } catch (e) {
+        // Retry only what a second attempt can plausibly fix. A 402 is our own
+        // billing state: an identical retry spends nothing, succeeds never, and
+        // costs the user four seconds of spinner. Before this every exception was
+        // retried, so a guaranteed failure was made guaranteed three times over
+        // and the Worker was hit three times for nothing.
+        if (!shouldRetryScan(classifyScanFailure(e.toString()))) rethrow;
         if (attempt < _maxRetries - 1) {
           await Future.delayed(Duration(seconds: 2));
           continue;
