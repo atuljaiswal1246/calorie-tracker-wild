@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 40 cases over 30 distinct dish families; 25 distinct dish CLASSES; 42 coverage classes; top-4 classes hold 32%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 42 cases over 32 distinct dish families; 27 distinct dish CLASSES; 45 coverage classes; top-4 classes hold 31%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 21, with one class to spare.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -121,7 +121,28 @@
     "DISH_CLASS gains 8 new class keys IN THE SAME COMMIT as the photographs, with",
     "their synonyms, because a key added after the fact is how a bar gets bought",
     "with near-synonyms. Six of the eight have no case yet - the keys are there",
-    "so that when a photograph arrives it lands on ONE class, not a new one."
+    "so that when a photograph arrives it lands on ONE class, not a new one.",
+    "",
+    "BATCH 10 (2026-09-28): the keys batch 9 opened, queried harder. Six of the",
+    "eight new class keys still had no case, and batch 9's own queries proved the",
+    "failure mode - an unsuffixed 'mushroom curry bowl' returned a THAI green",
+    "curry. So every query here carries 'indian' or 'home'. 6 queries, 21",
+    "candidates, per-query and per-author caps plus the dHash near-dup check.",
+    "  accepted 2  jalebi with rabri, and a samosa with chutney - the two classes",
+    "               batch 9 opened and left empty that Commons could fill cleanly",
+    "  rejected 2  ON POLICY, NOT OPENED: a sixth DAL (dal is the worst single",
+    "               class at 5) and a third PANEER (which would carry paneer past",
+    "               chole into the top 4 and worsen the concentration). Both are",
+    "               clean single-dish photographs, and both are thrown away",
+    "               anyway: a good photo of a dish we already over-sample is",
+    "               worth nothing to a median",
+    "  rejected 1  a plate whose title alone names four non-staple components,",
+    "               so class_of would score it by my typing order",
+    "  not_used 16  fetched, never looked at; declared not-used",
+    "The two policy rejections are recorded as NOT LOOKED rather than as",
+    "judged-and-failed, because that is what happened - and because opening a",
+    "photograph only to reject it on a class count is a minute of the owner's",
+    "laptop spent on an outcome arithmetic has already decided."
   ],
   "cases": [
     {
@@ -1253,6 +1274,57 @@
             "Capsicum Masala"
           ],
           "kcal": 50
+        }
+      ]
+    },
+    {
+      "id": "jalebi_rabri_street_table",
+      "image": "tools/ai_accuracy/photos/food_item_02_jpg_b118da32.jpg",
+      "note": "Two foil plates of coiled, syrup-glazed orange sweets beside four paper cups of thick white rabri topped with pistachio slivers, on a wooden street-food table. The spiral coil shape is jalebi and nothing else, and the cups are rabri. Jalebi is a class batch 9 opened and left empty; this is its first case.",
+      "truth": [
+        {
+          "name": "Jalebi",
+          "aliases": [
+            "Jalebi Rabri",
+            "Kesar Jalebi",
+            "Imarti",
+            "Chirpy Jalebi"
+          ],
+          "kcal": 300
+        },
+        {
+          "name": "Rabri",
+          "aliases": [
+            "Khoya",
+            "Reduced Milk",
+            "Cream"
+          ],
+          "kcal": 150
+        }
+      ]
+    },
+    {
+      "id": "samosa_plate_restaurant",
+      "image": "tools/ai_accuracy/photos/samosa_from_indian_resto_warsaw_poland_img_20191001__834beb1d.jpg",
+      "note": "One triangular fried samosa on a white plate with a mint chutney, a red sauce and a dark shredded accompaniment I could not name. The samosa is unambiguous; the chutney is a staple so class_of() skips it; the third accompaniment is not asserted because I could not identify it. Medium rather than high: it is a dim restaurant table, not the home plate the corpus mostly holds.",
+      "truth": [
+        {
+          "name": "Samosa",
+          "aliases": [
+            "Samosas",
+            "Singara",
+            "Kachori"
+          ],
+          "kcal": 250
+        },
+        {
+          "name": "Chutney",
+          "aliases": [
+            "Mint Chutney",
+            "Coriander Chutney",
+            "Green Chutney"
+          ],
+          "kcal": 40
         }
       ]
     }

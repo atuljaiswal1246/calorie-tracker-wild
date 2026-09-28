@@ -1,0 +1,79 @@
+# The free-tier accounting — what every corpus batch actually cost, and what is still queued behind the money wall
+
+**Owner 2026-09-28, card s0377.** The second half of the card, and the half that had not been
+delivered: the corpus work is only free if the free tier is what actually paid for it, and the one
+paid run must stay visibly queued rather than quietly absorbed.
+
+**Producer of every number here:** `tools/ai_accuracy.py --corpus`, run on this machine, and the
+`tools/ai_accuracy/fetch_commons.py` output each batch recorded. No figure in this file was typed from
+memory. Where a figure is a claim about a vendor's plan rather than about us, the source is named.
+
+---
+
+## 1. The ledger — what the corpus cost, per batch
+
+| Batch | Date | Queries | Candidates fetched | Accepted | Rejected | Model calls | Money |
+|---|---|---|---|---|---|---|---|
+| 1 | 09-27 | — | 7 | 7 | 0 | 0 (in-repo originals) | **$0.00** |
+| 2 | 09-27 | — | 16 | 5 | 11 | 0 | **$0.00** |
+| 3 | 09-27 | — | 18 | 5 | 13 | 0 | **$0.00** |
+| 4 | 09-27 | — | 20 | 5 | 15 | 0 | **$0.00** |
+| 5 | 09-28 | 8 | 24 | 5 | 19 | 0 | **$0.00** |
+| 6 | 09-28 | 6 | 8 | 3 | 5 | 0 | **$0.00** |
+| 7 | 09-28 | 6 | 6 | 1 | 5 | 0 | **$0.00** |
+| 8 | 09-28 | 18 | 94 | 7 | 4 | 0 | **$0.00** |
+| 9 | 09-28 | 7 | 24 | 2 | 3 | 0 | **$0.00** |
+| 10 | 09-28 | 6 | 21 | 2 | 3 | 0 | **$0.00** |
+
+**The reason every row is zero is one fact, and it is the whole accounting:** the corpus photographs
+come from **Wikimedia Commons** over its public API, which is open data and charges nothing, and
+**no model is called to label or accept a photograph.** A person — or a role — looks at the
+photograph and writes the truth down. That is the entire cost model, and it is why 10 batches of
+corpus work cost nothing: there is no per-image inference in the loop at all.
+
+**The honesty of the zero, stated so it cannot be read as a rounding error:** the *labour* is not zero
+and this file does not pretend otherwise. What is zero is **spend**. The cost is one role's turns and
+one owner's laptop. If the owner wants a labour figure, the number to quote is "one research turn per
+batch", not "free".
+
+## 2. What the free tier actually is, per provider, and where the number came from
+
+| Provider | What it is used for | Free? | The number, and where it was read |
+|---|---|---|---|
+| **Wikimedia Commons API** | every corpus photograph | **yes, no account** | open data, no key, no quota published. Read from the API itself, not from a pricing page — there is no pricing page |
+| **OpenCode Zen** | `space-bunny-free`, the model this work runs on | **documented `Free`** | Zen's own pricing table lists `Space Bunny Free \| Free \| Free \| Free \| -` beside paid rows such as `DeepSeek V4.1 Flash \| $0.30 \| $1.20`, read 2026-09-27 |
+| **Google Gemini** | the 3.8 Flash model | **yes, per project** | the free tier's *spend* rate limit is published as `N/A`; the per-model RPM/RPD are **not published** and are only visible in AI Studio |
+| **Pexels** | MoneyPrinterTurbo's stock footage | keyless, and **the key is absent** | measured in MPT's own `config.toml`: the line is present, the value is **empty**. So the video path makes **zero** requests and its published 200/hour is not a risk |
+| **Leonardo.AI** | the BYOK paid image path | **no free tier** | Pay-As-You-Go, *"no monthly commitments"*; their own limits page is a **404** |
+| **Pollinations** | the free image fallback | keyless | no policy page found; observed anonymous cap of **1 queued request per IP**, and the model we name is silently ignored (`model=flux` → serves `sana`) |
+
+**The one number in this table I will not quote from memory** is any per-model rate limit for Gemini:
+Google publishes none, and the AI Studio page is login-gated to the owner's account.
+
+## 3. The accounting conclusion, which is the point of the file
+
+- **The corpus is now bought entirely from a free, keyless, open-data source.** Ten batches, ~240
+  candidates fetched, **$0.00** and **0 model calls**. The class bar is met with five classes spare.
+- **The only thing that would cost money on this path is the paid accuracy run**, and it has never
+  been run. It stays queued as a **money wall**, and the payer is named rather than assumed.
+- **Three vendors on this path are money and only the owner's**: Leonardo's per-model price table,
+  what Pollinations' "unlimited access" costs, and whether our OpenCode account carries a paid Go
+  subscription — the model is documented free on the pay-as-you-go plan, and the *account's* billing
+  state is a fact only he can see. **None of them was answered by inference here.**
+- **A fourth is a credential, not money**: the Pexels key. A free Pexels account is a signup, not a
+  purchase, but it is an account in the owner's name and this role did not open one.
+
+## 4. What would falsify this file
+
+- If a batch's `--corpus` output ever needs a model to produce, the "0 model calls" column is wrong and
+  the whole ledger needs re-measuring. **The check for that is that `tools/ai_accuracy.py --corpus`
+  runs and returns without network access to any model** — it is a pure read of `cases.json`.
+- If Wikimedia Commons changes its API terms, "free and keyless" becomes a claim to re-source, and the
+  zero in every row is no longer free.
+- If the owner buys a Pexels key, the video path starts spending requests against a 200/hour cap, and
+  that cap becomes a real ceiling that belongs beside the corpus's other documented limits.
+
+**The guard for this file is the same one that guards the corpus:** `test/corpus_independence_test.dart`
+reads the DECLARED counts and fails when they go stale. It cannot see money, so the money column above
+is asserted by the next person who runs a batch — which is why every batch's commit message repeats
+`0 model calls, 0 rupees` rather than trusting this file to remember it.

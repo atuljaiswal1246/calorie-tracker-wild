@@ -254,6 +254,25 @@ BATCH9_QUERIES = [
 ]
 
 
+# BATCH 10 -- the six keys with no case yet, queried harder.
+#
+# Batch 9 added the class KEYS (mushroom, capsicum, french beans, jalebi, samosa
+# and one more) in the same commit as the photographs, so six of them still have
+# no case. Batch 9's own queries proved the failure mode: "mushroom curry bowl"
+# returned a Thai green curry, and the french beans query returned a four-item
+# plate. So the queries are TIGHTER here - the word "indian" or "home" in every
+# one, because Commons is a global library and the unsuffixed term finds the
+# wrong cuisine. Same per-query and per-author caps, same dHash near-dup check.
+BATCH10_QUERIES = [
+    'filetype:bitmap "mushroom curry" indian home',
+    'filetype:bitmap "shimla mirch" masala indian',
+    'filetype:bitmap "french beans" curry indian',
+    'filetype:bitmap jalebi indian sweets',
+    'filetype:bitmap samosa indian plate',
+    'filetype:bitmap "aloo bhaji"',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -474,11 +493,11 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
-    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES}
+    sets = {"single": SINGLE_QUERIES, "batch2": BATCH2_QUERIES, "batch3": BATCH3_QUERIES, "batch4": BATCH4_QUERIES, "batch5": BATCH5_QUERIES, "batch6": BATCH6_QUERIES, "batch7": BATCH7_QUERIES, "batch8": BATCH8_QUERIES, "batch9": BATCH9_QUERIES, "batch10": BATCH10_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     print(f"openly licensed candidates: {len(cands)}")
     if args.dry_run:
