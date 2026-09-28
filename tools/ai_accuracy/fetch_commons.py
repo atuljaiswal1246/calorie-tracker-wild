@@ -408,6 +408,30 @@ BATCH14_QUERIES = [
 ]
 
 
+# BATCH 15 -- khakra and mushroom, the last two empty classes, WITH THE CONTROL IN
+# THE SAME RUN.
+#
+# Batch 14 proved the cause of the zeros was my own over-constrained wording, so these
+# queries are plain: no quoted phrase plus form words, just the dish. And the control
+# query is IN THE SET rather than run separately, because a control run minutes earlier
+# is a claim about a moment that has passed - the whole lesson of the three zeros.
+#
+# If the control comes back empty, the batch refuses itself (exit 3, the mechanism from
+# 8a7065a) and nothing may be concluded about khakra. If the control comes back with hits
+# and khakra does not, then khakra is genuinely thin on Commons - the first
+# negative finding in this line of work that would actually be supported by one.
+BATCH15_QUERIES = [
+    # the control, first, and named as such: proven in batches 12 and 14
+    'filetype:bitmap uthappam breakfast',
+    'filetype:bitmap khakra',
+    'filetype:bitmap "khakra rotli"',
+    'filetype:bitmap "gujarati khichdi"',
+    'filetype:bitmap khakro',
+    'filetype:bitmap "mushroom curry"',
+    'filetype:bitmap "mushroom masala"',
+]
+
+
 def api(params: dict) -> dict:
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -599,7 +623,7 @@ def main() -> int:
     ap.add_argument("--no-near-dup", action="store_true",
                     help="escape hatch for checking, not for accepting.")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12", "batch13", "batch14"], default="mixed")
+    ap.add_argument("--set", choices=["mixed", "single", "batch2", "batch3", "batch4", "batch5", "batch6", "batch7", "batch8", "batch9", "batch10", "batch11", "batch12", "batch13", "batch14", "batch15"], default="mixed")
     args = ap.parse_args()
 
     print("searching Wikimedia Commons ...")
@@ -607,7 +631,8 @@ def main() -> int:
     "batch11": BATCH11_QUERIES,
     "batch12": BATCH12_QUERIES,
     "batch13": BATCH13_QUERIES,
-    "batch14": BATCH14_QUERIES}
+    "batch14": BATCH14_QUERIES,
+    "batch15": BATCH15_QUERIES}
     cands = candidates(queries=sets.get(args.set, QUERIES))
     if SEARCH_FAILURES:
         # Distinct exit code, and a message that cannot be skimmed past. A batch that
