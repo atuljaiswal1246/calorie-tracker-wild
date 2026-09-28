@@ -64,6 +64,18 @@ python3 tools/ai_accuracy.py --corpus      # reads cases.json, calls no model, c
   owner the scanner improved because I added photographs.
 - **Meeting a class-count bar is not being a sample.** 31% of the corpus is four
   classes; the number to watch next is the concentration, not the class count.
+- **A class count is a count of KEYS, and two keys can be one dish.** Every class guard
+  here counts the distinct `DISH_CLASS` keys the corpus hits, so a synonym pair is two
+  keys for one dish and the count says 2 where a person would say 1. Five pairs are
+  **adjacent** enough for that, and each is kept separate on purpose with the reason
+  recorded in `tools/ai_accuracy/test_the_dish_classes_are_distinct.py`:
+  **kadhi/dal** (yoghurt curry against plain lentil), **kofta/keema** (formed against
+  loose minced meat), **chole/rajma** (chickpea against kidney bean), **biryani/pulao**
+  (the meat is the boundary and it is visible), **bhindi/lauki** (okra against bottle
+  gourd). The pairs are deliberately **disjoint**, so the arithmetic is exact:
+  **27 classes as measured, and 22 if a reviewer folds all five** — and 22 is still
+  inside the card's own 18-22 band. So the bar is not resting on how anyone treats kadhi
+  against dal, and the honest sentence is both numbers, never 27 alone.
 - **A class count is also a claim about photographs, and that claim was unchecked
   until 2026-09-28.** A duplicate photograph is two cases of one class wearing two
   names, so a re-encoded copy of a dish the corpus already holds inflates the class
@@ -105,7 +117,7 @@ Stop conditions, all of them mine, none of them negotiable at 3am:
 
 ## What is not mine to decide
 
-- The corpus is 25 classes and barely leans: dal (5), chole (4), then a flat run
+- The corpus is 27 classes and barely leans: dal (5), chole (4), then a flat run
   at 2 (paneer, bhindi, baingan) — 13 of 42 cases, so the top four hold **31%**.
   Batch 8 took it 42% -> 34% and hit the ≤35% target, sizing the batch by
   13/(31+N); batches 9 and 10 widened instead of flattening and took it to 31%.

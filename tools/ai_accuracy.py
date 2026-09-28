@@ -405,6 +405,28 @@ DISH_CLASS = {
     "jalebi": "jalebi", "jalebi rabri": "jalebi",
     "samosa": "samosa", "samosas": "samosa", "pakora": "samosa", "pakoras": "samosa",
     "bhaji": "samosa", "aloo bhaji": "samosa",
+
+    # --- THE SEVEN THAT WERE ARRIVING BY ACCIDENT (2026-09-28) ------------------
+    # Found by tools/ai_accuracy/test_the_dish_classes_are_distinct.py, which
+    # asserts that every class the corpus reaches is a DECLARED key. Seven of the 27
+    # classes in use were not: baingan, bhindi, chicken curry, dosa, lauki,
+    # legume salad and paneer. They were arriving through the fallback in class_of(),
+    # which is `DISH_CLASS.get(n, n)` — the class became the truth name itself.
+    #
+    # So those seven were not classes anybody chose; they were whatever a truth
+    # happened to be called, and the class count was partly a count of spelling. The
+    # risk is not that these seven are wrong — each is a real dish and a reasonable
+    # class. The risk is that the next truth written "bhindi" when this one was
+    # written "bhindi masala" is a coin flip, and the whole point of this table is
+    # that synonyms land on one key.
+    #
+    # These are IDENTITY mappings on purpose: declaring them changes no class, so the
+    # measured count stays 27 and the concentration stays 31%. What changes is that
+    # all 27 classes are now decisions rather than 20 decisions and 7 accidents, and
+    # the guard fails if one is ever removed.
+    "baingan": "baingan", "bhindi": "bhindi",
+    "chicken curry": "chicken curry", "dosa": "dosa",
+    "lauki": "lauki", "legume salad": "legume salad", "paneer": "paneer",
 }
 
 
