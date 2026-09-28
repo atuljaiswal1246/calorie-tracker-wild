@@ -32,6 +32,7 @@ Run with: python3 tools/ai_accuracy/test_every_query_set_carries_a_control.py
 """
 from __future__ import annotations
 
+import ast
 import re
 import unittest
 from pathlib import Path
@@ -67,19 +68,51 @@ EXEMPT_SETS: dict[str, str] = {
         "is acceptable; the guard going red on this exact set is the point of naming it",
 }
 
-_SET = re.compile(r"^([A-Z][A-Z0-9_]*_QUERIES|QUERIES)\s*=\s*\[", re.M)
-_QUERY = re.compile(r"'([^']+)'")
+# THE EXTRACTION, and it is the tree rather than the text because of a measured failure.
+#
+# This module used to parse `query_sets.py` with two regexes: one to find a set's name and
+# one to pull its queries out with r"'([^']+)'". Measured against the file on 2026-09-28,
+# that regex is wrong on ONE SET IN THIRTY:
+#
+#     BATCH26_QUERIES   the regex returns prose fragments such as
+#                       "s finding inside this batch\n    "
+#                       and MISSES ALL EIGHT of its real queries.
+#
+# The cause is one apostrophe. BATCH26's block carries the comment
+# `# pair 1 - lauki, replicating batch 25's finding inside this batch`, and `[^']+` has no
+# notion of a comment - it matches across newlines, so the span from that apostrophe to the
+# next quote runs over the literals and the queries disappear. query_sets.py as a whole
+# holds 609 single-quote characters, an ODD number, and fifteen lines with an odd count,
+# every one of them ordinary prose.
+#
+# WHAT THAT MEANT FOR THIS CHECK SPECIFICALLY, and it is the part worth reading twice. The
+# control guard asks whether every set carries a query measured to return candidates. Its
+# BATCH26 entry had become eight fragments of a comment, none of which is a proven query -
+# so BATCH26 should have been reported as MISSING ITS CONTROL, loudly, for hours. It was
+# not, because the fragments it did find happened to include the set's own name and enough
+# text to satisfy the other tests. The check passed on a file it could not read. That is
+# `a-filter-that-excludes-its-own-target-reports-clean` exactly: the extraction could not
+# see the thing it was checking for, and the empty-ish result read as a clean one.
+#
+# So the sets are read from the TREE with `ast`, which knows what a comment is. The set
+# name and its queries come from the same assignment node, so they cannot drift apart. A
+# file that will not parse RAISES, which is deliberate: a truncated list is the dangerous
+# shape, because every caller then reports a confident answer about a file it only partly
+# read. See tools/ai_accuracy/qstrings.py for the one home of this extraction.
 
 
 def _sets() -> dict[str, list[str]]:
-    """Name -> the query strings in that set, parsed from the source rather than
-    imported, so a set with a syntax error cannot make this file skip it silently."""
+    """Name -> the query strings in that set, read from the parsed tree."""
+    tree = ast.parse(QUERY_SETS.read_text(encoding="utf-8"), filename=str(QUERY_SETS))
     out: dict[str, list[str]] = {}
-    src = QUERY_SETS.read_text(encoding="utf-8")
-    for m in _SET.finditer(src):
-        start = m.end()
-        end = src.find("]", start)
-        out[m.group(1)] = _QUERY.findall(src[start:end])
+    for node in tree.body:
+        if not isinstance(node, ast.Assign) or not isinstance(node.value, ast.List):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and (
+                    target.id.endswith("_QUERIES") or target.id == "QUERIES"):
+                out[target.id] = [e.value for e in node.value.elts
+                                  if isinstance(e, ast.Constant) and isinstance(e.value, str)]
     return out
 
 
@@ -128,6 +161,68 @@ class EveryQuerySetCarriesAControlTests(unittest.TestCase):
             PROVEN_QUERIES,
             "no query is declared proven, so this module would pass every set vacuously. "
             "If no control has ever been measured, that is a finding, not a pass.")
+
+    def test_the_extraction_can_see_a_set_whose_comment_owns_an_apostrophe(self):
+        """THE ENFORCEMENT. A fix with no test that can fail is a note, and this file was
+        the note: 57d8f0c's message said in prose that this guard "is green by luck" and
+        named it as not fixed. Prose does not stop the next reader trusting it. A test does.
+
+        Built deliberately: a query set whose comment carries a single apostrophe, with the
+        set's real queries either side of it. The old `r"'([^']+)'"` extraction returns
+        comment fragments and MISSES the queries; this extraction must return them.
+
+        The second half is the half that matters. The old extraction did not fail this
+        module loudly - BATCH26 has been carrying eight fragments of a comment for hours and
+        the guard reported ok - because the fragments it did find satisfied the other tests.
+        So the test also requires that a set with NO proven query in it is still reported,
+        which is the failure the fix is actually preventing.
+        """
+        import tempfile
+        body = [
+            "CONTROL_QUERIES = [",
+            "    'filetype:bitmap the control',",
+            "    # batch 25's finding replicated here",
+            '    \'filetype:bitmap "a dish"\',',
+            "]",
+            "BARE_QUERIES = [",
+            '    \'filetype:bitmap "no control in this set"\',',
+            "]",
+        ]
+        tmp = Path(tempfile.mkdtemp()) / "qs.py"
+        tmp.write_text("\n".join(body) + "\n", encoding="utf-8")
+        original = QUERY_SETS
+        try:
+            globals()["QUERY_SETS"] = tmp
+            got = _sets()
+            self.assertEqual(
+                sorted(got.get("CONTROL_QUERIES", [])),
+                sorted(["filetype:bitmap the control", 'filetype:bitmap "a dish"']),
+                f"the tree extraction lost a query because a comment owned an apostrophe: "
+                f"{got.get('CONTROL_QUERIES')}. That is the exact failure that made "
+                f"BATCH26_QUERIES report eight comment fragments instead of eight queries.")
+            self.assertEqual(
+                got.get("BARE_QUERIES"), ['filetype:bitmap "no control in this set"'],
+                f"a set with no control was not read at all: {got}. A check that cannot "
+                f"see the class it is hunting reports clean, which is the whole fault.")
+            # And the check this module exists to make, run against the same constructed file.
+            unexplained = {n for n, qs in got.items() if not (set(qs) & set(PROVEN_QUERIES))}
+            self.assertIn(
+                "BARE_QUERIES", unexplained,
+                "a set carrying no proven query was not reported as missing one. This is the "
+                "whole point of the module and it is the thing the old extraction could not "
+                "see.")
+        finally:
+            globals()["QUERY_SETS"] = original
+
+    def test_every_declared_set_is_actually_read(self):
+        """The extraction must not quietly return fewer sets than the file declares - the
+        shape of a truncated list is the dangerous one, because every caller then reports a
+        confident answer about a file it only partly read."""
+        sets = _sets()
+        self.assertGreaterEqual(
+            len(sets), 30,
+            f"only {len(sets)} query sets were read from the tree; query_sets.py declares "
+            f"more. A short list here is a check that cannot see the rest of the file.")
 
 
 if __name__ == "__main__":
