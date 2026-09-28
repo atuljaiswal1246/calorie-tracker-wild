@@ -470,6 +470,15 @@ BATCH19_QUERIES = [
 # next time: it reads this file, and a category that is not in the verified file - or
 # that is recorded as NOT EXISTING - is a red guard rather than a plausible-looking query.
 
+BATCH21_QUERIES = [
+    'filetype:bitmap uthappam breakfast',       # the control
+    'filetype:bitmap gajar halwa',
+    'filetype:bitmap kheer',
+    'filetype:bitmap pulao',
+    'filetype:bitmap khichdi',
+]
+
+
 BATCH16_QUERIES = [
     'filetype:bitmap uthappam breakfast',            # the control, proven in 12/14/15
     'filetype:bitmap mathari',

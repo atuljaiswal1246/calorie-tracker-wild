@@ -92,6 +92,37 @@ class ASearchCategoryMustExistTests(unittest.TestCase):
             f"zero in the shape of a finding about a dish. That is the batch-19 mistake, "
             f"kept.")
 
+    def test_no_query_uses_incategory_at_all(self):
+        """`incategory:` is now forbidden outright, not merely required to be verified.
+
+        "Must exist" turned out to be the wrong bar. MEASURED on 2026-09-28, with
+        SEARCH_FAILURES empty so every query was genuinely asked:
+
+            1 candidate  <- filetype:bitmap uthappam breakfast        (the control)
+            0 candidates <- filetype:bitmap incategory:"Sweets" gajar halwa
+            0 candidates <- filetype:bitmap incategory:"Sweets"
+            0 candidates <- filetype:bitmap incategory:"Indian cuisine"
+            2 candidates <- filetype:bitmap gajar halwa
+
+        `incategory:` returns nothing ALONE, with a dish name, and with categories
+        verified to exist. The instrument is dead in this harness whatever the category is
+        called, so requiring it to be a real category was requiring the impossible - and
+        the failure mode is the worst kind: a query that cannot return a result, sitting in
+        a batch where every other query looks fine.
+
+        The general lesson, and it is the reason this is a hard ban rather than a note: an
+        instrument that cannot produce a result must not be used to conclude anything, and
+        "the category exists" is not a substitute for "the category returns something".
+        """
+        used = _used()
+        self.assertEqual(
+            used, set(),
+            f"these queries use incategory:, which is measured to return nothing in this "
+            f"harness - alone, with a dish name, and with categories verified to exist: "
+            f"{sorted(used)}. Remove them, or re-measure the instrument and change this "
+            f"test in the same commit, because a dead instrument in a query set is a "
+            f"query that cannot return a finding.")
+
     def test_no_category_is_recorded_as_both_existing_and_missing(self):
         text = VERIFIED.read_text(encoding="utf-8") if VERIFIED.exists() else "{}"
         data = json.loads(text)

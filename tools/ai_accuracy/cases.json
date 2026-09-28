@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 53 cases over 38 distinct dish families; 33 distinct dish CLASSES; 48 coverage classes; top-4 classes hold 26%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 33, with thirteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
+    "DECLARED COUNTS (checked by test/corpus_independence_test.dart, which reads them from tools/ai_accuracy.py --corpus and fails if they go stale): 55 cases over 39 distinct dish families; 33 distinct dish CLASSES; 48 coverage classes; top-4 classes hold 25%. ROADMAP M1 bar = 20 MEALS = 20 distinct dish classes. MET at 33, with thirteen classes spare. EVERY DECLARED CLASS HAS A CASE.",
     "Labelled truth for tools/ai_accuracy.py.",
     "Batch 1: 5 openly licensed, human-reviewed Indian meals plus the 1 original in-repo photo and 1 out-of-scope probe.",
     "RoADMAP M1 asks for 20. We are not there yet, and the count is not",
@@ -424,7 +424,39 @@
     "WHAT A REAL ATTEMPT NEEDS, and I am not claiming it works: a category name READ OFF",
     "COMMONS rather than invented, or a category lister, so the instrument is verified before",
     "it is used to conclude anything. That is a small piece of tooling and it is the honest",
-    "next step - and until it exists, no category-scoped zero in this corpus means anything."
+    "next step - and until it exists, no category-scoped zero in this corpus means anything.",
+    "",
+    "BATCH 21 (2026-09-28): PLAIN QUERIES, AND TWO OF MY OWN CLAIMS RETRACTED BY",
+    "MEASUREMENT. The decisive table, every query asked, SEARCH_FAILURES empty:",
+    "  1 candidate  <- filetype:bitmap uthappam breakfast          (the control)",
+    "  0 candidates <- filetype:bitmap incategory:\"Sweets\" gajar halwa",
+    "  0 candidates <- filetype:bitmap incategory:\"Sweets\"",
+    "  0 candidates <- filetype:bitmap incategory:\"Indian cuisine\"",
+    "  2 candidates <- filetype:bitmap gajar halwa",
+    "",
+    "incategory: YIELDS NOTHING in every form - alone, with a dish name, and with",
+    "categories verified to exist. The instrument is dead in this harness whatever the",
+    "category is called. That retracts two claims of mine:",
+    "  batch 17's 'mechanism finding' - what surfaced Gol dhokla, khandvi and muthia was",
+    "    the EXTRA TEXT of a non-existent quoted category, not any scoping",
+    "  batch 18's 'gajar halwa returned nothing' - the plain query returns TWO",
+    "    candidates; the cap stopped it, not the query, and I wrote the query's name",
+    "    against it",
+    "5 plain queries, 4 downloaded, accepted 2, rejected 2.",
+    "  accepted 2  gajar halwa (orange grated carrot with visible cardamom; and",
+    "               DISTINCTLY Indian, since gajar is the Hindi word for carrot, so it",
+    "               does not carry the doubt a bare halwa would) and aam kheer (pale",
+    "               pudding with yellow mango in two glass bowls)",
+    "  rejected 2  both on the filename, both for the same reason - a NATIONAL",
+    "               ADJECTIVE that is not Indian: 'pilaf of uzbekistan' and",
+    "               'bangladeshi chicken khichuri'. Khichuri is Bangladeshi and khichdi",
+    "               Indian, and admitting one under the other's name would corrupt the",
+    "               very comparison the class count exists to support",
+    "",
+    "FOUR ZEROS IN THIS CORPUS AND EVERY ONE WAS MY INSTRUMENT, NOT THE WORLD: a 429,",
+    "an over-constrained query, a category form that returns nothing, and a category",
+    "name that did not exist. Not one was a fact about a dish. The only reason any was",
+    "caught is the control query that sat in the set."
   ],
   "cases": [
     {
@@ -1821,6 +1853,38 @@
             "Green Chutney"
           ],
           "kcal": 40
+        }
+      ]
+    },
+    {
+      "id": "gajar_halwa_on_plate",
+      "image": "tools/ai_accuracy/photos/gajar_halwa_carrot_fudge_jpg_6560a4d0.jpg",
+      "note": "A white plate with a dark green rim holding a mound of bright orange, coarse, shredded material with visible green cardamom seed, photographed warm and slightly dim. The colour and the grated strands are unmistakable gajar halwa. Gajar halwa is also DISTINCTLY Indian - gajar is the Hindi word for carrot - so this does not carry the doubt a bare halwa would, halwa being a sweet across the subcontinent and the Middle East alike. Halwa's second case.",
+      "truth": [
+        {
+          "name": "Halwa",
+          "aliases": [
+            "Gajar Halwa",
+            "Carrot Halwa",
+            "Gajar Ka Halwa"
+          ],
+          "kcal": 250
+        }
+      ]
+    },
+    {
+      "id": "aam_kheer_two_bowls",
+      "image": "tools/ai_accuracy/photos/aam_kheer_mango_kheer_jpg_045ec99a.jpg",
+      "note": "Two scalloped glass bowls of pale creamy white pudding with visible yellow mango pieces, on a glass table with a spoon standing in the left bowl. The pale milk base with mango is aam kheer and nothing else. Kheer's second case.",
+      "truth": [
+        {
+          "name": "Kheer",
+          "aliases": [
+            "Aam Kheer",
+            "Mango Kheer",
+            "Payasam"
+          ],
+          "kcal": 200
         }
       ]
     }
