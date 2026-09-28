@@ -113,6 +113,12 @@ CHECKERS = (
     # because the next session trusts it. `check` on a path that is clean is a
     # real execution of the refusal path, not a source scan for its name.
     _script("tools/guard_uncommitted.py", "--self-test"),
+    # Can a test file here RUN? Added 2026-09-29: the other company found 34
+    # files whose runner discovers zero tests, and a file that discovers none is
+    # INERT - it cannot fail, so it passes forever. This repo measured clean at
+    # 03:05, and a measurement made by a shell loop that is then discarded is
+    # worth nothing by morning. This row is the instrument that says so again.
+    _script("tools/check_tests_can_run.py"),
     # The Play listing must describe the app we ship. It is a Play-submission
     # risk, and it is a claim with no machine behind it — two features the app
     # cannot open. Local, no network, no model.
