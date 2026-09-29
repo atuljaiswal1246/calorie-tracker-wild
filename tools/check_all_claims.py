@@ -323,6 +323,35 @@ def _failing_for(name: str) -> str:
     return f"  [already so in {same} of the last {len(seen)} recorded runs]"
 
 
+def _changed_since_last_run(name: str, verdict: str) -> str | None:
+    """Did THIS row's verdict change since the previous recorded run?
+
+    Added 2026-09-29, from QA Lead's Bar 1 report and the sentence under it:
+    A GUARD RED IS ONLY AN EVENT IF IT IS THE ONLY ONE. Their own change turned a
+    watcher red at 05:20 and it sat unread for thirty minutes, in a table of
+    thirteen guards with eight red, because a number that has been true all night
+    is not an event and nobody asked the instrument that would have said so.
+
+    The data was already recorded - every run writes its verdicts by name - and
+    NOTHING computed the difference. So this is not a new measurement, it is the
+    measurement that was always available and never taken.
+
+    It says NEW, not "changed", and the asymmetry is deliberate: a row that turns
+    RED is the event, because that is the one a reader must act on. A row that
+    turns green is worth seeing too, so that is named as CLEARED rather than
+    hidden. A row identical to last run prints nothing at all, which is the whole
+    point: EIGHT REDS IS THE SAME AS NO REDS unless the table can say which one
+    is new.
+    """
+    runs = _read_history()
+    if not runs:
+        return None
+    prev = (runs[-1].get("verdicts") or {}).get(name)
+    if prev is None or prev == verdict:
+        return None
+    return "NEW - was " + str(prev) if verdict != VERDICT_PASS else "CLEARED"
+
+
 def _print_row(row, all_names):
     width = max(len(n) for n in all_names)
     tail = ""
@@ -332,6 +361,9 @@ def _print_row(row, all_names):
         pass
     if row["verdict"] != VERDICT_PASS:
         tail = _failing_for(row["name"].split()[0])
+    change = _changed_since_last_run(row["name"], row["verdict"])
+    if change:
+        tail = (tail + "  " if tail else "") + f"[{change}]"
     print(f"{row['name'].ljust(width)}  {row['verdict'].ljust(5)}  "
           f"{str(row['exit_code']).ljust(4)}  {row['first_line']}{tail}".rstrip(),
           flush=True)

@@ -61,7 +61,67 @@ void main() {
 group('the COUNT is the instrument', () {
     // Learned from outside on 2026-09-29 (QA Lead, 232a5193): ADDING A CHECK AND
     // GETTING THE SAME RESULT IS THE MOST DANGEROUS OUTCOME, BECAUSE IT LOOKS
-    // A CRASH IS NOT A FINDING, and this table could not tell them apart until
+    // A GUARD RED IS ONLY AN EVENT IF IT IS THE ONLY ONE. Learned from QA Lead's
+  // Bar 1 report on 2026-09-29: their own change turned a watcher red at 05:20
+  // and it sat unread for thirty minutes, in a table with eight red, because a
+  // number that has been true all night is not an event and nobody asked the
+  // instrument that would have said so.
+  //
+  // The data was already recorded - every run writes its verdicts by name - and
+  // NOTHING computed the difference. So this is not a new measurement, it is the
+  // measurement that was always available and never taken.
+  test('a row that CHANGED since the last run is marked, an unchanged one is not',
+      () async {
+    const hist = '.agent-logs/claim-history.jsonl';
+    final h = File(hist);
+    if (!h.existsSync()) {
+      markTestSkipped('no recorded history yet - the marker needs a previous run '
+          'to differ from, and inventing one here would be the fake this test '
+          'exists to prevent');
+      return;
+    }
+    final original = h.readAsStringSync();
+    addTearDown(() => h.writeAsStringSync(original));
+
+    Future<String> run() async =>
+        '${(await Process.run('python3',
+            ['tools/check_all_claims.py', '--skip-network'])).stdout}';
+
+    // 1. with the real history, a row must be marked ONLY if it differs from the
+    //    last recorded run. Append an identical run and assert NOTHING is marked,
+    //    because "8 reds is the same as no reds" is the failure being fixed.
+    final last = jsonDecode(original.trim().split('\n').last) as Map<String, dynamic>;
+    h.writeAsStringSync('$original${jsonEncode(last)}\n');
+    expect(await run(), isNot(contains('NEW - was')),
+        reason: 'an unchanged red is not an event. If this ever marks an '
+            'identical run, the marker has become noise and will be ignored.');
+
+    // 2. now make every checker look like it was PASSing last run, and the
+    //    non-pass rows must be marked. This is the direction that matters: a row
+    //    that turns RED is the one a reader has to act on.
+    final names = ((last['verdicts'] as Map<String, dynamic>).keys).toList();
+    expect(names, isNotEmpty, reason: 'the recorded run carried no verdicts');
+    h.writeAsStringSync('$original${jsonEncode(<String, dynamic>{
+          'at': '2099-01-01T00:00:00+0000',
+          'commit': 'ffffff1',
+          'epoch': 9999999999,
+          'exit_code': 0,
+          'verdicts': {for (final n in names) n: 'PASS'},
+        })}\n');
+    final out = await run();
+    expect(out, contains('NEW - was PASS'),
+        reason: 'a red that is new must be visible as new:\n$out');
+    // and no row that PASSes may carry the marker
+    for (final line in out.split('\n')) {
+      if (line.contains(' PASS ')) {
+        expect(line, isNot(contains('NEW - was')),
+            reason: 'a passing row was marked as changed, which means the '
+                'comparison is not against the previous run:\n  $line');
+      }
+    }
+  });
+
+  // A CRASH IS NOT A FINDING, and this table could not tell them apart until
   // 2026-09-29. Measured rather than suspected: sabotaging git inside
   // check_release_is_the_tree.py killed it on an uncaught ValueError, and the
   // process STILL exited 1 - the code this table records as FAIL. None of the
