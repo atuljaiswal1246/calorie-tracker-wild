@@ -200,7 +200,30 @@ def main() -> int:
         return 2
 
     missing = []
-    print("Third parties the Worker can send a photo to, vs public/privacy.html\n")
+    # THE SENTENCE, corrected 2026-09-29 after QA Lead caught the same class of
+    # fault in their company: their guard asserted a fault the product did not
+    # have, and I have been relaying a version of it all night.
+    #
+    # This check reads ONE file - cloudflare_worker/worker.js, the SOURCE - and
+    # from it concludes what the app "can send a photo to". That is a CONFIGURATION
+    # fact wearing a BEHAVIOUR sentence, and this repository's own measured record
+    # contradicts the behaviour half: AGENTS.md:537 records OPENCODE_KEY as out of
+    # monthly quota with no vision model, and :539 records ZEN_KEY as not in the
+    # serving rotation at all.
+    #
+    # THE VERDICT IS STILL CORRECT AND IS NOT BEING WEAKENED. A Play data-safety
+    # declaration describes what the app CAN do, not what it did this afternoon: a
+    # processor that is configured to receive a photo and would serve it if funded
+    # is a processor, and the day the key is recharged an undeclared processor is
+    # exactly the finding that costs an app its listing. So `go` and `openrouter`
+    # stay in the red.
+    #
+    # What changes is the claim this instrument is entitled to make, which is the
+    # whole difference between this check and the launchd pin in the other company:
+    # A SOURCE FILE CAN TELL YOU WHAT IS CONFIGURED. IT CANNOT TELL YOU WHAT RAN.
+    print("Third parties the Worker is CONFIGURED to be able to send a photo to,\n"
+          "vs public/privacy.html. Configuration, not measured behaviour - see the\n"
+          "note at the top of this file. The declaration covers capability.\n")
     for tier in sorted(tiers):
         names = PROCESSOR_NAMES.get(tier, [tier])
         hit = next((n for n in names if n.lower() in policy.lower()), None)
@@ -230,7 +253,10 @@ def main() -> int:
     print("")
     if missing:
         print(f"FAIL: the policy does not name {len(missing)} processor(s) the "
-              f"app can send a photo to: {', '.join(missing)}.")
+              f"Worker is CONFIGURED to be able to send a photo to: "
+              f"{', '.join(missing)}. A data-safety declaration describes what the\n"
+              f"  app CAN do, not what it did this afternoon, so an out-of-quota key\n"
+              f"  is still an undeclared processor the day somebody recharges it.")
         print("A data-safety declaration is written from this page, so the")
         print("declaration and the behaviour disagree. Name every processor, or")
         print("describe the mechanism (one door, model chosen server-side, any")
