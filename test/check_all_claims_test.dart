@@ -72,6 +72,14 @@ group('the COUNT is the instrument', () {
   // measurement that was always available and never taken.
   test('a row that CHANGED since the last run is marked, an unchanged one is not',
       () async {
+    // This test runs the WHOLE runner three times: once to read the current
+    // verdicts so the fake previous run is built from reality rather than from a
+    // stale file, once to prove an identical run marks nothing, and once to prove a
+    // changed one does. Each run includes `flutter analyze` through
+    // check_self_claims.py, which is about ten seconds, so three runs do not fit
+    // the thirty-second default. The timeout is raised HERE, with the reason,
+    // rather than by dropping a run - dropping the third would drop the only
+    // assertion that a PASS row is never wrongly marked.
     const hist = '.agent-logs/claim-history.jsonl';
     final h = File(hist);
     if (!h.existsSync()) {
@@ -90,7 +98,28 @@ group('the COUNT is the instrument', () {
     // 1. with the real history, a row must be marked ONLY if it differs from the
     //    last recorded run. Append an identical run and assert NOTHING is marked,
     //    because "8 reds is the same as no reds" is the failure being fixed.
-    final last = jsonDecode(original.trim().split('\n').last) as Map<String, dynamic>;
+    // THE PREVIOUS RUN MUST BE BUILT FROM THE CURRENT VERDICTS, not copied from the
+    // history file. This test was written assuming the last recorded run still
+    // matched reality, and it stopped passing the moment a checker changed verdict
+    // between that recording and now - which is the marker WORKING and the test
+    // failing for it. A test that can only pass while a file is fresh is a test
+    // measuring the file, not the code.
+    final now = await run();
+    final verdictsNow = <String, dynamic>{};
+    for (final line in now.split('\n')) {
+      final m = RegExp(r'^(\S.*?)\s{2,}(PASS|FAIL|SKIP|CRASH)\s').firstMatch(line);
+      if (m != null) verdictsNow[m.group(1)!.trim()] = m.group(2);
+    }
+    expect(verdictsNow, isNotEmpty,
+        reason: 'could not read a single verdict row out of the runner, so the '
+            'whole test would be asserting nothing:\n$now');
+    final last = <String, dynamic>{
+      'at': '2099-01-01T00:00:00+0000',
+      'commit': 'eeeeee1',
+      'epoch': 9999999998,
+      'exit_code': 0,
+      'verdicts': verdictsNow,
+    };
     h.writeAsStringSync('$original${jsonEncode(last)}\n');
     expect(await run(), isNot(contains('NEW - was')),
         reason: 'an unchanged red is not an event. If this ever marks an '
@@ -99,7 +128,7 @@ group('the COUNT is the instrument', () {
     // 2. now make every checker look like it was PASSing last run, and the
     //    non-pass rows must be marked. This is the direction that matters: a row
     //    that turns RED is the one a reader has to act on.
-    final names = ((last['verdicts'] as Map<String, dynamic>).keys).toList();
+    final names = verdictsNow.keys.toList();
     expect(names, isNotEmpty, reason: 'the recorded run carried no verdicts');
     h.writeAsStringSync('$original${jsonEncode(<String, dynamic>{
           'at': '2099-01-01T00:00:00+0000',
@@ -119,7 +148,8 @@ group('the COUNT is the instrument', () {
                 'comparison is not against the previous run:\n  $line');
       }
     }
-  });
+  },
+      timeout: const Timeout(Duration(minutes: 4)));
 
   // A CRASH IS NOT A FINDING, and this table could not tell them apart until
   // 2026-09-29. Measured rather than suspected: sabotaging git inside
