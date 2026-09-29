@@ -321,6 +321,19 @@ def self_test() -> int:
     return 0
 
 
+def _is_tracked(root: Path, rel: str) -> bool:
+    """Is this path in the index? An untracked path has no committed copy at all.
+
+    Read from git rather than from a filename, and the RETURN CODE is checked: a git
+    that did not answer must not be read as "everything is untracked", which would
+    print UNTRACKED for every file in the repository and make the new sentence a
+    lie in the other direction.
+    """
+    p = subprocess.run(["git", "ls-files", "--error-unmatch", "--", rel],
+                       cwd=str(root), capture_output=True, text=True)
+    return p.returncode == 0
+
+
 def main(argv: list[str] | None = None, root_override: Path | None = None) -> int:
     """`root_override` exists so the self-test exercises a throwaway repo.
 
@@ -397,6 +410,27 @@ def main(argv: list[str] | None = None, root_override: Path | None = None) -> in
         # WHICH WORLD. The bare filename is a throwaway temp name and identifies
         # nothing: the same line comes out of any repo on any machine. A reader
         # who is told "nothing uncommitted" needs to know which tree was checked.
+        #
+        # AND WHAT "SAFE" DOES NOT MEAN, added 2026-09-29. In git's vocabulary an
+        # UNTRACKED file has nothing uncommitted about it, so the check is clean
+        # and this used to print the same SAFE line it prints for a clean tracked
+        # file. Those are not the same fact. A tracked file with no uncommitted
+        # changes cannot be lost by `git checkout`; an untracked file has no
+        # committed copy AT ALL, so `git clean -fd` takes it and nothing this tool
+        # can see would notice. Six such files sit in this repository, not mine,
+        # never touched by me.
+        #
+        # So the word is narrowed to what was actually established, rather than the
+        # guard being deleted or made red. A red nobody reads is a comment, and
+        # this is not a fault to be reported - it is a sentence that was doing more
+        # work than it had earned.
+        untracked_here = [p for p in paths
+                          if not _is_tracked(root, p)]
+        if untracked_here:
+            print(f"UNTRACKED, not SAFE: {', '.join(untracked_here)} has no committed "
+                  f"copy, so `git clean -fd` would take it and this guard cannot see "
+                  f"that. Checked for uncommitted CHANGES only.  [repo: {root}]")
+            return EXIT_SAFE
         print(f"SAFE: nothing uncommitted in {', '.join(paths)}  [repo: {root}]")
         return EXIT_SAFE
 
