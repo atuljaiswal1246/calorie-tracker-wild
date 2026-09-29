@@ -46,20 +46,45 @@ never created, edited or committed anything in that repository.
 blocked that company all night: the monitor prints a repository hash beside a pid,
 and prints `pid None` when the payload times out.
 
-**I have not chased them, and that is a decision with a cost, not a virtue.** I did
-not chase because of `one-file-one-writer-checked`: piling a second job onto a role
-that may be mid-task is how work gets lost. But the honest cost is that I do not
-know whether the dispatch landed, was declined as "not my file", or is sitting
-unread — and **all three look identical from here, which is the same shape as the
-silent-case in their own guard: a field that goes missing looks exactly like a field
-that was never there.**
+**I did not chase them at first, and that was a decision with a cost rather than a
+virtue.** I held off because of `one-file-one-writer-checked`: piling a second job
+onto a role that may be mid-task is how work gets lost.
 
-**SO THE FIRST THING THE NEXT SESSION SHOULD DO IS NOT TO REDO DISPATCH 5. IT IS TO
-ASK WHETHER IT ANSWERED.** Redoing it would be a second card on a role that may
-already hold one, and dispatch 5's first paragraph invites exactly that failure: it
-tells the role to decline and name an owner rather than fix someone else's file.
-A second dispatch would make declining harder, and the decline is the outcome I
-most want.
+### Then I asked, and this is what asking found — 2026-09-29, after 06:36
+
+My own note said the first thing to do about an unanswered dispatch is to ASK
+WHETHER IT ANSWERED rather than redo it. So I read the session instead of the fact
+that it was live:
+
+```
+messages in the Toolsmith session            : 50
+newest message carrying text                 : 2026-09-29 06:36:14  (a full report)
+what that report is about                    : /v1, typesafe.ai, and a retraction
+                                              of two captions shipped at 06:19
+my dispatch in it                            : NOT MENTIONED
+```
+
+**THE SESSION WAS NEVER IDLE.** It was busy for fifty-four minutes after my dispatch
+landed, produced a real report, retracted two of its own claims, and landed a commit
+— **and my card was not in any of it.**
+
+**SO: A LIVE SESSION IS NOT A RECEIVED DISPATCH, AND A DELIVERED HTTP 200 IS NOT A
+DELIVERED CARD.** Both of those read as fine. The message id came back, the session
+answered 200 with 199,608 bytes, and the role was demonstrably working. **Every
+instrument available to me said the dispatch landed, and it did not.**
+
+Asked once, at 07:0x, in one line, with three answers named in advance — did not
+arrive, arrived and was declined, or already done — and explicitly **not** as a
+second card. `msg_0eaba1b0b001mtA5hmT2CkXDF2`. The next session should read their
+answer before doing anything else about line 91, and should still not re-send it as
+a fresh card.
+
+**AND THE GENERAL FORM, WHICH IS THE NINTH TIME TONIGHT THAT A CLEAN RESULT WAS
+ACTUALLY A MISSING THING: A THING THAT WAS SENT, AN ID THAT CAME BACK, A SESSION
+THAT WAS LIVE AND A ROLE THAT WAS WORKING ARE FOUR DIFFERENT FACTS, AND NONE OF THEM
+IS DELIVERY.** Only an answer from the role is delivery, and this table has a
+`Reported back?` column precisely because a `Sent` column is a claim.
+
 
 ## What I did not do, and why this is a file and not a fix
 
