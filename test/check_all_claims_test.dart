@@ -91,9 +91,19 @@ group('the COUNT is the instrument', () {
     final original = h.readAsStringSync();
     addTearDown(() => h.writeAsStringSync(original));
 
-    Future<String> run() async =>
-        '${(await Process.run('python3',
-            ['tools/check_all_claims.py', '--skip-network'])).stdout}';
+    // The runner is pointed at THIS test's temp file, so a fabricated run can
+    // never reach the real history again. On 2026-09-29 it did: a 2099 entry with
+    // commit ffffff1 survived, and every red-duration number in the table was
+    // then computed against a run that never happened. The fix is a redirect, not
+    // a cleanup - cleaning removes the symptom and leaves the tap running.
+    final tmpHist = hist.replaceFirst('claim-history', 'test-history');
+    File(tmpHist).writeAsStringSync(original);
+    Future<String> run() async {
+      final r = await Process.run('python3',
+          ['tools/check_all_claims.py', '--skip-network'],
+          environment: {'CLAIM_HISTORY': tmpHist, 'PATH': '/usr/bin:/bin:/usr/local/bin'});
+      return '${r.stdout}';
+    }
 
     // 1. with the real history, a row must be marked ONLY if it differs from the
     //    last recorded run. Append an identical run and assert NOTHING is marked,
@@ -120,7 +130,7 @@ group('the COUNT is the instrument', () {
       'exit_code': 0,
       'verdicts': verdictsNow,
     };
-    h.writeAsStringSync('$original${jsonEncode(last)}\n');
+    File(tmpHist).writeAsStringSync('$original${jsonEncode(last)}\n');
     expect(await run(), isNot(contains('NEW - was')),
         reason: 'an unchanged red is not an event. If this ever marks an '
             'identical run, the marker has become noise and will be ignored.');
@@ -130,7 +140,7 @@ group('the COUNT is the instrument', () {
     //    that turns RED is the one a reader has to act on.
     final names = verdictsNow.keys.toList();
     expect(names, isNotEmpty, reason: 'the recorded run carried no verdicts');
-    h.writeAsStringSync('$original${jsonEncode(<String, dynamic>{
+    File(tmpHist).writeAsStringSync('$original${jsonEncode(<String, dynamic>{
           'at': '2099-01-01T00:00:00+0000',
           'commit': 'ffffff1',
           'epoch': 9999999999,

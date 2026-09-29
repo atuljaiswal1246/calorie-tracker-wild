@@ -66,6 +66,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -473,7 +474,13 @@ def print_report(rows, commit, as_json):
         print(_rate)
 
 
-HISTORY = ".agent-logs/claim-history.jsonl"
+# Overridable so a TEST can point this at a temp file. Added 2026-09-29 after
+# the CHANGED-row test left its fabricated run in the real history: a 2099
+# entry, commit ffffff1, which then became the "last recorded run" that every
+# red-duration suffix is computed against. A test that writes a fake into the
+# real record is the same fault as a monitor printing a predecessor's error
+# into a live instance's verdict. The test cannot reach this file now.
+HISTORY = os.environ.get("CLAIM_HISTORY", ".agent-logs/claim-history.jsonl")
 
 
 def _read_history() -> list[dict]:
