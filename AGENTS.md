@@ -1,5 +1,16 @@
 # AGENTS.md — Project Memory & Handoff
 
+> **START HERE — AND BEFORE YOU TAKE ANY TASK, READ `notes/DISPATCHES.md`.**
+> Written 2026-09-29 at 06:3x. Six pieces of work are in flight in the OTHER
+> company, dispatched in conversation, and this repository is the only place any
+> of it is written down. **A dispatch handed out in chat is invisible to every
+> instrument, and the instrument does not go quiet about it — it reports a
+> confident WRONG answer.** That is not hypothetical: their own roster answered
+> "no live card" while a role was seventy-five minutes into a card I had given it.
+> The log names every dispatch, its message id, and **which one has not come
+> back** — so the first thing to do is not to redo that one, but to ask whether it
+> answered. Redoing it would put a second card on a role that may already hold one.
+
 > **START HERE.** `AGENTS.md` is read in full by every session and every agent
 > that works on this repo. Ten standing orders are locked in **§0** at the top
 > of this file, because *an order said in chat is not an order — a rule written
