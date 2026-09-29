@@ -72,9 +72,29 @@ ARTEFACTS = [
 PRODUCT = "lib"
 
 
+class CannotCheck(RuntimeError):
+    """Raised when git did not answer, so no reading was possible.
+
+    Added 2026-09-29 after a sabotage proved the shape of the bug rather than
+    suspecting it: with git returning something unparseable, this script died on
+    an uncaught ValueError and the process STILL EXITED 1 - the same code it uses
+    for "the artefact is stale". The claim runner reads returncode, so a crashed
+    checker and a real finding were indistinguishable, and I would have reported
+    a crash as a red about the APK.
+
+    A crash and an answer are different facts and must never share a number. Exit
+    1 now means exactly one thing: I checked, and the answer is no.
+    """
+
+
 def _git(*args: str) -> str:
-    return subprocess.run(["git", *args], cwd=str(ROOT),
-                          capture_output=True, text=True).stdout.strip()
+    p = subprocess.run(["git", *args], cwd=str(ROOT),
+                       capture_output=True, text=True)
+    if p.returncode != 0:
+        raise CannotCheck(
+            f"git {' '.join(args)} exited {p.returncode}: "
+            f"{(p.stderr or '').strip()[:200] or 'no stderr'}")
+    return p.stdout.strip()
 
 
 def newest_product_commit() -> tuple[int, str] | None:
@@ -285,4 +305,13 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except CannotCheck as exc:
+        # Exit 2, never 1. NOTHING WAS CHECKED is not an answer of "no", and the
+        # claim runner's table has to be able to tell those two apart by number
+        # alone, because a reader reads the exit code long before the prose.
+        print(f"check_release_is_the_tree: COULD NOT CHECK - {exc}", file=sys.stderr)
+        print("  This is exit 2 and it means NOTHING WAS CHECKED, which is not the")
+        print("  same as exit 1, which means checked and the answer is no.")
+        sys.exit(2)

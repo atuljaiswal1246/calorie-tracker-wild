@@ -165,6 +165,11 @@ VERDICT_PASS = "PASS"
 VERDICT_FAIL = "FAIL"
 VERDICT_ERROR = "ERROR"
 VERDICT_SKIP = "SKIP"
+# A THIRD STATE, added 2026-09-29, and it is not a fourth kind of green. It
+# means the checker did not finish, so nobody knows the answer - which is a
+# different fact from "it checked and the answer is no", and the difference is
+# the whole point of a table anybody is meant to act on.
+VERDICT_CRASH = "CRASH"
 
 
 def _first_line(text):
@@ -172,6 +177,16 @@ def _first_line(text):
         if line.strip():
             return line.strip()
     return ""
+
+
+def _is_traceback(stderr: str) -> bool:
+    """Did this process die, rather than answer?
+
+    Read from the TEXT, not the exit code, because that is the defect being
+    fixed: a Python traceback exits 1, which is also how a checker reports a
+    genuine negative.
+    """
+    return "Traceback (most recent call last)" in (stderr or "")
 
 
 def _row(check, verdict, exit_code, first_line, error=None, skipped=False):
@@ -220,6 +235,22 @@ def run_checker(check, skip_network):
 
     out = _first_line(proc.stdout)
     if proc.returncode != 0:
+        # A CRASH IS NOT A FINDING, and until 2026-09-29 this table could not tell
+        # them apart. Measured, not suspected: sabotaging git inside
+        # check_release_is_the_tree.py killed it on an uncaught ValueError, and
+        # the process still exited 1 - the code this table records as FAIL. None
+        # of the seven checkers has a top-level catch-all, so any of them can die
+        # this way, and a reader would have seen a crash dressed as a red about
+        # the product. A wrong number is actionable: it sends a role after
+        # something that is not there.
+        #
+        # So the traceback is read HERE, in one place, rather than trusting seven
+        # files to each be careful - and it also catches every future checker.
+        crashed = _is_traceback(proc.stderr)
+        if crashed:
+            return _row(check, VERDICT_CRASH, proc.returncode,
+                        f"CRASHED, not a finding - {out or _first_line(proc.stderr)}",
+                        error=_first_line(proc.stderr))
         return _row(check, VERDICT_FAIL, proc.returncode,
                     out or f"(no stdout; exit {proc.returncode})")
 
@@ -295,6 +326,10 @@ def _failing_for(name: str) -> str:
 def _print_row(row, all_names):
     width = max(len(n) for n in all_names)
     tail = ""
+    if row["verdict"] in (VERDICT_PASS, VERDICT_CRASH):
+        # a CRASH prints a row of its own, which is enough; it is not a
+        # finding and must not be counted as one.
+        pass
     if row["verdict"] != VERDICT_PASS:
         tail = _failing_for(row["name"].split()[0])
     print(f"{row['name'].ljust(width)}  {row['verdict'].ljust(5)}  "

@@ -61,7 +61,46 @@ void main() {
 group('the COUNT is the instrument', () {
     // Learned from outside on 2026-09-29 (QA Lead, 232a5193): ADDING A CHECK AND
     // GETTING THE SAME RESULT IS THE MOST DANGEROUS OUTCOME, BECAUSE IT LOOKS
-    // A CHECKER THAT EXISTS BUT IS NEVER WIRED is invisible to every count above,
+    // A CRASH IS NOT A FINDING, and this table could not tell them apart until
+  // 2026-09-29. Measured rather than suspected: sabotaging git inside
+  // check_release_is_the_tree.py killed it on an uncaught ValueError, and the
+  // process STILL exited 1 - the code this table records as FAIL. None of the
+  // seven checkers has a top-level catch-all, so any of them can die that way and
+  // a reader would have seen a crash dressed as a red about the product.
+  test('a checker that DIES is CRASH, never FAIL', () async {
+    // Sabotage a real checker at the point where it actually executes. The first
+    // attempt appended a raise at the END of the file and was a silent no-op,
+    // because sys.exit(main()) has already run by then - so the sabotage has to go
+    // before the first def, or this test would pass for the wrong reason.
+    final f = File('tools/check_commit_claims.py');
+    final original = f.readAsStringSync();
+    addTearDown(() => f.writeAsStringSync(original));
+    final lines = original.split('\n');
+    final at = lines.indexWhere((l) => l.startsWith('def '));
+    expect(at, greaterThan(0), reason: 'no def to sabotage before');
+    lines.insert(at, 'raise RuntimeError("SABOTAGE: dies instead of answering")');
+    f.writeAsStringSync(lines.join('\n'));
+
+    final r = await Process.run('python3', ['tools/check_all_claims.py',
+        '--skip-network']);
+    final out = '${r.stdout}';
+    expect(out, contains('CRASH'),
+        reason: 'a dead checker must be visible as CRASH:\n$out');
+    expect(out, isNot(contains('SABOTAGE: dies instead of answering\np0')),
+        reason: 'sanity: the row must quote what happened');
+    final line = out
+        .split('\n')
+        .firstWhere((l) => l.contains('check_commit_claims.py'), orElse: () => '');
+    expect(line, contains('CRASH'),
+        reason: 'and it must be the ROW for that checker that says so, not some '
+            'other row in the table:\n$out');
+    expect(line, isNot(contains(' FAIL ')),
+        reason: 'FAIL is reserved for "it checked and the answer is no". A crash '
+            'in that column is the exact defect this test exists to catch.\n'
+            '  row was: $line');
+  });
+
+  // A CHECKER THAT EXISTS BUT IS NEVER WIRED is invisible to every count above,
   // because all of them read CHECKERS - the same list the runner walks. Two were
   // sitting in tools/ unwired on 2026-09-29, one of them a guard I had described
   // in report after report, and the count read a confident 11 the whole time.
