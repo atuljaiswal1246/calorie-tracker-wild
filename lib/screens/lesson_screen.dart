@@ -212,68 +212,83 @@ class _LessonScreenState extends State<LessonScreen> with TickerProviderStateMix
               ),
             ),
             
-            // Content
+            // Content — animated between steps (Duolingo-style slide+fade)
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      step.icon ?? widget.lesson.icon,
-                      style: const TextStyle(fontSize: 80),
+              child: AnimatedSwitcher(
+                key: ValueKey(step.id),
+                duration: const Duration(milliseconds: 320),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.0, 0.08),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
                     ),
-                    const SizedBox(height: 32),
-                    Text(
-                      step.title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink,
-                        letterSpacing: -0.5,
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        step.icon ?? widget.lesson.icon,
+                        style: const TextStyle(fontSize: 80),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      step.description,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppColors.muted,
-                        height: 1.5,
+                      const SizedBox(height: 32),
+                      Text(
+                        step.title,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Text(
+                        step.description,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.muted,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             
-            // Bottom button
+            // Bottom button — Duolingo-style big green pill
             Padding(
               padding: const EdgeInsets.all(24),
               child: SizedBox(
                 width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: isActionStep ? _handleAction : _nextStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF58CC02),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                    shadowColor: const Color(0xFF46A302),
-                  ),
-                  child: Text(
-                    isActionStep 
-                        ? (step.actionType == 'meal' ? 'LOG MEAL' : 'DO IT')
-                        : (isLastStep ? 'COMPLETE' : 'CONTINUE'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
+                height: 64,
+                child: Material(
+                  color: const Color(0xFF58CC02),
+                  borderRadius: BorderRadius.circular(32),
+                  child: InkWell(
+                    onTap: isActionStep ? _handleAction : _nextStep,
+                    borderRadius: BorderRadius.circular(32),
+                    child: Center(
+                      child: Text(
+                        isActionStep 
+                            ? (step.actionType == 'meal' ? 'LOG MEAL' : 'DO IT')
+                            : (isLastStep ? 'COMPLETE' : 'CONTINUE'),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
                   ),
                 ),
