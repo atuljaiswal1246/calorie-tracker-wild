@@ -45,6 +45,7 @@ import 'all_entries_screen.dart';
 import 'asha_screen.dart';
 import 'quick_picks_screen.dart';
 import 'settings_screen.dart';
+import 'health_path_screen.dart';
 
 /// What the trial gate does with a locked surface. A pure function on purpose:
 /// the decision is the part that must never be wrong, and a decision buried in a
@@ -83,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _waterMl = 0;
   int _waterGoalMl = 2500;
   DateTime _selected = clock.now();
-  int _navIndex = 0; // 0 home, 1 progress, 2 trophy, 3 profile
+  int _navIndex = 0; // 0 home/path, 1 progress, 2 trophy, 3 profile
   late final ScrollController _weekScrollController;
   bool _isOnline = true;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
@@ -542,9 +543,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Positioned.fill(
               child: switch (_navIndex) {
+                0 => const HealthPathScreen(),
                 1 => _progressPage(),
                 3 => _limited ? _limitedProfilePage() : _profilePage(profile),
-                _ => _homePage(profile),
+                _ => const HealthPathScreen(),
               },
             ),
             Positioned(
