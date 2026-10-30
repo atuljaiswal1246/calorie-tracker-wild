@@ -28,18 +28,11 @@ class PathConnectorPainter extends CustomPainter {
     final startY = 0.0;
     final endY = size.height;
     final midX = size.width / 2;
+    final bow = size.width * 0.16;
 
-    // Curved path like Duolingo
+    // Smooth curved path like Duolingo's winding track (gentle cubic bow).
     path.moveTo(midX, startY);
-    // Sine wave curve
-    path.cubicTo(
-      midX + 20,
-      startY + size.height * 0.3,
-      midX - 20,
-      startY + size.height * 0.7,
-      midX,
-      endY,
-    );
+    path.cubicTo(midX - bow, startY, midX - bow, endY, midX, endY);
 
     if (isCompleted) {
       canvas.drawPath(path, paint);

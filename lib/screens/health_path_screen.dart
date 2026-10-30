@@ -212,7 +212,7 @@ class _HealthPathScreenState extends State<HealthPathScreen> {
                             ),
                             if (showConnector)
                               SizedBox(
-                                height: 60,
+                                height: 72,
                                 width: double.infinity,
                                 child: CustomPaint(
                                   painter: PathConnectorPainter(
