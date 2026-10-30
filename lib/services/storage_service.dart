@@ -10,6 +10,7 @@ import '../models/body_measurement_entry.dart';
 import '../models/food_entry.dart';
 import '../models/exercise_entry.dart';
 import '../models/gamification_state.dart';
+import '../models/health_path.dart';
 import '../models/profile.dart';
 import '../config/features.dart';
 
@@ -740,6 +741,32 @@ class StorageService {
       await _cloud(() => ref
           .collection('gamification')
           .doc('state')
+          .set(state.toJson(), SetOptions(merge: true)));
+    }
+  }
+
+  // ---- Health path (Duolingo-style journey state) ----
+
+  static const _healthPathKey = 'health_path_state';
+
+  /// The persisted health-path journey state (completed nodes, current node).
+  HealthPathState get healthPath {
+    final raw = _prefs.getString(_healthPathKey);
+    if (raw == null) return HealthPathState();
+    return HealthPathState.fromJson(
+        Map<String, dynamic>.from(jsonDecode(raw) as Map));
+  }
+
+  /// Persist the health-path journey state locally, and mirror it to the
+  /// user's Firestore doc (`users/{uid}/gamification/healthPath`) when signed
+  /// in — same pattern as the gamification state.
+  Future<void> saveHealthPath(HealthPathState state) async {
+    await _prefs.setString(_healthPathKey, jsonEncode(state.toJson()));
+    final ref = _profileRef();
+    if (ref != null) {
+      await _cloud(() => ref
+          .collection('gamification')
+          .doc('healthPath')
           .set(state.toJson(), SetOptions(merge: true)));
     }
   }

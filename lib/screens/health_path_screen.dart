@@ -56,14 +56,29 @@ class _HealthPathScreenState extends State<HealthPathScreen> {
         builder: (_) => LessonScreen(
           lesson: lesson,
           node: node,
-          onComplete: () {
+          onComplete: () async {
+            // 1. Award the lesson's reward through the real gamified event
+            //    path (celebration + persist + bump).
+            GamificationController.instance?.awardPathReward(
+              node.xpReward,
+              coins: node.coinReward,
+            );
+
+            // 2. Mark the node complete + derive the next current node.
             _pathService.completeNode(node.id);
-            setState(() {});
+
+            // 3. Persist the journey so it survives restarts.
+            final storage = GamificationController.instance?.storage;
+            if (storage != null) {
+              await storage.saveHealthPath(_pathService.pathState);
+            }
+
+            if (mounted) setState(() {});
           },
         ),
       ),
     );
-    
+
     setState(() {});
   }
 
@@ -158,7 +173,7 @@ class _HealthPathScreenState extends State<HealthPathScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.card,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: AppColors.divider),
                         ),
                         child: Text(
                           'UNIT $level',

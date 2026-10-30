@@ -19,7 +19,6 @@ class XPBar extends StatelessWidget {
     final base = GamificationService.thresholdForLevel(level);
     final next = GamificationService.thresholdForLevel(level + 1);
     final progress = next <= base ? 1.0 : ((currentXP - base) / (next - base)).clamp(0.0, 1.0);
-    final toNext = next - currentXP;
 
     return GestureDetector(
       onTap: onTap,
@@ -28,7 +27,7 @@ class XPBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.divider),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -89,7 +88,7 @@ class XPBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
                       value: progress,
-                      backgroundColor: AppColors.border,
+                      backgroundColor: AppColors.divider,
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         Color(0xFF58CC02),
                       ),

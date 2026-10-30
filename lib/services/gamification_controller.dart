@@ -84,6 +84,19 @@ class GamificationController {
     _bump();
   }
 
+  /// Award a Duolingo-path lesson reward (XP + NutriCoins) through the real
+  /// gamified event path: queues a celebration, persists, bumps so the UI
+  /// rebuilds and the HomeScreen drains the celebration. Used by the health
+  /// path when a bite-sized lesson completes.
+  int awardPathReward(int xp, {int coins = 0}) {
+    state.calPoints += xp;
+    state.nutriCoins += coins;
+    celebrations.add(CelebrationEvent('points', '+$xp XP', amount: xp));
+    unawaited(persist());
+    _bump();
+    return xp;
+  }
+
   // ── Live values for the UI ────────────────────────────────────────────
   int get calPoints => state.calPoints;
   int get nutriCoins => state.nutriCoins;

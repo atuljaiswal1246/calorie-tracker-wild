@@ -1,6 +1,6 @@
 # Duolingo Implementation Log
 
-## Date: $(date)
+## Date: 2026-10-30
 
 ### Completed
 - [x] Created analysis doc (DUOLINGO_FOR_HEALTH_ANALYSIS.md)
@@ -8,19 +8,23 @@
 - [x] Studied existing gamification system
 - [x] Cloned reference repos for study
 - [x] Created HealthPath models and service
-- [x] Created path UI widgets (PathNodeWidget, PathConnectorPainter, DailyGoalRing, XPBar, StreakBadge)
-- [x] Created HealthPathScreen
+- [x] Built path UI widgets (PathNodeWidget, PathConnectorPainter, DailyGoalRing, XPBar, StreakBadge)
+- [x] Created HealthPathScreen with vertical Duolingo-style path
+- [x] Integrated HealthPathScreen as home tab
+- [x] Added Lesson model + LessonService (bite-sized lessons per node)
+- [x] Created LessonScreen (progress bar, hearts, intro→action→complete)
+- [x] **Closed the loop**: lesson reward → `awardPathReward` → mark node complete → persist path → next node unlocks
 
 ### Next Steps
-- [ ] Add HealthPathScreen to navigation (replace or add as tab)
-- [ ] Persist path progress to StorageService
-- [ ] Integrate with GamificationController for auto-completion
-- [ ] Add micro-animations and haptics polish
-- [ ] Create mockup and get approval
-- [ ] Test and iterate
+- [ ] Polish path rendering to true Duolingo curved path (current layout is a list)
+- [ ] Hearts lose/refill behavior on failed action
+- [ ] More lesson types + rewards
+- [ ] Visual mock approval before further code
+- [ ] Test + iterate
 
 ### Notes
 - Keeping all existing gamification logic intact
 - Following Duolingo UX patterns but adapted for health tracking
 - Using existing celebration system
 - Focus on bite-sized actions and immediate rewards
+- `flutter analyze` clean (0 errors) on all touched files; remaining infos are pre-existing baseline.

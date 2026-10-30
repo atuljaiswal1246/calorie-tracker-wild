@@ -72,9 +72,6 @@ class AppColors {
   static const sodium = Color(0xFF78909C);
 
   // ── Semantic (surface-adjacent tokens stay loud in dark too) ──────────
-  static Color get line => dark ? const Color(0xFF3A3B40) : const Color(0xFFE5E5EA);
-  static Color get divider => line;
-  static Color get border => line;
   
   static const green = Color(0xFF34C759);
   static const missedRed = Color(0xFFFF3B30);

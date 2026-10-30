@@ -4,7 +4,6 @@ import '../theme/app_colors.dart';
 import '../models/lesson.dart';
 import '../models/health_path.dart';
 import '../services/gamification_controller.dart';
-import '../widgets/celebration_overlay.dart';
 import 'capture_screen.dart';
 
 
@@ -76,26 +75,16 @@ class _LessonScreenState extends State<LessonScreen> with TickerProviderStateMix
 
   void _completeLesson() async {
     HapticFeedback.heavyImpact();
-    
-    final controller = GamificationController.instance;
-    if (controller != null) {
-      // Award XP and coins
-      controller.state.calPoints += widget.lesson.xpReward;
-      controller.state.nutriCoins += widget.lesson.coinReward;
-    }
-    
-    // Show celebration
-    if (mounted) {
-      CelebrationOverlay.show(
-        context,
-        emoji: widget.lesson.icon,
-        title: 'Lesson Complete!',
-        subtitle: '+${widget.lesson.xpReward} XP${widget.lesson.coinReward > 0 ? ' • +${widget.lesson.coinReward} Coins' : ''}',
-      );
-    }
-    
+
+    // Hearts refill on completion. The reward + journey progression are owned
+    // by the caller: onComplete goes through the gamified event path (award →
+    // celebrate → persist → bump) and then marks the node complete.
+    setState(() {
+      _hearts = 5;
+    });
+
     await Future.delayed(const Duration(milliseconds: 2500));
-    
+
     if (mounted) {
       widget.onComplete?.call();
       Navigator.of(context).pop(true);
@@ -194,7 +183,7 @@ class _LessonScreenState extends State<LessonScreen> with TickerProviderStateMix
                           borderRadius: BorderRadius.circular(10),
                           child: LinearProgressIndicator(
                             value: _progressController.value,
-                            backgroundColor: AppColors.border,
+                            backgroundColor: AppColors.divider,
                             valueColor: const AlwaysStoppedAnimation<Color>(
                               Color(0xFF58CC02),
                             ),

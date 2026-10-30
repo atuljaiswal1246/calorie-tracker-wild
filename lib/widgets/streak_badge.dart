@@ -78,7 +78,7 @@ class _StreakBadgeState extends State<StreakBadge>
                 border: Border.all(
                   color: hasStreak 
                       ? const Color(0xFFFFB347) 
-                      : AppColors.border,
+                      : AppColors.divider,
                   width: 2,
                 ),
               ),

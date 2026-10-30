@@ -21,7 +21,7 @@ class PathConnectorPainter extends CustomPainter {
     if (isCompleted) {
       paint.color = const Color(0xFF58CC02); // Duolingo green
     } else {
-      paint.color = AppColors.border.withValues(alpha: 0.4);
+      paint.color = AppColors.divider.withValues(alpha: 0.4);
     }
 
     final path = Path();

@@ -90,7 +90,7 @@ class _RingPainter extends CustomPainter {
 
     // Background ring
     final bgPaint = Paint()
-      ..color = AppColors.border
+      ..color = AppColors.divider
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;

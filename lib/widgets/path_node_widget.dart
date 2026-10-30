@@ -176,7 +176,7 @@ class _PathNodeWidgetState extends State<PathNodeWidget>
                   decoration: BoxDecoration(
                     color: AppColors.card,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.divider),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
