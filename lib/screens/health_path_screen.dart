@@ -4,13 +4,14 @@ import '../theme/app_colors.dart';
 
 import '../services/gamification_controller.dart';
 import '../services/health_path_service.dart';
+import '../services/lesson_service.dart';
 import '../models/health_path.dart';
 import '../widgets/path_node_widget.dart';
 import '../widgets/path_connector_painter.dart';
 import '../widgets/daily_goal_ring.dart';
 import '../widgets/xp_bar.dart';
 import '../widgets/streak_badge.dart';
-import '../widgets/celebration_overlay.dart';
+import 'lesson_screen.dart';
 
 class HealthPathScreen extends StatefulWidget {
   const HealthPathScreen({super.key});
@@ -37,21 +38,33 @@ class _HealthPathScreenState extends State<HealthPathScreen> {
     );
   }
 
-  void _onNodeTap(PathNode node) {
-    final result = _pathService.completeNode(node.id);
-    if (result.success && result.node != null) {
-      setState(() {});
-      
-      // Show celebration
-      CelebrationOverlay.show(
-        context,
-        emoji: result.node!.icon,
-        title: 'Great Job!',
-        subtitle: '+${result.xpEarned} XP${result.coinsEarned > 0 ? ' • +${result.coinsEarned} Coins' : ''}',
-      );
-      
-      HapticFeedback.heavyImpact();
-    }
+  void _onNodeTap(PathNode node) async {
+    final state = _pathService.pathState.getStateFor(
+      node.id,
+      _pathService.currentNode?.id,
+    );
+    
+    if (state != PathNodeState.current) return;
+    
+    HapticFeedback.mediumImpact();
+    
+    final lessons = LessonService.generateLessonsForPath(_pathService.path);
+    final lesson = lessons.firstWhere((l) => l.nodeId == node.id);
+    
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => LessonScreen(
+          lesson: lesson,
+          node: node,
+          onComplete: () {
+            _pathService.completeNode(node.id);
+            setState(() {});
+          },
+        ),
+      ),
+    );
+    
+    setState(() {});
   }
 
   @override
